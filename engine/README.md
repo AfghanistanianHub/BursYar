@@ -1,29 +1,34 @@
-# BursYar AI engine (isolated MVP)
+# BursYar AI engine — independent MVP foundation
 
-A minimal Node.js server foundation for scholarship guideline simplification and translation. This is **not yet production ready**. It does not fetch external URLs, write Firestore, authenticate Firebase users, or publish any scholarship automatically.
+Node 20+ HTTP service for simplified scholarship guidelines in English, Dari/Persian, and Pashto. This branch is isolated from CTO's paused project. Do not deploy publicly yet.
 
-## Run locally
-Use Node 20+:
-```sh
+## Local setup
+
+```bash
 cd engine
 npm test
-BURSYAR_INTERNAL_TOKEN="$(openssl rand -hex 32)" npm start
+export BURSYAR_INTERNAL_TOKEN="$(openssl rand -hex 32)"
+npm start
 ```
-GET `/health` checks readiness. POST `/v1/analyze` expects:
-```json
-{"text":"At least 30 characters of official scholarship text...","language":"fa"}
-```
-with `Authorization: Bearer <BURSYAR_INTERNAL_TOKEN>`. Without provider configuration it returns 503 rather than presenting fabricated AI output.
 
-## Provider adapter
-Configure `META_MODEL_ENDPOINT`, `META_API_KEY`, and `META_MODEL_ID` **server-side only**. The current adapter expects an OpenAI-compatible chat completions request/response. **Do not assume Meta's actual endpoint is compatible**: verify the official API specification and adapt the request/response format before any real inference. Never expose this endpoint directly to browsers or FlutterFlow with a shared secret. Place Firebase ID-token verification, per-user quotas and Firestore security controls in front of it first.
+To test actual Meta inference, set `MODEL_API_KEY` and `META_MODEL_ID` as **server-only** environment variables (never commit these values). API URL is fixed to the documented `https://api.meta.ai/v1/chat/completions`. Confirm the available model ID in the Meta dashboard; do not assume availability. The engine deliberately returns HTTP 503 if credentials are missing.
 
-## Required before deploy
-- Verify official Meta API request shape, authentication, supported response-format options, model and cost.
-- Add Firebase Auth JWT verification with correct issuer, audience and signature checks (or use Firebase Admin SDK securely).
-- Add per-user and per-IP rate limits, spend caps, observability and abuse controls.
-- Add approved-source provenance and a human review workflow, then Firestore storage with least-privilege rules.
-- Add real-world accuracy tests in English, Dari/Persian and Pashto plus accessibility testing.
-- Do not deploy publicly until reviewed.
+`GET /health` shows readiness. `POST /v1/analyze` requires bearer authentication and JSON with `text` (30–12000 characters) and `language` (`en`, `fa`, `ps`). Results are always flagged `requiresHumanReview: true`.
 
-This engine is intentionally isolated to avoid replacing CTO's earlier BursYar work if that source becomes available.
+## Verified development tests
+
+Three local unit tests passed with Node v22 on October 26, 2026. Tests cover request validation, prompt boundaries, and output parsing. **Live Meta inference, Firestore integration, deployment and end-to-end behavior have not been tested.**
+
+## Security and release blockers
+
+- Shared internal bearer token is **server-to-server only**; do not put it in FlutterFlow client apps or browser JavaScript.
+- Current in-memory rate limiter is only one-process protection, not durable user-level budget enforcement.
+- Implement Firebase ID token verification or a secure authenticated BFF, per-user quotas, distributed rate limits and spending limits before connecting real clients.
+- Add official scholarship source attribution and human approval of all generated content.
+- Add integration tests with Meta model and multilingual evaluation with real scholarship sources.
+- Keep API keys and Firebase credentials out of GitHub and logs.
+- The original CTO-generated code is not yet accessible. Evaluate and recover it before designing a replacement UI.
+
+Meta documentation: https://dev.meta.ai/docs/protocols/chat-completions
+
+This is a development milestone, not a released product.
