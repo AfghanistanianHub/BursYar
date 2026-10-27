@@ -6,7 +6,7 @@ import {homedir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-import {existingPrivateFile,validateKeychainConfig,rebootEnvironment} from './macos-config.mjs';
+import {existingPrivateFile,validateKeychainConfig,rebootEnvironment,KeychainAccessError} from './macos-config.mjs';
 const run=promisify(execFile),root=fileURLToPath(new URL('../',import.meta.url));
 const mode=process.argv[2]||'start';
 try{
@@ -26,12 +26,12 @@ try{
  if(mode==='setup'){
   const child=spawn(helper,['setup'],{stdio:'inherit'});child.once('error',()=>{console.error('Keychain dialog unavailable');process.exitCode=1;});child.once('exit',code=>{process.exitCode=code||0;});
  }else if(mode==='status'){
-  try{await run(helper,['status'],{timeout:10000});}catch{throw Error('Keychain entry missing or unavailable; no contents displayed.');}
+  try{await run(helper,['status'],{timeout:10000});}catch(error){throw new KeychainAccessError(error.stderr,error.code);}
   console.log('BursYar Keychain entry exists; contents not displayed.');
  }else{
   existingPrivateFile(join(dir,'firebase-admin.json'));existingPrivateFile(join(dir,'quota.sqlite'));
   let privateConfig;
-  try{const {stdout}=await run(helper,['read'],{timeout:60000,maxBuffer:16384});privateConfig=validateKeychainConfig(JSON.parse(stdout));}catch{throw Error('Keychain entry missing, locked or not authorized. Run npm run setup:mac and complete the secure macOS dialog.');}
+  try{const {stdout}=await run(helper,['read'],{timeout:60000,maxBuffer:16384});privateConfig=validateKeychainConfig(JSON.parse(stdout));}catch(error){throw new KeychainAccessError(error.stderr,error.code);}
   const saved=rebootEnvironment(privateConfig);
   if(mode==='check'){
    console.log(JSON.stringify({credentialsPresent:true,quotaDatabaseExists:true,spendingConfirmed:privateConfig.spendingConfirmed,liveInferenceVerified:false}));
@@ -46,5 +46,5 @@ try{
 }catch(error){
  // Only locally authored messages; execFile errors can contain captured secret stdout.
  const known=['Keychain entry missing or unavailable; no contents displayed.','macOS required','Use start, setup, status or check','Keychain entry missing, locked or not authorized. Run npm run setup:mac and complete the secure macOS dialog.'];
- console.error(known.includes(error.message)?error.message:'Secure startup unavailable. Verify private file ownership/permissions or macOS Keychain authorization; no credential details logged.');process.exitCode=1;
+ console.error(error instanceof KeychainAccessError||known.includes(error.message)?error.message:'Secure startup unavailable. Verify private file ownership/permissions or macOS Keychain authorization; no credential details logged.');process.exitCode=1;
 }

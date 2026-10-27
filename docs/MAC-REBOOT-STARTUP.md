@@ -29,3 +29,6 @@ The executable gateway requires `BURSYAR_SPENDING_CONFIRMED=1`, a positive finit
 After a reboot, no previous shell variables are needed. Node >=24.12, installed dependencies and the existing private directory remain prerequisites. The launcher will not kill occupied processes or reset quota state. Human translation review remains pending, and no public merge/deployment is implied.
 
 Apple references: https://developer.apple.com/documentation/security/using-the-keychain-to-manage-user-secrets ; https://developer.apple.com/documentation/security/ksecclassgenericpassword .
+
+
+If the launcher reports OSStatus -67674 (Module Directory Service), the calling process cannot use Keychain services. This does not mean the saved item is missing. Run start-bursyar.command from your normal logged-in Terminal; do not re-enter credentials or reset Keychain. Only an actual missing-item result requests setup. The agent may be unable to verify a credential saved successfully in the desktop session. Locked or denied access is reported separately, without exposing captured subprocess data.

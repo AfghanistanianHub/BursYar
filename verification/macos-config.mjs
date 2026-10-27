@@ -23,3 +23,11 @@ export function rebootEnvironment(config,home=homedir()){
  BURSYAR_SPENDING_CONFIRMED_AT:config.spendingConfirmed?config.confirmedAt:''
  };
 }
+// Classify only numeric OSStatus values; never surface raw stderr/captured output.
+export class KeychainAccessError extends Error {
+ constructor(stderr='',exitCode){
+  const status=typeof stderr==='string'?stderr.match(/operation unavailable \((-?\d+)\)/)?.[1]:undefined;
+  const message=exitCode===44?'BursYar Keychain entry was not found. Run npm run setup:mac in your logged-in Terminal.':status==='-67674'?'macOS Keychain service is unavailable to this process (OSStatus -67674). Run start-bursyar.command in your normal logged-in Terminal; do not re-enter the saved credential.':status==='-25308'?'macOS Keychain is locked or interaction is unavailable. Run startup in your logged-in Terminal and approve the macOS prompt.':status==='-25293'?'macOS denied Keychain authentication. Run startup in your logged-in Terminal and approve access.':'BursYar Keychain could not be read. Run startup in your logged-in Terminal; a missing credential has not been established.';
+  super(message);this.name='KeychainAccessError';
+ }
+}
