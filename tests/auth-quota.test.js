@@ -26,3 +26,29 @@ test('SQLite reservations survive restart; multiple connections share caps; fail
  }finally{a.close();b.close();rmSync(dir,{recursive:true,force:true});}
 });
 test('storage path and invalid limits fail closed',()=>{assert.throws(()=>new QuotaStore('relative.db',{}));});
+
+test('Firebase Admin verifier rejects malformed and unsigned tokens without live credentials',async()=>{
+ const {createFirebaseVerifier}=await import('../engine/auth.js');
+ const {deleteApp,getApp}=await import('firebase-admin/app');
+ const verify=createFirebaseVerifier({projectId:project,credential:{getAccessToken:async()=>{throw Error('No live credentials in test');}}});
+ try{
+ await assert.rejects(verify('not-a-jwt'));
+ const encode=x=>Buffer.from(JSON.stringify(x)).toString('base64url');
+ const unsigned=encode({alg:'none',typ:'JWT'})+'.'+encode({sub:'attacker',aud:project,iss:`https://securetoken.google.com/${project}`,iat:Math.floor(Date.now()/1000),exp:Math.floor(Date.now()/1000)+3600})+'.';
+ await assert.rejects(verify(unsigned));
+ }finally{await deleteApp(getApp('bursyar-inference'));}
+});
+
+test('independent worker processes cannot overspend the shared SQLite global cap',async()=>{
+ const {spawn}=await import('node:child_process');
+ const {pathToFileURL}=await import('node:url');
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-race-'));const path=join(dir,'quota.db');
+ const limits={userMinute:10,userDay:10,globalDay:1,lifetimeUnits:100};
+ const db=new QuotaStore(path,limits);db.close();
+ const moduleURL=pathToFileURL(join(process.cwd(),'engine/quota.js')).href;
+ const run=uid=>new Promise((resolve,reject)=>{
+ const script=`import {QuotaStore,QuotaExceeded} from ${JSON.stringify(moduleURL)};const q=new QuotaStore(${JSON.stringify(path)},${JSON.stringify(limits)});try{q.reserve(${JSON.stringify(uid)},10);process.stdout.write('reserved');}catch(e){if(!(e instanceof QuotaExceeded))throw e;process.stdout.write('denied');}finally{q.close();}`;
+ const child=spawn(process.execPath,['--input-type=module','-e',script],{stdio:['ignore','pipe','pipe']});let output='',errors='';child.stdout.on('data',x=>output+=x);child.stderr.on('data',x=>errors+=x);child.on('error',reject);child.on('exit',code=>code===0?resolve(output):reject(Error(errors)));
+ });
+ try{const outcomes=await Promise.all([run('one'),run('two'),run('three')]);assert.equal(outcomes.filter(x=>x==='reserved').length,1);assert.equal(outcomes.filter(x=>x==='denied').length,2);}finally{rmSync(dir,{recursive:true,force:true});}
+});
