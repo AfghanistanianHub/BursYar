@@ -3,7 +3,7 @@
 No routine approval is needed for local emulator, mocked integration, unit or browser tests. None of these prove live Meta inference or production Google sign-in.
 
 ## Secure provisioning needed from account owner
-Use the machine/process secret environment or an existing hosting secret manager. Do not put values in chat, GitHub issues, committed files, screenshots or browser logs. This session has no Firebase/Meta connector or credentials.
+Use the machine/process secret environment or an existing hosting secret manager. Do not put secrets in chat, GitHub issues, any repository files (including ignored .env files), screenshots or browser logs. This session has no Firebase/Meta connector or credentials.
 
 | Configuration | Where / action | Secret? |
 |---|---|---|
