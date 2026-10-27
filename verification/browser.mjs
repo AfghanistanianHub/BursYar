@@ -34,6 +34,13 @@ try {
   // Re-rendering via unrelated search must retain ephemeral source input.
   await page.locator('#search').fill('test');await expect(page.locator('#requirements')).toHaveValue('Applicants must provide academic transcripts. Tuition fees are covered.');
   responseStatus=429;await page.locator('#analyze-form button[type=submit]').click();await expect(page.locator('#analysis-result')).toContainText({en:'Quota',fa:'محدودیت',ps:'حد'}[language]);
+  for(const status of [502,503,504]){
+   responseStatus=status;await page.locator('#analyze-form button[type=submit]').click();
+   await expect(page.locator('#analyze-form')).not.toHaveAttribute('aria-busy','true');
+   await expect(page.locator('#analyze-form button[type=submit]')).toBeEnabled();
+   await expect(page.locator('.criterion')).toHaveCount(0);
+   await expect(page.locator('#analysis-result')).not.toContainText('test-error');
+  }
   await page.locator('#source-url').focus();await page.keyboard.press('Tab');await expect(page.locator('#requirements')).toBeFocused();
   await context.close();
  }

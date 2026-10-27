@@ -21,7 +21,7 @@ No client answers, tokens, source text or output are written to the quota DB. UI
 - Missing/expired/revoked/wrong-project/anonymous/unapproved token → 401 and zero inference calls.
 - Wrong origin → 403; invalid request → 400/413/415.
 - Exhausted user/global/lifetime quota → 429; storage unavailable → 503; no provider call.
-- Model failure, truncated/oversized output, invented excerpt → generic 502, charged reservation, no raw error/secret in response.
+- Provider timeout → generic 504; provider billing/rate-limit/unavailability → generic 503; invalid provider output, upstream credentials/model/request failures and rejected evidence → generic 502. All consume the reservation and return only Analysis unavailable. Structured stderr records contain a random requestId, stage, fixed code, numeric providerStatus and elapsedMs; never raw provider errors, source, output, identity or credentials.
 - Restart with same DB and verify budgets persist. Disable account/revoke token, verify denial.
 - Verify one real official scholarship in all 3 languages; manually compare every interpretation to excerpts and source. Exact quote matching does not prove semantic entailment; prompt injection and conflicting deadlines require real model evaluation.
 
@@ -32,3 +32,12 @@ Official references verified 2026-10-26:
 - https://firebase.google.com/docs/auth/admin/verify-id-tokens
 - https://firebase.google.com/docs/auth/admin/manage-sessions
 - https://dev.meta.ai/docs/protocols/chat-completions
+
+
+## Recovery launcher (2026-10-27)
+
+`npm run start:demo` runs from the existing credential-bearing shell after stopping only its original BursYar backend with Ctrl+C. It inherits all credentials and the exact persistent quota path/caps; never extracts a running process environment or reads Terminal history. It checks the configured model through authenticated `GET https://api.meta.ai/v1/models` without generating a completion. The configured model must appear; no fallback is selected. Public Firebase VITE configuration is inherited or retrieved using the existing ADC and read-only Firebase Management API when exactly one web app exists. Missing access fails safely without modifying permissions. Both services stay on loopback, use one terminal and stop together with Ctrl+C. It never performs an automatic paid inference or retry.
+
+`META_TIMEOUT_MS` is optional, defaults to the existing 20000 ms and must be an integer from 1 through 60000. A longer timeout is an operator decision after reading diagnostics, not an inferred fix for the historic 502. Gateway idle timeout is 70000 ms; frontend and live runner allow 75000 ms. Request/header/body/token/response bounds remain enforced. A provider-originated 504 is distinguishable from a local timeout by providerStatus (504 versus null). Failure codes distinguish provider authentication, billing, access, model-or-endpoint, request, rate limit, service, transport, timeout, content type, JSON, response size, schema, truncation, and evidence JSON/schema/excerpt/deadline/funding. Excerpts and translations are never logged. Human translation review remains pending.
+
+Current Meta protocol/model/error references: https://dev.meta.ai/docs/protocols/chat-completions ; https://dev.meta.ai/docs/models ; https://dev.meta.ai/docs/error-handling . The endpoint and existing chat request parameters are supported; the actual account-enabled model and historic failure remain unverified until the existing shell runs the check and an approved real request completes. Do not relabel mock success as live success.

@@ -11,7 +11,7 @@ try{
  if(gateway.origin!=='http://127.0.0.1:8080')throw Error('Live smoke runner restricted to local gateway');
  const source=await readOfficialSource();
  const start=performance.now();
- const response=await fetch(new URL('/api/analyze',gateway),{method:'POST',redirect:'error',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({text:source.text,sourceUrl:source.sourceUrl,language:'en'}),signal:AbortSignal.timeout(25000)});
+ const response=await fetch(new URL('/api/analyze',gateway),{method:'POST',redirect:'error',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({text:source.text,sourceUrl:source.sourceUrl,language:'en'}),signal:AbortSignal.timeout(75000)});
  report.httpStatus=response.status;report.latencyMs=Math.round(performance.now()-start);
  if(!response.ok)throw Error('Gateway did not return a successful analysis');
  const analysis=await response.json();

@@ -11,7 +11,8 @@
     "start:engine": "node engine/server.js",
     "test:emulator": "firebase emulators:exec --config firebase.emulator.json --project demo-bursyar --only auth,firestore \"node verification/emulator.mjs\"",
     "test:browser": "node verification/browser.mjs",
-    "test:live": "node verification/live-demo.mjs"
+    "test:live": "node verification/live-demo.mjs",
+    "start:demo": "node verification/start-demo.mjs"
   },
   "dependencies": {
     "firebase": "^13.1.0",
