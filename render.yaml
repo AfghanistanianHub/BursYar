@@ -1,0 +1,18 @@
+# Render Blueprint for a static preview of the independent BursYar frontend.
+# Does not deploy automatically until explicitly connected in Render.
+services:
+  - type: web
+    name: bursyar-web-preview
+    runtime: static
+    buildCommand: npm install --no-audit --no-fund && npm run build
+    staticPublishPath: ./dist
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
