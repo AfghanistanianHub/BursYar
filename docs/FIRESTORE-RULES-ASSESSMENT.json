@@ -1,0 +1,7 @@
+{
+  "score": 5,
+  "scope": "Proposed repository rules only; isolated Standard Firestore emulator, not deployed production configuration",
+  "summary": "Clients can only read published scholarship records. All client creates, updates and deletes, drafts, reviewer logs and other collections are denied. Published records must contain only intentionally public reviewed fields; rules do not hide individual fields.",
+  "findings": [],
+  "limitations": ["Not an audit of actual production rules or stored data", "Admin SDK bypasses rules; trusted publication process still requires independent controls", "Public published records are readable without identity by design; never publish private metadata"]
+}

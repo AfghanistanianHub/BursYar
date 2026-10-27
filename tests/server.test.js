@@ -8,7 +8,7 @@ import {QuotaStore} from '../engine/quota.js';
 const projectId='demo-bursyar';
 const text='Applicants must provide academic transcripts. Tuition fees are covered.';
 const body={text,sourceUrl:'https://university.example/award',language:'fa'};
-const result={criteria:[{kind:'transcripts',excerpt:'Applicants must provide academic transcripts.',en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],deadline:null,funding:['Tuition fees are covered.']};
+const result={criteria:[{kind:'transcripts',required:true,excerpt:'Applicants must provide academic transcripts.',en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],deadline:null,funding:['Tuition fees are covered.']};
 async function fixture(run,{infer=async()=>JSON.stringify(result),verify=async()=>({uid:'one',aud:projectId,iss:`https://securetoken.google.com/${projectId}`,bursyarDemo:true}),quotaOverride}={}){
  const dir=mkdtempSync(join(tmpdir(),'bursyar-http-'));
  const quota=new QuotaStore(join(dir,'quota.db'),{userMinute:2,userDay:3,globalDay:4,lifetimeUnits:200000});
