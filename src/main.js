@@ -1,3 +1,4 @@
+import {mountAnalyzer} from './analyzer.js';
 import './style.css';
 import {sampleScholarships,filterScholarships} from './catalog.js';
 import {translations} from './i18n.js';
@@ -13,6 +14,6 @@ document.querySelector('#search').addEventListener('input',e=>{state.q=e.target.
 for(const id of ['country','level'])document.querySelector('#'+id).addEventListener('change',e=>{state[id]=e.target.value;state.selected=null;render()});
 document.querySelectorAll('[data-id]').forEach(el=>el.addEventListener('click',()=>{state.selected=sampleScholarships.find(x=>x.id===el.dataset.id);render();document.querySelector('#detail .detail')?.focus()}));
 document.querySelector('#close-detail')?.addEventListener('click',()=>{state.selected=null;render()});
-document.querySelector('#analyze-form').addEventListener('submit',e=>{e.preventDefault();const el=document.querySelector('#analysis-result');el.hidden=false;el.textContent=t.preview;});
+mountAnalyzer(document.querySelector('#analyze-form'),state.language,esc);
 }
 render();

@@ -1,0 +1,29 @@
+import {findBarriers} from './pathfinder.js';
+export function mountAnalyzer(form, language, esc) {
+  const result=form.querySelector('#analysis-result');
+  const source=document.createElement('label');
+  source.textContent={en:'Official source URL',fa:'نشانی منبع رسمی',ps:'د رسمي سرچینې پته'}[language];
+  const url=document.createElement('input');url.type='url';url.required=true;url.name='sourceUrl';url.placeholder='https://';source.append(url);form.prepend(source);
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();result.hidden=false;
+    result.textContent={en:'Analyzing…',fa:'در حال بررسی…',ps:'د څېړنې په حال کې…'}[language];
+    const button=form.querySelector('button');button.disabled=true;
+    try {
+      // A same-origin authenticated BFF must supply /api/analyze. No browser shared token.
+      const response=await fetch('/api/analyze',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({text:form.querySelector('textarea').value,sourceUrl:url.value,language}),signal:AbortSignal.timeout(25000)});
+      if(!response.ok)throw new Error('unavailable');
+      const a=await response.json();
+      if(a.requiresHumanReview!==true || !Array.isArray(a.criteria) || !a.criteria.every(c=>typeof c.excerpt==='string' && typeof c.en==='string' && typeof c[language]==='string'))throw new Error('invalid');
+      result.innerHTML=`<p>${esc({en:'AI interpretation and translations — not human reviewed. Verify every requirement.',fa:'برداشت و ترجمهٔ هوش مصنوعی — بازبینی انسانی نشده است. هر شرط را تأیید کنید.',ps:'د مصنوعي ځیرکتیا تفسیر او ژباړې — انساني بیاکتنه نه ده شوې. هر شرط تایید کړئ.'}[language])}</p><p><a href="${esc(url.value)}" target="_blank" rel="noopener noreferrer">${esc(url.value)}</a></p>${a.criteria.map(c=>`<article><blockquote dir="auto">${esc(c.excerpt)}</blockquote><p lang="en" dir="ltr">${esc(c.en)}</p>${language!=='en'?`<p>${esc(c[language])}</p>`:''}</article>`).join('')}<p>${esc(a.deadline??{en:'Deadline: unknown',fa:'مهلت: نامشخص',ps:'وروستۍ نېټه: نامعلومه'}[language])}</p>`;
+      const fields=document.createElement('fieldset');fields.innerHTML=`<legend>${esc({en:'Optional document availability (stays in this page)',fa:'دسترسی اختیاری به اسناد (فقط در این صفحه)',ps:'اسنادو ته اختیاري لاسرسی (یوازې په دې پاڼه کې)'}[language])}</legend>`;
+      const answers={};
+      const guidance=document.createElement('div');guidance.setAttribute('aria-live','polite');
+      const update=()=>{guidance.replaceChildren();for(const r of findBarriers(a.criteria,answers)){const p=document.createElement('p');p.textContent=`${r.criterionId}: ${r.status} — ${r.action}`;p.lang='en';p.dir='ltr';guidance.append(p);}};
+      for(const [kind,label] of Object.entries({transcripts:{en:'Academic documents',fa:'اسناد تحصیلی',ps:'تحصیلي اسناد'},language_test:{en:'Language test',fa:'آزمون زبان',ps:'د ژبې ازموینه'},travel_document:{en:'Travel document',fa:'سند سفر',ps:'د سفر سند'}})){
+        const l=document.createElement('label');l.textContent=label[language];const s=document.createElement('select');
+        for(const [value,text] of Object.entries({unknown:{en:'Unknown / skip',fa:'نامشخص / رد کردن',ps:'نامعلوم / پرېښودل'},available:{en:'Available',fa:'موجود',ps:'شته'},unavailable:{en:'Unavailable',fa:'موجود نیست',ps:'نشته'}})){const o=document.createElement('option');o.value=value;o.textContent=text[language];s.append(o);}s.addEventListener('change',()=>{answers[kind]=s.value;update();});l.append(s);fields.append(l);
+      }result.append(fields,guidance);update();
+    }catch{result.textContent={en:'Analysis unavailable. A configured, authenticated Meta gateway is required. No analysis was generated.',fa:'بررسی در دسترس نیست. اتصال پیکربندی‌شده و احراز هویت‌شدهٔ متا لازم است. نتیجه‌ای تولید نشد.',ps:'څېړنه شتون نه لري. د میټا تنظیم شوې او تایید شوې دروازه اړینه ده. پایله نه ده جوړه شوې.'}[language];}
+    finally{button.disabled=false;}
+  });
+}
