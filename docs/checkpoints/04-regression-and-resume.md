@@ -31,3 +31,6 @@ Branch/base: feat/firebase-inference-quotas / feat/evidence-grounded-analyzer
 No CTO dependency; no billing upgrades; no production Firebase rule changes; no credentials committed; no public API deployment; no human verification claims for model output.
 
 The SHA containing this checkpoint is in Issue #4 and PR #6 milestone comments (avoids self-referential commit hash).
+
+## Documentation consistency follow-up
+Root README and engine README now point to the active Firebase route/runbook and no longer describe shared-token authentication as current. This documentation-only follow-up does not alter the tested implementation. Final commit and CI status are recorded in Issue #4/PR #6.
