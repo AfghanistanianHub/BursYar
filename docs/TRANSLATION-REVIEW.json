@@ -1,0 +1,7 @@
+{
+  "status": "PENDING_HUMAN_REVIEW",
+  "reviewers": [],
+  "languages": {"en": "semantic review pending", "fa": "Dari fluent reviewer required", "ps": "Pashto fluent reviewer required"},
+  "checks": ["Compare every criterion explanation with exact original excerpt", "Keep full-time/part-time and negative conditions", "Do not infer eligibility from nationality or missing documents", "Course-specific December/January timing is not an exact calendar deadline", "Distinguish no additional scholarship documents from graduate course requirements", "Preserve funding exclusions and historical stipend year", "Review localized error and PathFinder messages for clarity"],
+  "approvalRule": "An authorized fluent human must supply reviewer identity, timestamp and specific output digest before marking reviewed. Automated tests never approve translations."
+}

@@ -1,0 +1,79 @@
+{
+  "mode": "BROWSER_WITH_MOCK_AUTH_AND_API",
+  "liveMetaVerified": false,
+  "liveGoogleSignInVerified": false,
+  "cases": [
+    {
+      "language": "en",
+      "width": 320,
+      "overflow": false,
+      "accessibilityViolations": []
+    },
+    {
+      "language": "en",
+      "width": 390,
+      "overflow": false,
+      "accessibilityViolations": []
+    },
+    {
+      "language": "en",
+      "width": 768,
+      "overflow": false,
+      "accessibilityViolations": []
+    },
+    {
+      "language": "en",
+      "width": 1440,
+      "overflow": false,
+      "accessibilityViolations": []
+    },
+    {
+      "language": "fa",
+      "width": 320,
+      "overflow": false,
+      "accessibilityViolations": []
+    },
+    {
+      "language": "fa",
+      "width": 390,
+      "overflow": false,
+      "accessibilityViolations": []
+    },
+    {
+      "language": "fa",
+      "width": 768,
+      "overflow": false,
+      "accessibilityViolations": []
+    },
+    {
+      "language": "fa",
+      "width": 1440,
+      "overflow": false,
+      "accessibilityViolations": []
+    },
+    {
+      "language": "ps",
+      "width": 320,
+      "overflow": false,
+      "accessibilityViolations": []
+    },
+    {
+      "language": "ps",
+      "width": 390,
+      "overflow": false,
+      "accessibilityViolations": []
+    },
+    {
+      "language": "ps",
+      "width": 768,
+      "overflow": false,
+      "accessibilityViolations": []
+    },
+    {
+      "language": "ps",
+      "width": 1440,
+      "overflow": false,
+      "accessibilityViolations": []
+    }
+  ]
+}

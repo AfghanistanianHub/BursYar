@@ -1,6 +1,6 @@
 # BursYar inference demo runbook
 
-Status: implemented/tested with fake identity and provider at HTTP boundary; not live verified, not publicly deployed. Tracks #4; builds on #5. Node >=22.13 required (`node:sqlite`). Install from repository root using `npm ci`.
+Status: implemented/tested with fake identity and provider at HTTP boundary; not live verified, not publicly deployed. Tracks #4; builds on #5. Node >=24.12 required (`node:sqlite`). Install from repository root using `npm ci`.
 
 ## Server path
 Firebase Google sign-in → short-lived user ID token → same-origin POST /api/analyze → Admin SDK verification including revocation → project/issuer and bursyarDemo claim → input validation → atomic SQLite quota reservation → bounded Meta request → evidence validator → unreviewed result.

@@ -10,7 +10,7 @@ Draft PR #6 (`feat/firebase-inference-quotas`) is stacked on PR #5. Implemented:
 
 ## Setup and verification
 
-Node >=22.13 required. From repository root:
+Node >=24.12 required. From repository root:
 
 ```bash
 npm ci

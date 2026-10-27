@@ -35,7 +35,7 @@ try {
  const a=await google('alice@example.test'),b=await google('bob@example.test');
  const quota=new QuotaStore(join(dir,'quota.db'),{userMinute:1,userDay:2,globalDay:5,lifetimeUnits:100000});let calls=0;
  const source='Applicants must provide academic transcripts. Tuition fees are covered.';
- const inference={criteria:[{kind:'transcripts',excerpt:'Applicants must provide academic transcripts.',en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],deadline:null,funding:['Tuition fees are covered.']};
+ const inference={criteria:[{kind:'transcripts',required:true,excerpt:'Applicants must provide academic transcripts.',en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],deadline:null,funding:['Tuition fees are covered.']};
  server=createInferenceServer({projectId,origin:'http://localhost:5173',verify:token=>auth.verifyIdToken(token,true),quota,infer:async()=>{calls++;return JSON.stringify(inference);},maxConcurrent:10});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const post=(token,extra={})=>fetch(`http://127.0.0.1:${server.address().port}/api/analyze`,{method:'POST',headers:{'content-type':'application/json',...(token?{authorization:`Bearer ${token}`}:{})},body:JSON.stringify({text:source,sourceUrl:'https://example.edu/scholarship',language:'ps',...extra})});
