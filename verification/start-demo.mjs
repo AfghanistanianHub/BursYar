@@ -60,7 +60,8 @@ try{
  const {createServer:createVite}=await import('vite');
  const vite=await createVite({root,server:{host:'127.0.0.1',port:frontPort,strictPort:true,proxy:{'/api':{target:`http://127.0.0.1:${port}`,changeOrigin:false}}}});
  await vite.listen();process.once('SIGINT',()=>void vite.close());process.once('SIGTERM',()=>void vite.close());engine.once('exit',()=>void vite.close());
- console.log(`BursYar ready at ${origin.origin}. Use the existing Google demo sign-in; submit Oxford once. Ctrl+C stops both services.`);
+ console.log(env.BURSYAR_SPENDING_CONFIRMED==='1'?'Spending confirmation loaded; manual inference only.':'Live inference DISABLED: account spending limit is not confirmed.');
+ console.log(`BursYar ready at ${origin.origin}. Use the existing Google demo sign-in; submit Oxford only after spending confirmation. Ctrl+C stops both services.`);
 }catch(error){
  // All expected messages above are authored locally; suppress network/runtime details.
  const safe=/^(Existing environment missing |Demo frontend requires |Demo ports must be distinct valid ports|Port \d+ is occupied|Meta model-access check returned HTTP \d+; no inference attempted|Model catalog exceeds safe size|Invalid model catalog|Configured model absent|Invalid Firebase project ID|Public Firebase |Backend startup did not complete)/.test(error.message);

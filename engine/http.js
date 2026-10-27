@@ -12,7 +12,7 @@ async function readInput(req){
  for await(const chunk of req){size+=chunk.length;if(size>MAX_BODY)throw Object.assign(Error(),{status:413});chunks.push(chunk);}
  try{return validateEvidenceRequest(JSON.parse(Buffer.concat(chunks).toString('utf8')));}catch{throw Object.assign(Error(),{status:400});}
 }
-export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,diagnose=record=>console.error(JSON.stringify(record))}){
+export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,diagnose=record=>console.error(JSON.stringify(record))}){
  if(!verify || !projectId || !quota || !infer || !origin || !Number.isSafeInteger(maxConcurrent) || maxConcurrent<1)throw Error('Missing gateway configuration');
  let active=0;
  const server=createServer(async(req,res)=>{
@@ -25,6 +25,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
   try {
    let uid;try{uid=await authenticate(req.headers.authorization,verify,projectId);}catch{return send(res,401,{error:'Sign in with an approved account'});}
    const input=await readInput(req);
+   if(!canInfer())return send(res,503,{error:'Analysis unavailable'});
    const messages=evidencePrompt(input);
    // UTF-8 bytes conservatively bound input tokens; fixed maximum output reservation.
    const units=Buffer.byteLength(JSON.stringify(messages),'utf8')+4000;

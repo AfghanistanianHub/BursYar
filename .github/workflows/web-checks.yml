@@ -42,3 +42,15 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
+  macos-helper:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile native masked-entry and Keychain helper
+        run: swiftc -module-cache-path "$RUNNER_TEMP/bursyar-swift-cache" verification/macos/BursYarKeychain.swift -o "$RUNNER_TEMP/BursYarKeychain"
+      - name: Check missing-item path without prompting or reading secrets
+        run: |
+          set +e
+          "$RUNNER_TEMP/BursYarKeychain" status
+          result=$?
+          test "$result" -eq 44

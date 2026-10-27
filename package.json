@@ -12,7 +12,10 @@
     "test:emulator": "firebase emulators:exec --config firebase.emulator.json --project demo-bursyar --only auth,firestore \"node verification/emulator.mjs\"",
     "test:browser": "node verification/browser.mjs",
     "test:live": "node verification/live-demo.mjs",
-    "start:demo": "node verification/start-demo.mjs"
+    "start:demo": "node verification/start-demo.mjs",
+    "start:mac": "node verification/macos-start.mjs",
+    "setup:mac": "node verification/macos-start.mjs setup",
+    "check:mac": "node verification/macos-start.mjs check"
   },
   "dependencies": {
     "firebase": "^13.1.0",
