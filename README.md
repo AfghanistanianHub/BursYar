@@ -4,9 +4,11 @@ English, Dari/Persian and Pashto scholarship reader and bounded Barrier PathFind
 
 ## Current development status
 
-Draft PR #6 (`feat/firebase-inference-quotas`) is stacked on PR #5. Implemented: Firebase-authenticated server-side inference, approved demo access, durable SQLite user/global quotas, bounded Meta adapter, evidence excerpts/provenance and multilingual unreviewed results. Document availability stays in browser memory and never proves eligibility.
+Draft PR #9 is stacked on draft PR #8. The stack now reconciles main history while preserving the Firebase-authenticated gateway, durable quotas, Keychain configuration and spending gates. Implemented: evidence-selected conservative compiler, deterministic three-valued evaluation, source provenance, contradictory-threshold detection, isolated score/degree scenarios, multilingual UI and private local UTF-8 document review/profile storage.
 
-**Not an operational live demo yet.** Live Firebase/Meta credentials and identity flow, official-source evaluation, human translation review, browser/RTL and Firebase emulator testing remain release gates. The scholarship catalog is demo-only. No public backend deployment or production rules changes have been performed.
+**Live Meta and human translation review remain unverified.** Document extraction is a bounded text parser, not OCR or issuer verification. The compiler supports two narrow English rule forms; real complex admissions clauses remain unknown. A user-supplied source URL is not authenticated ingestion. No public deployment or production rules changes occurred.
+
+Read [the current demonstration and submission runbook](docs/HACKATHON-DEMO.md) and [mission checkpoint](docs/checkpoints/11-autonomous-mission.md) for executed evidence, limits, recovery and owner gates.
 
 ## Setup and verification
 
@@ -25,4 +27,4 @@ For actual inference, follow [the inference runbook](docs/INFERENCE-RUNBOOK.md):
 
 Read [checkpoint index](docs/checkpoints/README.md) and [latest regression checkpoint](docs/checkpoints/04-regression-and-resume.md). Commit SHAs, test evidence, limitations and exact next steps are recorded there and in Issue #4/PR #6.
 
-Product scope: [requirements](docs/PRODUCT-REQUIREMENTS.md), [execution plan](docs/EXECUTION-PLAN.md). Proposed firestore.rules have not been deployed; current rules tests are textual checks, not emulator verification.
+Product scope: [requirements](docs/PRODUCT-REQUIREMENTS.md), [execution plan](docs/EXECUTION-PLAN.md). Proposed firestore.rules have not been deployed; proposed rules are exercised only against isolated emulators; no production deployment is implied.
