@@ -37,7 +37,7 @@ Preserved the existing approved visual identity, source-evidence validation, Fir
 
 Final CI status is recorded below when available. Automated browser identity, source transport and Meta responses are fixtures, not real provider or institutional verification.
 
-- **121 Node tests passed**, zero failures/skips, on the final runtime code locally. Includes SSRF address classification, mixed DNS rejection, redirect revalidation/limits, connection pinning/peer checks, size/type/encoding limits, cancellation/deadlines, DNS-slot retention, receipt integrity/expiry, auth/origin checks and no-spend-before-analysis.
+- **122 Node tests passed**, zero failures/skips, on the final runtime code locally. Includes SSRF address classification, mixed DNS rejection, redirect revalidation/limits, connection pinning/peer checks, size/type/encoding limits, cancellation/deadlines, DNS-slot retention, receipt integrity/expiry, auth/origin checks and no-spend-before-analysis.
 - **33 offline evaluation assertions passed** using existing official-excerpt fixtures and synthetic Oxford scenarios. These evaluate deterministic handling, not live model semantic accuracy.
 - **47 Firebase Auth/Firestore Emulator checks passed** locally, with a fake model and the `demo-bursyar` project. No production Firebase operations.
 - Production build passed. Full npm dependency audit reported **0 known vulnerabilities**; that is dependency advisory evidence, not a security certification.
@@ -100,3 +100,5 @@ Reproduce with Node >=24.12, pinned package-lock and Java 21: `npm ci`, `npm tes
 The local emulator initially lacked Java on PATH; the existing temporary Java 21 runtime resolved it without a system install. npm used a task cache under `/tmp` because the default cache was unwritable. Local Chromium exited with SIGTRAP before testing, so browser assertions run in CI. None of these environmental failures is a product-test success claim.
 
 Next independent work: inspect final CI/browser artifacts; preserve zero-overflow and zero-axe-violation evidence; arrange human translations; verify live unpaid Oxford retrieval only where permitted; obtain existing correlated provider evidence or a new explicit single-call authorization. Paid inference, cap changes, production Firebase changes, merging, public deployment and submission remain owner gates. No credential, database, quota reset or Keychain migration is needed to resume.
+
+Final provenance refinement hashes original response bytes before UTF-8 decoding, so a byte-order mark remains represented by the wire digest even though the article text decoder omits it. A separate regression test covers this boundary.
