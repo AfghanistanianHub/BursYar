@@ -10,7 +10,7 @@ const copy={
 export function mountAnalyzer(form,language,esc,initial={}){
  const coverage={en:'Source authenticity, completeness, interpretation and translations require human verification. Missing fields are unknown. Compact AI output covers at most four selected requirements and two funding excerpts; inspect the retained source for other conditions.',fa:'اعتبار منبع، کامل بودن، برداشت و ترجمه‌ها نیاز به بررسی انسانی دارند. اطلاعات غایب نامشخص است. خروجی محدود هوش مصنوعی حداکثر چهار شرط و دو نقل‌قول مالی دارد؛ سایر شرایط را در منبع حفظ‌شده بررسی کنید.',ps:'د سرچینې اعتبار، بشپړتیا، تفسیر او ژباړې انساني کتنې ته اړتیا لري. ورک معلومات نامعلوم دي. لنډ ځیرک ځواب تر څلورو شرطونو او دوو مالي نقلونو پورې لري؛ نور شرطونه په ساتل شوې سرچینه کې وګورئ.'}[language];
  const t=copy[language]||copy.en,result=form.querySelector('#analysis-result'),submit=form.querySelector('button[type="submit"]');
- let controller;
+ let controller;form.barrierAnswers=initial.barrierAnswers??{};
  const source=document.createElement('label');source.textContent=t.source;
  const url=document.createElement('input');url.type='url';url.required=true;url.name='sourceUrl';url.id='source-url';url.placeholder='https://';url.value=initial.sourceUrl||'';url.dir='ltr';source.append(url);
  const textarea=form.querySelector('textarea');textarea.value=initial.text||'';
@@ -19,7 +19,7 @@ export function mountAnalyzer(form,language,esc,initial={}){
  const authStatus=document.createElement('p');authStatus.setAttribute('role','status');
  document.querySelector('#account-controls').append(login,logout,authStatus);form.querySelector('#source-entry').append(source);
  const approved=mountSourcePreview(form,url,textarea,submit,language,initial);
- form.addEventListener('bursyar:sourcechanged',()=>{controller?.abort();form.analysis=undefined;result.replaceChildren();result.hidden=true;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
+ form.addEventListener('bursyar:sourcechanged',()=>{controller?.abort();form.barrierAnswers={};form.analysis=undefined;result.replaceChildren();result.hidden=true;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
  login.addEventListener('click',async()=>{login.disabled=true;try{await signIn();document.dispatchEvent(new Event('bursyar:identity'));authStatus.textContent=t.signedIn;}catch{authStatus.textContent=t.authError;}finally{login.disabled=false;}});
  logout.addEventListener('click',async()=>{document.dispatchEvent(new Event('bursyar:identity'));controller?.abort();form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));try{await signOut();result.replaceChildren();result.hidden=true;authStatus.textContent=t.signedOut;}catch{authStatus.textContent=t.authError;}});
 
@@ -39,9 +39,9 @@ export function mountAnalyzer(form,language,esc,initial={}){
     const p=document.createElement('p');p.textContent=policy;const link=document.createElement('a');link.href='https://www.ox.ac.uk/admissions/graduate/application-guide/qualifications-experience-languages-funding/english-language-proficiency';link.textContent={en:'Official Oxford English-language guidance',fa:'لارښود رسمی زبان آکسفورد',ps:'د اکسفورډ رسمي ژبنی لارښود'}[language];link.target='_blank';link.rel='noopener noreferrer';p.append(document.createElement('br'),link);result.append(p);
    }
    const fields=document.createElement('fieldset');const legend=document.createElement('legend');legend.textContent=t.barriers;fields.append(legend);
-   const answers={},guidance=document.createElement('div');guidance.setAttribute('aria-live','polite');guidance.id='barrier-guidance';
+   const answers=form.barrierAnswers,guidance=document.createElement('div');guidance.setAttribute('aria-live','polite');guidance.id='barrier-guidance';
    const update=()=>{guidance.replaceChildren();for(const r of findBarriers(a.criteria,answers)){const p=document.createElement('p'),content=barrierText(r,language);p.textContent=`${content.status} — ${content.action}`;p.dataset.criterion=r.criterionId;guidance.append(p);}};
-   for(const kind of ['transcripts','language_test','travel_document']){const label=document.createElement('label');label.textContent=t[kind];const select=document.createElement('select');select.name=kind;for(const [value,key]of [['unknown','skip'],['available','available'],['unavailable','unavailable']]){const option=document.createElement('option');option.value=value;option.textContent=t[key];select.append(option);}select.addEventListener('change',()=>{answers[kind]=select.value;update();});label.append(select);fields.append(label);}
+   for(const kind of ['transcripts','language_test','travel_document']){const label=document.createElement('label');label.textContent=t[kind];const select=document.createElement('select');select.name=kind;for(const [value,key]of [['unknown','skip'],['available','available'],['unavailable','unavailable']]){const option=document.createElement('option');option.value=value;option.textContent=t[key];select.append(option);}select.value=answers[kind]??'unknown';select.addEventListener('change',()=>{answers[kind]=select.value;update();});label.append(select);fields.append(label);}
    result.append(fields,guidance);update();
  }
  if(initial.analysis)renderAnalysis(initial.analysis.data,new URL(initial.analysis.url));

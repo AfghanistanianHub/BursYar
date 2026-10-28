@@ -43,7 +43,7 @@ try {
   await zoomStyle.evaluate(el=>el.remove());
   await page.locator('#source-url').focus();await page.keyboard.press('Tab');await expect(page.locator('#fetch-source')).toBeFocused();
   if(width===390){
-   await page.locator('#eligibility-example summary').click();
+   await page.locator('#eligibility-example > summary').click();
    await page.locator('#eligibility-form [name=degree]').selectOption('bachelor');
    await page.locator('#eligibility-form [name=hasTest]').check();
    await expect(page.locator('#eligibility-result')).toHaveAttribute('data-status','not_met');
@@ -65,7 +65,7 @@ try {
   if(language!=='en')await expect(page.locator(`.criterion [lang=${language}]`)).toBeVisible();
   await page.locator('[name=transcripts]').selectOption('unavailable');
   await expect(page.locator('#barrier-guidance')).toContainText({en:'Potential mismatch',fa:'ناسازگاری احتمالی',ps:'احتمالي نه سمون'}[language]);
-  await page.locator('#language').selectOption(language==='en'?'fa':'en');await expect(page.locator('.criterion')).toBeVisible();await page.locator('#language').selectOption(language);await expect(page.locator('.criterion')).toBeVisible();expect(calls).toBe(1);
+  await page.locator('#language').selectOption(language==='en'?'fa':'en');await expect(page.locator('.criterion')).toBeVisible();await page.locator('#language').selectOption(language);await expect(page.locator('.criterion')).toBeVisible();await expect(page.locator('[name=transcripts]')).toHaveValue('unavailable');expect(calls).toBe(1);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);if(overflow)console.log(JSON.stringify({language,width,overflowElements:await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(el=>el.getBoundingClientRect().right>innerWidth+1||el.getBoundingClientRect().left< -1).map(el=>({tag:el.tagName,id:el.id,class:el.className,width:el.getBoundingClientRect().width})).slice(0,20))}));expect(overflow).toBe(false);
   const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
   report.cases.push({language,width,overflow,accessibilityViolations:axe.violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.length}))});
