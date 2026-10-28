@@ -14,3 +14,4 @@
 @media(max-width:600px){#eligibility-demo .eligibility-scores:not([hidden]){grid-template-columns:1fr}}
 
 #documents form{display:grid;gap:14px;max-width:660px}#documents label{display:flex;flex-wrap:wrap;gap:8px;align-items:center}#documents input,#documents select{max-width:100%;min-height:44px}#documents button{min-height:44px;padding:10px;margin-block:8px}#documents pre{white-space:pre-wrap;overflow-wrap:anywhere}#documents fieldset{min-width:0}#documents blockquote{overflow-wrap:anywhere}
+#documents form,#documents label{min-width:0}#documents input[type=file]{width:100%;min-width:0}#documents button{max-width:100%;white-space:normal;overflow-wrap:anywhere}#eligibility-demo li{overflow-wrap:anywhere}
