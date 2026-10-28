@@ -53,3 +53,5 @@ test('missing explicit evidence and unsupported clauses stay unknown',()=>{
   const x=assessScholarship([{...rules[0],sourceExcerpt:''},{...rules[1],test:'TOEFL iBT'}],{degree:f('master'),languageTest:f(testScore(7))});
   assert.deepEqual(x.results.map(r=>r.status),['unknown','unknown']);
 });
+
+test('empty rules do not count as success',()=>{assert.equal(assessScholarship([],{}).summary,'unknown');});
