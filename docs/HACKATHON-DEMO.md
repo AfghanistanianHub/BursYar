@@ -1,3 +1,5 @@
+> Current handoff: [28 October readiness report](HACKATHON-READINESS-2026-10-28.md), draft PR #12 stacked on #11. Older current-status/setup claims below are historical. Successful live inference remains unverified without correlated provider/validation evidence.
+
 # BursYar demonstration and submission runbook
 
 Prepared 2026-10-27 (America/Vancouver). Deadline supplied by owner: before November 4, 2026. This is a preparation package, not confirmation that an external submission has been filed. Hackathon portal, official rules, required video length and submission URL were not supplied.

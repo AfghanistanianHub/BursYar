@@ -22,6 +22,7 @@ mkdirSync('verification/artifacts',{recursive:true});
 try {
  for(const language of ['en','fa','ps'])for(const width of [320,390,768,1440]){
   const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();
+  await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{const note=document.createElement('p');note.textContent='OFFLINE REHEARSAL — mocked identity and Meta; synthetic applicant data';note.setAttribute('role','note');note.style.cssText='padding:12px;background:#fff;color:#111;border:2px solid #111';document.body.prepend(note);},{once:true}));
   // Test-only network interception, not a runtime bypass or simulated live verification.
   await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function getInferenceToken(){return "browser-test-only";}'}));
   await page.route(/\/api\/(documents|profile)/,async route=>{const request=route.request();const response=await fetch(apiUrl+new URL(request.url()).pathname,{method:request.method(),headers:{authorization:request.headers().authorization,origin:baseUrl,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});});
