@@ -11,10 +11,10 @@ const copy={
  fa:{title:'بررسی شرایط تحصیلی',disclaimer:'نمونه آفلاین با شرایط کاملاً فرضی است. هیچ سند یا نمره‌ای تأیید نشده و این ارزیابی مربوط به بورسیه واقعی نیست.',degree:'بالاترین مدرک تحصیلی (اظهار کاربر)',missing:'ارائه نشده',secondary:'مکتب',bachelor:'لیسانس',master:'ماستری',doctorate:'دوکتورا',overall:'نمره مجموع آیلتس',bands:['شنیدن','خواندن','نوشتن','صحبت کردن'],test:'نتیجه آیلتس اکادمیک دارم (اظهار کاربر)',real:'ارزیابی اطلاعات فعلی',future:'اگر نمره مجموع آیلتس تغییر کند چه می‌شود؟',simulate:'مقایسه سناریوی فرضی',state:{met:'شروط نمونه برآورده شده‌اند (تأیید نشده)',not_met:'یک یا چند شرط برآورده نشده است',unknown:'به علت اطلاعات ناکافی نتیجه مشخص نیست'},next:'نداشتن سند زبان به معنای ضعف انگلیسی نیست. پیش از ثبت‌نام آزمون، شرایط پذیرش دانشگاه واقعی را بررسی کنید.',fiction:'شرایط بورسیه فرضی',hypothetical:'نتیجه فرضی است؛ پروفایل واقعی تغییر نکرده',yes:'بله',no:'خیر'},
  ps:{title:'د وړتیاوو ارزونه',disclaimer:'دا یوازې د فرضي شرایطو آفلاین بېلګه ده. هېڅ سند یا نمره نه ده تایید شوې او د واقعي بورس ارزونه نه ده.',degree:'لوړه زده کړه (ستاسې وینا)',missing:'نه ده ورکړل شوې',secondary:'ثانوي',bachelor:'لېسانس',master:'ماسټري',doctorate:'دوکتورا',overall:'د IELTS عمومي نمره',bands:['اورېدل','لوستل','لیکل','خبرې کول'],test:'د IELTS Academic پایله لرم (خپله وینا)',real:'د اوسني پروفایل ارزونه',future:'که د IELTS نمره بدله شي، څه پېښېږي؟',simulate:'د فرضي حالت پرتله',state:{met:'د بېلګې شرطونه پوره دي (نه دي تایید شوي)',not_met:'ځینې شرطونه نه دي پوره شوي',unknown:'د معلوماتو د نشتوالي له امله نامعلوم'},next:'د ژبې سند نه لرل د انګلیسي کمزوري نه ثابتوي. د ازموینې له ثبت مخکې د پوهنتون شرطونه وګورئ.',fiction:'د فرضي بورس شرطونه',hypothetical:'فرضی پایله؛ اصلي پروفایل نه دی بدل شوی',yes:'هو',no:'نه'}
 };
-let savedFields={},approvedProfile={};
-document.addEventListener('bursyar:identity',()=>{savedFields={};approvedProfile={};document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
+let savedFields={},approvedProfile={},lastScenario=false;
+document.addEventListener('bursyar:identity',()=>{savedFields={};approvedProfile={};lastScenario=false;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
 document.addEventListener('bursyar:profile',event=>{
- approvedProfile=event.detail??{};
+ lastScenario=false;approvedProfile=event.detail??{};
  savedFields={degree:approvedProfile.degree?.value??'',hasTest:!!approvedProfile.languageTest};
  const test=approvedProfile.languageTest?.value;
  if(test){savedFields.overall=test.overall;for(const key of ['listening','reading','writing','speaking'])savedFields[key]=test.bands?.[key]??'';}
@@ -56,7 +56,7 @@ export function mountEligibility(root,language='en',compilation=null){
   savedFields=Object.fromEntries([...form.elements].filter(el=>el.name).map(el=>[el.name,el.type==='checkbox'?el.checked:el.value]));
   scores.hidden=!form.elements.namedItem('hasTest').checked;const assessment=assessScholarship(rules,snapshot());form.querySelector('#eligibility-result').dataset.status=assessment.summary;form.querySelector('#eligibility-result').textContent=t.state[assessment.summary];
   const gaps=planGaps(assessment);form.querySelector('#eligibility-details').innerHTML=assessment.results.map(r=>`<li data-status="${r.status}" data-requirement="${escape(r.requirementId)}"><blockquote dir="auto">${escape(r.source.excerpt)}</blockquote><p>${escape(t.state[r.status])}</p>${gaps.some(g=>g.requirementId===r.requirementId)?`<p>${escape(actionText[language][gaps.find(g=>g.requirementId===r.requirementId).action])}</p>`:''}</li>`).join('');form.querySelector('#eligibility-future').textContent='';}
- form.addEventListener('input',render);form.addEventListener('change',render);
+ form.addEventListener('input',()=>{lastScenario=false;render();});form.addEventListener('change',()=>{lastScenario=false;render();});
  form.querySelector('#eligibility-simulate').addEventListener('click',()=>{
   const value=form.elements.namedItem('futureScore').value;
   if(!form.elements.namedItem('hasTest').checked || value==='' || !Number.isInteger(Number(value)*2)||Number(value)<0||Number(value)>9){
@@ -65,7 +65,8 @@ export function mountEligibility(root,language='en',compilation=null){
   const profile=snapshot(),hypothetical=structuredClone(profile.languageTest.value);
   hypothetical.overall=Number(value);
   const compared=simulate(rules,profile,{languageTest:hypothetical});
+  lastScenario=true;form.querySelector('#eligibility-future').dataset.status=compared.scenario.summary;
   form.querySelector('#eligibility-future').textContent=t.hypothetical+': '+t.state[compared.scenario.summary];
  });
- render();
+ render();if(lastScenario)form.querySelector('#eligibility-simulate').click();
 }
