@@ -1,3 +1,4 @@
+import {journeyCopy} from './journey-copy.js';
 import {getInferenceToken} from './auth.js';
 const copy={
  en:{fetch:'Fetch scholarship page',loading:'Retrieving public page…',manual:'Manual text fallback',review:'Review the extracted source below. Web content and linked pages are unverified; course-specific conditions may remain unresolved.',approve:'I reviewed this source and approve sending this text for AI analysis.',error:'This page could not be retrieved safely. It may be blocked, too large, or unsupported. Use the manual text fallback.',auth:'Sign in with an approved demo account before fetching.',busy:'Retrieval limit reached. Wait a minute and try again.',status:'Retrieved',original:'Requested URL',digest:'Extracted text SHA-256',links:'Same-site links to review manually (not fetched)',changed:'Source changed. Review and approve it again.',translation:'Dari and Pashto translations await fluent human review.'},
@@ -14,24 +15,25 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
  const preview=document.createElement('div');preview.className='source-preview';preview.hidden=true;
  const label=document.createElement('label'),approval=document.createElement('input');approval.type='checkbox';approval.id='source-approved';label.append(approval,document.createTextNode(t.approve));
  const warning=document.createElement('p');warning.textContent=t.translation;
- url.parentElement.after(fetchButton,manual,status,preview,label,warning);
+ url.parentElement.after(fetchButton,manual,status,preview);form.querySelector('#analysis-consent').prepend(label,warning);fetchButton.className='primary-link';manual.className='text-button';
  let controller;
  form.sourceReceipt=initial.receipt??null;approval.checked=initial.sourceApproved===true;
- const sync=()=>{form.sourceApproved=approval.checked;submit.disabled=!approval.checked;};
+ const sync=()=>{const hasText=textarea.value.trim().length>0;form.querySelector('#source-text').hidden=!hasText&&!form.manualMode;form.querySelector('#analysis-consent').hidden=!hasText;fetchButton.classList.toggle('secondary',hasText);form.sourceApproved=approval.checked;submit.disabled=!approval.checked;};
  approval.addEventListener('change',sync);
  const invalidate=()=>{form.dispatchEvent(new Event('bursyar:sourcechanged'));controller?.abort();approval.checked=false;form.sourceReceipt=null;form.sourcePreview=null;preview.hidden=true;sync();};
  url.addEventListener('input',()=>{if(form.sourceReceipt){textarea.value='';textarea.readOnly=false;}invalidate();});textarea.addEventListener('input',()=>{invalidate();status.textContent=t.changed;});
- manual.addEventListener('click',()=>{invalidate();textarea.readOnly=false;textarea.focus();});
- function render(data){preview.replaceChildren();preview.hidden=false;
+ manual.addEventListener('click',()=>{invalidate();textarea.readOnly=false;form.manualMode=true;sync();textarea.focus();});
+ function render(data){preview.replaceChildren();preview.hidden=false;const heading=document.createElement('h2');heading.textContent='1 · '+journeyCopy[language].overview;const host=document.createElement('p');host.textContent=new URL(data.receipt.sourceUrl).hostname;host.dir='ltr';preview.append(heading,host);
   const note=document.createElement('p');note.textContent=t.review;preview.append(note);
-  for(const [key,value]of [[t.status,data.receipt.retrievedAt],[t.original,data.receipt.requestedUrl],[t.digest,data.receipt.digest]]){const p=document.createElement('p');p.className='source-digest';p.textContent=`${key}: ${value}`;p.dir='auto';preview.append(p);}
+  const metadata=document.createElement('details'),metaSummary=document.createElement('summary');metaSummary.textContent=journeyCopy[language].evidence;metadata.append(metaSummary);preview.append(metadata);
+  for(const [key,value]of [[t.status,data.receipt.retrievedAt],[t.original,data.receipt.requestedUrl],[t.digest,data.receipt.digest]]){const p=document.createElement('p');p.className='source-digest';p.textContent=`${key}: ${value}`;p.dir='auto';metadata.append(p);}
   const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent=t.links;details.append(summary);
   for(const href of data.links){const p=document.createElement('p'),a=document.createElement('a');a.href=href;a.textContent=href;a.dir='ltr';a.target='_blank';a.rel='noopener noreferrer';p.append(a);details.append(p);}preview.append(details);
  }
  fetchButton.addEventListener('click',async()=>{
   invalidate();const current=controller=new AbortController();fetchButton.disabled=true;status.textContent=t.loading;
   try{const token=await getInferenceToken().catch(()=>{throw Object.assign(Error(),{status:401});});const response=await fetch('/api/source',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({url:url.value}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(15000)])});if(!response.ok){const problem=await response.json().catch(()=>({}));throw Object.assign(Error(),{status:response.status,code:problem.code});}const data=await response.json();if(current.signal.aborted||!form.isConnected)return;
-   textarea.value=data.text;textarea.readOnly=true;url.value=data.receipt.sourceUrl;form.sourceReceipt=data.receipt;form.sourcePreview=data;render(data);status.textContent=t.review;
+   textarea.value=data.text;textarea.readOnly=true;url.value=data.receipt.sourceUrl;form.sourceReceipt=data.receipt;form.sourcePreview=data;render(data);sync();status.textContent=t.status;status.dir='auto';
   }catch(error){if(!current.signal.aborted&&form.isConnected)status.textContent=error.status===401?t.auth:error.status===429?t.busy:failure(error.code);}
   finally{if(controller===current)fetchButton.disabled=false;}
  });

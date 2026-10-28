@@ -17,17 +17,17 @@ export function mountAnalyzer(form,language,esc,initial={}){
  const login=document.createElement('button');login.type='button';login.textContent=t.login;
  const logout=document.createElement('button');logout.type='button';logout.textContent=t.logout;
  const authStatus=document.createElement('p');authStatus.setAttribute('role','status');
- form.prepend(login,logout,authStatus,source);
+ document.querySelector('#account-controls').append(login,logout,authStatus);form.querySelector('#source-entry').append(source);
  const approved=mountSourcePreview(form,url,textarea,submit,language,initial);
  form.addEventListener('bursyar:sourcechanged',()=>{controller?.abort();form.analysis=undefined;result.replaceChildren();result.hidden=true;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
  login.addEventListener('click',async()=>{login.disabled=true;try{await signIn();document.dispatchEvent(new Event('bursyar:identity'));authStatus.textContent=t.signedIn;}catch{authStatus.textContent=t.authError;}finally{login.disabled=false;}});
  logout.addEventListener('click',async()=>{document.dispatchEvent(new Event('bursyar:identity'));controller?.abort();form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));try{await signOut();result.replaceChildren();result.hidden=true;authStatus.textContent=t.signedOut;}catch{authStatus.textContent=t.authError;}});
 
  function renderAnalysis(a,submittedSource){
-   form.analysis={data:a,url:submittedSource.href};result.hidden=false;
+   form.analysis={data:a,url:submittedSource.href};result.hidden=false;form.querySelector('#requirements-step').hidden=false;
    document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:a.compilation??null}));
    const evidence=items=>items.length?`<ul>${items.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:`<p>${esc(t.unknown)}</p>`;
-   result.innerHTML=`<p class="review-note">${esc(t.review)}</p><h3>${esc(t.provenance)}</h3><p><a href="${esc(submittedSource.href)}" target="_blank" rel="noopener noreferrer" dir="ltr">${esc(submittedSource.href)}</a></p><p>${esc(t.unreviewed)}</p><p>${esc(t.analyzed)}: <bdi>${esc(a.analyzedAt)}</bdi></p><p class="source-digest">${esc(t.digest)}: <bdi>${esc(a.sourceDigest)}</bdi></p>${a.criteria.map(c=>`<article class="criterion"><blockquote dir="auto">${esc(c.excerpt)}</blockquote><p lang="en" dir="ltr">${esc(c.en)}</p>${language!=='en'?`<p lang="${language}" dir="rtl">${esc(c[language])}</p>`:''}</article>`).join('')}<h3>${esc(t.deadline)}</h3><p dir="auto">${esc(a.deadline??t.unknown)}</p><h3>${esc(t.funding)}</h3>${evidence(a.funding)}<h3>${esc(t.uncertainties)}</h3>${evidence(a.uncertainties.map(x=>x.startsWith('Source authenticity, completeness, interpretation and translations require human verification.')?coverage:x))}`;
+   result.innerHTML=`<p class="review-note">${esc(t.review)}</p><details><summary>${esc(t.provenance)}</summary><p><a href="${esc(submittedSource.href)}" target="_blank" rel="noopener noreferrer" dir="ltr">${esc(submittedSource.href)}</a></p><p>${esc(t.unreviewed)}</p><p>${esc(t.analyzed)}: <bdi>${esc(a.analyzedAt)}</bdi></p><p class="source-digest">${esc(t.digest)}: <bdi>${esc(a.sourceDigest)}</bdi></p></details>${a.criteria.map(c=>`<article class="criterion"><blockquote dir="auto">${esc(c.excerpt)}</blockquote><p lang="en" dir="ltr">${esc(c.en)}</p>${language!=='en'?`<p lang="${language}" dir="rtl">${esc(c[language])}</p>`:''}</article>`).join('')}<h3>${esc(t.deadline)}</h3><p dir="auto">${esc(a.deadline??t.unknown)}</p><h3>${esc(t.funding)}</h3>${evidence(a.funding)}<h3>${esc(t.uncertainties)}</h3>${evidence(a.uncertainties.map(x=>x.startsWith('Source authenticity, completeness, interpretation and translations require human verification.')?coverage:x))}`;
    if(a.compilation?.inventory){
     const labels={en:{title:'Full source and retained conditions',note:'All submitted source text is retained. Tags are unreviewed navigation aids. Compact AI selections are not complete eligibility coverage.',mandatory:'Mandatory candidate',exclusion:'Exclusion',preference:'Selection preference',deadline:'Course deadline',funding:'Funding',unknown:'Needs review'},fa:{title:'منبع کامل و شرایط حفظ‌شده',note:'تمام متن ارسالی حفظ شده است. برچسب‌ها راهنمای بازبینی‌نشده‌اند؛ انتخاب محدود هوش مصنوعی پوشش کامل شرایط نیست.',mandatory:'شرط احتمالی الزامی',exclusion:'محرومیت',preference:'معیار ترجیحی',deadline:'مهلت دوره',funding:'حمایت مالی',unknown:'نیاز به بررسی'},ps:{title:'بشپړه سرچینه او ساتل شوي شرطونه',note:'ټول لېږل شوی متن ساتل شوی. نښې د لارښوونې لپاره دي، نه دي بیاکتل شوې؛ د ځیرکتیا ټاکنې بشپړ شرایط نه دي.',mandatory:'احتمالي لازمي شرط',exclusion:'محرومیت',preference:'د ټاکنې ترجیح',deadline:'د دورې مهلت',funding:'مالي ملاتړ',unknown:'بیاکتنې ته اړتیا'}}[language];
     const details=document.createElement('details');details.className='source-inventory';
@@ -47,7 +47,7 @@ export function mountAnalyzer(form,language,esc,initial={}){
  if(initial.analysis)renderAnalysis(initial.analysis.data,new URL(initial.analysis.url));
  form.addEventListener('submit',async event=>{
   event.preventDefault();if(!approved())return;form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));controller?.abort();const current=controller=new AbortController();
-  result.hidden=false;result.textContent=t.loading;form.setAttribute('aria-busy','true');submit.disabled=true;
+  form.querySelector('#requirements-step').hidden=false;result.hidden=false;result.textContent=t.loading;form.setAttribute('aria-busy','true');submit.disabled=true;
   try{
    const token=await getInferenceToken().catch(()=>{throw Object.assign(Error(),{status:401});});
    const submittedSource=new URL(url.value);if(submittedSource.protocol!=='https:'||submittedSource.username||submittedSource.password)throw Error();
