@@ -20,18 +20,18 @@ export function mountDocuments(root,language='en'){
  const load=element('button',t.load);load.type='button';
  const l=libraryCopy[language]??libraryCopy.en;const library=element('fieldset');element('legend',l.title,library);const chooser=element('select','',library);chooser.setAttribute('aria-label',l.title);const refresh=element('button',l.refresh,library);refresh.type='button';const open=element('button',l.open,library);open.type='button';
  const status=element('p');status.setAttribute('role','status');const content=element('div');
- async function api(path,method='GET',body){if(mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();const r=await fetch(path,{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error();const data=await r.json();if(epoch!==identityEpoch)throw Error();return data;}
+ async function api(path,method='GET',body){if(mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();if(epoch!==identityEpoch)throw Error();const r=await fetch(path,{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error();const data=await r.json();if(epoch!==identityEpoch)throw Error();return data;}
  const publish=profile=>document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:profile}));
  async function busy(action){for(const button of section.querySelectorAll('button'))button.disabled=true;try{await action();}catch{status.textContent=t.error;}finally{for(const button of section.querySelectorAll('button'))button.disabled=false;open.disabled=!chooser.value;}}
  async function refreshLibrary(){const items=await api('/api/documents');chooser.replaceChildren();for(const [i,item]of items.entries()){const date=new Intl.DateTimeFormat(language==='fa'?'fa-AF':language==='ps'?'ps-AF':'en',{dateStyle:'medium',timeStyle:'short'}).format(new Date(item.uploadedAt));const option=element('option',`${new Intl.NumberFormat(language).format(i+1)} · ${date} · ${item.reviewed?l.reviewed:l.pending}`,chooser);option.value=item.id;}if(!items.length){const option=element('option',l.empty,chooser);option.value='';}open.disabled=!chooser.value;}
  refresh.addEventListener('click',()=>busy(refreshLibrary));open.addEventListener('click',()=>busy(async()=>{if(!chooser.value)return;current=await api('/api/documents/'+chooser.value);show(current);}));open.disabled=true;
  load.addEventListener('click',()=>busy(async()=>{publish(await api('/api/profile'));status.textContent=t.done;}));
  function show(doc){
-  content.replaceChildren();element('p',t.pending,content);
+  content.replaceChildren();element('p',doc.reviewedAt?t.done:t.pending,content);
   const source=element('pre',doc.text,content);source.dir='auto';
   const review=element('form','',content),editors=[];
   if(!doc.pending.length)element('p',doc.reviewedAt?t.done:t.empty,review);
-  for(const claim of doc.pending){
+  for(const claim of doc.reviewedAt?[]:doc.pending){
    const field=element('fieldset','',review);field.className='document-claim';element('legend',t[claim.field],field);element('blockquote',claim.sourceExcerpt,field);
    const decisionLabel=element('label',t.review,field),decision=element('select','',decisionLabel);
    for(const [value,key]of [['accept','accept'],['correct','correct'],['reject','reject']]){const option=element('option',t[key],decision);option.value=value;}

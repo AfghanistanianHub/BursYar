@@ -71,6 +71,7 @@ try {
    await expect(page.locator('#eligibility-form [name=degree]')).toHaveValue('bachelor');
    await page.locator('#language').selectOption(language);
    await expect(page.locator('#documents .document-claim')).toHaveCount(0);
+   await page.locator('#documents fieldset > button').first().click();await page.locator('#documents fieldset > button').nth(1).click();await expect(page.locator('#documents .document-claim')).toHaveCount(0);
    await page.locator('#documents button').last().click();
    await expect(page.locator('#documents pre')).toHaveCount(0);
    await expect(page.locator('#eligibility-form [name=degree]')).toHaveValue('');
