@@ -1,3 +1,4 @@
+import {recoveryCopy} from './recovery-copy.js';
 import {journeyCopy} from './journey-copy.js';
 import {mountSourcePreview} from './source-preview.js';
 import {CLIENT_ANALYSIS_TIMEOUT_MS} from '../engine/provider-config.js';
@@ -27,8 +28,10 @@ export function mountAnalyzer(form,language,esc,initial={}){
  function renderAnalysis(a,submittedSource){
    form.analysis={data:a,url:submittedSource.href};result.hidden=false;form.querySelector('#requirements-step').hidden=false;
    document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:a.compilation??null}));
+   const origin=document.createElement('p');origin.className='source-origin';origin.textContent=a.sourceProvenance?.kind==='server_fetched'?recoveryCopy[language].server:recoveryCopy[language].supplied;
    const evidence=items=>items.length?`<ul>${items.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:`<p>${esc(t.unknown)}</p>`;
    result.innerHTML=`<p class="review-note">${esc(t.review)}</p><details><summary>${esc(t.provenance)}</summary><p><a href="${esc(submittedSource.href)}" target="_blank" rel="noopener noreferrer" dir="ltr">${esc(submittedSource.href)}</a></p><p>${esc(t.unreviewed)}</p><p>${esc(t.analyzed)}: <bdi>${esc(a.analyzedAt)}</bdi></p><p class="source-digest">${esc(t.digest)}: <bdi>${esc(a.sourceDigest)}</bdi></p></details>${a.criteria.map(c=>`<article class="criterion"><details><summary>${esc(journeyCopy[language].facts)}</summary><blockquote dir="auto">${esc(c.excerpt)}</blockquote></details><p lang="en" dir="ltr">${esc(c.en)}</p>${language!=='en'?`<p lang="${language}" dir="rtl">${esc(c[language])}</p>`:''}</article>`).join('')}<h3>${esc(t.deadline)}</h3><p dir="auto">${esc(a.deadline??t.unknown)}</p><h3>${esc(t.funding)}</h3>${evidence(a.funding)}<h3>${esc(t.uncertainties)}</h3>${evidence(a.uncertainties.map(x=>x.startsWith('Source authenticity, completeness, interpretation and translations require human verification.')?coverage:x))}`;
+   result.prepend(origin);
    if(a.compilation?.inventory){
     const labels={en:{title:'Full source and retained conditions',note:'All submitted source text is retained. Tags are unreviewed navigation aids. Compact AI selections are not complete eligibility coverage.',mandatory:'Mandatory candidate',exclusion:'Exclusion',preference:'Selection preference',deadline:'Course deadline',funding:'Funding',unknown:'Needs review'},fa:{title:'منبع کامل و شرایط حفظ‌شده',note:'تمام متن ارسالی حفظ شده است. برچسب‌ها راهنمای بازبینی‌نشده‌اند؛ انتخاب محدود هوش مصنوعی پوشش کامل شرایط نیست.',mandatory:'شرط احتمالی الزامی',exclusion:'محرومیت',preference:'معیار ترجیحی',deadline:'مهلت دوره',funding:'حمایت مالی',unknown:'نیاز به بررسی'},ps:{title:'بشپړه سرچینه او ساتل شوي شرطونه',note:'ټول لېږل شوی متن ساتل شوی. نښې د لارښوونې لپاره دي، نه دي بیاکتل شوې؛ د ځیرکتیا ټاکنې بشپړ شرایط نه دي.',mandatory:'احتمالي لازمي شرط',exclusion:'محرومیت',preference:'د ټاکنې ترجیح',deadline:'د دورې مهلت',funding:'مالي ملاتړ',unknown:'بیاکتنې ته اړتیا'}}[language];
     const details=document.createElement('details');details.className='source-inventory';
@@ -52,7 +55,7 @@ export function mountAnalyzer(form,language,esc,initial={}){
   try{
    const token=await getInferenceToken().catch(()=>{throw Object.assign(Error(),{status:401});});
    const submittedSource=new URL(url.value);if(submittedSource.protocol!=='https:'||submittedSource.username||submittedSource.password)throw Error();
-   const response=await fetch('/api/analyze',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({text:textarea.value,sourceUrl:submittedSource.href,language,...(form.sourceReceipt?{receipt:form.sourceReceipt,sourceApproved:true}:{})}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(CLIENT_ANALYSIS_TIMEOUT_MS)])});
+   const response=await fetch('/api/analyze',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({text:textarea.value,sourceUrl:submittedSource.href,language,sourceApproved:true,...(form.sourceReceipt?{receipt:form.sourceReceipt,sourceApproved:true}:{})}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(CLIENT_ANALYSIS_TIMEOUT_MS)])});
    if(!response.ok)throw Object.assign(Error(),{status:response.status});
    const a=await response.json();
    if(a.requiresHumanReview!==true||!Array.isArray(a.criteria)||!Array.isArray(a.funding)||!Array.isArray(a.uncertainties)||!a.criteria.every(c=>typeof c.excerpt==='string'&&typeof c.en==='string'&&typeof c[language]==='string'))throw Error();
