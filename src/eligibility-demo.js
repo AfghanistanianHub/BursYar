@@ -1,3 +1,4 @@
+import {planGaps,actionText} from './gap-actions.js';
 import {assessScholarship,simulate} from '../engine/eligibility.js';
 
 // A visibly fictional rule set: not an actual admissions policy or an official verification.
@@ -33,7 +34,7 @@ export function mountEligibility(root,language='en',compilation=null){
  <label><input name="hasTest" type="checkbox"> ${escape(t.test)}</label>
  <div class="eligibility-scores" hidden><label>${escape(t.overall)} <input name="overall" type="number" min="0" max="9" step=".5" value="6"></label>
  ${['listening','reading','writing','speaking'].map((x,i)=>`<label>${escape(t.bands[i])} <input name="${x}" type="number" min="0" max="9" step=".5" value="6"></label>`).join('')}</div>
- <p><strong>${escape(t.real)}</strong></p><output id="eligibility-result" aria-live="polite"></output>
+ <p><strong>${escape(t.real)}</strong></p><output id="eligibility-result" aria-live="polite"></output><ol id="eligibility-details"></ol>
  <label>${escape(t.future)} <input name="futureScore" type="number" min="0" max="9" step=".5" value="7"></label>
  <button type="button" id="eligibility-simulate">${escape(t.simulate)}</button>
  <output id="eligibility-future" aria-live="polite"></output></form><p>${escape(t.next)}</p></section>`;
@@ -53,7 +54,8 @@ export function mountEligibility(root,language='en',compilation=null){
  for(const [name,value] of Object.entries(savedFields)){const el=form.elements.namedItem(name);if(el){if(el.type==='checkbox')el.checked=value;else el.value=value;}}
  function render(){
   savedFields=Object.fromEntries([...form.elements].filter(el=>el.name).map(el=>[el.name,el.type==='checkbox'?el.checked:el.value]));
-  scores.hidden=!form.elements.namedItem('hasTest').checked;const assessment=assessScholarship(rules,snapshot());form.querySelector('#eligibility-result').dataset.status=assessment.summary;form.querySelector('#eligibility-result').textContent=t.state[assessment.summary];form.querySelector('#eligibility-future').textContent='';}
+  scores.hidden=!form.elements.namedItem('hasTest').checked;const assessment=assessScholarship(rules,snapshot());form.querySelector('#eligibility-result').dataset.status=assessment.summary;form.querySelector('#eligibility-result').textContent=t.state[assessment.summary];
+  const gaps=planGaps(assessment);form.querySelector('#eligibility-details').innerHTML=assessment.results.map(r=>`<li data-status="${r.status}" data-requirement="${escape(r.requirementId)}"><blockquote dir="auto">${escape(r.source.excerpt)}</blockquote><p>${escape(t.state[r.status])}</p>${gaps.some(g=>g.requirementId===r.requirementId)?`<p>${escape(actionText[language][gaps.find(g=>g.requirementId===r.requirementId).action])}</p>`:''}</li>`).join('');form.querySelector('#eligibility-future').textContent='';}
  form.addEventListener('input',render);form.addEventListener('change',render);
  form.querySelector('#eligibility-simulate').addEventListener('click',()=>{
   const value=form.elements.namedItem('futureScore').value;

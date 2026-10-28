@@ -1,0 +1,28 @@
+{
+  "mode": "OFFLINE_EXCERPT_FIXTURES_NOT_LIVE_META",
+  "checkedDate": "2026-10-27",
+  "retrievalMethod": "Official pages reviewed through web browsing; limited excerpts, not full policy snapshots",
+  "cases": [
+    {
+      "id": "oxford-current-student-exclusion",
+      "sourceUrl": "https://www.ox.ac.uk/admissions/graduate/fees-and-funding/funding/clarendon/applicants",
+      "text": "Current students who will continue to study for the same degree at Oxford in the next year are not eligible for this scholarship.",
+      "expected": "unknown",
+      "reason": "The engine does not model enrolment continuation or scholarship-specific exclusions."
+    },
+    {
+      "id": "chevening-post-degree-work",
+      "sourceUrl": "https://www.chevening.org/resource-hub/guidance/eligibility/",
+      "text": "Have at least two years’ work experience, acquired after completing your undergraduate degree, equivalent to 2,800 hours.",
+      "expected": "unknown",
+      "reason": "Hours and completion-date predicates are unsupported; never infer that pre-degree work qualifies."
+    },
+    {
+      "id": "cambridge-nationality-and-enrolment",
+      "sourceUrl": "https://www.jbs.cam.ac.uk/scholarships-loans/the-gates-cambridge-scholarship/",
+      "text": "Cambridge Gates Scholarships are awarded to applicants from countries outside the UK to pursue a full-time postgraduate degree.",
+      "expected": "unknown",
+      "reason": "Nationality and intended full-time study are unsupported; a held degree does not establish these conditions."
+    }
+  ]
+}

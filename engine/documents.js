@@ -10,9 +10,9 @@ export class DocumentStore {
  constructor(path){
   if(!isAbsolute(path))throw Error('Absolute document database path required');
   const parent=lstatSync(dirname(path));
-  if(!parent.isDirectory()||parent.isSymbolicLink()||(parent.mode&0o077))throw Error('Private document directory required');
+  if(parent.uid!==process.getuid()||!parent.isDirectory()||parent.isSymbolicLink()||(parent.mode&0o077))throw Error('Private document directory required');
   const fd=openSync(path,constants.O_CREAT|constants.O_RDWR|constants.O_NOFOLLOW,0o600);closeSync(fd);
-  const file=lstatSync(path);if(!file.isFile()||(file.mode&0o077))throw Error('Private document file required');
+  const file=lstatSync(path);if(file.uid!==process.getuid()||!file.isFile()||(file.mode&0o077))throw Error('Private document file required');
   this.db=new DatabaseSync(path);
   this.db.exec(`PRAGMA busy_timeout=5000; PRAGMA secure_delete=ON; CREATE TABLE IF NOT EXISTS documents(id TEXT PRIMARY KEY, owner TEXT NOT NULL, data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS profiles(owner TEXT PRIMARY KEY,data TEXT NOT NULL);`);
  }

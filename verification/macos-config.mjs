@@ -16,6 +16,7 @@ export function rebootEnvironment(config,home=homedir()){
  validateKeychainConfig(config);
  return {
  FIREBASE_PROJECT_ID:'afghanistanian-scholarships',GOOGLE_APPLICATION_CREDENTIALS:join(home,'.bursyar-private/firebase-admin.json'),
+ BURSYAR_DOCUMENT_DB:join(home,'.bursyar-private/documents.sqlite'),
  BURSYAR_QUOTA_DB:join(home,'.bursyar-private/quota.sqlite'),BURSYAR_ORIGIN:'http://localhost:5173',PORT:'8080',
  BURSYAR_USER_MINUTE:'2',BURSYAR_USER_DAY:'5',BURSYAR_GLOBAL_DAY:'20',BURSYAR_LIFETIME_UNITS:'200000',
  META_API_KEY:config.metaApiKey,META_MODEL_ID:config.metaModelId,META_TIMEOUT_MS:'20000',

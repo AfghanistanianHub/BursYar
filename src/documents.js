@@ -8,6 +8,7 @@ let current=null,identityEpoch=0;
 document.addEventListener('bursyar:identity',()=>{current=null;identityEpoch++;const root=document.querySelector('#documents-mount');if(root)mountDocuments(root,document.documentElement.lang);});
 export function mountDocuments(root,language='en'){
  if(!root)return;
+ const mountEpoch=identityEpoch;
  const t=copy[language]??copy.en;
  root.replaceChildren();const section=document.createElement('section');section.className='section';section.id='documents';root.append(section);
  const element=(tag,text,parent=section)=>{const el=document.createElement(tag);if(text)el.textContent=text;parent.append(el);return el;};
@@ -17,7 +18,7 @@ export function mountDocuments(root,language='en'){
  const upload=element('button',t.upload,form);upload.type='submit';
  const load=element('button',t.load);load.type='button';
  const status=element('p');status.setAttribute('role','status');const content=element('div');
- async function api(path,method='GET',body){const epoch=identityEpoch;const token=await getInferenceToken();const r=await fetch(path,{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});if(!r.ok||epoch!==identityEpoch)throw Error();return r.json();}
+ async function api(path,method='GET',body){if(mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();const r=await fetch(path,{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error();const data=await r.json();if(epoch!==identityEpoch)throw Error();return data;}
  const publish=profile=>document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:profile}));
  async function busy(action){for(const button of section.querySelectorAll('button'))button.disabled=true;try{await action();}catch{status.textContent=t.error;}finally{for(const button of section.querySelectorAll('button'))button.disabled=false;}}
  load.addEventListener('click',()=>busy(async()=>{publish(await api('/api/profile'));status.textContent=t.done;}));

@@ -1,3 +1,4 @@
+import {resolve} from 'node:path';
 import {DocumentStore} from './documents.js';
 import {isSpendingConfirmed} from './spending.js';
 import {createFirebaseVerifier} from './auth.js';
@@ -12,6 +13,7 @@ if(!env.BURSYAR_ORIGIN || !['http:','https:'].includes(new URL(env.BURSYAR_ORIGI
 const integer=(name)=>{const n=Number(env[name]);if(!Number.isSafeInteger(n)||n<1)throw Error(`Positive ${name} required`);return n;};
 const infer=createMetaInference({key:env.META_API_KEY||env.MODEL_API_KEY,model:env.META_MODEL_ID,onMetrics:record=>console.error(JSON.stringify(record)),timeoutMs:env.META_TIMEOUT_MS===undefined?20000:integer('META_TIMEOUT_MS')});
 const verify=createFirebaseVerifier({projectId:env.FIREBASE_PROJECT_ID});
+if(env.BURSYAR_DOCUMENT_DB&&resolve(env.BURSYAR_DOCUMENT_DB)===resolve(env.BURSYAR_QUOTA_DB??''))throw Error('Document storage must be separate from quota storage');
 const quota=new QuotaStore(env.BURSYAR_QUOTA_DB,{userMinute:integer('BURSYAR_USER_MINUTE'),userDay:integer('BURSYAR_USER_DAY'),globalDay:integer('BURSYAR_GLOBAL_DAY'),lifetimeUnits:integer('BURSYAR_LIFETIME_UNITS')});
 const documents=env.BURSYAR_DOCUMENT_DB?new DocumentStore(env.BURSYAR_DOCUMENT_DB):null;
 const server=createInferenceServer({documents,verify,projectId:env.FIREBASE_PROJECT_ID,quota,infer,origin:env.BURSYAR_ORIGIN,canInfer:()=>isSpendingConfirmed(env)});

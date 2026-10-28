@@ -20,12 +20,13 @@ function fact(profile,key) {
   if(f.reviewStatus==='pending'||f.verificationStatus==='rejected'||f.contradicted===true) return null;
   return f;
 }
+function sourceUrlValid(value){try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password;}catch{return false;}}
 function boundedScore(v) {
   return typeof v==='number' && Number.isFinite(v) && v>=0 && v<=9 && Number.isInteger(v*2);
 }
 function evaluateRequirement(requirement,profile) {
   const id=requirement?.id ?? 'invalid';
-  if (!validRequirement(requirement) || requirement.ambiguous!==false || typeof requirement.sourceExcerpt!=='string' || !requirement.sourceExcerpt.trim() || typeof requirement.sourceUrl!=='string' || !/^https:\/\//.test(requirement.sourceUrl))
+  if (!validRequirement(requirement) || requirement.ambiguous!==false || typeof requirement.sourceExcerpt!=='string' || !requirement.sourceExcerpt.trim() || typeof requirement.sourceUrl!=='string' || !sourceUrlValid(requirement.sourceUrl))
     return result(id,UNKNOWN,'unreviewed_or_unsupported_requirement');
   if (requirement.type==='minimum_degree') {
     if (!own(rank,requirement.minimum)) return result(id,UNKNOWN,'unsupported_degree');
