@@ -1,3 +1,4 @@
+import {mountSourcePreview} from './source-preview.js';
 import {CLIENT_ANALYSIS_TIMEOUT_MS} from '../engine/provider-config.js';
 import {signIn,signOut,getInferenceToken} from './auth.js';
 import {findBarriers,barrierText} from './pathfinder.js';
@@ -16,6 +17,8 @@ export function mountAnalyzer(form,language,esc,initial={}){
  const logout=document.createElement('button');logout.type='button';logout.textContent=t.logout;
  const authStatus=document.createElement('p');authStatus.setAttribute('role','status');
  form.prepend(login,logout,authStatus,source);
+ const approved=mountSourcePreview(form,url,textarea,submit,language,initial);
+ form.addEventListener('bursyar:sourcechanged',()=>{controller?.abort();form.analysis=undefined;result.replaceChildren();result.hidden=true;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
  login.addEventListener('click',async()=>{login.disabled=true;try{await signIn();document.dispatchEvent(new Event('bursyar:identity'));authStatus.textContent=t.signedIn;}catch{authStatus.textContent=t.authError;}finally{login.disabled=false;}});
  logout.addEventListener('click',async()=>{document.dispatchEvent(new Event('bursyar:identity'));controller?.abort();form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));try{await signOut();result.replaceChildren();result.hidden=true;authStatus.textContent=t.signedOut;}catch{authStatus.textContent=t.authError;}});
 
@@ -42,18 +45,18 @@ export function mountAnalyzer(form,language,esc,initial={}){
  }
  if(initial.analysis)renderAnalysis(initial.analysis.data,new URL(initial.analysis.url));
  form.addEventListener('submit',async event=>{
-  event.preventDefault();form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));controller?.abort();const current=controller=new AbortController();
+  event.preventDefault();if(!approved())return;form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));controller?.abort();const current=controller=new AbortController();
   result.hidden=false;result.textContent=t.loading;form.setAttribute('aria-busy','true');submit.disabled=true;
   try{
    const token=await getInferenceToken();
    const submittedSource=new URL(url.value);if(submittedSource.protocol!=='https:'||submittedSource.username||submittedSource.password)throw Error();
-   const response=await fetch('/api/analyze',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({text:textarea.value,sourceUrl:submittedSource.href,language}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(CLIENT_ANALYSIS_TIMEOUT_MS)])});
+   const response=await fetch('/api/analyze',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({text:textarea.value,sourceUrl:submittedSource.href,language,...(form.sourceReceipt?{receipt:form.sourceReceipt,sourceApproved:true}:{})}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(CLIENT_ANALYSIS_TIMEOUT_MS)])});
    if(!response.ok)throw Object.assign(Error(),{status:response.status});
    const a=await response.json();
    if(a.requiresHumanReview!==true||!Array.isArray(a.criteria)||!Array.isArray(a.funding)||!Array.isArray(a.uncertainties)||!a.criteria.every(c=>typeof c.excerpt==='string'&&typeof c.en==='string'&&typeof c[language]==='string'))throw Error();
    if(current.signal.aborted||!form.isConnected)return;
    renderAnalysis(a,submittedSource);
   }catch(error){if(!current.signal.aborted&&form.isConnected)result.textContent=error.status===401?t.unauthorized:error.status===429?t.quota:error.status===503?t.gateway:t.error;}
-  finally{if(controller===current){submit.disabled=false;form.removeAttribute('aria-busy');}}
+  finally{if(controller===current){submit.disabled=!approved();form.removeAttribute('aria-busy');}}
  });
 }

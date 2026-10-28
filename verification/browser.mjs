@@ -1,3 +1,4 @@
+import {createSourceFetcher} from '../engine/source-fetch.js';
 import {normalizeEvidence} from '../engine/evidence.js';
 import {chromium,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
@@ -11,7 +12,8 @@ const vite=await createServer({server:{host:'127.0.0.1',port:0}});await vite.lis
 const baseUrl=`http://127.0.0.1:${vite.httpServer.address().port}`;
 const documentDir=mkdtempSync(join(tmpdir(),'bursyar-browser-docs-'));
 const documents=new DocumentStore(join(documentDir,'docs.db'));
-const api=createInferenceServer({projectId:'demo-bursyar',origin:baseUrl,documents,quota:{reserve(){}},infer:async()=>{throw Error('Browser model must remain mocked');},verify:async()=>({uid:'browser-test',aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true})});
+const sources=createSourceFetcher({resolve:async()=>[{address:'93.184.216.34',family:4}],transport:async()=>({body:'<main><h1>SYNTHETIC OFFLINE SOURCE FIXTURE</h1><p>Applicants must provide academic transcripts.</p><p>Tuition fees are covered.</p><a href="/course">Course conditions require confirmation.</a></main>'})});
+const api=createInferenceServer({sources,projectId:'demo-bursyar',origin:baseUrl,documents,quota:{reserve(){}},infer:async()=>{throw Error('Browser model must remain mocked');},verify:async token=>({uid:token,aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true})});
 await new Promise(resolve=>api.listen(0,'127.0.0.1',resolve));
 const apiUrl=`http://127.0.0.1:${api.address().port}`;
 let browser;
@@ -20,14 +22,15 @@ const evidence=normalizeEvidence(JSON.stringify({criteria:[{kind:'transcripts',r
 const report={mode:'BROWSER_WITH_MOCK_AUTH_AND_API',liveMetaVerified:false,liveGoogleSignInVerified:false,cases:[]};
 mkdirSync('verification/artifacts',{recursive:true});
 try {
- for(const language of ['en','fa','ps'])for(const width of [320,390,768,1440]){
+ for(const language of ['en','fa','ps'])for(const width of [320,390,768,1280,1440]){
   const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();
   await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{const note=document.createElement('p');note.textContent='OFFLINE REHEARSAL — mocked identity and Meta; synthetic applicant data';note.setAttribute('role','note');note.style.cssText='padding:12px;background:#fff;color:#111;border:2px solid #111';document.body.prepend(note);},{once:true}));
   // Test-only network interception, not a runtime bypass or simulated live verification.
-  await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function getInferenceToken(){return "browser-test-only";}'}));
-  await page.route(/\/api\/(documents|profile)/,async route=>{const request=route.request();const response=await fetch(apiUrl+new URL(request.url()).pathname,{method:request.method(),headers:{authorization:request.headers().authorization,origin:baseUrl,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});});
+  const browserToken=`browser-test-${language}-${width}`;
+  await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function getInferenceToken(){return "'+browserToken+'";}'}));
+  await page.route(/\/api\/(documents|profile|source)/,async route=>{const request=route.request();const response=await fetch(apiUrl+new URL(request.url()).pathname,{method:request.method(),headers:{authorization:request.headers().authorization,origin:baseUrl,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});});
   let responseEvidence=evidence;let responseStatus=200;let sawRequest=false;let calls=0;
-  await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe('Bearer browser-test-only');sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?responseEvidence:{error:'test-error'})});});
+  await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?responseEvidence:{error:'test-error'})});});
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
   await expect(page.locator('html')).toHaveAttribute('dir',language==='en'?'ltr':'rtl');
   if(width===390){
@@ -44,7 +47,7 @@ try {
   }
   await page.locator('#requirements').fill('Applicants must provide academic transcripts. Tuition fees are covered.');
   await page.locator('[name=sourceUrl]').fill('https://university.example/award');
-  const submit=page.locator('#analyze-form button[type=submit]');await submit.click();
+  const submit=page.locator('#analyze-form button[type=submit]');await expect(submit).toBeDisabled();await page.locator('#source-approved').check();await submit.click();
   await expect(page.locator('#analyze-form')).toHaveAttribute('aria-busy','true');
   await expect(page.locator('.criterion')).toBeVisible();expect(sawRequest).toBe(true);
   await expect(page.locator('.criterion [lang=en]')).toBeVisible();
@@ -88,7 +91,7 @@ try {
    await expect(page.locator('.criterion')).toHaveCount(0);
    await expect(page.locator('#analysis-result')).not.toContainText('test-error');
   }
-  await page.locator('#source-url').focus();await page.keyboard.press('Tab');await expect(page.locator('#requirements')).toBeFocused();
+  await page.locator('#source-url').focus();await page.keyboard.press('Tab');await expect(page.locator('#fetch-source')).toBeFocused();
   if(width===390){
    const {readFileSync}=await import('node:fs');
    const continuing=JSON.parse(readFileSync('verification/fixtures/scholarship-evaluation.json','utf8')).cases[0].text;
@@ -96,7 +99,7 @@ try {
    const source=`SYNTHETIC BROWSER FIXTURE ONLY\n${deferred}\n${continuing}\nCourse-specific deadlines require confirmation.`;
    responseEvidence=normalizeEvidence(JSON.stringify({criteria:[{kind:'other',required:true,excerpt:deferred,en:'Deferred offers are excluded.',fa:'پذیرش به‌تعویق‌افتاده مشمول نیست.',ps:'ځنډول شوی وړاندیز نه منل کېږي.'}],deadline:null,funding:[]}),{text:source,sourceUrl:'https://www.ox.ac.uk/admissions/graduate/fees-and-funding/funding/clarendon/applicants'});
    const profile=page.locator('#profile-form');await profile.locator('[name=deferredOffer]').selectOption('true');await profile.locator('[name=continuingSameDegree]').selectOption('false');await profile.locator('[name=consent]').check();await profile.locator('button[type=submit]').click();await expect(page.locator('#profile [role=status]')).toContainText({en:'Profile saved.',fa:'پروفایل ذخیره شد.',ps:'پروفایل وساتل شو.'}[language]);
-   responseStatus=200;await page.locator('#requirements').fill(source);await page.locator('[name=sourceUrl]').fill(responseEvidence.sourceUrl);await page.locator('#analyze-form button[type=submit]').click();
+   responseStatus=200;await page.locator('#requirements').fill(source);await page.locator('[name=sourceUrl]').fill(responseEvidence.sourceUrl);await page.locator('#source-approved').check();await page.locator('#analyze-form button[type=submit]').click();
    await expect(page.locator('#eligibility-result')).toHaveAttribute('data-status','not_met');
    await page.locator('.source-inventory summary').click();await expect(page.locator('.source-inventory')).toContainText(continuing);
    await page.locator('#exclusion-simulate').click();await expect(page.locator('#exclusion-future')).toHaveAttribute('data-status','unknown');await expect(page.locator('#profile-form [name=deferredOffer]')).toHaveValue('true');
@@ -104,6 +107,22 @@ try {
    const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(axe.violations).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
    await page.screenshot({path:`verification/artifacts/${language}-oxford-profile-390.png`,fullPage:true});
   }
+  // URL-only retrieval uses the real gateway/extractor with an offline transport fixture.
+  responseStatus=200;responseEvidence=evidence;
+  await page.locator('#source-url').fill('https://university.example/award');
+  const beforeFetch=calls;await page.locator('#fetch-source').click();
+  await expect(page.locator('#requirements')).toHaveValue(/SYNTHETIC OFFLINE SOURCE FIXTURE/);
+  await expect(page.locator('#requirements')).toHaveAttribute('readonly','');
+  expect(calls).toBe(beforeFetch);await expect(page.locator('#analyze-form button[type=submit]')).toBeDisabled();
+  await page.locator('#source-approved').check();
+  await page.locator('#language').selectOption(language==='en'?'fa':'en');
+  await expect(page.locator('#source-approved')).toBeChecked();
+  await expect(page.locator('.source-preview')).toBeVisible();
+  await page.locator('#language').selectOption(language);
+  await page.locator('#analyze-form button[type=submit]').click();await expect(page.locator('.criterion')).toBeVisible();expect(calls).toBe(beforeFetch+1);
+  await page.locator('#manual-source').click();await page.locator('#requirements').fill('Manual replacement: Applicants must provide academic transcripts.');
+  await expect(page.locator('#source-approved')).not.toBeChecked();await expect(page.locator('#analyze-form button[type=submit]')).toBeDisabled();
+  report.sourcePreviewCases=(report.sourcePreviewCases??0)+1;
   await context.close();
  }
  console.log(JSON.stringify({mode:report.mode,cases:report.cases.length,passed:true,liveMetaVerified:false,liveGoogleSignInVerified:false}));
