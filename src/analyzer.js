@@ -15,11 +15,12 @@ export function mountAnalyzer(form,language,esc,initial={}){
  const logout=document.createElement('button');logout.type='button';logout.textContent=t.logout;
  const authStatus=document.createElement('p');authStatus.setAttribute('role','status');
  form.prepend(login,logout,authStatus,source);
- login.addEventListener('click',async()=>{login.disabled=true;try{await signIn();authStatus.textContent=t.signedIn;}catch{authStatus.textContent=t.authError;}finally{login.disabled=false;}});
- logout.addEventListener('click',async()=>{controller?.abort();form.analysis=undefined;try{await signOut();result.replaceChildren();result.hidden=true;authStatus.textContent=t.signedOut;}catch{authStatus.textContent=t.authError;}});
+ login.addEventListener('click',async()=>{login.disabled=true;try{await signIn();document.dispatchEvent(new Event('bursyar:identity'));authStatus.textContent=t.signedIn;}catch{authStatus.textContent=t.authError;}finally{login.disabled=false;}});
+ logout.addEventListener('click',async()=>{document.dispatchEvent(new Event('bursyar:identity'));controller?.abort();form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));try{await signOut();result.replaceChildren();result.hidden=true;authStatus.textContent=t.signedOut;}catch{authStatus.textContent=t.authError;}});
 
  function renderAnalysis(a,submittedSource){
    form.analysis={data:a,url:submittedSource.href};result.hidden=false;
+   document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:a.compilation??null}));
    const evidence=items=>items.length?`<ul>${items.map(x=>`<li dir="auto">${esc(x)}</li>`).join('')}</ul>`:`<p>${esc(t.unknown)}</p>`;
    result.innerHTML=`<p class="review-note">${esc(t.review)}</p><h3>${esc(t.provenance)}</h3><p><a href="${esc(submittedSource.href)}" target="_blank" rel="noopener noreferrer" dir="ltr">${esc(submittedSource.href)}</a></p><p>${esc(t.unreviewed)}</p><p>${esc(t.analyzed)}: <bdi>${esc(a.analyzedAt)}</bdi></p><p class="source-digest">${esc(t.digest)}: <bdi>${esc(a.sourceDigest)}</bdi></p>${a.criteria.map(c=>`<article class="criterion"><blockquote dir="auto">${esc(c.excerpt)}</blockquote><p lang="en" dir="ltr">${esc(c.en)}</p>${language!=='en'?`<p lang="${language}" dir="rtl">${esc(c[language])}</p>`:''}</article>`).join('')}<h3>${esc(t.deadline)}</h3><p dir="auto">${esc(a.deadline??t.unknown)}</p><h3>${esc(t.funding)}</h3>${evidence(a.funding)}<h3>${esc(t.uncertainties)}</h3>${evidence(a.uncertainties)}`;
    const fields=document.createElement('fieldset');const legend=document.createElement('legend');legend.textContent=t.barriers;fields.append(legend);
@@ -30,7 +31,7 @@ export function mountAnalyzer(form,language,esc,initial={}){
  }
  if(initial.analysis)renderAnalysis(initial.analysis.data,new URL(initial.analysis.url));
  form.addEventListener('submit',async event=>{
-  event.preventDefault();form.analysis=undefined;controller?.abort();const current=controller=new AbortController();
+  event.preventDefault();form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));controller?.abort();const current=controller=new AbortController();
   result.hidden=false;result.textContent=t.loading;form.setAttribute('aria-busy','true');submit.disabled=true;
   try{
    const token=await getInferenceToken();

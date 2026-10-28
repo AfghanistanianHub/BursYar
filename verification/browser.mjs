@@ -2,7 +2,8 @@ import {chromium,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import {createServer} from 'vite';
 import {mkdirSync,writeFileSync} from 'node:fs';
-const vite=await createServer({server:{host:'127.0.0.1',port:5173,strictPort:true}});await vite.listen();
+const vite=await createServer({server:{host:'127.0.0.1',port:0}});await vite.listen();
+const baseUrl=`http://127.0.0.1:${vite.httpServer.address().port}`;
 const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
 const evidence={criteria:[{id:'criterion-1',kind:'transcripts',required:true,excerpt:'Applicants must provide academic transcripts.',en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],funding:['Tuition fees are covered.'],deadline:null,uncertainties:['The exact deadline is unknown.'],requiresHumanReview:true,sourceDigest:'a'.repeat(64),analyzedAt:'2026-10-26T12:00:00Z'};
 const report={mode:'BROWSER_WITH_MOCK_AUTH_AND_API',liveMetaVerified:false,liveGoogleSignInVerified:false,cases:[]};
@@ -14,7 +15,7 @@ try {
   await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function getInferenceToken(){return "browser-test-only";}'}));
   let responseStatus=200;let sawRequest=false;let calls=0;
   await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe('Bearer browser-test-only');sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?evidence:{error:'test-error'})});});
-  await page.goto('http://127.0.0.1:5173');await page.locator('#language').selectOption(language);
+  await page.goto(baseUrl);await page.locator('#language').selectOption(language);
   await expect(page.locator('html')).toHaveAttribute('dir',language==='en'?'ltr':'rtl');
   await page.locator('#requirements').fill('Applicants must provide academic transcripts. Tuition fees are covered.');
   await page.locator('[name=sourceUrl]').fill('https://university.example/award');

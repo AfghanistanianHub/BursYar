@@ -12,3 +12,5 @@
 #eligibility-demo output{display:block;min-height:48px;background:#fff;border:1px solid #d9ddd3;border-radius:10px;padding:12px;overflow-wrap:anywhere}
 #eligibility-demo button{min-height:48px;padding:10px 18px;border:0;border-radius:10px;background:#204c40;color:white;font-weight:650}
 @media(max-width:600px){#eligibility-demo .eligibility-scores:not([hidden]){grid-template-columns:1fr}}
+
+#documents form{display:grid;gap:14px;max-width:660px}#documents label{display:flex;flex-wrap:wrap;gap:8px;align-items:center}#documents input,#documents select{max-width:100%;min-height:44px}#documents button{min-height:44px;padding:10px;margin-block:8px}#documents pre{white-space:pre-wrap;overflow-wrap:anywhere}#documents fieldset{min-width:0}#documents blockquote{overflow-wrap:anywhere}
