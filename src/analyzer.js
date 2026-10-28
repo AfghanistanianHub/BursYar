@@ -49,7 +49,7 @@ export function mountAnalyzer(form,language,esc,initial={}){
   event.preventDefault();if(!approved())return;form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));controller?.abort();const current=controller=new AbortController();
   result.hidden=false;result.textContent=t.loading;form.setAttribute('aria-busy','true');submit.disabled=true;
   try{
-   const token=await getInferenceToken();
+   const token=await getInferenceToken().catch(()=>{throw Object.assign(Error(),{status:401});});
    const submittedSource=new URL(url.value);if(submittedSource.protocol!=='https:'||submittedSource.username||submittedSource.password)throw Error();
    const response=await fetch('/api/analyze',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({text:textarea.value,sourceUrl:submittedSource.href,language,...(form.sourceReceipt?{receipt:form.sourceReceipt,sourceApproved:true}:{})}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(CLIENT_ANALYSIS_TIMEOUT_MS)])});
    if(!response.ok)throw Object.assign(Error(),{status:response.status});

@@ -30,7 +30,7 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
  }
  fetchButton.addEventListener('click',async()=>{
   invalidate();const current=controller=new AbortController();fetchButton.disabled=true;status.textContent=t.loading;
-  try{const token=await getInferenceToken();const response=await fetch('/api/source',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({url:url.value}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(15000)])});if(!response.ok){const problem=await response.json().catch(()=>({}));throw Object.assign(Error(),{status:response.status,code:problem.code});}const data=await response.json();if(current.signal.aborted||!form.isConnected)return;
+  try{const token=await getInferenceToken().catch(()=>{throw Object.assign(Error(),{status:401});});const response=await fetch('/api/source',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({url:url.value}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(15000)])});if(!response.ok){const problem=await response.json().catch(()=>({}));throw Object.assign(Error(),{status:response.status,code:problem.code});}const data=await response.json();if(current.signal.aborted||!form.isConnected)return;
    textarea.value=data.text;textarea.readOnly=true;url.value=data.receipt.sourceUrl;form.sourceReceipt=data.receipt;form.sourcePreview=data;render(data);status.textContent=t.review;
   }catch(error){if(!current.signal.aborted&&form.isConnected)status.textContent=error.status===401?t.auth:error.status===429?t.busy:failure(error.code);}
   finally{if(controller===current)fetchButton.disabled=false;}
