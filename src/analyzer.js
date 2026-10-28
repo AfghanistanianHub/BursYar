@@ -21,7 +21,7 @@ export function mountAnalyzer(form,language,esc,initial={}){
  const authStatus=document.createElement('p');authStatus.setAttribute('role','status');
  document.querySelector('#account-controls').append(login,logout,authStatus);form.querySelector('#source-entry').append(source);
  const approved=mountSourcePreview(form,url,textarea,submit,language,initial);
- form.addEventListener('bursyar:sourcechanged',()=>{controller?.abort();form.barrierAnswers={};form.analysis=undefined;result.replaceChildren();result.hidden=true;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
+ form.addEventListener('bursyar:sourcechanged',()=>{controller?.abort();form.barrierAnswers={};form.analysis=undefined;form.querySelector('#requirements-step').hidden=true;result.replaceChildren();result.hidden=true;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
  login.addEventListener('click',async()=>{login.disabled=true;try{await signIn();document.dispatchEvent(new Event('bursyar:identity'));authStatus.textContent=t.signedIn;}catch{authStatus.textContent=t.authError;}finally{login.disabled=false;}});
  logout.addEventListener('click',async()=>{document.dispatchEvent(new Event('bursyar:identity'));controller?.abort();form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));try{await signOut();result.replaceChildren();result.hidden=true;authStatus.textContent=t.signedOut;}catch{authStatus.textContent=t.authError;}});
 

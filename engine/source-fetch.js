@@ -46,7 +46,7 @@ export function createSourceTransport(requestImpl=request){return (url,address,s
 });}
 const retrieve=createSourceTransport();
 export function createSourceFetcher({resolve=lookup,transport=retrieve,now=()=>Date.now(),timeoutMs=12000}={}){
- const key=randomBytes(32),rate=new Map();let active=0;
+ const key=randomBytes(32),rate=new Map(),importRate=new Map();let active=0;
  const sign=r=>createHmac('sha256',key).update(JSON.stringify(r)).digest('hex');
  const owner=uid=>createHmac('sha256',key).update(String(uid??'')).digest('hex');
  function verify(receipt,text,url,uid){
@@ -55,9 +55,9 @@ export function createSourceFetcher({resolve=lookup,transport=retrieve,now=()=>D
   if(signature.length!==expected.length||!timingSafeEqual(Buffer.from(signature),Buffer.from(expected))||record.owner!==owner(uid)||record.sourceUrl!==url||record.digest!==createHash('sha256').update(text).digest('hex')||now()-Date.parse(record.retrievedAt??record.suppliedAt)>30*60*1000)fail('invalid_receipt');
   const {owner:binding,...provenance}=record;return provenance;
  }
+ function admit(map,uid){const current=now();for(const [id,r]of map)if(current-r.start>=60000)map.delete(id);const entry=map.get(uid)??{start:current,count:0};if(entry.count>=5||map.size>=10000&&!map.has(uid))fail('busy');entry.count++;map.set(uid,entry);}
  async function fetchSource(value,{signal,uid}={}){
-  const current=now();for(const [id,r]of rate)if(current-r.start>=60000)rate.delete(id);
-  const entry=rate.get(uid)??{start:current,count:0};if(entry.count>=5||active>=2||rate.size>=10000&&!rate.has(uid))fail('busy');entry.count++;rate.set(uid,entry);active++;
+  if(active>=2)fail('busy');admit(rate,uid);active++;
   const timeout=AbortSignal.timeout(timeoutMs),cancel=signal?AbortSignal.any([signal,timeout]):timeout;
   const abort=new Promise((_,reject)=>{if(cancel.aborted)reject(new SourceFailure('timeout'));else cancel.addEventListener('abort',()=>reject(new SourceFailure('timeout')),{once:true});});
   try{return await Promise.race([(async()=>{try{
@@ -75,6 +75,7 @@ export function createSourceFetcher({resolve=lookup,transport=retrieve,now=()=>D
   }finally{active--;}})(),abort]);}catch(error){if(error instanceof SourceFailure)throw error;throw new SourceFailure('inaccessible');}
  }
  function importSource(input,{uid}={}){
+  admit(importRate,uid);
   const url=sourceURL(input?.url).href;
   if(!['html','text'].includes(input?.format)||typeof input.contentBase64!=='string'||input.contentBase64.length>349528||!input.contentBase64.length||!(/^[A-Za-z0-9+/]*={0,2}$/.test(input.contentBase64)&&input.contentBase64.length%4===0))fail('invalid_import');
   const bytes=Buffer.from(input.contentBase64,'base64');if(bytes.length>256*1024||bytes.toString('base64')!==input.contentBase64)fail('invalid_import');

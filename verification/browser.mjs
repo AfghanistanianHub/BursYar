@@ -23,7 +23,7 @@ const report={mode:'BROWSER_WITH_MOCK_AUTH_AND_API',liveMetaVerified:false,liveG
 mkdirSync('verification/artifacts',{recursive:true});
 try {
  for(const language of ['en','fa','ps'])for(const width of [320,390,768,1280,1440]){
-  const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();
+  const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();let unexpectedSourceRequests=0;page.on('request',request=>{if(new URL(request.url()).hostname==='malicious.invalid')unexpectedSourceRequests++;});
   await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{const note=document.createElement('p');note.textContent='OFFLINE REHEARSAL — mocked identity and Meta; synthetic applicant data';note.setAttribute('role','note');note.style.cssText='padding:12px;background:#fff;color:#111;border:2px solid #111';document.body.prepend(note);},{once:true}));
   // Test-only network interception, not a runtime bypass or simulated live verification.
   const browserToken=`browser-test-${language}-${width}`;
@@ -161,7 +161,8 @@ try {
    await page.locator('#source-file').setInputFiles({name:`public-page.${extension}`,mimeType:extension==='html'?'text/html':'text/plain',buffer:Buffer.from(content)});
    await expect(page.locator('#requirements')).toHaveAttribute('readonly','');await expect(page.locator('#requirements')).toHaveValue(/Applicants must provide academic transcripts/);
    await expect(page.locator('#source-origin')).toContainText({en:'Provided by you',fa:'شما ارائه',ps:'تاسې ورکړی'}[language]);await expect(submit).toBeDisabled();
-   expect(await page.evaluate(()=>window.fakeExecution)).toBeUndefined();
+   expect(await page.evaluate(()=>window.fakeExecution)).toBeUndefined();expect(unexpectedSourceRequests).toBe(0);
+   await page.locator('#language').selectOption(language==='en'?'fa':'en');await expect(page.locator('#requirements')).toHaveAttribute('readonly','');await expect(page.locator('#source-approved')).not.toBeChecked();await page.locator('#language').selectOption(language);
    await page.locator('#source-approved').check();await submit.click();await expect(page.locator('.criterion')).toBeVisible();await expect(page.locator('#eligibility-result')).toBeVisible();
   }
   const importedAxe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(importedAxe.violations).toEqual([]);

@@ -16,7 +16,7 @@ test('saved HTML remains supplied, never executes resources or changes attribute
 });
 test('saved TXT preserves text and raw digest, requires valid bounded UTF-8 and base64',()=>{
  const s=createSourceFetcher();const r=s.importSource({url,format:'text',contentBase64:encoded(text)},{uid:'a'});assert.equal(r.text,text);assert.equal(r.receipt.kind,'user_supplied_text');
- for(const input of [{format:'pdf',contentBase64:encoded(text)},{format:'text',contentBase64:'!!!!'},{format:'text',contentBase64:Buffer.from([0xff,0xfe,0]).toString('base64')},{format:'text',contentBase64:encoded(text+'\0')},{format:'text',contentBase64:encoded('a'.repeat(12001))},{format:'html',contentBase64:encoded('a'.repeat(256*1024+1))}])assert.throws(()=>s.importSource({url,...input},{uid:'a'}));
+ for(const input of [{format:'pdf',contentBase64:encoded(text)},{format:'text',contentBase64:'!!!!'},{format:'text',contentBase64:Buffer.from([0xff,0xfe,0]).toString('base64')},{format:'text',contentBase64:encoded(text+'\0')},{format:'text',contentBase64:encoded('a'.repeat(12001))},{format:'html',contentBase64:encoded('a'.repeat(256*1024+1))}])assert.throws(()=>createSourceFetcher().importSource({url,...input},{uid:'a'}));
  assert.throws(()=>s.importSource({url:'javascript:alert(1)',format:'text',contentBase64:encoded(text)}));
 });
 test('saved challenge pages and misleading head metadata cannot impersonate scholarship content',()=>{
@@ -45,3 +45,5 @@ test('fallback import uses authenticated existing analysis pipeline, user isolat
   const tooBig=await fetch(base+'/api/source/import',{method:'POST',headers:{authorization:'Bearer alice','content-type':'application/json'},body:JSON.stringify({...body,contentBase64:'a'.repeat(410*1024)})});assert.equal(tooBig.status,400);
  }finally{await new Promise(r=>server.close(r));}
 });
+
+test('saved-page imports have bounded per-user rates without spending or network calls',()=>{let now=0;const sources=createSourceFetcher({now:()=>now});const input={url,format:'text',contentBase64:encoded(text)};for(let i=0;i<5;i++)sources.importSource(input,{uid:'a'});assert.throws(()=>sources.importSource(input,{uid:'a'}),{code:'busy'});sources.importSource(input,{uid:'b'});now=60001;sources.importSource(input,{uid:'a'});});
