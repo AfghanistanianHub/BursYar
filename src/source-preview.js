@@ -6,6 +6,8 @@ const copy={
 };
 export function mountSourcePreview(form,url,textarea,submit,language,initial={}){
  const t=copy[language]??copy.en;
+ const failures={en:{blocked:'This address is blocked by public-page security checks. Use an official public HTTPS page.',timeout:'The website did not respond in time. Try later or enter source text manually.',large:'This page exceeds the safe preview limit. Use a shorter official requirements page or manual text.',unsupported:'Only public UTF-8 HTML or text pages are supported. Use manual text for this source.',empty:'No readable article content was found. Use the manual text fallback.'},fa:{blocked:'این نشانی در بررسی امنیتی صفحهٔ عمومی مسدود شد. از صفحهٔ عمومی رسمی HTTPS استفاده کنید.',timeout:'وبگاه به‌موقع پاسخ نداد. بعداً تلاش کنید یا متن را دستی وارد کنید.',large:'این صفحه از حد امن پیش‌نمایش بزرگ‌تر است. از صفحهٔ کوتاه‌تر شرایط رسمی یا متن دستی استفاده کنید.',unsupported:'فقط صفحات عمومی HTML یا متن UTF-8 پشتیبانی می‌شوند. از متن دستی استفاده کنید.',empty:'محتوای خواندنی مقاله یافت نشد. از ورود دستی متن استفاده کنید.'},ps:{blocked:'دا پته د عامه پاڼې امنیتي کتنې بنده کړه. رسمي عامه HTTPS پاڼه وکاروئ.',timeout:'وېبپاڼې پر وخت ځواب ورنه کړ. وروسته هڅه وکړئ یا متن په لاس ولیکئ.',large:'دا پاڼه د خوندي مخکتنې تر حده لویه ده. د رسمي شرطونو لنډه پاڼه یا لاسي متن وکاروئ.',unsupported:'یوازې عامه UTF-8 HTML یا متني پاڼې ملاتړ کېږي. لاسي متن وکاروئ.',empty:'د لوستلو وړ مقاله ونه موندل شوه. متن په لاس ولیکئ.'}}[language]??{};
+ const failure=code=>/blocked|connection_denied/.test(code??'')?failures.blocked:code==='timeout'?failures.timeout:/too_large/.test(code??'')?failures.large:/unsupported/.test(code??'')?failures.unsupported:code==='empty_content'?failures.empty:t.error;
  const fetchButton=document.createElement('button');fetchButton.type='button';fetchButton.id='fetch-source';fetchButton.textContent=t.fetch;
  const manual=document.createElement('button');manual.type='button';manual.textContent=t.manual;manual.id='manual-source';
  const status=document.createElement('p');status.setAttribute('role','status');
@@ -18,7 +20,7 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
  const sync=()=>{form.sourceApproved=approval.checked;submit.disabled=!approval.checked;};
  approval.addEventListener('change',sync);
  const invalidate=()=>{form.dispatchEvent(new Event('bursyar:sourcechanged'));controller?.abort();approval.checked=false;form.sourceReceipt=null;form.sourcePreview=null;preview.hidden=true;sync();};
- url.addEventListener('input',invalidate);textarea.addEventListener('input',()=>{invalidate();status.textContent=t.changed;});
+ url.addEventListener('input',()=>{if(form.sourceReceipt){textarea.value='';textarea.readOnly=false;}invalidate();});textarea.addEventListener('input',()=>{invalidate();status.textContent=t.changed;});
  manual.addEventListener('click',()=>{invalidate();textarea.readOnly=false;textarea.focus();});
  function render(data){preview.replaceChildren();preview.hidden=false;
   const note=document.createElement('p');note.textContent=t.review;preview.append(note);
@@ -28,9 +30,9 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
  }
  fetchButton.addEventListener('click',async()=>{
   invalidate();const current=controller=new AbortController();fetchButton.disabled=true;status.textContent=t.loading;
-  try{const token=await getInferenceToken();const response=await fetch('/api/source',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({url:url.value}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(15000)])});if(!response.ok)throw Object.assign(Error(),{status:response.status});const data=await response.json();if(current.signal.aborted||!form.isConnected)return;
+  try{const token=await getInferenceToken();const response=await fetch('/api/source',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({url:url.value}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(15000)])});if(!response.ok){const problem=await response.json().catch(()=>({}));throw Object.assign(Error(),{status:response.status,code:problem.code});}const data=await response.json();if(current.signal.aborted||!form.isConnected)return;
    textarea.value=data.text;textarea.readOnly=true;url.value=data.receipt.sourceUrl;form.sourceReceipt=data.receipt;form.sourcePreview=data;render(data);status.textContent=t.review;
-  }catch(error){if(!current.signal.aborted&&form.isConnected)status.textContent=error.status===401?t.auth:error.status===429?t.busy:t.error;}
+  }catch(error){if(!current.signal.aborted&&form.isConnected)status.textContent=error.status===401?t.auth:error.status===429?t.busy:failure(error.code);}
   finally{if(controller===current)fetchButton.disabled=false;}
  });
  if(initial.preview){form.sourcePreview=initial.preview;render(initial.preview);textarea.readOnly=!!form.sourceReceipt;}

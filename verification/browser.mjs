@@ -122,6 +122,8 @@ try {
   await page.locator('#analyze-form button[type=submit]').click();await expect(page.locator('.criterion')).toBeVisible();expect(calls).toBe(beforeFetch+1);
   await page.locator('#manual-source').click();await page.locator('#requirements').fill('Manual replacement: Applicants must provide academic transcripts.');
   await expect(page.locator('#source-approved')).not.toBeChecked();await expect(page.locator('#analyze-form button[type=submit]')).toBeDisabled();
+  await page.locator('#fetch-source').click();await expect(page.locator('#requirements')).toHaveAttribute('readonly','');
+  await page.locator('#source-url').fill('https://other.example/scholarship');await expect(page.locator('#requirements')).toHaveValue('');await expect(page.locator('#requirements')).not.toHaveAttribute('readonly','');
   report.sourcePreviewCases=(report.sourcePreviewCases??0)+1;
   await context.close();
  }
