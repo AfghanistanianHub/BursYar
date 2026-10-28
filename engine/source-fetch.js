@@ -58,7 +58,7 @@ export function createSourceFetcher({resolve=lookup,transport=retrieve,now=()=>D
   const entry=rate.get(uid)??{start:current,count:0};if(entry.count>=5||active>=2||rate.size>=10000&&!rate.has(uid))fail('busy');entry.count++;rate.set(uid,entry);active++;
   const timeout=AbortSignal.timeout(timeoutMs),cancel=signal?AbortSignal.any([signal,timeout]):timeout;
   const abort=new Promise((_,reject)=>{if(cancel.aborted)reject(new SourceFailure('timeout'));else cancel.addEventListener('abort',()=>reject(new SourceFailure('timeout')),{once:true});});
-  try{return await Promise.race([(async()=>{
+  try{return await Promise.race([(async()=>{try{
    const original=sourceURL(value).href;let url=sourceURL(value);const visited=[];
    for(let hops=0;hops<=3;hops++){
     if(cancel.aborted)fail('timeout');visited.push(url.href);
@@ -70,7 +70,7 @@ export function createSourceFetcher({resolve=lookup,transport=retrieve,now=()=>D
     const record={rawDigest:createHash('sha256').update(response.body).digest('hex'),requestedUrl:original,sourceUrl:url.href,retrievedAt:new Date(now()).toISOString(),digest:createHash('sha256').update(extracted.text).digest('hex'),extraction:extracted.extraction,redirects:visited.slice(0,-1),trust:'public_web_unverified'};
     return {...extracted,receipt:{...record,signature:sign(record)}};
    }
-  })(),abort]);}catch(error){if(error instanceof SourceFailure)throw error;throw new SourceFailure('inaccessible');}finally{active--;}
+  }finally{active--;}})(),abort]);}catch(error){if(error instanceof SourceFailure)throw error;throw new SourceFailure('inaccessible');}
  }
  return {fetchSource,verify};
 }
