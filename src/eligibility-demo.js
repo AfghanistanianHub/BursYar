@@ -27,6 +27,7 @@ export function mountEligibility(root,language='en'){
  <button type="button" id="eligibility-simulate">${escape(t.simulate)}</button>
  <output id="eligibility-future" aria-live="polite"></output></form><p>${escape(t.next)}</p></section>`;
  const form=root.querySelector('#eligibility-form'),scores=form.querySelector('.eligibility-scores');
+ form.addEventListener('submit',event=>event.preventDefault());
  const asFact=value=>({value,origin:'user_declared',claimIds:[]});
  function snapshot(){
   const degree=form.elements.namedItem('degree').value;
@@ -37,7 +38,6 @@ export function mountEligibility(root,language='en'){
   }
   return profile;
  }
- function label(result){return escape(t.state[result.summary]);}
  function render(){scores.hidden=!form.elements.namedItem('hasTest').checked;form.querySelector('#eligibility-result').textContent=t.state[assessScholarship(fixture,snapshot()).summary];form.querySelector('#eligibility-future').textContent='';}
  form.addEventListener('input',render);form.addEventListener('change',render);
  form.querySelector('#eligibility-simulate').addEventListener('click',()=>{
