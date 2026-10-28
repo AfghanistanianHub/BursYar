@@ -40,7 +40,7 @@ export function createSourceTransport(requestImpl=request){return (url,address,s
   if(res.headers['content-encoding']&&res.headers['content-encoding']!=='identity'){res.destroy();return reject(new SourceFailure('unsupported_encoding'));}
   const type=res.headers['content-type']??'';if(!/^(text\/html|text\/plain)(?:;|$)/i.test(type)||(/charset=/i.test(type)&&!/charset=["']?utf-8\b/i.test(type))){res.destroy();return reject(new SourceFailure('unsupported_content'));}
   let size=0;const chunks=[];res.on('data',chunk=>{size+=chunk.length;if(size>512*1024)res.destroy(new SourceFailure('response_too_large'));else chunks.push(chunk);});
-  res.on('error',reject);res.on('end',()=>{try{resolve({body:new TextDecoder('utf-8',{fatal:true}).decode(Buffer.concat(chunks)),plain:/^text\/plain/i.test(type)});}catch{reject(new SourceFailure('unsupported_encoding'));}});
+  res.on('error',reject);res.on('end',()=>{try{const bytes=Buffer.concat(chunks);resolve({rawDigest:createHash('sha256').update(bytes).digest('hex'),body:new TextDecoder('utf-8',{fatal:true}).decode(bytes),plain:/^text\/plain/i.test(type)});}catch{reject(new SourceFailure('unsupported_encoding'));}});
  });req.on('error',reject);req.end();
 });}
 const retrieve=createSourceTransport();
@@ -67,7 +67,7 @@ export function createSourceFetcher({resolve=lookup,transport=retrieve,now=()=>D
     if(response.redirect!==undefined){if(hops===3||!response.redirect)fail('redirect_limit');url=sourceURL(new URL(response.redirect,url).href);if(visited.includes(url.href))fail('redirect_loop');continue;}
     const extracted=response.plain?{text:response.body.trim(),links:[],extraction:'plain_text'}:extractArticle(response.body,url.href);
     if(extracted.text.length<30)fail('empty_content');if(extracted.text.length>12000)fail('content_too_large');
-    const record={rawDigest:createHash('sha256').update(response.body).digest('hex'),requestedUrl:original,sourceUrl:url.href,retrievedAt:new Date(now()).toISOString(),digest:createHash('sha256').update(extracted.text).digest('hex'),extraction:extracted.extraction,redirects:visited.slice(0,-1),trust:'public_web_unverified'};
+    const record={rawDigest:response.rawDigest??createHash('sha256').update(response.body).digest('hex'),requestedUrl:original,sourceUrl:url.href,retrievedAt:new Date(now()).toISOString(),digest:createHash('sha256').update(extracted.text).digest('hex'),extraction:extracted.extraction,redirects:visited.slice(0,-1),trust:'public_web_unverified'};
     return {...extracted,receipt:{...record,signature:sign(record)}};
    }
   }finally{active--;}})(),abort]);}catch(error){if(error instanceof SourceFailure)throw error;throw new SourceFailure('inaccessible');}

@@ -1,3 +1,4 @@
+import {createHash} from 'node:crypto';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {sourceURL,publicAddress,resolvePublic,extractArticle,createSourceFetcher} from '../source-fetch.js';
@@ -25,3 +26,5 @@ test('timed-out DNS retains concurrency slots until resolver settles and never c
  let release,calls=0;const waiting=new Promise(r=>release=r);const f=createSourceFetcher({resolve:async()=>{await waiting;return dns();},transport:async()=>{calls++;return {body:page};},timeoutMs:20});
  const keep=setTimeout(()=>{},200);const a=f.fetchSource('https://example.com/',{uid:'a'}),b=f.fetchSource('https://example.com/',{uid:'b'});await Promise.all([assert.rejects(a,{code:'timeout'}),assert.rejects(b,{code:'timeout'})]);await assert.rejects(f.fetchSource('https://example.com/',{uid:'c'}),{code:'busy'});release();await new Promise(r=>setImmediate(r));assert.equal(calls,0);await f.fetchSource('https://example.com/',{uid:'c'});assert.equal(calls,1);clearTimeout(keep);
 });
+
+test('wire digest preserves UTF-8 BOM bytes independently of decoded article text',async()=>{const wire='\uFEFF'+page;const f=fakeTransport({body:wire});const r=await f.transport(new URL('https://example.com/'),{address:'93.184.216.34',family:4},new AbortController().signal);assert.equal(r.rawDigest,createHash('sha256').update(Buffer.from(wire)).digest('hex'));assert.equal(r.body,page);const sources=createSourceFetcher({resolve:dns,transport:async()=>r});const source=await sources.fetchSource('https://example.com/',{uid:'a'});assert.equal(source.receipt.rawDigest,r.rawDigest);assert.notEqual(source.receipt.rawDigest,source.receipt.digest);});
