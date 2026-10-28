@@ -3,11 +3,11 @@ const ENDPOINT='https://api.meta.ai/v1/chat/completions';
 export class MetaFailure extends Error {
  constructor(code,status=502,providerStatus=null){super('Meta inference failed');this.code=code;this.status=status;this.providerStatus=providerStatus;}
 }
-export function createMetaInference({key,model,fetchImpl=fetch,timeoutMs=20000}){
+export function createMetaInference({key,model,fetchImpl=fetch,timeoutMs=20000,onMetrics=()=>{}}){
  if(typeof key!=='string' || !key.trim() || typeof model!=='string' || !model.trim())throw Error('Meta key and model required');
  if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>60000)throw Error('Invalid Meta timeout');
  return async messages=>{
-  const signal=AbortSignal.timeout(timeoutMs);
+  const signal=AbortSignal.timeout(timeoutMs),started=performance.now();
   let response;
   try{
    response=await fetchImpl(ENDPOINT,{method:'POST',redirect:'error',headers:{'content-type':'application/json',authorization:`Bearer ${key}`},body:JSON.stringify({model,messages,max_completion_tokens:4000,temperature:0.1,stream:false}),signal});
@@ -26,6 +26,9 @@ export function createMetaInference({key,model,fetchImpl=fetch,timeoutMs=20000})
    const choice=result?.choices?.[0];
    if(choice?.finish_reason==='length')throw new MetaFailure('provider_truncated');
    if(choice?.finish_reason!=='stop' || typeof choice?.message?.content!=='string')throw new MetaFailure('provider_schema');
+   const count=k=>Number.isSafeInteger(result?.usage?.[k])&&result.usage[k]>=0?result.usage[k]:null;
+   // Provider-reported counts only. Never estimate or claim a billed dollar cost.
+   try{onMetrics({event:'meta_response',elapsedMs:Math.round(performance.now()-started),promptTokens:count('prompt_tokens'),completionTokens:count('completion_tokens'),totalTokens:count('total_tokens'),costUSD:null});}catch{/* Diagnostics must not break inference. */}
    return choice.message.content;
   }catch(error){
    if(signal.aborted || error?.name==='TimeoutError')throw new MetaFailure('provider_timeout',504);

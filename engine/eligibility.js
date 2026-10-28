@@ -17,12 +17,13 @@ function fact(profile,key) {
   if (!f || typeof f!=='object' || !own(f,'value') || f.value===null || f.value===undefined) return null;
   // Explicitly refuse facts without provenance, including hypothetical data accidentally placed in the real profile.
   if (!['user_declared','document_extracted','issuer_verified'].includes(f.origin)) return null;
+  if(f.reviewStatus==='pending'||f.verificationStatus==='rejected'||f.contradicted===true) return null;
   return f;
 }
 function boundedScore(v) {
   return typeof v==='number' && Number.isFinite(v) && v>=0 && v<=9 && Number.isInteger(v*2);
 }
-export function assessRequirement(requirement,profile) {
+function evaluateRequirement(requirement,profile) {
   const id=requirement?.id ?? 'invalid';
   if (!validRequirement(requirement) || requirement.ambiguous!==false || typeof requirement.sourceExcerpt!=='string' || !requirement.sourceExcerpt.trim() || typeof requirement.sourceUrl!=='string' || !/^https:\/\//.test(requirement.sourceUrl))
     return result(id,UNKNOWN,'unreviewed_or_unsupported_requirement');
@@ -44,6 +45,10 @@ export function assessRequirement(requirement,profile) {
   const pass=v.overall>=requirement.overallMin && names.every(n=>v.bands[n]>=requirement.eachBandMin);
   return result(id,pass?'met':'not_met',pass?'test_thresholds_met':'test_thresholds_not_met',f.claimIds??[]);
 }
+export function assessRequirement(requirement,profile) {
+  const evaluated=evaluateRequirement(requirement,profile);
+  return {...evaluated,source:{url:requirement?.sourceUrl??null,excerpt:requirement?.sourceExcerpt??null,provenance:requirement?.provenance??null}};
+}
 export function assessScholarship(requirements,profile) {
   if (!Array.isArray(requirements) || !profile || typeof profile!=='object') throw new TypeError('Invalid assessment input');
   const results=requirements.map(r=>assessRequirement(r,profile));
@@ -57,7 +62,7 @@ export function simulate(requirements,profile,overrides) {
   if (Object.keys(overrides).some(k=>!allowed.has(k))) throw new Error('Unsupported override');
   const hypothetical=structuredClone(profile);
   for(const [key,value] of Object.entries(overrides)){
-    if (value===null || typeof value!=='object' || Array.isArray(value)) throw new TypeError('Invalid override value');
+    if (value===null || (key==='degree'?typeof value!=='string':typeof value!=='object'||Array.isArray(value))) throw new TypeError('Invalid override value');
     hypothetical[key]={value:structuredClone(value),origin:'user_declared',claimIds:[]};
   }
   return {hypothetical:true,base:assessScholarship(requirements,profile),scenario:assessScholarship(requirements,hypothetical)};

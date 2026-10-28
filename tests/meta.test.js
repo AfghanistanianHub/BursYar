@@ -33,3 +33,10 @@ test('deadline covers delayed headers and streamed body; invalid timeouts fail c
   await assert.rejects(infer([]),e=>e.code==='provider_timeout'&&e.status===504);
  }
 });
+test('Meta metrics retain only validated provider counts and latency, never credentials or content',async()=>{
+ let metric;
+ const infer=createMetaInference({key:'SECRET',model:'configured',onMetrics:value=>{metric=value;},fetchImpl:async()=>Response.json({choices:[{finish_reason:'stop',message:{content:'PRIVATE CONTENT'}}],usage:{prompt_tokens:10,completion_tokens:4,total_tokens:14,secret:'SECRET'}})});
+ assert.equal(await infer([]),'PRIVATE CONTENT');
+ assert.equal(metric.totalTokens,14);assert.equal(metric.costUSD,null);assert.ok(metric.elapsedMs>=0);
+ assert.ok(!JSON.stringify(metric).includes('SECRET'));assert.ok(!JSON.stringify(metric).includes('PRIVATE'));
+});
