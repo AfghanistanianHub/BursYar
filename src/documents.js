@@ -26,7 +26,7 @@ export function mountDocuments(root,language='en'){
   content.replaceChildren();element('p',t.pending,content);
   const source=element('pre',doc.text,content);source.dir='auto';
   const review=element('form','',content),editors=[];
-  if(!doc.pending.length)element('p',t.empty,review);
+  if(!doc.pending.length)element('p',doc.reviewedAt?t.done:t.empty,review);
   for(const claim of doc.pending){
    const field=element('fieldset','',review);element('legend',t[claim.field],field);element('blockquote',claim.sourceExcerpt,field);
    const decisionLabel=element('label',t.review,field),decision=element('select','',decisionLabel);
@@ -39,7 +39,7 @@ export function mountDocuments(root,language='en'){
   if(editors.length){const approve=element('button',t.review,review);approve.type='submit';}
   review.addEventListener('submit',event=>{event.preventDefault();busy(async()=>{
    const decisions=Object.fromEntries(editors.map(({claim,decision,inputs})=>{const values=inputs.map(input=>input.type==='number'?Number(input.value):input.value);const value=claim.field==='degree'?values[0]:{test:'IELTS Academic',overall:values[0],bands:Object.fromEntries(['listening','reading','writing','speaking'].map((key,i)=>[key,values[i+1]]))};return [claim.id,{action:decision.value,...(decision.value==='correct'?{value}:{})}];}));
-   publish(await api(`/api/documents/${doc.id}/review`,'POST',{decisions}));status.textContent=t.done;review.remove();
+   publish(await api(`/api/documents/${doc.id}/review`,'POST',{decisions}));doc.reviewedAt=true;doc.pending=[];current=doc;status.textContent=t.done;review.remove();
   });});
   const remove=element('button',t.remove,content);remove.type='button';remove.addEventListener('click',()=>busy(async()=>{await api(`/api/documents/${doc.id}`,'DELETE');current=null;content.replaceChildren();publish(await api('/api/profile'));status.textContent=t.deleted;}));
  }
