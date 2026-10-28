@@ -1,4 +1,5 @@
-import {MAX_META_TIMEOUT_MS,MAX_COMPLETION_TOKENS,safeProviderDiagnostics} from './provider-config.js';
+import {metaReservationUnits} from './meta-request.js';
+import {MAX_META_TIMEOUT_MS,safeProviderDiagnostics} from './provider-config.js';
 import {DocumentError} from './documents.js';
 import {createServer} from 'node:http';
 import {randomUUID} from 'node:crypto';
@@ -47,14 +48,15 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
    if(res.destroyed)return;
    const messages=evidencePrompt(input);
    // UTF-8 bytes conservatively bound input tokens; fixed maximum output reservation.
-   const units=Buffer.byteLength(JSON.stringify(messages),'utf8')+MAX_COMPLETION_TOKENS;
+   const units=typeof infer.reservationUnits==='function'?infer.reservationUnits(messages):metaReservationUnits('muse-spark-1.3',messages);
    try{quota.reserve(uid,units);}catch(error){return send(res,error instanceof QuotaExceeded?429:503,{error:error instanceof QuotaExceeded?'Quota exhausted':'Quota storage unavailable'});}
    const started=performance.now(),requestId=randomUUID();
    let stage='provider';
    try {
-    const raw=await infer(messages,{signal:pending.signal});
+    const raw=await infer(messages,{signal:pending.signal,requestId});
     stage='evidence';
     const output=normalizeEvidence(raw,input);
+    try{diagnose({event:'analysis_validated',requestId,stage:'evidence',elapsedMs:Math.round(performance.now()-started),criteriaCount:output.criteria.length,fundingCount:output.funding.length,requiresHumanReview:true,coverageComplete:false});}catch{/* Logging does not alter validation. */}
     return send(res,200,output);
    }catch(error){
     const known=error instanceof MetaFailure;

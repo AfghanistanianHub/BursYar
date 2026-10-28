@@ -42,8 +42,8 @@ test('Meta metrics retain only validated provider counts and latency, never cred
 });
 const completion=()=>Response.json({choices:[{finish_reason:'stop',message:{content:'{}'}}]});
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-test('default and explicit deadlines are bounded; model defaults and token cap are preserved',async()=>{
- const infer=createMetaInference({key:'SECRET',model:'muse-spark-1.3',fetchImpl:async(_,{body})=>{const request=JSON.parse(body);assert.equal(request.max_completion_tokens,4000);assert.equal(request.stream,false);assert.equal(Object.hasOwn(request,'temperature'),false);assert.equal(Object.hasOwn(request,'reasoning_effort'),false);return completion();}});
+test('default and explicit deadlines are bounded; compact policy uses low reasoning while deadlines and token cap stay bounded',async()=>{
+ const infer=createMetaInference({key:'SECRET',model:'muse-spark-1.3',fetchImpl:async(_,{body})=>{const request=JSON.parse(body);assert.equal(request.max_completion_tokens,4000);assert.equal(request.stream,false);assert.equal(Object.hasOwn(request,'temperature'),false);assert.equal(request.reasoning_effort,'low');assert.equal(request.response_format.type,'json_schema');assert.equal(request.response_format.json_schema.strict,true);return completion();}});
  assert.equal(infer.configuration.timeoutMs,60000);assert.equal(infer.configuration.model,'muse-spark-1.3');
  assert.equal(createMetaInference({key:'x',model:'SECRET',timeoutMs:120000}).configuration.model,'other_configured_model');
  assert.equal(await infer([]),'{}');

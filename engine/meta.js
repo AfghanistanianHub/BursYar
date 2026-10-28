@@ -1,4 +1,6 @@
-import {DEFAULT_META_TIMEOUT_MS,MAX_COMPLETION_TOKENS,metaTimeout,safeModel,safeTransportCode,safeProviderDiagnostics} from './provider-config.js';
+import {buildMetaRequest,metaReservationUnits} from './meta-request.js';
+import {EVIDENCE_LIMITS} from './evidence-contract.js';
+import {DEFAULT_META_TIMEOUT_MS,MAX_COMPLETION_TOKENS,metaTimeout,safeModel,safeTransportCode,safeProviderDiagnostics,safeFinishReason,safeTokenCount,safeRequestId} from './provider-config.js';
 const ENDPOINT='https://api.meta.ai/v1/chat/completions';
 export class MetaFailure extends Error {
  constructor(code,status=502,providerStatus=null,diagnostics){
@@ -18,14 +20,14 @@ function abortable(operation,signal){
 export function createMetaInference({key,model,fetchImpl=fetch,timeoutMs=DEFAULT_META_TIMEOUT_MS,onMetrics=()=>{}}){
  if(typeof key!=='string'||!key.trim()||typeof model!=='string'||!model.trim())throw Error('Meta key and model required');
  timeoutMs=metaTimeout(timeoutMs);
- const configuration=Object.freeze({event:'meta_configuration',model:safeModel(model),timeoutMs,maxCompletionTokens:MAX_COMPLETION_TOKENS,stream:false,reasoningEffort:'model_default'});
- const infer=async(messages,{signal:callerSignal}={})=>{
+ const configuration=Object.freeze({event:'meta_configuration',model:safeModel(model),timeoutMs,maxCompletionTokens:MAX_COMPLETION_TOKENS,stream:false,reasoningEffort:'low',responseFormat:'json_schema',responseSchema:'bursyar_evidence_v1',maxCriteria:EVIDENCE_LIMITS.criteria});
+ const infer=async(messages,{signal:callerSignal,requestId}={})=>{
   if(!Array.isArray(messages)||messages.some(m=>!m||typeof m.content!=='string'))throw new MetaFailure('provider_input',400);
-  const body=JSON.stringify({model,messages,max_completion_tokens:MAX_COMPLETION_TOKENS,stream:false});
+  const body=JSON.stringify(buildMetaRequest(model,messages));
   const started=performance.now(),deadline=new AbortController(),timeoutReason=new Error('Local provider deadline');
   const signal=callerSignal?AbortSignal.any([deadline.signal,callerSignal]):deadline.signal;
   const timer=setTimeout(()=>deadline.abort(timeoutReason),timeoutMs);
-  const diagnostics={phase:'awaiting_response_headers',model:safeModel(model),timeoutMs,requestBytes:Buffer.byteLength(body,'utf8'),messagesBytes:Buffer.byteLength(JSON.stringify(messages),'utf8'),messageCount:messages.length,inputCodeUnits:messages.reduce((n,m)=>n+(typeof m?.content==='string'?m.content.length:0),0),maxCompletionTokens:MAX_COMPLETION_TOKENS,headersAfterMs:null,firstBodyByteAfterMs:null,responseBytes:0};
+  const diagnostics={requestId:safeRequestId(requestId),phase:'awaiting_response_headers',model:safeModel(model),timeoutMs,requestBytes:Buffer.byteLength(body,'utf8'),messagesBytes:Buffer.byteLength(JSON.stringify(messages),'utf8'),messageCount:messages.length,inputCodeUnits:messages.reduce((n,m)=>n+(typeof m?.content==='string'?m.content.length:0),0),maxCompletionTokens:MAX_COMPLETION_TOKENS,headersAfterMs:null,firstBodyByteAfterMs:null,responseBytes:0,reasoningEffort:'low',responseFormat:'json_schema',responseSchema:'bursyar_evidence_v1',maxCriteria:EVIDENCE_LIMITS.criteria,finishReason:null,promptTokens:null,completionTokens:null,totalTokens:null,reasoningTokens:null};
   let response,reader;
   try{
    if(signal.aborted)throw signal.reason;
@@ -51,10 +53,16 @@ export function createMetaInference({key,model,fetchImpl=fetch,timeoutMs=DEFAULT
    diagnostics.phase='validating_response';
    let result;try{result=JSON.parse(Buffer.concat(chunks).toString('utf8'));}catch{throw new MetaFailure('provider_json');}
    const choice=result?.choices?.[0];
+   // Capture allowlisted metadata BEFORE rejecting a truncated or invalid choice.
+   diagnostics.finishReason=safeFinishReason(choice?.finish_reason);
+   diagnostics.promptTokens=safeTokenCount(result?.usage?.prompt_tokens);
+   diagnostics.completionTokens=safeTokenCount(result?.usage?.completion_tokens);
+   diagnostics.totalTokens=safeTokenCount(result?.usage?.total_tokens);
+   diagnostics.reasoningTokens=safeTokenCount(result?.usage?.completion_tokens_details?.reasoning_tokens);
    if(choice?.finish_reason==='length')throw new MetaFailure('provider_truncated');
-   if(choice?.finish_reason!=='stop'||typeof choice?.message?.content!=='string')throw new MetaFailure('provider_schema');
-   const count=k=>Number.isSafeInteger(result?.usage?.[k])&&result.usage[k]>=0?result.usage[k]:null;
-   try{onMetrics({event:'meta_response',...safeProviderDiagnostics(diagnostics),elapsedMs:Math.round(performance.now()-started),promptTokens:count('prompt_tokens'),completionTokens:count('completion_tokens'),totalTokens:count('total_tokens'),costUSD:null});}catch{/* Logging cannot alter inference. */}
+   if(!Array.isArray(result?.choices)||result.choices.length!==1||choice?.finish_reason!=='stop'||typeof choice?.message?.content!=='string'||!choice.message.content.trim())throw new MetaFailure('provider_schema');
+   if(choice.message.refusal)throw new MetaFailure('provider_refusal');
+   try{onMetrics({event:'meta_response',...safeProviderDiagnostics(diagnostics),elapsedMs:Math.round(performance.now()-started),costUSD:null});}catch{/* Logging cannot alter inference. */}
    return choice.message.content;
   }catch(error){
    if(signal.aborted){
@@ -70,5 +78,5 @@ export function createMetaInference({key,model,fetchImpl=fetch,timeoutMs=DEFAULT
    if(reader){reader.cancel().catch(()=>{});reader.releaseLock();}
   }
  };
- infer.configuration=configuration;return infer;
+ infer.configuration=configuration;infer.reservationUnits=messages=>metaReservationUnits(model,messages);return infer;
 }

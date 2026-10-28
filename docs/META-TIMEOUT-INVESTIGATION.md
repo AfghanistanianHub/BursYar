@@ -1,5 +1,7 @@
 # Meta timeout investigation — October 28, 2026
 
+Follow-up: [completion-budget investigation](META-TRUNCATION-INVESTIGATION.md) records the next real HTTP 200 / length response and the current compact-schema, low-reasoning strategy. This document preserves the earlier timeout evidence.
+
 ## What the reported failure establishes
 
 Owner supplied the first manually authorized Oxford Clarendon attempt: stage provider, code provider_timeout, providerStatus null, elapsed 20005 ms; local spending confirmation enabled with the existing USD 5 cap. No paid request was repeated during this investigation.

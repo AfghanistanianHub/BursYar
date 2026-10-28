@@ -87,3 +87,26 @@ test('gateway filters arbitrary provider diagnostic properties again before logg
  const records=[];await fixture(async({post})=>assert.equal((await post()).status,504),{infer:async()=>{throw error;},diagnose:record=>records.push(record)});
  assert.deepEqual(records[0].provider,{phase:'awaiting_response_headers',timeoutCause:'local_deadline',timeoutMs:15});
 });
+
+test('truncated real-adapter mocks consume the full schema-aware reservation and never reach evidence success',async()=>{
+ let calls=0;const bodies=[],records=[];
+ const infer=createMetaInference({key:'PRIVATE KEY',model:'muse-spark-1.3',fetchImpl:async(_,{body})=>{calls++;bodies.push(body);return Response.json({choices:[{finish_reason:'length',message:{content:JSON.stringify(result)}}],usage:{prompt_tokens:1000,completion_tokens:4000,total_tokens:5000,completion_tokens_details:{reasoning_tokens:3999,reasoning:'PRIVATE CHAIN'}}});}});
+ await fixture(async({post,quota})=>{
+  for(let i=0;i<2;i++){const r=await post();assert.equal(r.status,502);assert.deepEqual(await r.json(),{error:'Analysis unavailable'});}
+  assert.equal((await post()).status,429);assert.equal(calls,2);
+  const expected=bodies.reduce((sum,b)=>sum+Buffer.byteLength(b,'utf8')+4000,0);
+  assert.equal(quota.db.prepare("SELECT used FROM quota WHERE bucket='lifetime'").get().used,expected);
+ },{infer,diagnose:r=>records.push(r)});
+ assert.equal(records.length,2);assert.ok(records.every(r=>r.code==='provider_truncated'&&r.provider.finishReason==='length'&&r.provider.reasoningTokens===3999&&r.provider.requestId===r.requestId));
+ assert.ok(!JSON.stringify(records).includes('PRIVATE'));assert.ok(!JSON.stringify(records).includes(text));
+});
+test('a completed provider response succeeds only after downstream schema and exact-source checks',async()=>{
+ for(const [raw,code,status] of [[JSON.stringify(result),null,200],['{','evidence_json',502],[JSON.stringify({...result,funding:['A fabricated funding promise.']}),'evidence_funding',502],[JSON.stringify({...result,extra:true}),'evidence_schema',502]]){
+  let calls=0;const records=[],providerRecords=[];
+  const infer=createMetaInference({key:'PRIVATE KEY',model:'muse-spark-1.3',onMetrics:r=>providerRecords.push(r),fetchImpl:async()=>{calls++;return Response.json({choices:[{finish_reason:'stop',message:{content:raw}}],usage:{prompt_tokens:10,completion_tokens:100,total_tokens:110,completion_tokens_details:{reasoning_tokens:20}}});}});
+  await fixture(async({post})=>{const response=await post();assert.equal(response.status,status);if(status===200){const data=await response.json();assert.equal(data.requiresHumanReview,true);assert.equal(data.sourceDigest.length,64);assert.equal(data.selection.complete,false);assert.equal(data.criteria[0].excerpt,result.criteria[0].excerpt);assert.equal(data.compilation.sourceStatus,'user_supplied_unverified');}else assert.deepEqual(await response.json(),{error:'Analysis unavailable'});},{infer,diagnose:r=>records.push(r)});
+  assert.equal(calls,1);assert.equal(records.length,1);assert.equal(providerRecords.length,1);assert.equal(providerRecords[0].requestId,records[0].requestId);assert.equal(providerRecords[0].finishReason,'stop');
+  if(code){assert.equal(records[0].code,code);assert.equal(records[0].stage,'evidence');}else{assert.equal(records[0].event,'analysis_validated');assert.equal(records[0].coverageComplete,false);}
+  assert.ok(!JSON.stringify(records).includes('PRIVATE'));assert.ok(!JSON.stringify(records).includes(text));
+ }
+});

@@ -10,6 +10,8 @@ Draft PR #9 is stacked on draft PR #8. The stack now reconciles main history whi
 
 Read [the current demonstration and submission runbook](docs/HACKATHON-DEMO.md) and [mission checkpoint](docs/checkpoints/11-autonomous-mission.md) for executed evidence, limits, recovery and owner gates.
 
+Current provider continuation: branch `fix/meta-truncated-completions`, stacked on the timeout fix, uses low reasoning and a compact strict response schema with the same 4000-token cap. The owner reported a real HTTP 200 / `length` reply; validated end-to-end live analysis remains pending. Read [the diagnosis and single authorized Oxford test](docs/META-TRUNCATION-INVESTIGATION.md).
+
 ## Setup and verification
 
 Node >=24.12 required. From repository root:
