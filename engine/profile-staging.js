@@ -1,6 +1,7 @@
+import {PROFILE_FIELDS} from './profile-schema.js';
 // Pure local staging of *already extracted* document claims.
 // No uploads, network, OCR, storage or official verification in this module.
-const allowedFields=new Set(['degree','languageTest']);
+const allowedFields=new Set(PROFILE_FIELDS);
 const allowedOrigins=new Set(['document_extracted','user_declared']);
 const has=(obj,key)=>Object.prototype.hasOwnProperty.call(obj,key);
 export function prepareClaims(documentId,claims){
