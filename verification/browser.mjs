@@ -25,8 +25,8 @@ try {
   // Test-only network interception, not a runtime bypass or simulated live verification.
   await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function getInferenceToken(){return "browser-test-only";}'}));
   await page.route(/\/api\/(documents|profile)/,async route=>{const request=route.request();const response=await fetch(apiUrl+new URL(request.url()).pathname,{method:request.method(),headers:{authorization:request.headers().authorization,origin:baseUrl,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});});
-  let responseStatus=200;let sawRequest=false;let calls=0;
-  await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe('Bearer browser-test-only');sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?evidence:{error:'test-error'})});});
+  let responseEvidence=evidence;let responseStatus=200;let sawRequest=false;let calls=0;
+  await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe('Bearer browser-test-only');sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?responseEvidence:{error:'test-error'})});});
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
   await expect(page.locator('html')).toHaveAttribute('dir',language==='en'?'ltr':'rtl');
   if(width===390){
@@ -56,11 +56,12 @@ try {
   report.cases.push({language,width,overflow,accessibilityViolations:axe.violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.length}))});
   expect(axe.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);
   if(width===390){
+   const profile=page.locator('#profile-form');await profile.locator('[name=academicHistory]').fill('SYNTHETIC EDUCATION ONLY');await profile.locator('[name=languages]').fill('English (self-declared)');await profile.locator('[name=continuingSameDegree]').selectOption('false');await profile.locator('[name=consent]').check();await profile.locator('button[type=submit]').click();await expect(page.locator('#profile [role=status]')).toContainText({en:'Profile saved.',fa:'پروفایل ذخیره شد.',ps:'پروفایل وساتل شو.'}[language]);await expect(page.locator('#profile-form [name=academicHistory]')).toHaveValue('SYNTHETIC EDUCATION ONLY');
    // Exercise the real local document API with synthetic text and mocked identity.
    const upload=page.locator('#documents form').first();
    await upload.locator('input[type=file]').setInputFiles({name:'synthetic-education.txt',mimeType:'text/plain',buffer:Buffer.from('SYNTHETIC TEST ONLY\nDegree: bachelor\nIELTS Academic: overall=7; listening=7; reading=7; writing=6; speaking=7')});
    await upload.locator('input[type=checkbox]').check();await upload.locator('button[type=submit]').click();
-   await expect(page.locator('#documents fieldset')).toHaveCount(2);
+   await expect(page.locator('#documents .document-claim')).toHaveCount(2);
    await page.locator('#documents form').nth(1).locator('button[type=submit]').click();
    await expect(page.locator('#eligibility-form [name=degree]')).toHaveValue('bachelor');
    await expect(page.locator('#eligibility-form [name=hasTest]')).toBeChecked();
@@ -69,7 +70,7 @@ try {
    await expect(page.locator('#eligibility-result')).toHaveAttribute('data-status',canonical);
    await expect(page.locator('#eligibility-form [name=degree]')).toHaveValue('bachelor');
    await page.locator('#language').selectOption(language);
-   await expect(page.locator('#documents fieldset')).toHaveCount(0);
+   await expect(page.locator('#documents .document-claim')).toHaveCount(0);
    await page.locator('#documents button').last().click();
    await expect(page.locator('#documents pre')).toHaveCount(0);
    await expect(page.locator('#eligibility-form [name=degree]')).toHaveValue('');
@@ -86,6 +87,21 @@ try {
    await expect(page.locator('#analysis-result')).not.toContainText('test-error');
   }
   await page.locator('#source-url').focus();await page.keyboard.press('Tab');await expect(page.locator('#requirements')).toBeFocused();
+  if(width===390){
+   const {readFileSync}=await import('node:fs');
+   const continuing=JSON.parse(readFileSync('verification/fixtures/scholarship-evaluation.json','utf8')).cases[0].text;
+   const deferred='Applicants who hold a deferred graduate offer are not eligible to be considered for this scholarship.';
+   const source=`SYNTHETIC BROWSER FIXTURE ONLY\n${deferred}\n${continuing}\nCourse-specific deadlines require confirmation.`;
+   responseEvidence=normalizeEvidence(JSON.stringify({criteria:[{kind:'other',required:true,excerpt:deferred,en:'Deferred offers are excluded.',fa:'پذیرش به‌تعویق‌افتاده مشمول نیست.',ps:'ځنډول شوی وړاندیز نه منل کېږي.'}],deadline:null,funding:[]}),{text:source,sourceUrl:'https://www.ox.ac.uk/admissions/graduate/fees-and-funding/funding/clarendon/applicants'});
+   const profile=page.locator('#profile-form');await profile.locator('[name=deferredOffer]').selectOption('true');await profile.locator('[name=continuingSameDegree]').selectOption('false');await profile.locator('[name=consent]').check();await profile.locator('button[type=submit]').click();await expect(page.locator('#profile [role=status]')).toContainText({en:'Profile saved.',fa:'پروفایل ذخیره شد.',ps:'پروفایل وساتل شو.'}[language]);
+   responseStatus=200;await page.locator('#requirements').fill(source);await page.locator('[name=sourceUrl]').fill(responseEvidence.sourceUrl);await page.locator('#analyze-form button[type=submit]').click();
+   await expect(page.locator('#eligibility-result')).toHaveAttribute('data-status','not_met');
+   await page.locator('.source-inventory summary').click();await expect(page.locator('.source-inventory')).toContainText(continuing);
+   await page.locator('#exclusion-simulate').click();await expect(page.locator('#exclusion-future')).toHaveAttribute('data-status','unknown');await expect(page.locator('#profile-form [name=deferredOffer]')).toHaveValue('true');
+   await page.locator('#language').selectOption(language==='en'?'fa':'en');await expect(page.locator('#eligibility-result')).toHaveAttribute('data-status','not_met');await expect(page.locator('#exclusion-future')).toHaveAttribute('data-status','unknown');await page.locator('#language').selectOption(language);
+   const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(axe.violations).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
+   await page.screenshot({path:`verification/artifacts/${language}-oxford-profile-390.png`,fullPage:true});
+  }
   await context.close();
  }
  console.log(JSON.stringify({mode:report.mode,cases:report.cases.length,passed:true,liveMetaVerified:false,liveGoogleSignInVerified:false}));
