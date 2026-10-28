@@ -91,3 +91,9 @@ test('upstream HTTP 504 is distinct from the local deadline and transport failur
 test('malformed slow response remains invalid rather than being reported as a provider timeout',async()=>{
  await assert.rejects(createMetaInference({key:'x',model:'muse-spark-1.3',timeoutMs:500,fetchImpl:async()=>{await sleep(15);return new Response('{PRIVATE',{headers:{'content-type':'application/json'}});}})([]),e=>e.code==='provider_json'&&e.providerStatus===200&&e.diagnostics.phase==='validating_response'&&!JSON.stringify(e).includes('PRIVATE'));
 });
+test('synchronous caller abort during dispatch consumes a simultaneous fetch rejection safely',async()=>{
+ const controller=new AbortController();let calls=0;
+ const infer=createMetaInference({key:'SECRET',model:'muse-spark-1.3',fetchImpl:()=>{calls++;controller.abort(Error('PRIVATE REASON'));return Promise.reject(Error('PRIVATE TRANSPORT'));}});
+ await assert.rejects(infer([],{signal:controller.signal}),e=>e.code==='provider_cancelled'&&!JSON.stringify(e).includes('PRIVATE'));
+ assert.equal(calls,1);await sleep(5);
+});

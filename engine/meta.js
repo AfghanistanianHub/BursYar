@@ -9,7 +9,7 @@ export class MetaFailure extends Error {
 // Enforce cancellation even for a stalled body reader. The real fetch also
 // receives the signal so cancellation tears down its own request/response.
 function abortable(operation,signal){
- if(signal.aborted)return Promise.reject(signal.reason);
+ if(signal.aborted){Promise.resolve(operation).catch(()=>{});return Promise.reject(signal.reason);}
  return new Promise((resolve,reject)=>{
   const abort=()=>reject(signal.reason);signal.addEventListener('abort',abort,{once:true});
   Promise.resolve(operation).then(resolve,reject).finally(()=>signal.removeEventListener('abort',abort));
