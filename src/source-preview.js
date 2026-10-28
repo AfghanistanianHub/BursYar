@@ -21,16 +21,16 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
  const label=document.createElement('label'),approval=document.createElement('input');approval.type='checkbox';approval.id='source-approved';label.append(approval,document.createTextNode(t.approve));
  const warning=document.createElement('p');warning.textContent=t.translation;
  url.parentElement.after(fetchButton,manual,status,options,preview);form.querySelector('#analysis-consent').prepend(label,warning);
- let controller,revision=0;
+ let controller,revision=0,busy=false;
  form.sourceReceipt=initial.receipt??null;form.sourcePreview=initial.preview??null;form.manualMode=initial.manualMode===true;form.sourceFailure=initial.sourceFailure??null;approval.checked=initial.sourceApproved===true;
  const safeURL=()=>{try{const u=new URL(url.value);return u.protocol==='https:'&&!u.username&&!u.password?u.href:null;}catch{return null;}};
  const sync=()=>{const hasText=textarea.value.trim().length>0,failed=!!form.sourceFailure;
   form.querySelector('#source-text').hidden=!hasText&&!form.manualMode;form.querySelector('#analysis-consent').hidden=!hasText;
   options.hidden=!failed&&!form.manualMode&&!hasText;const href=safeURL();open.hidden=!href;if(href)open.href=href;else open.removeAttribute('href');
   fetchButton.className=failed||hasText?'text-button':'primary-link';manual.className=failed&&!hasText?'primary-link':'text-button';
-  form.sourceApproved=approval.checked;submit.disabled=!approval.checked;
+  form.sourceApproved=approval.checked;approval.disabled=busy;submit.disabled=busy||!approval.checked;
  };
- const invalidate=()=>{revision++;form.dispatchEvent(new Event('bursyar:sourcechanged'));controller?.abort();approval.checked=false;form.sourceReceipt=null;form.sourcePreview=null;preview.hidden=true;sync();};
+ const invalidate=()=>{revision++;form.dispatchEvent(new Event('bursyar:sourcechanged'));controller?.abort();approval.checked=false;textarea.readOnly=false;form.sourceReceipt=null;form.sourcePreview=null;preview.hidden=true;sync();};
  const render=data=>{preview.replaceChildren();preview.hidden=false;
   const h=document.createElement('h2');h.textContent='1 · '+journeyCopy[language].overview;
   const host=document.createElement('p');host.textContent=new URL(data.receipt.sourceUrl).hostname;host.dir='ltr';
@@ -45,14 +45,14 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
  textarea.addEventListener('input',()=>{invalidate();status.textContent=r.supplied;});
  manual.addEventListener('click',()=>{invalidate();form.manualMode=true;textarea.readOnly=false;sync();status.textContent=r.supplied;textarea.focus();});
  const requestSource=async(path,body)=>{
-  invalidate();const current=controller=new AbortController();fetchButton.disabled=true;file.disabled=true;status.textContent=t.loading;
+  invalidate();const current=controller=new AbortController();busy=true;sync();fetchButton.disabled=true;file.disabled=true;status.textContent=t.loading;
   try{const token=await getInferenceToken().catch(()=>{throw Object.assign(Error(),{status:401});});
    const response=await fetch(path,{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify(body),signal:AbortSignal.any([current.signal,AbortSignal.timeout(15000)])});
    if(!response.ok){const problem=await response.json().catch(()=>({}));throw Object.assign(Error(),{status:response.status,code:problem.code});}
    const data=await response.json();if(current.signal.aborted||!form.isConnected)return;
-   textarea.value=data.text;textarea.readOnly=true;url.value=data.receipt.sourceUrl;form.sourceReceipt=data.receipt;form.sourcePreview=data;form.sourceFailure=null;render(data);sync();status.textContent=r.review;
+   approval.checked=false;textarea.value=data.text;textarea.readOnly=true;url.value=data.receipt.sourceUrl;form.sourceReceipt=data.receipt;form.sourcePreview=data;form.sourceFailure=null;render(data);sync();status.textContent=r.review;
   }catch(error){if(!current.signal.aborted&&form.isConnected){form.sourceFailure=error.status===401?'auth':error.status===429?'busy':error.code??'unavailable';status.textContent=error.status===401?t.auth:error.status===429?t.busy:path.endsWith('/import')?r.fileError:error.code==='challenge'?r.blocked:r.unavailable;sync();}}
-  finally{if(controller===current){fetchButton.disabled=false;file.disabled=false;}}
+  finally{if(controller===current){busy=false;fetchButton.disabled=false;file.disabled=false;sync();}}
  };
  fetchButton.addEventListener('click',()=>requestSource('/api/source',{url:url.value}));
  file.addEventListener('change',async()=>{
@@ -65,5 +65,5 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
  });
  if(initial.preview){render(initial.preview);textarea.readOnly=!!form.sourceReceipt;}else if(form.sourceFailure)status.textContent=form.sourceFailure==='auth'?t.auth:form.sourceFailure==='busy'?t.busy:form.sourceFailure==='challenge'?r.blocked:r.unavailable;
  document.addEventListener('bursyar:identity',()=>{if(!form.isConnected)return;invalidate();form.sourceFailure=null;form.manualMode=false;textarea.value='';sync();status.textContent='';});
- sync();return ()=>approval.checked;
+ sync();return ()=>!busy&&approval.checked;
 }
