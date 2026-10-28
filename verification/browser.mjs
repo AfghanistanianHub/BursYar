@@ -41,6 +41,7 @@ try {
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
   await page.screenshot({path:`verification/artifacts/${language}-text200-${width}.png`,fullPage:true});
   await zoomStyle.evaluate(el=>el.remove());
+  if(width===1280){const zoom=await page.addStyleTag({content:'body{zoom:2}'});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);await page.screenshot({path:`verification/artifacts/${language}-layout200-1280.png`,fullPage:true});await zoom.evaluate(el=>el.remove());}
   await page.locator('#source-url').focus();await page.keyboard.press('Tab');await expect(page.locator('#fetch-source')).toBeFocused();
   if(width===390){
    await page.locator('#eligibility-example > summary').click();

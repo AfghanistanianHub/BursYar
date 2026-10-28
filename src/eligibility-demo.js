@@ -31,8 +31,8 @@ export function mountEligibility(root,language='en',compilation=null){
  if(!root)return;
  const example={en:'Optional fictional example — not a scholarship assessment',fa:'نمونهٔ فرضی اختیاری — ارزیابی بورسیه نیست',ps:'اختیاري فرضي بېلګه — د بورس ارزونه نه ده'}[language];
  root.innerHTML=`${!compilation?`<details id="eligibility-example" ${demoOpen?'open':''}><summary>${escape(example)}</summary>`:''}<section class="section" id="eligibility-demo" aria-labelledby="eligibility-heading">
- <h2 id="eligibility-heading">${compilation?'3 · ':''}${escape(t.title)}</h2>
- <p role="note">${escape(compilation?liveCopy[language]:t.disclaimer)}</p><ul>${rules.map(r=>`<li dir="auto">${escape(r.sourceExcerpt)}</li>`).join('')}</ul>
+ <h2 id="eligibility-heading">${compilation?'3 · ':''}${escape(compilation?journeyCopy[language].eligibility:t.title)}</h2>
+ <p role="note">${escape(compilation?liveCopy[language]:t.disclaimer)}</p><details><summary>${escape(journeyCopy[language].facts)}</summary><ul>${rules.map(r=>`<li dir="auto">${escape(r.sourceExcerpt)}</li>`).join('')}</ul></details>
  <form id="eligibility-form">
  <label>${escape(t.degree)} <select name="degree"><option value="">${escape(t.missing)}</option>${['secondary','bachelor','master','doctorate'].map(x=>`<option value="${x}">${escape(t[x])}</option>`).join('')}</select></label>
  <label><input name="hasTest" type="checkbox"> ${escape(t.test)}</label>
