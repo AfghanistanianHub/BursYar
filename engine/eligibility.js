@@ -47,7 +47,7 @@ export function assessRequirement(requirement,profile) {
 export function assessScholarship(requirements,profile) {
   if (!Array.isArray(requirements) || !profile || typeof profile!=='object') throw new TypeError('Invalid assessment input');
   const results=requirements.map(r=>assessRequirement(r,profile));
-  const summary=results.some(r=>r.status==='not_met')?'not_met':results.some(r=>r.status==='unknown')?'unknown':'met';
+  const summary=results.length===0?'unknown':results.some(r=>r.status==='not_met')?'not_met':results.some(r=>r.status==='unknown')?'unknown':'met';
   // Meets enumerated requirements only, not an admission or scholarship award guarantee.
   return {summary,results};
 }
