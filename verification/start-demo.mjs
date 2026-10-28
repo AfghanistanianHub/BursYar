@@ -1,3 +1,4 @@
+import {isSpendingConfirmed} from '../engine/spending.js';
 // Runs only on owner request in the existing credential-bearing shell. No paid preflight.
 import {spawn} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
@@ -60,7 +61,7 @@ try{
  const {createServer:createVite}=await import('vite');
  const vite=await createVite({root,server:{host:'127.0.0.1',port:frontPort,strictPort:true,proxy:{'/api':{target:`http://127.0.0.1:${port}`,changeOrigin:false}}}});
  await vite.listen();process.once('SIGINT',()=>void vite.close());process.once('SIGTERM',()=>void vite.close());engine.once('exit',()=>void vite.close());
- console.log(env.BURSYAR_SPENDING_CONFIRMED==='1'?'Spending confirmation loaded; manual inference only.':'Live inference DISABLED: account spending limit is not confirmed.');
+ console.log(isSpendingConfirmed(env)?`Spending confirmation loaded: USD ${Number(env.BURSYAR_SPEND_LIMIT_USD)} account cap; manual inference only.`:'Live inference DISABLED: account spending limit is not confirmed.');
  console.log(`BursYar ready at ${origin.origin}. Use the existing Google demo sign-in; submit Oxford only after spending confirmation. Ctrl+C stops both services.`);
 }catch(error){
  // All expected messages above are authored locally; suppress network/runtime details.

@@ -31,3 +31,8 @@ export class KeychainAccessError extends Error {
   super(message);this.name='KeychainAccessError';
  }
 }
+
+export function parseSpendingLimit(value){
+ if(typeof value!=='string'||!/^\$?\s*[0-9]+(?:\.[0-9]{1,2})?$/.test(value.trim()))return null;
+ const n=Number(value.trim().replace(/^\$\s*/,''));return Number.isFinite(n)&&n>0?n:null;
+}

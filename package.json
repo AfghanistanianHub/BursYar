@@ -15,7 +15,8 @@
     "start:demo": "node verification/start-demo.mjs",
     "start:mac": "node verification/macos-start.mjs",
     "setup:mac": "node verification/macos-start.mjs setup",
-    "check:mac": "node verification/macos-start.mjs check"
+    "check:mac": "node verification/macos-start.mjs check",
+    "diagnose:mac": "node verification/macos-start.mjs diagnose"
   },
   "dependencies": {
     "firebase": "^13.1.0",

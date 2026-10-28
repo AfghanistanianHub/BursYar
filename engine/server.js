@@ -1,3 +1,4 @@
+import {isSpendingConfirmed} from './spending.js';
 import {createFirebaseVerifier} from './auth.js';
 import {QuotaStore} from './quota.js';
 import {createMetaInference} from './meta.js';
@@ -11,6 +12,6 @@ const integer=(name)=>{const n=Number(env[name]);if(!Number.isSafeInteger(n)||n<
 const infer=createMetaInference({key:env.META_API_KEY||env.MODEL_API_KEY,model:env.META_MODEL_ID,timeoutMs:env.META_TIMEOUT_MS===undefined?20000:integer('META_TIMEOUT_MS')});
 const verify=createFirebaseVerifier({projectId:env.FIREBASE_PROJECT_ID});
 const quota=new QuotaStore(env.BURSYAR_QUOTA_DB,{userMinute:integer('BURSYAR_USER_MINUTE'),userDay:integer('BURSYAR_USER_DAY'),globalDay:integer('BURSYAR_GLOBAL_DAY'),lifetimeUnits:integer('BURSYAR_LIFETIME_UNITS')});
-const server=createInferenceServer({verify,projectId:env.FIREBASE_PROJECT_ID,quota,infer,origin:env.BURSYAR_ORIGIN,canInfer:()=>env.BURSYAR_SPENDING_CONFIRMED==='1'&&Number.isFinite(Number(env.BURSYAR_SPEND_LIMIT_USD))&&Number(env.BURSYAR_SPEND_LIMIT_USD)>0&&Number.isFinite(Date.parse(env.BURSYAR_SPENDING_CONFIRMED_AT))});
+const server=createInferenceServer({verify,projectId:env.FIREBASE_PROJECT_ID,quota,infer,origin:env.BURSYAR_ORIGIN,canInfer:()=>isSpendingConfirmed(env)});
 server.listen(port,'127.0.0.1');
 for(const signal of ['SIGTERM','SIGINT'])process.once(signal,()=>{server.close(()=>{quota.close();process.exit(0);});server.closeIdleConnections();});

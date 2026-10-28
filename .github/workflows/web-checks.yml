@@ -48,6 +48,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Compile native masked-entry and Keychain helper
         run: swiftc -module-cache-path "$RUNNER_TEMP/bursyar-swift-cache" verification/macos/BursYarKeychain.swift -o "$RUNNER_TEMP/BursYarKeychain"
+      - name: Test targeted attestation updates and redacted record format without Keychain access
+        run: '"$RUNNER_TEMP/BursYarKeychain" self-test'
       - name: Check missing-item path without prompting or reading secrets
         run: |
           set +e

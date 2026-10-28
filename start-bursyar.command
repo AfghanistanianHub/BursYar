@@ -10,4 +10,4 @@ if ! node -e 'const [a,b]=process.versions.node.split(".").map(Number);process.e
   print -u2 'Node.js 24.12 or newer is required.'
   exit 1
 fi
-exec node verification/macos-start.mjs
+exec node verification/macos-start.mjs "$@"
