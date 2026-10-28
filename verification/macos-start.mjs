@@ -40,7 +40,7 @@ try{
   }
   let privateConfig;
   try{const {stdout}=await run(helper,['read'],{timeout:60000,maxBuffer:16384});privateConfig=validateKeychainConfig(JSON.parse(stdout));}catch(error){throw new KeychainAccessError(error.stderr,error.code);}
-  const saved=rebootEnvironment(privateConfig);
+  const saved=rebootEnvironment(privateConfig,homedir(),{timeoutMs:process.env.META_TIMEOUT_MS});
   if(mode==='check'){
    console.log(JSON.stringify({credentialsPresent:true,quotaDatabaseExists:true,spendingConfirmed:privateConfig.spendingConfirmed,savedSpendingLimitUSD:privateConfig.spendLimitUSD,confirmationTimestampValid:Number.isFinite(Date.parse(privateConfig.confirmedAt)),backendSpendingConfirmed:saved.BURSYAR_SPENDING_CONFIRMED==='1',liveInferenceVerified:false}));
   }else{

@@ -1,3 +1,4 @@
+import {CLIENT_ANALYSIS_TIMEOUT_MS} from '../engine/provider-config.js';
 import {signIn,signOut,getInferenceToken} from './auth.js';
 import {findBarriers,barrierText} from './pathfinder.js';
 const copy={
@@ -36,7 +37,7 @@ export function mountAnalyzer(form,language,esc,initial={}){
   try{
    const token=await getInferenceToken();
    const submittedSource=new URL(url.value);if(submittedSource.protocol!=='https:'||submittedSource.username||submittedSource.password)throw Error();
-   const response=await fetch('/api/analyze',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({text:textarea.value,sourceUrl:submittedSource.href,language}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(75000)])});
+   const response=await fetch('/api/analyze',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({text:textarea.value,sourceUrl:submittedSource.href,language}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(CLIENT_ANALYSIS_TIMEOUT_MS)])});
    if(!response.ok)throw Object.assign(Error(),{status:response.status});
    const a=await response.json();
    if(a.requiresHumanReview!==true||!Array.isArray(a.criteria)||!Array.isArray(a.funding)||!Array.isArray(a.uncertainties)||!a.criteria.every(c=>typeof c.excerpt==='string'&&typeof c.en==='string'&&typeof c[language]==='string'))throw Error();

@@ -1,3 +1,4 @@
+import {MAX_META_TIMEOUT_MS,MAX_COMPLETION_TOKENS,safeProviderDiagnostics} from './provider-config.js';
 import {DocumentError} from './documents.js';
 import {createServer} from 'node:http';
 import {randomUUID} from 'node:crypto';
@@ -24,6 +25,9 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
   // No CORS headers; proxy same-origin /api to this service. No cookie authentication.
   if(active>=maxConcurrent)return send(res,429,{error:'Busy; retry later'});
   active++;
+  const pending=new AbortController();
+  const disconnected=()=>{if(!res.writableEnded)pending.abort();};
+  res.once('close',disconnected);
   try {
    let uid;try{uid=await authenticate(req.headers.authorization,verify,projectId);}catch{return send(res,401,{error:'Sign in with an approved account'});}
    if(documentRoute){
@@ -40,27 +44,28 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
    }
    const input=await readInput(req);
    if(!canInfer())return send(res,503,{error:'Analysis unavailable'});
+   if(res.destroyed)return;
    const messages=evidencePrompt(input);
    // UTF-8 bytes conservatively bound input tokens; fixed maximum output reservation.
-   const units=Buffer.byteLength(JSON.stringify(messages),'utf8')+4000;
+   const units=Buffer.byteLength(JSON.stringify(messages),'utf8')+MAX_COMPLETION_TOKENS;
    try{quota.reserve(uid,units);}catch(error){return send(res,error instanceof QuotaExceeded?429:503,{error:error instanceof QuotaExceeded?'Quota exhausted':'Quota storage unavailable'});}
    const started=performance.now(),requestId=randomUUID();
    let stage='provider';
    try {
-    const raw=await infer(messages);
+    const raw=await infer(messages,{signal:pending.signal});
     stage='evidence';
     const output=normalizeEvidence(raw,input);
     return send(res,200,output);
    }catch(error){
     const known=error instanceof MetaFailure;
     // Never spread an error or log messages, headers, source, UID or model output.
-    const record={event:'analysis_failed',requestId,stage,code:known?error.code:error instanceof EvidenceFailure?error.code:stage==='evidence'?'evidence_invalid':'provider_unknown',providerStatus:known?error.providerStatus:null,elapsedMs:Math.round(performance.now()-started)};
+    const record={event:'analysis_failed',requestId,stage,code:known?error.code:error instanceof EvidenceFailure?error.code:stage==='evidence'?'evidence_invalid':'provider_unknown',providerStatus:known?error.providerStatus:null,elapsedMs:Math.round(performance.now()-started),...(known&&error.diagnostics?{provider:safeProviderDiagnostics(error.diagnostics)}:{})};
     try{diagnose(record);}catch{/* Logging failure must not change the safe response. */}
     return send(res,known?error.status:502,{error:'Analysis unavailable'});
    }
   }catch(error){return send(res,[400,413,415].includes(error.status)?error.status:500,{error:'Invalid analysis request'});}
-  finally{active--;}
+  finally{active--;res.off('close',disconnected);}
  });
- server.requestTimeout=15000;server.headersTimeout=10000;server.timeout=70000;
+ server.requestTimeout=15000;server.headersTimeout=10000;server.timeout=MAX_META_TIMEOUT_MS+10000;
  return server;
 }
