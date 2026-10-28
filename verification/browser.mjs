@@ -34,6 +34,7 @@ try {
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
   await expect(page.locator('html')).toHaveAttribute('dir',language==='en'?'ltr':'rtl');
   if(width===390){
+   await page.locator('#eligibility-example summary').click();
    await page.locator('#eligibility-form [name=degree]').selectOption('bachelor');
    await page.locator('#eligibility-form [name=hasTest]').check();
    await expect(page.locator('#eligibility-result')).toHaveAttribute('data-status','not_met');
@@ -45,6 +46,7 @@ try {
    await expect(page.locator('#eligibility-future')).toHaveAttribute('data-status','met');
    await page.locator('#language').selectOption(language);
   }
+  if(width!==390)await expect(page.locator('#eligibility-example')).not.toHaveAttribute('open','');
   await page.locator('#requirements').fill('Applicants must provide academic transcripts. Tuition fees are covered.');
   await page.locator('[name=sourceUrl]').fill('https://university.example/award');
   const submit=page.locator('#analyze-form button[type=submit]');await expect(submit).toBeDisabled();await page.locator('#source-approved').check();await submit.click();
