@@ -1,3 +1,4 @@
+import {createSourceFetcher,SourceFailure} from './source-fetch.js';
 import {metaReservationUnits} from './meta-request.js';
 import {MAX_META_TIMEOUT_MS,safeProviderDiagnostics} from './provider-config.js';
 import {DocumentError} from './documents.js';
@@ -15,13 +16,14 @@ async function readInput(req,validate=validateEvidenceRequest){
  for await(const chunk of req){size+=chunk.length;if(size>MAX_BODY)throw Object.assign(Error(),{status:413});chunks.push(chunk);}
  try{return validate(JSON.parse(Buffer.concat(chunks).toString('utf8')));}catch{throw Object.assign(Error(),{status:400});}
 }
-export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,documents=null,diagnose=record=>console.error(JSON.stringify(record))}){
+export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,documents=null,sources=createSourceFetcher(),diagnose=record=>console.error(JSON.stringify(record))}){
  if(!verify || !projectId || !quota || !infer || !origin || !Number.isSafeInteger(maxConcurrent) || maxConcurrent<1)throw Error('Missing gateway configuration');
  let active=0;
  const server=createServer(async(req,res)=>{
   if(req.method==='GET' && req.url==='/health')return send(res,200,{ok:true});
+  const sourceRoute=req.method==='POST'&&req.url==='/api/source';
   const documentRoute=/^\/api\/(?:documents(?:\/[a-f0-9-]{36}(?:\/review)?)?|profile)$/.test(req.url??'');
-  if(!(req.method==='POST'&&req.url==='/api/analyze')&&!documentRoute)return send(res,404,{error:'Not found'});
+  if(!(req.method==='POST'&&req.url==='/api/analyze')&&!documentRoute&&!sourceRoute)return send(res,404,{error:'Not found'});
   if(req.headers.origin && req.headers.origin!==origin)return send(res,403,{error:'Origin denied'});
   // No CORS headers; proxy same-origin /api to this service. No cookie authentication.
   if(active>=maxConcurrent)return send(res,429,{error:'Busy; retry later'});
@@ -31,6 +33,10 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
   res.once('close',disconnected);
   try {
    let uid;try{uid=await authenticate(req.headers.authorization,verify,projectId);}catch{return send(res,401,{error:'Sign in with an approved account'});}
+   if(sourceRoute){
+    try{const body=await readInput(req,x=>x);const source=await sources.fetchSource(body?.url,{signal:pending.signal,uid});return send(res,200,source);}
+    catch(error){return send(res,error instanceof SourceFailure?(error.code==='busy'?429:422):400,{error:'Source retrieval unavailable',code:error instanceof SourceFailure?error.code:'invalid_request'});}
+   }
    if(documentRoute){
     if(!documents)return send(res,503,{error:'Document workflow unavailable'});
     try{
@@ -46,7 +52,10 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
      return send(res,405,{error:'Method unavailable'});
     }catch(error){return send(res,error instanceof DocumentError?error.status:[400,413,415].includes(error.status)?error.status:503,{error:'Document request unavailable'});}
    }
-   const input=await readInput(req);
+   const rawInput=await readInput(req,x=>x);
+   let input;try{input=validateEvidenceRequest(rawInput);}catch{return send(res,400,{error:'Invalid analysis request'});}
+   let retrieval=null;
+   if(rawInput.receipt){if(rawInput.sourceApproved!==true)return send(res,400,{error:'Review source before analysis'});try{retrieval=sources.verify(rawInput.receipt,input.text,input.sourceUrl);}catch{return send(res,400,{error:'Source preview expired or changed; fetch again or use manual text'});}}
    if(!canInfer())return send(res,503,{error:'Analysis unavailable'});
    if(res.destroyed)return;
    const messages=evidencePrompt(input);
@@ -59,6 +68,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
     const raw=await infer(messages,{signal:pending.signal,requestId});
     stage='evidence';
     const output=normalizeEvidence(raw,input);
+    if(retrieval)output.retrieval=retrieval;
     try{diagnose({event:'analysis_validated',requestId,stage:'evidence',elapsedMs:Math.round(performance.now()-started),criteriaCount:output.criteria.length,fundingCount:output.funding.length,requiresHumanReview:true,coverageComplete:false});}catch{/* Logging does not alter validation. */}
     return send(res,200,output);
    }catch(error){
