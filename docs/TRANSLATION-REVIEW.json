@@ -16,7 +16,10 @@
     "Review localized error and PathFinder messages for clarity",
     "Review editable profile, consent, document-library and deletion wording in Dari and Pashto",
     "Review Oxford exclusion/status and counterfactual language without implying an award",
-    "Review retained-source navigation tags and preserve their unreviewed/incomplete status"
+    "Review retained-source navigation tags and preserve their unreviewed/incomplete status",
+    "Review blocked-page recovery, original URL retention and supplied-versus-fetched labels in English/Dari/Pashto",
+    "Review source approval, saved HTML/TXT privacy wording and Other options at 320/390/768/1280/1440 px",
+    "Bind semantic approval of the verified live output to actual source/output digests; never approve diagnostic metadata alone"
   ],
   "approvalRule": "An authorized fluent human must supply reviewer identity, timestamp and specific output digest before marking reviewed. Automated tests never approve translations."
 }
