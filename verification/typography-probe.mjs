@@ -43,10 +43,11 @@ try {
           naskhFallback = loaded.length > 0 && document.fonts.check('16px "Noto Naskh Arabic"', '\u06B1');
         } catch { naskhFallback = false; }
         return {
+          // Check the loaded script subset; the default Latin sample may still be unloaded.
           body, h1, loads,
-          inter: document.fonts.check('16px "Inter"'),
-          vazirmatn: document.fonts.check('16px "Vazirmatn"'),
-          naskh: document.fonts.check('16px "Noto Naskh Arabic"'),
+          inter: document.fonts.check('16px "Inter"', 'Scholarship'),
+          vazirmatn: document.fonts.check('16px "Vazirmatn"', 'بورسیه'),
+          naskh: document.fonts.check('16px "Noto Naskh Arabic"', '\u06B1'),
           naskhFallback,
         };
       });

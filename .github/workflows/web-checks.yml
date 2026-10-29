@@ -42,8 +42,8 @@ jobs:
       - run: npm install --global npm@11.9.0 --no-audit --no-fund
       - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:browser
       - run: node verification/typography-probe.mjs
+      - run: npm run test:browser
       - uses: actions/upload-artifact@v4
         if: always()
         with:
