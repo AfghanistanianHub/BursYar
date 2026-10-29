@@ -1,12 +1,12 @@
 # BursYar engineering handoff — 28 October 2026
 
-This supersedes older “current status” and setup instructions. Delivery: draft PR [#12](https://github.com/AfghanistanianHub/BursYar/pull/12), branch `feat/hackathon-core-journey`, stacked on #11. No merge, public deployment or paid inference was performed.
+This supersedes older “current status” and setup instructions. Delivery: draft PR [#12](https://github.com/AfghanistanianHub/BursYar/pull/12), branch `feat/hackathon-core-journey`, stacked on #11. No merge or public deployment was performed. One owner-authorized live Meta inference has since succeeded with full downstream validation (see Live inference milestone, 28 October 2026 evening). No further paid inference is authorized.
 
 ## Readiness and evidence
 
 | Phase | Status | Evidence and remaining limit |
 |---|---|---|
-| 1. Existing live evidence | PARTIALLY VERIFIED | Owner supplied an earlier real Meta HTTP 200 ending in `length`; current rendered-analysis screenshots are a user report. No retained matching `meta_response` / `analysis_validated` records were found. Successful end-to-end inference, actual current usage/latency/cost and semantic accuracy remain UNVERIFIED. |
+| 1. Live Meta inference | VERIFIED (single run, 28 Oct 2026 evening) | Owner-supplied matching production-provider events: `muse-spark-1.3`, requestId `d1bb0e0f-caab-4f13-8611-e0c3d592335d`, `meta_response` (`finishReason: stop`) + `analysis_validated` (same requestId), 7,263 ms, 817 prompt / 1,931 completion (1,497 reasoning) / 2,748 total tokens, 4 validated criteria, 2 funding excerpts. `requiresHumanReview=true`, `coverageComplete=false`. One run only: not a latency/cost distribution, semantic-accuracy certification, source-authenticity proof, or translation approval. |
 | 2. Scholarship reasoning | IMPLEMENTED; offline tested | Complete submitted source retained with exact offsets and provisional navigation tags. Two exact, URL-scoped Oxford exclusions join the narrow degree/IELTS grammar. Unselected critical candidates remain visible and unsupported ones stay unknown. Coverage is incomplete; user-pasted source is not automatically authenticated. |
 | 3. Profile/documents | IMPLEMENTED for local TXT | Authenticated per-user private SQLite store, library, explicit review/correction, consent-based editable declarations, source/claim provenance, bounded edit history and deletion. PDF/image/OCR, cloud storage, issuer integration and translation certification are NOT implemented. |
 | 4. Product UX | IMPLEMENTED; automated browser verification required | Existing green/bronze design retained. Connected profile, document library, evidence chain, exclusion simulation, loading/error/empty states and responsive layouts. Screenshots are explicitly offline rehearsals. |
@@ -15,7 +15,7 @@ This supersedes older “current status” and setup instructions. Delivery: dra
 | 7. Security/validation | IMPLEMENTED; bounded regression scope | Authentication/demo claim, revoked-token/project checks, transactional quotas and strict provider/evidence guards retained. Profile/document tests cover ownership, consent, invalid values, provenance promotion and deletion. This is regression evidence, not an exhaustive security certification. |
 | 8. Demonstration/submission | PREPARED; not submitted | Rehearsal, architecture and submission text below. Owner must confirm official portal/rules/assets, authorize any paid verification and submit. Public deployment needs separate approval. |
 
-Original six-phase mission: stabilization/security validation are phase 7 here; reasoning phase 2; documents phase 3; gap resolution phase 6; multilingual UX phases 4–5; hackathon delivery phase 8. None of these status labels asserts live inference success.
+Original six-phase mission: stabilization/security validation are phase 7 here; reasoning phase 2; documents phase 3; gap resolution phase 6; multilingual UX phases 4–5; hackathon delivery phase 8. Phase 1 now records one verified live inference; no other status label asserts live success.
 
 ## What changed
 
@@ -49,6 +49,10 @@ The adapter and safety strategy remain those in PR #11: 4000 shared reasoning/vi
 
 Official references: [Meta chat protocol](https://dev.meta.ai/docs/protocols/chat-completions), [reasoning](https://dev.meta.ai/docs/reasoning), [structured output](https://dev.meta.ai/docs/structured-output), [Oxford Clarendon applicants](https://www.ox.ac.uk/admissions/graduate/fees-and-funding/funding/clarendon/applicants), [Oxford English guidance](https://www.ox.ac.uk/admissions/graduate/application-guide/qualifications-experience-languages-funding/english-language-proficiency). A policy link is not a claim that the pasted text is current, complete or verified.
 
+## Live inference milestone — 28 October 2026 (evening)
+
+A single owner-authorized live inference succeeded with full downstream validation. Matching production-provider events: `muse-spark-1.3`, requestId `d1bb0e0f-caab-4f13-8611-e0c3d592335d`, `meta_response` (`finishReason: stop`) + `analysis_validated` (same requestId), 7,263 ms elapsed, 817 prompt / 1,931 completion (1,497 reasoning) / 2,748 total tokens, 4 validated criteria, 2 funding excerpts. Only safe diagnostic metadata is preserved; no credentials, prompts, raw outputs, or personal data were stored. `requiresHumanReview=true` and `coverageComplete=false`, so this proves the live pipeline end to end but does not certify semantics, coverage, source authenticity, or translations. No further paid inference is authorized. Full record: `docs/checkpoints/15-live-inference-verified.md`.
+
 ## Reproducible offline evaluation
 
 From this checkout with Node >=24.12, npm 11.9 and Java 21:
@@ -73,20 +77,19 @@ Use `verification/fixtures/synthetic-education.txt` only. The automated browser 
 
 1. Show the existing BursYar design at mobile width. Explain that source text is public scholarship evidence; personal profile/documents stay local. Switch English → Dari → Pashto and show RTL.
 2. Save a synthetic academic history, declared languages and application status with consent. Upload the synthetic TXT, inspect each extracted source line, correct or reject a claim, then explicitly approve. Explain the distinction between pending, reviewed and issuer-verified. No issuer integration exists.
-3. Show an Oxford analysis already obtained under owner authorization, if available. Otherwise label this section an offline rehearsal; do not click Analyze without a fresh explicit paid authorization. Inspect original quote, provisional interpretation, retained unselected conditions and source digest.
+3. Show the Oxford analysis obtained under owner authorization on 28 October 2026 (requestId `d1bb0e0f-caab-4f13-8611-e0c3d592335d`, `finishReason: stop`, same-requestId validation). Do not click Analyze again without fresh explicit paid authorization. Inspect original quote, provisional interpretation, retained unselected conditions and source digest. Label the semantics as awaiting human review (`requiresHumanReview=true`).
 4. Set deferred offer to Yes and continuing same degree to No. The mapped exclusion is not met. Apply a hypothetical removal: only that exclusion changes; unsupported deadline/selection conditions remain unknown. Show that saved actual status remains Yes. A “met” result concerns enumerated rules only, never an award.
 5. Show actionable next steps: confirm status with funding office, use the specific course funding deadline, verify actual accepted English tests/waivers through admissions. Do not book a test based solely on this analysis.
-6. Switch languages again, preserving canonical results. Delete the synthetic document; its linked facts disappear. Explain the known limits: incomplete semantic coverage, source authenticity, human translation review, TXT only and unverified current live success.
+6. Switch languages again, preserving canonical results. Delete the synthetic document; its linked facts disappear. Explain the known limits: incomplete semantic coverage (`coverageComplete=false`), source authenticity, human translation review, TXT only, and single-run live evidence (see milestone).
 
 ## Minimal remaining owner actions
 
-1. If the already successful owner run's safe terminal records still exist, provide only the matching `meta_response` (`finishReason: stop`, same model) and `analysis_validated` records with the same requestId and token counters. Do not export Keychain, tokens, prompts, raw outputs, personal files or environment. Existing screenshots alone cannot establish this correlation. No new paid test is required merely to supply existing evidence.
-2. If those records are unavailable and live proof is needed for submission, explicitly authorize ONE Oxford inference within the existing USD 5 cap. Use the current branch's `start-bursyar.command`, existing approved Google account and saved configuration; submit public Oxford text once. Do not re-enter credentials or change caps. Preserve the two safe metadata records; a failed request is not automatically retried. Review exact-source/schema success and semantics before calling it successful. Actual billed dollars remain unknown unless supplied by an authorized account view.
+1.–2. DONE 28 October 2026 evening: the owner supplied the matching `meta_response` (`finishReason: stop`, `muse-spark-1.3`) and `analysis_validated` records with requestId `d1bb0e0f-caab-4f13-8611-e0c3d592335d` and token counters (817 / 1,931 / 2,748). The single authorized Oxford inference succeeded within the existing cap; actual billed dollars remain unknown unless supplied by an authorized account view. No further paid inference without fresh explicit owner authorization.
 3. Arrange fluent Dari/Pashto review using `TRANSLATION-REVIEW.json`; supply specific output/source digests and reviewer approval. Confirm the official hackathon portal, deadline/timezone, entry eligibility, required video and asset format; approve and submit the prepared materials. Merges and public deployment remain owner decisions.
 
 ## Submission description draft
 
-BursYar helps students inspect scholarship requirements in English, Dari and Pashto. Meta Muse Spark proposes compact source-grounded interpretations; BursYar validates exact excerpts and evaluates a narrow set of supported rules deterministically. The demonstration exposes missing evidence and uncertainty, preserves private user-approved educational facts, and compares hypothetical eligibility changes without editing actual facts. The current prototype is local, supports labeled text documents and does not certify authenticity or guarantee admission. Insert a verified live evidence reference only after the actual stop/validation correlation and human semantic review exist. Never label mock results as live integration.
+BursYar helps students inspect scholarship requirements in English, Dari and Pashto. Meta Muse Spark proposes compact source-grounded interpretations; BursYar validates exact excerpts and evaluates a narrow set of supported rules deterministically. The demonstration exposes missing evidence and uncertainty, preserves private user-approved educational facts, and compares hypothetical eligibility changes without editing actual facts. The current prototype is local, supports labeled text documents and does not certify authenticity or guarantee admission. Live evidence: one owner-authorized `muse-spark-1.3` inference on 28 October 2026 (`finishReason: stop`, same-requestId `analysis_validated`, 4 validated criteria; `requiresHumanReview=true`, `coverageComplete=false`; human semantic review still pending). Never label mock results as live integration.
 
 ## Recovery and integration
 
