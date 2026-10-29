@@ -9,7 +9,7 @@ function result(id,status,reason,evidence=[]) {
 }
 function validRequirement(r) {
   if (!r || typeof r!=='object' || typeof r.id!=='string' || !/^[a-zA-Z0-9_-]{1,80}$/.test(r.id)) return false;
-  return ['minimum_degree','ielts_academic'].includes(r.type);
+  return ['minimum_degree','ielts_academic','boolean_exclusion'].includes(r.type);
 }
 const rank = {secondary:0,bachelor:1,master:2,doctorate:3};
 function fact(profile,key) {
@@ -28,6 +28,11 @@ function evaluateRequirement(requirement,profile) {
   const id=requirement?.id ?? 'invalid';
   if (!validRequirement(requirement) || requirement.ambiguous!==false || typeof requirement.sourceExcerpt!=='string' || !requirement.sourceExcerpt.trim() || typeof requirement.sourceUrl!=='string' || !sourceUrlValid(requirement.sourceUrl))
     return result(id,UNKNOWN,'unreviewed_or_unsupported_requirement');
+  if(requirement.type==='boolean_exclusion'){
+    if(!['deferredOffer','continuingSameDegree'].includes(requirement.field)||requirement.excludedValue!==true)return result(id,UNKNOWN,'unsupported_exclusion');
+    const f=fact(profile,requirement.field);if(!f||typeof f.value!=='boolean')return result(id,UNKNOWN,'missing_exclusion_evidence');
+    return result(id,f.value?'not_met':'met',f.value?'explicit_exclusion_applies':'exclusion_not_reported',f.claimIds??[]);
+  }
   if (requirement.type==='minimum_degree') {
     if (!own(rank,requirement.minimum)) return result(id,UNKNOWN,'unsupported_degree');
     const f=fact(profile,'degree');
@@ -48,7 +53,9 @@ function evaluateRequirement(requirement,profile) {
 }
 export function assessRequirement(requirement,profile) {
   const evaluated=evaluateRequirement(requirement,profile);
-  return {...evaluated,source:{url:requirement?.sourceUrl??null,excerpt:requirement?.sourceExcerpt??null,provenance:requirement?.provenance??null}};
+  const key=requirement?.type==='minimum_degree'?'degree':requirement?.type==='ielts_academic'?'languageTest':requirement?.field;
+  const used=key?fact(profile,key):null;
+  return {...evaluated,usedFacts:used?[{field:key,origin:used.origin,claimIds:Array.isArray(used.claimIds)?used.claimIds:[],verificationStatus:used.verificationStatus??'not_verified',sourceDocumentId:used.sourceDocumentId??null}]:[],source:{url:requirement?.sourceUrl??null,excerpt:requirement?.sourceExcerpt??null,provenance:requirement?.provenance??null}};
 }
 export function assessScholarship(requirements,profile) {
   if (!Array.isArray(requirements) || !profile || typeof profile!=='object') throw new TypeError('Invalid assessment input');
@@ -59,11 +66,11 @@ export function assessScholarship(requirements,profile) {
 }
 export function simulate(requirements,profile,overrides) {
   if (!overrides || typeof overrides!=='object' || Array.isArray(overrides)) throw new TypeError('Invalid overrides');
-  const allowed=new Set(['degree','languageTest']);
+  const allowed=new Set(['degree','languageTest','deferredOffer','continuingSameDegree']);
   if (Object.keys(overrides).some(k=>!allowed.has(k))) throw new Error('Unsupported override');
   const hypothetical=structuredClone(profile);
   for(const [key,value] of Object.entries(overrides)){
-    if (value===null || (key==='degree'?typeof value!=='string':typeof value!=='object'||Array.isArray(value))) throw new TypeError('Invalid override value');
+    if (value===null || (['deferredOffer','continuingSameDegree'].includes(key)?typeof value!=='boolean':key==='degree'?typeof value!=='string':typeof value!=='object'||Array.isArray(value))) throw new TypeError('Invalid override value');
     hypothetical[key]={value:structuredClone(value),origin:'user_declared',claimIds:[]};
   }
   return {hypothetical:true,base:assessScholarship(requirements,profile),scenario:assessScholarship(requirements,hypothetical)};

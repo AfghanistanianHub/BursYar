@@ -1,6 +1,4 @@
-SYNTHETIC TEST ONLY — NOT A CERTIFICATE
-No real student, issuer, score report or verification is represented.
+SYNTHETIC DEMONSTRATION ONLY — NOT A CERTIFICATE
 Degree: bachelor
 IELTS Academic: overall=7; listening=7; reading=7; writing=6; speaking=7
-Translation status: not assessed
-Authenticity: not verified
+This file has no issuer and proves no authenticity, translation status or institutional acceptance.

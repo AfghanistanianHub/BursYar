@@ -35,6 +35,9 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
     if(!documents)return send(res,503,{error:'Document workflow unavailable'});
     try{
      const id=req.url.split('/')[3];
+     if(req.method==='PUT'&&req.url==='/api/profile')return send(res,200,documents.updateProfile(uid,await readInput(req,x=>x)));
+     if(req.method==='DELETE'&&req.url==='/api/profile')return send(res,200,documents.deleteProfile(uid));
+     if(req.method==='GET'&&req.url==='/api/documents')return send(res,200,documents.list(uid));
      if(req.method==='GET'&&req.url==='/api/profile')return send(res,200,documents.profile(uid));
      if(req.method==='POST'&&req.url==='/api/documents')return send(res,201,documents.upload(uid,await readInput(req,x=>x)));
      if(req.method==='GET'&&id)return send(res,200,documents.get(uid,id));

@@ -1,3 +1,5 @@
+> Current handoff: [28 October readiness report](../HACKATHON-READINESS-2026-10-28.md), draft PR #12 stacked on #11. Older current-status/setup claims below are historical. Successful live inference remains unverified without correlated provider/validation evidence.
+
 # Development checkpoints
 
 Resume from `06-three-language-demo-path.md` and `../LIVE-DEMO-GATES.md` on `feat/demo-verification` (draft PR #7, stacked on PR #6). Historical checkpoints below preserve the completed development trail.

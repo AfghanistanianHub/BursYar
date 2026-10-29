@@ -70,3 +70,50 @@ test('authenticated document API derives owner from verified identity and never 
   assert.equal((await request('/api/documents/'+doc.id)).status,404);assert.equal(calls,0);
  }finally{await new Promise(resolve=>server.close(resolve));documents.close();rmSync(dir,{recursive:true,force:true});}
 });
+
+test('private profile edits require consent, preserve quotas, reject promotion and isolate users',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-profile-')),documents=new DocumentStore(join(dir,'docs.db'));let reservations=0,calls=0;
+ const server=createInferenceServer({projectId:'demo-bursyar',origin:'http://localhost',documents,quota:{reserve(){reservations++;}},infer:async()=>{calls++;},verify:async token=>({uid:token,aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true})});
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base=`http://127.0.0.1:${server.address().port}`;
+ const request=(path,method='GET',body,uid='alice')=>fetch(base+path,{method,headers:{origin:'http://localhost',...(uid?{authorization:`Bearer ${uid}`}:{}) ,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+ try{
+  const edits={consent:true,values:{degree:'master',deferredOffer:false,academicHistory:'SYNTHETIC TEST ONLY',languages:'English (declared)'}};
+  assert.equal((await request('/api/profile','PUT',edits,null)).status,401);
+  assert.equal((await request('/api/profile','PUT',{...edits,consent:false})).status,400);
+  for(const values of [{origin:'issuer_verified'},{degree:{value:'doctorate',origin:'issuer_verified'}},{courseStart:'2026-02-30'}])assert.equal((await request('/api/profile','PUT',{consent:true,values})).status,400);
+  const response=await request('/api/profile','PUT',edits);assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'no-store');
+  const saved=await response.json();assert.equal(saved.degree.origin,'user_declared');assert.equal(saved.deferredOffer.value,false);
+  assert.deepEqual(await (await request('/api/profile','GET',null,'bob')).json(),{});
+  const doc=await (await request('/api/documents','POST',input)).json();
+  assert.equal((await (await request('/api/documents')).json()).length,1);assert.deepEqual(await (await request('/api/documents','GET',null,'bob')).json(),[]);
+  await request('/api/profile','DELETE',null,'bob');assert.equal(documents.profile('alice').degree.value,'master');
+  await request('/api/profile','DELETE');assert.deepEqual(documents.profile('alice'),{});assert.equal(documents.get('alice',doc.id).id,doc.id);
+  assert.equal(reservations,0);assert.equal(calls,0);
+ }finally{await new Promise(resolve=>server.close(resolve));documents.close();rmSync(dir,{recursive:true,force:true});}
+});
+test('profile and document deletion remove prior-fact history without restoring stale claims',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-profile-history-')),store=new DocumentStore(join(dir,'docs.db'));
+ const accept=doc=>store.review('alice',doc.id,Object.fromEntries(doc.pending.map(c=>[c.id,{action:'accept'}])));
+ try{
+  const a=store.upload('alice',input);accept(a);const b=store.upload('alice',input);accept(b);
+  assert.equal(store.get('alice',b.id).reviewHistory[0].previousFact.sourceDocumentId,a.id);
+  store.updateProfile('alice',{consent:true,values:{languages:'English (synthetic)'}});
+  store.delete('alice',a.id);assert.ok(store.get('alice',b.id).reviewHistory.every(h=>h.previousFact===null));
+  assert.equal(store.db.prepare('SELECT count(*) AS n FROM profile_history WHERE owner=?').get(store.owner('alice')).n,0);
+  store.updateProfile('alice',{consent:true,values:{degree:'doctorate'}});store.deleteProfile('alice');
+  assert.deepEqual(store.profile('alice'),{});assert.ok(store.get('alice',b.id).reviewHistory.every(h=>h.previousFact===null));
+  assert.throws(()=>store.review('alice',b.id,{}),e=>e.status===409);
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
+test('profile history is bounded and issuer-verified facts cannot be overwritten or removed by edits',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-profile-bound-')),store=new DocumentStore(join(dir,'docs.db'));
+ try{
+  for(let i=0;i<25;i++)store.updateProfile('alice',{consent:true,values:{languages:'SYNTHETIC '+i}});
+  assert.equal(store.db.prepare('SELECT count(*) AS n FROM profile_history').get().n,20);
+  store.db.prepare('UPDATE profiles SET data=? WHERE owner=?').run(JSON.stringify({degree:{value:'master',origin:'issuer_verified'}}),store.owner('alice'));
+  for(const value of ['bachelor',null])assert.throws(()=>store.updateProfile('alice',{consent:true,values:{degree:value}}),e=>e.status===409);
+  assert.equal(store.profile('alice').degree.origin,'issuer_verified');
+  const doc=store.upload('alice',input);const bad=Object.fromEntries(doc.pending.map(c=>[c.id,{action:'correct',value:'UNSUPPORTED VALUE'}]));
+  assert.throws(()=>store.review('alice',doc.id,bad),e=>e.status===400);assert.equal(store.get('alice',doc.id).reviewedAt,undefined);
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
