@@ -1,4 +1,4 @@
-> Current handoff: [28 October readiness report](HACKATHON-READINESS-2026-10-28.md), draft PR #12 stacked on #11. Older current-status/setup claims below are historical. Successful live inference remains unverified without correlated provider/validation evidence.
+> Current demonstration and final review: [Final review packet](FINAL-REVIEW-PACKET.md), stacked on PR #17. Checkpoint 15 verifies the completed live Meta milestone. All older setup/live-test instructions below are historical and must not trigger another inference or Keychain check.
 
 # BursYar demonstration and submission runbook
 

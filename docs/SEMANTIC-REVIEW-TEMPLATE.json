@@ -1,0 +1,22 @@
+{
+  "status": "PENDING_HUMAN_REVIEW",
+  "requestId": "d1bb0e0f-caab-4f13-8611-e0c3d592335d",
+  "model": "muse-spark-1.3",
+  "sourceUrl": null,
+  "sourceDigest": null,
+  "savedOutputBytesDigest": null,
+  "runtimeRevision": null,
+  "reviewer": null,
+  "reviewedAt": null,
+  "languagesReviewed": [],
+  "criteriaReviews": [],
+  "fundingReviews": [],
+  "deadlineReview": null,
+  "omittedSourceConditions": [],
+  "uiRecoveryConsentAndProvenanceReview": null,
+  "corrections": [],
+  "decision": null,
+  "requiresHumanReview": true,
+  "coverageComplete": false,
+  "instructions": "Blank preparation only. Use actual saved public source/output and real reviewer metadata. Do not infer digests, runtime revision, semantic accuracy or fluency from the diagnostic checkpoint. Leave unavailable evidence pending; do not trigger another inference."
+}
