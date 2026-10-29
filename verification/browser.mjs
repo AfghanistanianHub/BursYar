@@ -16,7 +16,7 @@ await new Promise(resolve=>api.listen(0,'127.0.0.1',resolve));
 const apiUrl=`http://127.0.0.1:${api.address().port}`;
 let browser;
 try{browser=await chromium.launch({headless:true,args:['--no-sandbox']});}catch(error){await vite.close();await new Promise(resolve=>api.close(resolve));documents.close();rmSync(documentDir,{recursive:true,force:true});throw error;}
-const evidence=normalizeEvidence(JSON.stringify({criteria:[{id:'criterion-1',kind:'transcripts',required:true,excerpt:'Applicants must provide academic transcripts.',en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],funding:['Tuition fees are covered.'],deadline:null,uncertainties:['The exact deadline is unknown.'],requiresHumanReview:true,sourceDigest:'a'.repeat(64),analyzedAt:'2026-10-26T12:00:00Z'}),{text:'Applicants must provide academic transcripts. Tuition fees are covered.',sourceUrl:'https://university.example/award'});
+const evidence=normalizeEvidence(JSON.stringify({criteria:[{kind:'transcripts',required:true,excerpt:'Applicants must provide academic transcripts.',en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],funding:['Tuition fees are covered.'],deadline:null}),{text:'Applicants must provide academic transcripts. Tuition fees are covered.',sourceUrl:'https://university.example/award'});
 const report={mode:'BROWSER_WITH_MOCK_AUTH_AND_API',liveMetaVerified:false,liveGoogleSignInVerified:false,cases:[]};
 mkdirSync('verification/artifacts',{recursive:true});
 try {

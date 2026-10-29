@@ -37,3 +37,13 @@ test('explicit attestation accepts plain or dollar-prefixed USD amounts, rejects
  for(const input of ['5','5.00','$5','$ 5.00'])assert.equal(parseSpendingLimit(input),5);
  for(const input of [undefined,'','0','-5','5junk','5,00','NaN','Infinity','1.001','1e3'])assert.equal(parseSpendingLimit(input),null);
 });
+
+test('Mac launcher takes only a bounded timeout override without altering saved spending or credentials',()=>{
+ const record={...config(),metaModelId:'muse-spark-1.3',spendLimitUSD:5,spendingConfirmed:true,confirmedAt:'2026-10-27T00:00:00Z'};
+ const before=structuredClone(record),base=rebootEnvironment(record,'/private/test-user');
+ assert.equal(base.META_TIMEOUT_MS,'60000');
+ const overridden=rebootEnvironment(record,'/private/test-user',{timeoutMs:'120000'});
+ assert.equal(overridden.META_TIMEOUT_MS,'120000');delete base.META_TIMEOUT_MS;delete overridden.META_TIMEOUT_MS;
+ assert.deepEqual(overridden,base);assert.deepEqual(record,before);
+ for(const timeoutMs of ['0','120001','NaN','60000junk','',Infinity])assert.throws(()=>rebootEnvironment(record,'/private/test-user',{timeoutMs}));
+});

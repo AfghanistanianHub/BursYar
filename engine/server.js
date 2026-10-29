@@ -1,3 +1,4 @@
+import {DEFAULT_META_TIMEOUT_MS} from './provider-config.js';
 import {resolve} from 'node:path';
 import {DocumentStore} from './documents.js';
 import {isSpendingConfirmed} from './spending.js';
@@ -11,7 +12,8 @@ const port=Number(env.PORT||8080);
 if(!Number.isInteger(port)||port<1||port>65535)throw Error('Invalid PORT');
 if(!env.BURSYAR_ORIGIN || !['http:','https:'].includes(new URL(env.BURSYAR_ORIGIN).protocol) || new URL(env.BURSYAR_ORIGIN).origin!==env.BURSYAR_ORIGIN)throw Error('Exact BURSYAR_ORIGIN required');
 const integer=(name)=>{const n=Number(env[name]);if(!Number.isSafeInteger(n)||n<1)throw Error(`Positive ${name} required`);return n;};
-const infer=createMetaInference({key:env.META_API_KEY||env.MODEL_API_KEY,model:env.META_MODEL_ID,onMetrics:record=>console.error(JSON.stringify(record)),timeoutMs:env.META_TIMEOUT_MS===undefined?20000:integer('META_TIMEOUT_MS')});
+const infer=createMetaInference({key:env.META_API_KEY||env.MODEL_API_KEY,model:env.META_MODEL_ID,onMetrics:record=>console.error(JSON.stringify(record)),timeoutMs:env.META_TIMEOUT_MS===undefined?DEFAULT_META_TIMEOUT_MS:env.META_TIMEOUT_MS});
+console.error(JSON.stringify(infer.configuration));
 const verify=createFirebaseVerifier({projectId:env.FIREBASE_PROJECT_ID});
 if(env.BURSYAR_DOCUMENT_DB&&resolve(env.BURSYAR_DOCUMENT_DB)===resolve(env.BURSYAR_QUOTA_DB??''))throw Error('Document storage must be separate from quota storage');
 const quota=new QuotaStore(env.BURSYAR_QUOTA_DB,{userMinute:integer('BURSYAR_USER_MINUTE'),userDay:integer('BURSYAR_USER_DAY'),globalDay:integer('BURSYAR_GLOBAL_DAY'),lifetimeUnits:integer('BURSYAR_LIFETIME_UNITS')});
