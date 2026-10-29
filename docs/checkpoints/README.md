@@ -1,3 +1,5 @@
+> Current handoff: [28 October readiness report](../HACKATHON-READINESS-2026-10-28.md), draft PR #12 stacked on #11. Older current-status/setup claims below are historical. Successful live inference remains unverified without correlated provider/validation evidence.
+
 # Development checkpoints
 
 Resume from `06-three-language-demo-path.md` and `../LIVE-DEMO-GATES.md` on `feat/demo-verification` (draft PR #7, stacked on PR #6). Historical checkpoints below preserve the completed development trail.
@@ -20,3 +22,5 @@ Latest recovery: **08-live-integration-recovery.md**, branch feat/live-integrati
 Reboot continuation: **09-mac-reboot-recovery.md** and **../MAC-REBOOT-STARTUP.md**. Original checkout reconciled safely; Firebase credential and quota state survived. New one-command startup uses a login-Keychain item instead of ephemeral shell variables. A secure native dialog is the one-time owner step for the lost Meta credential and any spending-limit attestation. No paid inference is automatic or verified.
 
 Spending continuation: **10-spending-attestation.md**. Owner confirms a USD 5 Meta cap; setup now preserves saved state and supports a targeted, verified attestation-only update without API-key re-entry. Redacted diagnose mode exposes no credential or model values. Agent-side live Keychain access remains blocked by OSStatus -67674; no paid inference was invoked.
+
+Latest mission: **11-autonomous-mission.md** and **../HACKATHON-DEMO.md** supersede earlier current-status claims. PR #8 now targets main; #9 remains stacked. Main history has been reconciled without restoring the old shared-token service. See the mission checkpoint for actual test counts and unresolved live gates.
