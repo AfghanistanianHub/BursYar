@@ -17,9 +17,10 @@ export async function resolvePublic(host,resolve=lookup){
  return addresses[0];
 }
 export function extractArticle(html,url){
- const root=parse(html),blocked=new Set(['script','style','noscript','template','nav','header','footer','aside','form','svg']);
+ if(/<title[^>]*>\s*Just a moment/i.test(html)&&/cf-chl-|cdn-cgi\/challenge-platform/i.test(html))fail('challenge');
+ const root=parse(html),blocked=new Set(['script','style','noscript','template','nav','header','footer','aside','form','svg','iframe','object','embed','meta','link','base','button']);
  const attr=(n,k)=>n.attrs?.find(a=>a.name===k)?.value;
- const ignored=n=>blocked.has(n.tagName)||attr(n,'hidden')!==undefined||attr(n,'aria-hidden')==='true';
+ const ignored=n=>blocked.has(n.tagName)||attr(n,'hidden')!==undefined||attr(n,'aria-hidden')==='true'||/display\s*:\s*none|visibility\s*:\s*hidden/i.test(attr(n,'style')??'');
  const candidates=[];function find(n){if(ignored(n))return;if(n.tagName==='main'||n.tagName==='article'||attr(n,'role')==='main')candidates.push(n);for(const c of n.childNodes??[])find(c);}find(root);
  // Prefer the main page region; absent semantic landmarks, use body with chrome removed.
  const chosen=candidates.find(n=>n.tagName==='main'||attr(n,'role')==='main')??candidates[0];
@@ -36,7 +37,7 @@ export function createSourceTransport(requestImpl=request){return (url,address,s
  const req=requestImpl(url,{method:'GET',agent:false,autoSelectFamily:false,signal,lookup:(_host,_options,cb)=>cb(null,address.address,address.family),headers:{accept:'text/html, text/plain;q=0.8','accept-encoding':'identity','user-agent':'BursYar-SourcePreview/1.0'}},res=>{
   if(!publicAddress(res.socket.remoteAddress)||ipaddr.process(res.socket.remoteAddress).toString()!==ipaddr.process(address.address).toString()){res.destroy();return reject(new SourceFailure('connection_denied'));}
   if([301,302,303,307,308].includes(res.statusCode)){res.destroy();return resolve({redirect:res.headers.location});}
-  if(res.headers['cf-mitigated']==='challenge'||res.statusCode!==200){res.destroy();return reject(new SourceFailure('inaccessible'));}
+  if(res.headers['cf-mitigated']==='challenge'||res.statusCode!==200){res.destroy();return reject(new SourceFailure(res.headers['cf-mitigated']==='challenge'?'challenge':'inaccessible'));}
   if(res.headers['content-encoding']&&res.headers['content-encoding']!=='identity'){res.destroy();return reject(new SourceFailure('unsupported_encoding'));}
   const type=res.headers['content-type']??'';if(!/^(text\/html|text\/plain)(?:;|$)/i.test(type)||(/charset=/i.test(type)&&!/charset=["']?utf-8\b/i.test(type))){res.destroy();return reject(new SourceFailure('unsupported_content'));}
   let size=0;const chunks=[];res.on('data',chunk=>{size+=chunk.length;if(size>512*1024)res.destroy(new SourceFailure('response_too_large'));else chunks.push(chunk);});
@@ -45,17 +46,18 @@ export function createSourceTransport(requestImpl=request){return (url,address,s
 });}
 const retrieve=createSourceTransport();
 export function createSourceFetcher({resolve=lookup,transport=retrieve,now=()=>Date.now(),timeoutMs=12000}={}){
- const key=randomBytes(32),rate=new Map();let active=0;
+ const key=randomBytes(32),rate=new Map(),importRate=new Map();let active=0;
  const sign=r=>createHmac('sha256',key).update(JSON.stringify(r)).digest('hex');
- function verify(receipt,text,url){
+ const owner=uid=>createHmac('sha256',key).update(String(uid??'')).digest('hex');
+ function verify(receipt,text,url,uid){
   if(!receipt||typeof receipt.signature!=='string')fail('invalid_receipt');
   const {signature,...record}=receipt;const expected=sign(record);
-  if(signature.length!==expected.length||!timingSafeEqual(Buffer.from(signature),Buffer.from(expected))||record.sourceUrl!==url||record.digest!==createHash('sha256').update(text).digest('hex')||now()-Date.parse(record.retrievedAt)>30*60*1000)fail('invalid_receipt');
-  return record;
+  if(signature.length!==expected.length||!timingSafeEqual(Buffer.from(signature),Buffer.from(expected))||record.owner!==owner(uid)||record.sourceUrl!==url||record.digest!==createHash('sha256').update(text).digest('hex')||now()-Date.parse(record.retrievedAt??record.suppliedAt)>30*60*1000)fail('invalid_receipt');
+  const {owner:binding,...provenance}=record;return provenance;
  }
+ function admit(map,uid){const current=now();for(const [id,r]of map)if(current-r.start>=60000)map.delete(id);const entry=map.get(uid)??{start:current,count:0};if(entry.count>=5||map.size>=10000&&!map.has(uid))fail('busy');entry.count++;map.set(uid,entry);}
  async function fetchSource(value,{signal,uid}={}){
-  const current=now();for(const [id,r]of rate)if(current-r.start>=60000)rate.delete(id);
-  const entry=rate.get(uid)??{start:current,count:0};if(entry.count>=5||active>=2||rate.size>=10000&&!rate.has(uid))fail('busy');entry.count++;rate.set(uid,entry);active++;
+  if(active>=2)fail('busy');admit(rate,uid);active++;
   const timeout=AbortSignal.timeout(timeoutMs),cancel=signal?AbortSignal.any([signal,timeout]):timeout;
   const abort=new Promise((_,reject)=>{if(cancel.aborted)reject(new SourceFailure('timeout'));else cancel.addEventListener('abort',()=>reject(new SourceFailure('timeout')),{once:true});});
   try{return await Promise.race([(async()=>{try{
@@ -67,10 +69,22 @@ export function createSourceFetcher({resolve=lookup,transport=retrieve,now=()=>D
     if(response.redirect!==undefined){if(hops===3||!response.redirect)fail('redirect_limit');url=sourceURL(new URL(response.redirect,url).href);if(visited.includes(url.href))fail('redirect_loop');continue;}
     const extracted=response.plain?{text:response.body.trim(),links:[],extraction:'plain_text'}:extractArticle(response.body,url.href);
     if(extracted.text.length<30)fail('empty_content');if(extracted.text.length>12000)fail('content_too_large');
-    const record={rawDigest:response.rawDigest??createHash('sha256').update(response.body).digest('hex'),requestedUrl:original,sourceUrl:url.href,retrievedAt:new Date(now()).toISOString(),digest:createHash('sha256').update(extracted.text).digest('hex'),extraction:extracted.extraction,redirects:visited.slice(0,-1),trust:'public_web_unverified'};
+    const record={kind:'server_fetched',owner:owner(uid),rawDigest:response.rawDigest??createHash('sha256').update(response.body).digest('hex'),requestedUrl:original,sourceUrl:url.href,retrievedAt:new Date(now()).toISOString(),digest:createHash('sha256').update(extracted.text).digest('hex'),extraction:extracted.extraction,redirects:visited.slice(0,-1),trust:'public_web_unverified'};
     return {...extracted,receipt:{...record,signature:sign(record)}};
    }
   }finally{active--;}})(),abort]);}catch(error){if(error instanceof SourceFailure)throw error;throw new SourceFailure('inaccessible');}
  }
- return {fetchSource,verify};
+ function importSource(input,{uid}={}){
+  admit(importRate,uid);
+  const url=sourceURL(input?.url).href;
+  if(!['html','text'].includes(input?.format)||typeof input.contentBase64!=='string'||input.contentBase64.length>349528||!input.contentBase64.length||!(/^[A-Za-z0-9+/]*={0,2}$/.test(input.contentBase64)&&input.contentBase64.length%4===0))fail('invalid_import');
+  const bytes=Buffer.from(input.contentBase64,'base64');if(bytes.length>256*1024||bytes.toString('base64')!==input.contentBase64)fail('invalid_import');
+  let content;try{content=new TextDecoder('utf-8',{fatal:true}).decode(bytes);}catch{fail('unsupported_encoding');}
+  if(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u.test(content))fail('invalid_import');
+  const extracted=input.format==='html'?extractArticle(content,url):{text:content.trim(),links:[],extraction:'supplied_plain_text'};
+  if(extracted.text.length<30)fail('empty_content');if(extracted.text.length>12000)fail('content_too_large');
+  const record={kind:input.format==='html'?'user_supplied_html':'user_supplied_text',owner:owner(uid),sourceUrl:url,requestedUrl:url,retrievedAt:null,suppliedAt:new Date(now()).toISOString(),rawDigest:createHash('sha256').update(bytes).digest('hex'),digest:createHash('sha256').update(extracted.text).digest('hex'),extraction:extracted.extraction,redirects:[],trust:'user_supplied_unverified'};
+  return {...extracted,receipt:{...record,signature:sign(record)}};
+ }
+ return {fetchSource,importSource,verify};
 }
