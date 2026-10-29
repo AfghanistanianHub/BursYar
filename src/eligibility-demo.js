@@ -1,3 +1,4 @@
+import {journeyCopy} from './journey-copy.js';
 import {planGaps,actionText} from './gap-actions.js';
 import {assessScholarship,simulate} from '../engine/eligibility.js';
 
@@ -30,8 +31,8 @@ export function mountEligibility(root,language='en',compilation=null){
  if(!root)return;
  const example={en:'Optional fictional example — not a scholarship assessment',fa:'نمونهٔ فرضی اختیاری — ارزیابی بورسیه نیست',ps:'اختیاري فرضي بېلګه — د بورس ارزونه نه ده'}[language];
  root.innerHTML=`${!compilation?`<details id="eligibility-example" ${demoOpen?'open':''}><summary>${escape(example)}</summary>`:''}<section class="section" id="eligibility-demo" aria-labelledby="eligibility-heading">
- <p class="eyebrow">BURS YAR / EXPERIMENTAL</p><h2 id="eligibility-heading">${escape(t.title)}</h2>
- <p role="note">${escape(compilation?liveCopy[language]:t.disclaimer)}</p><ul>${rules.map(r=>`<li dir="auto">${escape(r.sourceExcerpt)}</li>`).join('')}</ul>
+ <h2 id="eligibility-heading">${compilation?'3 · ':''}${escape(compilation?journeyCopy[language].eligibility:t.title)}</h2>
+ <p role="note">${escape(compilation?liveCopy[language]:t.disclaimer)}</p><details><summary>${escape(journeyCopy[language].facts)}</summary><ul>${rules.map(r=>`<li dir="auto">${escape(r.sourceExcerpt)}</li>`).join('')}</ul></details>
  <form id="eligibility-form">
  <label>${escape(t.degree)} <select name="degree"><option value="">${escape(t.missing)}</option>${['secondary','bachelor','master','doctorate'].map(x=>`<option value="${x}">${escape(t[x])}</option>`).join('')}</select></label>
  <label><input name="hasTest" type="checkbox"> ${escape(t.test)}</label>
@@ -39,9 +40,9 @@ export function mountEligibility(root,language='en',compilation=null){
  ${['listening','reading','writing','speaking'].map((x,i)=>`<label>${escape(t.bands[i])} <input name="${x}" type="number" min="0" max="9" step=".5" value="6"></label>`).join('')}</div>
  ${rules.some(r=>r.type==='boolean_exclusion')?`<fieldset><legend>${escape(extra.flags)}</legend>${['deferredOffer','continuingSameDegree'].map(key=>`<label>${escape(extra[key])}<select name="${key}"><option value="">${escape(t.missing)}</option><option value="true">${escape(t.yes)}</option><option value="false">${escape(t.no)}</option></select></label>`).join('')}</fieldset>`:''}
  <p><strong>${escape(t.real)}</strong></p><output id="eligibility-result" aria-live="polite"></output><ol id="eligibility-details"></ol>
- <label>${escape(t.future)} <input name="futureScore" type="number" min="0" max="9" step=".5" value="7"></label>
+ <details class="scenarios"><summary>${escape(journeyCopy[language].scenarios)}</summary><label>${escape(t.future)} <input name="futureScore" type="number" min="0" max="9" step=".5" value="7"></label>
  <button type="button" id="eligibility-simulate">${escape(t.simulate)}</button>
- <output id="eligibility-future" aria-live="polite"></output>${rules.some(r=>r.type==='boolean_exclusion')?`<label>${escape(extra.future)}<select id="exclusion-override"><option value="deferredOffer">${escape(extra.deferredOffer)}</option><option value="continuingSameDegree">${escape(extra.continuingSameDegree)}</option></select></label><button type="button" id="exclusion-simulate">${escape(extra.apply)}</button><output id="exclusion-future" aria-live="polite"></output>`:''}</form><p>${escape(t.next)}</p></section>${!compilation?'</details>':''}`;
+ <output id="eligibility-future" aria-live="polite"></output>${rules.some(r=>r.type==='boolean_exclusion')?`<label>${escape(extra.future)}<select id="exclusion-override"><option value="deferredOffer">${escape(extra.deferredOffer)}</option><option value="continuingSameDegree">${escape(extra.continuingSameDegree)}</option></select></label><button type="button" id="exclusion-simulate">${escape(extra.apply)}</button><output id="exclusion-future" aria-live="polite"></output>`:''}</details></form><p>${escape(t.next)}</p></section>${!compilation?'</details>':''}`;
  root.querySelector('#eligibility-example')?.addEventListener('toggle',event=>{demoOpen=event.currentTarget.open;});
  const form=root.querySelector('#eligibility-form'),scores=form.querySelector('.eligibility-scores');
  form.addEventListener('submit',event=>event.preventDefault());
@@ -61,7 +62,7 @@ export function mountEligibility(root,language='en',compilation=null){
  function render(){
   savedFields={...savedFields,...Object.fromEntries([...form.elements].filter(el=>el.name).map(el=>[el.name,el.type==='checkbox'?el.checked:el.value]))};
   scores.hidden=!form.elements.namedItem('hasTest').checked;const assessment=assessScholarship(rules,snapshot());form.querySelector('#eligibility-result').dataset.status=assessment.summary;form.querySelector('#eligibility-result').textContent=t.state[assessment.summary];
-  const gaps=planGaps(assessment);form.querySelector('#eligibility-details').innerHTML=assessment.results.map(r=>`<li data-status="${r.status}" data-requirement="${escape(r.requirementId)}"><blockquote dir="auto">${escape(r.source.excerpt)}</blockquote><p>${escape(t.state[r.status])}</p><p class="evidence-chain" dir="auto">${escape(r.requirementId)} → ${escape(r.source.provenance?.sourceItemId??r.source.provenance?.criterionId??'source')} → ${escape(r.usedFacts.map(f=>(origins[f.field]??f.field)+' ('+(origins[f.origin]??f.origin)+')'+(f.claimIds.length?' → '+f.claimIds.join(', '):'')).join('; ')||origins.unknown)}</p>${gaps.some(g=>g.requirementId===r.requirementId)?`<p>${escape(actionText[language][gaps.find(g=>g.requirementId===r.requirementId).action])}</p>`:''}</li>`).join('');form.querySelector('#eligibility-future').textContent='';delete form.querySelector('#eligibility-future').dataset.status;if(form.querySelector('#exclusion-future')){form.querySelector('#exclusion-future').textContent='';delete form.querySelector('#exclusion-future').dataset.status;}}
+  const gaps=planGaps(assessment);form.querySelector('#eligibility-details').innerHTML=assessment.results.map(r=>`<li data-status="${r.status}" data-requirement="${escape(r.requirementId)}"><p>${escape(t.state[r.status])}</p><details><summary>${escape(journeyCopy[language].facts)}</summary><blockquote dir="auto">${escape(r.source.excerpt)}</blockquote><p class="evidence-chain" dir="auto">${escape(r.requirementId)} → ${escape(r.source.provenance?.sourceItemId??r.source.provenance?.criterionId??'source')} → ${escape(r.usedFacts.map(f=>(origins[f.field]??f.field)+' ('+(origins[f.origin]??f.origin)+')'+(f.claimIds.length?' → '+f.claimIds.join(', '):'')).join('; ')||origins.unknown)}</p></details>${gaps.some(g=>g.requirementId===r.requirementId)?`<p>${escape(actionText[language][gaps.find(g=>g.requirementId===r.requirementId).action])}</p>`:''}</li>`).join('');form.querySelector('#eligibility-future').textContent='';delete form.querySelector('#eligibility-future').dataset.status;if(form.querySelector('#exclusion-future')){form.querySelector('#exclusion-future').textContent='';delete form.querySelector('#exclusion-future').dataset.status;}}
  form.addEventListener('input',()=>{lastScenario=false;lastExclusion=null;render();});form.addEventListener('change',()=>{lastScenario=false;lastExclusion=null;render();});
  form.querySelector('#eligibility-simulate').addEventListener('click',()=>{
   const value=form.elements.namedItem('futureScore').value;

@@ -8,7 +8,7 @@ import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {DocumentStore} from '../engine/documents.js';
 import {createInferenceServer} from '../engine/http.js';
-const vite=await createServer({server:{host:'127.0.0.1',port:0}});await vite.listen();
+const vite=await createServer({root:process.cwd(),server:{host:'127.0.0.1',port:0}});await vite.listen();
 const baseUrl=`http://127.0.0.1:${vite.httpServer.address().port}`;
 const documentDir=mkdtempSync(join(tmpdir(),'bursyar-browser-docs-'));
 const documents=new DocumentStore(join(documentDir,'docs.db'));
@@ -33,12 +33,22 @@ try {
   await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?responseEvidence:{error:'test-error'})});});
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
   await expect(page.locator('html')).toHaveAttribute('dir',language==='en'?'ltr':'rtl');
+  await expect(page.locator('#fetch-source')).toBeVisible();
+  await expect(page.locator('#requirements')).toBeHidden();
+  await expect(page.locator('#analysis-consent')).toBeHidden();
+  await page.screenshot({path:`verification/artifacts/${language}-entry-${width}.png`,fullPage:true});
+  const zoomStyle=await page.addStyleTag({content:'html{font-size:200%}'});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
+  await page.screenshot({path:`verification/artifacts/${language}-text200-${width}.png`,fullPage:true});
+  await zoomStyle.evaluate(el=>el.remove());
+  if(width===1280){const zoom=await page.addStyleTag({content:'body{zoom:2}'});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);await page.screenshot({path:`verification/artifacts/${language}-layout200-1280.png`,fullPage:true});await zoom.evaluate(el=>el.remove());}
+  await page.locator('#source-url').focus();await page.keyboard.press('Tab');await expect(page.locator('#fetch-source')).toBeFocused();
   if(width===390){
-   await page.locator('#eligibility-example summary').click();
+   await page.locator('#eligibility-example > summary').click();
    await page.locator('#eligibility-form [name=degree]').selectOption('bachelor');
    await page.locator('#eligibility-form [name=hasTest]').check();
    await expect(page.locator('#eligibility-result')).toHaveAttribute('data-status','not_met');
-   await page.locator('#eligibility-simulate').click();
+   await page.locator('.scenarios summary').click();await page.locator('#eligibility-simulate').click();
    await expect(page.locator('#eligibility-future')).toHaveAttribute('data-status','met');
    await expect(page.locator('#eligibility-form [name=overall]')).toHaveValue('6');
    await page.locator('#language').selectOption(language==='en'?'fa':'en');
@@ -47,7 +57,7 @@ try {
    await page.locator('#language').selectOption(language);
   }
   if(width!==390)await expect(page.locator('#eligibility-example')).not.toHaveAttribute('open','');
-  await page.locator('#requirements').fill('Applicants must provide academic transcripts. Tuition fees are covered.');
+  await page.locator('#manual-source').click();await page.locator('#requirements').fill('Applicants must provide academic transcripts. Tuition fees are covered.');
   await page.locator('[name=sourceUrl]').fill('https://university.example/award');
   const submit=page.locator('#analyze-form button[type=submit]');await expect(submit).toBeDisabled();await page.locator('#source-approved').check();await submit.click();
   await expect(page.locator('#analyze-form')).toHaveAttribute('aria-busy','true');
@@ -56,13 +66,13 @@ try {
   if(language!=='en')await expect(page.locator(`.criterion [lang=${language}]`)).toBeVisible();
   await page.locator('[name=transcripts]').selectOption('unavailable');
   await expect(page.locator('#barrier-guidance')).toContainText({en:'Potential mismatch',fa:'ناسازگاری احتمالی',ps:'احتمالي نه سمون'}[language]);
-  await page.locator('#language').selectOption(language==='en'?'fa':'en');await expect(page.locator('.criterion')).toBeVisible();await page.locator('#language').selectOption(language);await expect(page.locator('.criterion')).toBeVisible();expect(calls).toBe(1);
+  await page.locator('#language').selectOption(language==='en'?'fa':'en');await expect(page.locator('.criterion')).toBeVisible();await page.locator('#language').selectOption(language);await expect(page.locator('.criterion')).toBeVisible();await expect(page.locator('[name=transcripts]')).toHaveValue('unavailable');expect(calls).toBe(1);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);if(overflow)console.log(JSON.stringify({language,width,overflowElements:await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(el=>el.getBoundingClientRect().right>innerWidth+1||el.getBoundingClientRect().left< -1).map(el=>({tag:el.tagName,id:el.id,class:el.className,width:el.getBoundingClientRect().width})).slice(0,20))}));expect(overflow).toBe(false);
   const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
   report.cases.push({language,width,overflow,accessibilityViolations:axe.violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.length}))});
   expect(axe.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);
   if(width===390){
-   const profile=page.locator('#profile-form');await profile.locator('[name=academicHistory]').fill('SYNTHETIC EDUCATION ONLY');await profile.locator('[name=languages]').fill('English (self-declared)');await profile.locator('[name=continuingSameDegree]').selectOption('false');await profile.locator('[name=consent]').check();await profile.locator('button[type=submit]').click();await expect(page.locator('#profile [role=status]')).toContainText({en:'Profile saved.',fa:'پروفایل ذخیره شد.',ps:'پروفایل وساتل شو.'}[language]);await expect(page.locator('#profile-form [name=academicHistory]')).toHaveValue('SYNTHETIC EDUCATION ONLY');
+   await page.locator('.workspace').evaluate(el=>el.open=true);const profile=page.locator('#profile-form');await profile.locator('[name=academicHistory]').fill('SYNTHETIC EDUCATION ONLY');await profile.locator('[name=languages]').fill('English (self-declared)');await profile.locator('[name=continuingSameDegree]').selectOption('false');await profile.locator('[name=consent]').check();await profile.locator('button[type=submit]').click();await expect(page.locator('#profile [role=status]')).toContainText({en:'Profile saved.',fa:'پروفایل ذخیره شد.',ps:'پروفایل وساتل شو.'}[language]);await expect(page.locator('#profile-form [name=academicHistory]')).toHaveValue('SYNTHETIC EDUCATION ONLY');
    // Exercise the real local document API with synthetic text and mocked identity.
    const upload=page.locator('#documents form').first();
    await upload.locator('input[type=file]').setInputFiles({name:'synthetic-education.txt',mimeType:'text/plain',buffer:Buffer.from('SYNTHETIC TEST ONLY\nDegree: bachelor\nIELTS Academic: overall=7; listening=7; reading=7; writing=6; speaking=7')});
@@ -84,7 +94,7 @@ try {
   }
   if(width===390)await page.screenshot({path:`verification/artifacts/${language}-390.png`,fullPage:true});
   // Re-rendering via unrelated search must retain ephemeral source input.
-  await page.locator('#search').fill('test');await expect(page.locator('#requirements')).toHaveValue('Applicants must provide academic transcripts. Tuition fees are covered.');
+  await page.locator('.resources').evaluate(el=>el.open=true);await page.locator('#search').fill('test');await expect(page.locator('#requirements')).toHaveValue('Applicants must provide academic transcripts. Tuition fees are covered.');
   responseStatus=429;await page.locator('#analyze-form button[type=submit]').click();await expect(page.locator('#analysis-result')).toContainText({en:'Quota',fa:'محدودیت',ps:'حد'}[language]);
   for(const status of [502,503,504]){
    responseStatus=status;await page.locator('#analyze-form button[type=submit]').click();
@@ -100,11 +110,11 @@ try {
    const deferred='Applicants who hold a deferred graduate offer are not eligible to be considered for this scholarship.';
    const source=`SYNTHETIC BROWSER FIXTURE ONLY\n${deferred}\n${continuing}\nCourse-specific deadlines require confirmation.`;
    responseEvidence=normalizeEvidence(JSON.stringify({criteria:[{kind:'other',required:true,excerpt:deferred,en:'Deferred offers are excluded.',fa:'پذیرش به‌تعویق‌افتاده مشمول نیست.',ps:'ځنډول شوی وړاندیز نه منل کېږي.'}],deadline:null,funding:[]}),{text:source,sourceUrl:'https://www.ox.ac.uk/admissions/graduate/fees-and-funding/funding/clarendon/applicants'});
-   const profile=page.locator('#profile-form');await profile.locator('[name=deferredOffer]').selectOption('true');await profile.locator('[name=continuingSameDegree]').selectOption('false');await profile.locator('[name=consent]').check();await profile.locator('button[type=submit]').click();await expect(page.locator('#profile [role=status]')).toContainText({en:'Profile saved.',fa:'پروفایل ذخیره شد.',ps:'پروفایل وساتل شو.'}[language]);
+   await page.locator('.workspace').evaluate(el=>el.open=true);const profile=page.locator('#profile-form');await profile.locator('[name=deferredOffer]').selectOption('true');await profile.locator('[name=continuingSameDegree]').selectOption('false');await profile.locator('[name=consent]').check();await profile.locator('button[type=submit]').click();await expect(page.locator('#profile [role=status]')).toContainText({en:'Profile saved.',fa:'پروفایل ذخیره شد.',ps:'پروفایل وساتل شو.'}[language]);
    responseStatus=200;await page.locator('#requirements').fill(source);await page.locator('[name=sourceUrl]').fill(responseEvidence.sourceUrl);await page.locator('#source-approved').check();await page.locator('#analyze-form button[type=submit]').click();
    await expect(page.locator('#eligibility-result')).toHaveAttribute('data-status','not_met');
    await page.locator('.source-inventory summary').click();await expect(page.locator('.source-inventory')).toContainText(continuing);
-   await page.locator('#exclusion-simulate').click();await expect(page.locator('#exclusion-future')).toHaveAttribute('data-status','unknown');await expect(page.locator('#profile-form [name=deferredOffer]')).toHaveValue('true');
+   await page.locator('.scenarios summary').click();await page.locator('#exclusion-simulate').click();await expect(page.locator('#exclusion-future')).toHaveAttribute('data-status','unknown');await expect(page.locator('#profile-form [name=deferredOffer]')).toHaveValue('true');
    await page.locator('#language').selectOption(language==='en'?'fa':'en');await expect(page.locator('#eligibility-result')).toHaveAttribute('data-status','not_met');await expect(page.locator('#exclusion-future')).toHaveAttribute('data-status','unknown');await page.locator('#language').selectOption(language);
    const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(axe.violations).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
    await page.screenshot({path:`verification/artifacts/${language}-oxford-profile-390.png`,fullPage:true});
