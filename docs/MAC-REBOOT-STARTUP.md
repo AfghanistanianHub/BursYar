@@ -40,3 +40,13 @@ Meta's external account limit and the local Keychain confirmation are separate. 
 After explicitly confirming the actual external cap, use `start-bursyar.command --confirm-spending-usd 5`. This non-secret option updates only spendLimitUSD, spendingConfirmed and confirmedAt in the existing Keychain record, reads those fields back for verification, and starts the app. It does not request/reveal/replace the key or model, touch Firebase configuration, reset quota, or run paid inference. If the same cap is already confirmed, it leaves the record unchanged. It prints only allowlisted before/after diagnostics: schema version, credential/model field presence, saved USD amount, confirmation boolean and timestamp validity. No raw record, model ID or key value is printed. Future starts need only start-bursyar.command.
 
 `npm run diagnose:mac` prints the same redacted stored format without changing anything. `check:mac` shows saved spending values and their effective backend mapping. The startup message and executable backend now share the exact same spending-policy predicate so they cannot disagree about confirmation validity. Actual saved-record inspection/update may require the owner's desktop session because the agent process has consistently received Keychain service OSStatus -67674. This is not evidence of a missing credential.
+
+## Bounded Meta deadline
+
+The current adapter defaults to 60000 ms and accepts 1..120000 via META_TIMEOUT_MS. To set the deadline for one launch without changing the saved key, selected model, USD 5 spending attestation or quota caps:
+
+```sh
+META_TIMEOUT_MS=60000 ./start-bursyar.command
+```
+
+Only this numeric deadline override is newly inherited; stale provider/model/spending/quota variables remain excluded. Invalid values fail closed. Startup emits a safe model/deadline/token-limit summary. It does not make an inference request or authorize a paid retry. A previously running process continues using its existing environment until the owner stops its launcher with Ctrl+C and restarts the updated checkout.
