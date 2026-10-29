@@ -12,7 +12,47 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
-      - run: npm install --no-audit --no-fund
+          node-version: '24'
+      - run: npm install --global npm@11.9.0 --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npm test
       - run: npm run build
+  emulator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm install --global npm@11.9.0 --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:emulator
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --global npm@11.9.0 --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:browser
+  macos-helper:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile native masked-entry and Keychain helper
+        run: swiftc -module-cache-path "$RUNNER_TEMP/bursyar-swift-cache" verification/macos/BursYarKeychain.swift -o "$RUNNER_TEMP/BursYarKeychain"
+      - name: Test targeted attestation updates and redacted record format without Keychain access
+        run: '"$RUNNER_TEMP/BursYarKeychain" self-test'
+      - name: Check missing-item path without prompting or reading secrets
+        run: |
+          set +e
+          "$RUNNER_TEMP/BursYarKeychain" status
+          result=$?
+          test "$result" -eq 44
