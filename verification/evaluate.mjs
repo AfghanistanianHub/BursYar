@@ -37,5 +37,5 @@ for(const scenario of policyCases)for(const language of ['en','fa','ps']){
  if(scenario.scenario){const counterfactual=simulate(evidence.compilation.rules,scenario.profile,{deferredOffer:false});assert.equal(counterfactual.scenario.summary,scenario.scenario);assert.deepEqual(scenario.profile,before);}
  results.push({case:scenario.id,language,status:assessment.summary,sourceDigest:evidence.sourceDigest,syntheticComposition:true,passed:true});
 }
-const report={mode:fixture.mode,liveMetaVerified:false,semanticModelAccuracyEvaluated:false,coverage:'three official excerpt fixtures plus eight synthetic Oxford policy scenarios in three languages; mocked interpretations; no semantic model accuracy claim',checks:results.length,passed:true,results};
+const report={mode:fixture.mode,liveMetaVerified:false,semanticModelAccuracyEvaluated:false,coverage:'six official excerpt fixtures plus eight synthetic Oxford policy scenarios in three languages; mocked interpretations; no semantic model accuracy claim',checks:results.length,passed:true,results};
 mkdirSync('verification/artifacts',{recursive:true});writeFileSync('verification/artifacts/evaluation-report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));
