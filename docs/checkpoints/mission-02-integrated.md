@@ -34,3 +34,9 @@ New test sources were committed, **but none has been executed locally**: connect
 ## Observed CI checkpoints
 - Commit `05b6067`: GitHub Actions run 41015342003 completed all four jobs successfully: Node 194/194, offline evaluation 42/42, build, browser, Firebase emulator and macOS helper.
 - Subsequent source-integrity commits require a separate CI green result and must not inherit that success claim.
+
+## Integration into evidence normalization
+- `normalizeEvidence` now attaches `sourceAudits` per selected requirement. A matching excerpt is an integrity check only; it cannot upgrade `sourceStatus: user_supplied_unverified` or grant institution acceptance.
+- Missing source capture/check dates are explicitly flagged `invalid_freshness_metadata`. Caller-supplied date values cannot establish official issuer provenance.
+- The deterministic eligibility engine remains offline; `met` means matching **enumerated requirement with supplied facts**, never verified eligibility, admission or funding.
+- Additional regression test protects these limits. External validation and source-policy curator authorization still require implementation; no trusted external source registry was activated.
