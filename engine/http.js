@@ -1,3 +1,4 @@
+import {decideProviderRoute} from './provider-policy.js';
 import {createSourceFetcher,SourceFailure} from './source-fetch.js';
 import {metaReservationUnits} from './meta-request.js';
 import {MAX_META_TIMEOUT_MS,safeProviderDiagnostics} from './provider-config.js';
@@ -16,7 +17,7 @@ async function readInput(req,validate=validateEvidenceRequest,maxBody=MAX_BODY){
  for await(const chunk of req){size+=chunk.length;if(size>maxBody)throw Object.assign(Error(),{status:413});chunks.push(chunk);}
  try{return validate(JSON.parse(Buffer.concat(chunks).toString('utf8')));}catch{throw Object.assign(Error(),{status:400});}
 }
-export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,documents=null,sources=createSourceFetcher(),diagnose=record=>console.error(JSON.stringify(record))}){
+export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,policyContextForRequest=null,documents=null,sources=createSourceFetcher(),diagnose=record=>console.error(JSON.stringify(record))}){
  if(!verify || !projectId || !quota || !infer || !origin || !Number.isSafeInteger(maxConcurrent) || maxConcurrent<1)throw Error('Missing gateway configuration');
  let active=0;
  const server=createServer(async(req,res)=>{
@@ -57,6 +58,13 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
    let input;try{input=validateEvidenceRequest(rawInput);}catch{return send(res,400,{error:'Invalid analysis request'});}
    let retrieval=null;
    if(rawInput.receipt){if(rawInput.sourceApproved!==true)return send(res,400,{error:'Review source before analysis'});try{retrieval=sources.verify(rawInput.receipt,input.text,input.sourceUrl,uid);}catch{return send(res,400,{error:'Source preview expired or changed; fetch again or use manual text'});}}
+   // Policy is evaluated before prompts, quota reservation or any provider call.
+   if (policyContextForRequest) {
+    let context;
+    try {context=await policyContextForRequest({uid});}catch {return send(res,403,{error:'Analysis unavailable for this request'});}
+    const decision=decideProviderRoute(context);
+    if (!decision.allowed || decision.route!=='meta_standard')return send(res,403,{error:'Analysis unavailable for this request'});
+   }
    if(!canInfer())return send(res,503,{error:'Analysis unavailable'});
    if(res.destroyed)return;
    const messages=evidencePrompt(input);
