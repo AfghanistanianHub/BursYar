@@ -1,6 +1,6 @@
 import {resolveFamilyScope} from './family.js';
 import {evaluateReviewedScholarship} from './deterministic.js';
-import {decideProviderRoute} from './provider-policy.js';
+import {authorizeAnalysisContext} from './provider-policy.js';
 import {createSourceFetcher,SourceFailure} from './source-fetch.js';
 import {metaReservationUnits} from './meta-request.js';
 import {MAX_META_TIMEOUT_MS,safeProviderDiagnostics} from './provider-config.js';
@@ -89,7 +89,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
    let adapter,context;
    {
     try {context=await policyContextForRequest({uid});}catch {return send(res,403,{error:'Analysis unavailable for this request'});}
-    const decision=decideProviderRoute(context);
+    const decision=authorizeAnalysisContext(context);
     if (!decision.allowed || decision.route==='deterministic'||loadFamilyGrant&&context.provider!=='self_hosted')return send(res,403,{error:'Analysis unavailable for this request'});
    }
    adapter=providers?.[context.provider??'meta']??(!providers&&infer?{provider:'meta',model:infer.configuration?.model,available:true,infer,reservationUnits:infer.reservationUnits,quota}:null);
