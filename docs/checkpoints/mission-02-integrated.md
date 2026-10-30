@@ -47,3 +47,9 @@ New test sources were committed, **but none has been executed locally**: connect
 - No examination provider, service partner, equivalency, or institution acceptance link is invented. Program-specific official acceptance review remains necessary.
 - The new offline synthetic regression tests exercise missing certificates, below-threshold reports, unsupported scores and uncertainty.
 - These metadata changes do not alter deterministic tri-state eligibility verdicts or transfer responsibility for institutional decisions.
+
+## Curated accepted-alternative policy — code complete, activation gated
+- Added `engine/reviewed-alternatives.js`: a strictly server-side resolver for operator-controlled, human-reviewed snapshots. Requires matching scholarship, requirement, degree/term policy scope, source URL, full source SHA-256 and complete source-line acceptance statement, named reviewer, explicit positive acceptance, validity window, non-revocation, and no competing records.
+- `tests/reviewed-alternatives.test.js` covers correct scope, invalid URL/digest/excerpt, review timing, expired/revoked/forged status, duplicate review records and post-construction mutation.
+- **Not activated on the public student/user endpoint:** no authenticated, signed or access-controlled institutional catalog has been provisioned. The module must only be initialized from a trusted operator-owned data source, never uploaded/user-provided JSON; current `assessBarriers` therefore continues to `ask_alternative`. Do not treat the existence of this module as actual university acceptance verification.
+- Human-qualified reviewer input and independent validation of the official university page are still needed to populate any record. If no record exists, the desired outcome is unknown/ask-admissions.
