@@ -38,6 +38,9 @@ try {
   // Mission 04: localized navigation across all RTL/LTR viewport variants.
   const steps=page.locator('.journey-nav ol a');
   await expect(steps).toHaveCount(4);
+  await page.locator('.journey-offline').click();
+  await expect(page.locator('.local-workflow')).toHaveAttribute('open','');
+  await expect(page.locator('#local-assessment')).toBeVisible();
   await expect(steps.nth(0)).toHaveAttribute('href','#profile-mount');
   await expect(page.locator('html')).toHaveAttribute('dir',language==='en'?'ltr':'rtl');
   await steps.nth(0).click();
