@@ -19,3 +19,18 @@ test('missing consent or data classification fails closed',()=>{
 test('deterministic mode never selects Meta',()=>{
  assert.equal(decideProviderRoute({model:'deterministic',subjectAgeBand:'under_18',locationDecision:'restricted'}).route,'deterministic');
 });
+
+test('Gemini public source requires eligibility, and private data needs no-training terms',()=>{
+ const gemini={...adult,provider:'gemini',model:'gemini-approved',dataClass:'public_source'};
+ assert.equal(decideProviderRoute(gemini).route,'gemini_eligible');
+ assert.equal(decideProviderRoute({...gemini,dataClass:'user_content'}).allowed,false);
+ assert.equal(decideProviderRoute({...gemini,dataClass:'user_content',noTrainingContract:true}).allowed,true);
+ assert.equal(decideProviderRoute({...gemini,subjectAgeBand:'under_18'}).allowed,false);
+ assert.equal(decideProviderRoute({...gemini,locationDecision:'restricted'}).allowed,false);
+});
+test('self-hosted model requires explicit legal and security reviews',()=>{
+ const local={provider:'self_hosted',model:'qwen3-local',subjectAgeBand:'under_18',audience:'minor_targeted',locationDecision:'restricted',consentVerified:true,dataClass:'user_content'};
+ assert.equal(decideProviderRoute(local).allowed,false);
+ assert.equal(decideProviderRoute({...local,selfHostedLegalReview:true}).allowed,false);
+ assert.equal(decideProviderRoute({...local,selfHostedLegalReview:true,selfHostedSecurityReview:true}).route,'self_hosted');
+});
