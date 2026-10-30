@@ -35,21 +35,6 @@ export function assessBarriers(results,{alternatives={}}={}){
   return {requirementId:id,status:'cannot determine',actionCode:'verify_requirement',detail:excerpt,evidence:{excerpt,url},documentedAlternative:null};
  });
 }
-// Trusted alternatives must be resolved by a server-owned policy catalog.
-// Do not accept a caller-supplied resolver, URL, or approval bit in /api inputs.
-// The existing assessBarriers API deliberately remains fail-closed.
-export function assessWithReviewedCatalog(results,{scholarshipId,policyScope,resolveReviewedAlternative}={}){
- if(typeof resolveReviewedAlternative!=='function'||typeof scholarshipId!=='string'||typeof policyScope!=='string')
-  return assessBarriers(results);
- const safe=assessBarriers(results);
- return safe.map((result,index)=>{
-  if(result.actionCode!=='ask_alternative')return result;
-  const source=results[index]?.source;
-  const reviewed=resolveReviewedAlternative({scholarshipId,policyScope,requirementId:result.requirementId,source});
-  if(!reviewed)return result;
-  return {...result,actionCode:'use_documented_alternative',documentedAlternative:reviewed};
- });
-}
 export function barrierText(result,language='en'){
  const t=labels[language]||labels.en,a=assessmentActionText[language]||assessmentActionText.en;
  if(result?.actionCode&&a[result.actionCode]){
