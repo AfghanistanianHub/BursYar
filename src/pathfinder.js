@@ -23,16 +23,16 @@ export function assessBarriers(results,{alternatives={}}={}){
  return results.map(r=>{
   const id=r?.requirementId??'invalid';
   const excerpt=r?.source?.excerpt??null,url=r?.source?.url??null;
-  if(r?.status==='met')return {requirementId:id,status:'appears to meet',actionCode:'keep_evidence',detail:null,evidence:{excerpt,url}};
+  if(r?.status==='met')return {requirementId:id,status:'appears to meet',actionCode:'keep_evidence',detail:null,evidence:{excerpt,url},documentedAlternative:null};
   if(r?.status==='not_met'){
    // Caller-supplied alternatives are untrusted. Text + URL are not proof
    // that an official institution accepts an alternative. Until a separate,
    // server-owned curator/official-source verification pipeline supplies an
    // authenticated provenance decision, fail closed rather than recommend it.
    // Deliberately ignore alternatives[id], including forged verification flags.
-   return {requirementId:id,status:'potential mismatch',actionCode:'ask_alternative',detail:excerpt,evidence:{excerpt,url}};
+   return {requirementId:id,status:'potential mismatch',actionCode:'ask_alternative',detail:excerpt,evidence:{excerpt,url},documentedAlternative:null};
   }
-  return {requirementId:id,status:'cannot determine',actionCode:'verify_requirement',detail:excerpt,evidence:{excerpt,url}};
+  return {requirementId:id,status:'cannot determine',actionCode:'verify_requirement',detail:excerpt,evidence:{excerpt,url},documentedAlternative:null};
  });
 }
 export function barrierText(result,language='en'){
