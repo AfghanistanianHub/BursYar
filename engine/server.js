@@ -18,6 +18,6 @@ const verify=createFirebaseVerifier({projectId:env.FIREBASE_PROJECT_ID});
 if(env.BURSYAR_DOCUMENT_DB&&resolve(env.BURSYAR_DOCUMENT_DB)===resolve(env.BURSYAR_QUOTA_DB??''))throw Error('Document storage must be separate from quota storage');
 const quota=new QuotaStore(env.BURSYAR_QUOTA_DB,{userMinute:integer('BURSYAR_USER_MINUTE'),userDay:integer('BURSYAR_USER_DAY'),globalDay:integer('BURSYAR_GLOBAL_DAY'),lifetimeUnits:integer('BURSYAR_LIFETIME_UNITS')});
 const documents=env.BURSYAR_DOCUMENT_DB?new DocumentStore(env.BURSYAR_DOCUMENT_DB):null;
-const server=createInferenceServer({documents,verify,projectId:env.FIREBASE_PROJECT_ID,quota,infer,origin:env.BURSYAR_ORIGIN,canInfer:()=>isSpendingConfirmed(env)});
+const server=createInferenceServer({documents,verify,projectId:env.FIREBASE_PROJECT_ID,quota,infer,origin:env.BURSYAR_ORIGIN,canInfer:()=>isSpendingConfirmed(env),policyContextForRequest:async()=>{throw Error('Trusted age, product audience and jurisdiction resolver not configured');}});
 server.listen(port,'127.0.0.1');
 for(const signal of ['SIGTERM','SIGINT'])process.once(signal,()=>{server.close(()=>{quota.close();documents?.close();process.exit(0);});server.closeIdleConnections();});
