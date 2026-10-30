@@ -1,6 +1,8 @@
 // Records are provisioned by a trusted verification/administration process, never
 // by a browser endpoint. Read on every request so revocation takes effect at once.
-const metaRestricted=new Set(['AF','BY','KH','CN','HK','MO','CU','ER','ET','HT','IR','IQ','LY','MM','NI','KP','PK','RU','SO','SY','VE','EH']);
+// UA is conservatively denied until a trusted subnational geolocation decision
+// can distinguish the restricted Crimea/Donetsk/Luhansk territories.
+const metaRestricted=new Set(['AF','BY','KH','CN','HK','MO','CU','ER','ET','HT','IR','IQ','LY','MM','NI','KP','PK','RU','SO','SY','VE','EH','UA']);
 export function createTrustedPolicyResolver({loadRecord,providers,now=Date.now}) {
  if(typeof loadRecord!=='function'||!providers)throw Error('Trusted policy configuration required');
  return async({uid,subjectId=null})=>{
