@@ -205,8 +205,11 @@ try {
    await page.locator('#local-assessment button[type=submit]').click();
    await expect(page.locator('#local-status')).toContainText({en:'Meets reviewed requirements only',fa:'فقط شرایط بازبینی‌شده',ps:'یوازې بیاکتل شوي'}[language]);
    await expect(page.locator('.local-workflow [role=note]')).toContainText({en:'Next: verify current policy',fa:'گام بعدی:',ps:'بل ګام:'}[language]);
+   await expect(page.locator('#next-steps')).toBeVisible();
+   await expect(page.locator('#next-actions')).toContainText({en:'Next: verify current policy',fa:'گام بعدی:',ps:'بل ګام:'}[language]);
    await page.locator('#local-degree').selectOption('master');
    await expect(page.locator('.local-workflow [role=note]')).toHaveCount(0);
+   await expect(page.locator('#next-actions')).not.toContainText({en:'Next: verify current policy',fa:'گام بعدی:',ps:'بل ګام:'}[language]);
    await page.locator('#local-degree').selectOption('bachelor');
    // Re-fetching a catalog must invalidate the old result, not display it under a different program.
    await page.locator('#local-assessment button').filter({hasText:{en:'Load reviewed scholarships',fa:'بارگذاری بورسیه‌های بازبینی‌شده',ps:'بیاکتل شوي بورسونه راوړئ'}[language]}).click();
