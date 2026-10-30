@@ -14,4 +14,4 @@ test('resolver reloads evidence on every call and supplies no HTTP input to load
  await resolve({uid:'one',country:'CA',headers:{country:'CA'}});assert.deepEqual(args,['one',null]);r={...record,revoked:true};await assert.rejects(resolve({uid:'one'}));
 });
 
-test('Meta country prohibitions cannot be overridden by a configured allowlist',async()=>{for(const country of ['AF','IR','PK','HK','RU']){const resolve=createTrustedPolicyResolver({loadRecord:async()=>({...record,country}),providers:{meta:{...provider,regions:[country]}},now:()=>2000});await assert.rejects(resolve({uid:'one'}));}});
+test('Meta country prohibitions cannot be overridden by a configured allowlist',async()=>{for(const country of ['AF','IR','PK','HK','RU','UA']){const resolve=createTrustedPolicyResolver({loadRecord:async()=>({...record,country}),providers:{meta:{...provider,regions:[country]}},now:()=>2000});await assert.rejects(resolve({uid:'one'}));}});
