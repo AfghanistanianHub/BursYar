@@ -59,3 +59,18 @@ test('normalization attaches a conservative source audit to each requirement', a
  assert.ok(result.sourceAudits[0].issues.includes('invalid_freshness_metadata'));
  assert.equal(result.compilation.sourceStatus,'user_supplied_unverified');
 });
+
+test('normalization carries conflicting same-dimension thresholds into source audits', async()=>{
+ const {normalizeEvidence}=await import('../engine/evidence.js');
+ const lines=[
+  'Applicants must hold a minimum GPA of 3.0 on a 4.0 scale.',
+  'Applicants must hold a minimum GPA of 3.5 on a 4.0 scale.'
+ ];
+ const input={text:lines.join('\\n'),sourceUrl:valid.sourceUrl,language:'en'};
+ const raw=JSON.stringify({criteria:lines.map(excerpt=>({kind:'education',required:true,excerpt,en:'Review required',fa:'تفسیر نیاز به بررسی دارد',ps:'تفسیر بیاکتنې ته اړتیا لري'})),deadline:null,funding:[]});
+ const output=normalizeEvidence(raw,input);
+ assert.equal(output.compilation.contradictions.length,1);
+ assert.ok(output.sourceAudits.every(a=>a.issues.includes('unresolved_contradiction')));
+ assert.ok(output.compilation.rules.every(r=>r.ambiguous===true));
+ assert.ok(output.sourceAudits.every(a=>a.institutionalAcceptance==='unknown'));
+});
