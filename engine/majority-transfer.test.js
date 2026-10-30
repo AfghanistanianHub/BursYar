@@ -82,3 +82,29 @@ test('transferred guardian scope cannot recreate records through direct store me
   assert.equal(f.documents.profile(targetUid).degree.value,'bachelor');
  }finally{f.close();}
 });
+
+test('document-only destination collision cannot silently combine private records',async()=>{
+ const f=fixture();try{
+  f.documents.upload(targetUid,{consent:true,mime:'text/plain',text:'Degree: master'});
+  const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>verified});
+  await assert.rejects(service.transfer({sourceScope,targetUid}),{status:409});
+  assert.equal(f.documents.list(sourceScope).length,1);
+  assert.equal(f.documents.list(targetUid).length,1);
+  assert.equal(f.documents.isTransferred(sourceScope),false);
+ }finally{f.close();}
+});
+test('profile edit history remains with recipient, and cannot be replayed by former guardian',async()=>{
+ const f=fixture();try{
+  f.documents.updateProfile(sourceScope,{consent:true,values:{targetDegree:'master'}});
+  const historyCount=f.documents.db.prepare('SELECT COUNT(*) AS n FROM profile_history WHERE owner=?').get(f.documents.owner(sourceScope)).n;
+  assert.ok(historyCount>0);
+  const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>verified});
+  await service.transfer({sourceScope,targetUid});
+  const oldHistory=f.documents.db.prepare('SELECT COUNT(*) AS n FROM profile_history WHERE owner=?').get(f.documents.owner(sourceScope)).n;
+  const newHistory=f.documents.db.prepare('SELECT COUNT(*) AS n FROM profile_history WHERE owner=?').get(f.documents.owner(targetUid)).n;
+  assert.equal(oldHistory,0);
+  assert.equal(newHistory,historyCount);
+  assert.throws(()=>f.documents.deleteProfile(sourceScope),{status:403});
+  assert.equal(f.documents.profile(targetUid).targetDegree.value,'master');
+ }finally{f.close();}
+});
