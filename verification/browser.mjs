@@ -1,3 +1,5 @@
+import {localProgram} from './fixtures/local-program.mjs';
+import {createScholarshipCatalog} from '../engine/deterministic.js';
 import {createSourceFetcher,SourceFailure} from '../engine/source-fetch.js';
 import {normalizeEvidence} from '../engine/evidence.js';
 import {chromium,expect} from '@playwright/test';
@@ -13,7 +15,7 @@ const baseUrl=`http://127.0.0.1:${vite.httpServer.address().port}`;
 const documentDir=mkdtempSync(join(tmpdir(),'bursyar-browser-docs-'));
 const documents=new DocumentStore(join(documentDir,'docs.db'));
 const sources=createSourceFetcher({resolve:async()=>[{address:'93.184.216.34',family:4}],transport:async url=>{if(url.pathname.endsWith('/blocked'))throw new SourceFailure('challenge');return {body:'<main><h1>SYNTHETIC OFFLINE SOURCE FIXTURE</h1><p>Applicants must provide academic transcripts.</p><p>Tuition fees are covered.</p><a href="/course">Course conditions require confirmation.</a></main>'};}});
-const api=createInferenceServer({sources,projectId:'demo-bursyar',origin:baseUrl,documents,quota:{reserve(){}},infer:async()=>{throw Error('Browser model must remain mocked');},verify:async token=>({uid:token,aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true})});
+const api=createInferenceServer({catalog:createScholarshipCatalog([localProgram]),loadFamilyGrant:async(uid,subjectId)=>({guardianUid:uid,subjectId,authorityVerified:true,consentActive:true,subjectAgeBand:'under_18',expiresAt:Date.now()+60000}),sources,projectId:'demo-bursyar',origin:baseUrl,documents,quota:{reserve(){}},infer:async()=>{throw Error('Browser model must remain mocked');},verify:async token=>({uid:token,aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true})});
 await new Promise(resolve=>api.listen(0,'127.0.0.1',resolve));
 const apiUrl=`http://127.0.0.1:${api.address().port}`;
 let browser;
@@ -29,7 +31,7 @@ try {
   const browserToken=`browser-test-${language}-${width}`;
   await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function getInferenceToken(){return "'+browserToken+'";}'}));
   let importGate=null;
-  await page.route(/\/api\/(documents|profile|source)/,async route=>{const request=route.request();if(new URL(request.url()).pathname.endsWith('/source/import')&&importGate)await importGate;const response=await fetch(apiUrl+new URL(request.url()).pathname,{method:request.method(),headers:{authorization:request.headers().authorization,origin:baseUrl,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});});
+  await page.route(/\/api\/(documents|profile|source|scholarships|evaluate|family)/,async route=>{const request=route.request();if(new URL(request.url()).pathname.endsWith('/source/import')&&importGate)await importGate;const response=await fetch(apiUrl+new URL(request.url()).pathname,{method:request.method(),headers:{authorization:request.headers().authorization,origin:baseUrl,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});});
   let responseEvidence=evidence;let responseStatus=200;let sawRequest=false;let calls=0;
   await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?{...normalizeEvidence(JSON.stringify({criteria:responseEvidence.criteria.map(({kind,required,excerpt,en,fa,ps})=>({kind,required,excerpt,en,fa,ps})),deadline:responseEvidence.deadline,funding:responseEvidence.funding}),{text:body.text,sourceUrl:body.sourceUrl}),sourceProvenance:body.receipt??{kind:'user_pasted_text'}}:{error:'test-error'})});});
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
@@ -172,6 +174,21 @@ try {
   if(width===390)await page.screenshot({path:`verification/artifacts/${language}-supplied-source-390.png`,fullPage:true});
   report.recoveryCases=(report.recoveryCases??0)+1;
   report.sourcePreviewCases=(report.sourcePreviewCases??0)+1;
+  await page.locator('.local-workflow > summary').click();
+  for(const scope of ['', 'student']){
+   await page.locator('#local-scope').fill(scope);
+   await page.locator('#local-assessment button').filter({hasText:{en:'Load reviewed scholarships',fa:'بارگذاری بورسیه‌های بازبینی‌شده',ps:'بیاکتل شوي بورسونه راوړئ'}[language]}).click();
+   await expect(page.locator('#local-program')).toHaveValue('synthetic-local-test');
+   await page.locator('#local-degree').selectOption('bachelor');await page.locator('#local-consent').check();
+   await page.locator('#local-assessment button').filter({hasText:{en:'Save degree in this scope',fa:'ذخیرهٔ مدرک در این پروفایل',ps:'په دې پروفایل کې سند وساتئ'}[language]}).click();
+   await expect(page.locator('#local-status')).toContainText({en:'Degree saved',fa:'مدرک در پروفایل',ps:'سند په ټاکلي'}[language]);
+   await page.locator('#local-assessment button[type=submit]').click();
+   await expect(page.locator('#local-status')).toContainText({en:'Meets reviewed requirements only',fa:'فقط شرایط بازبینی‌شده',ps:'یوازې بیاکتل شوي'}[language]);
+  }
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
+  expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
+  report.localCases=(report.localCases??0)+1;
+  await page.screenshot({path:`verification/artifacts/${language}-local-${width}.png`,fullPage:true});
   await context.close();
  }
  console.log(JSON.stringify({mode:report.mode,cases:report.cases.length,passed:true,liveMetaVerified:false,liveGoogleSignInVerified:false}));

@@ -1,12 +1,13 @@
+import {policyContextForRequest} from './helpers/policy.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {createInferenceServer} from '../engine/http.js';
+import {createInferenceServer} from './helpers/server.js';
 import {createSourceFetcher} from '../engine/source-fetch.js';
 const text='Applicants must provide academic transcripts.';
 test('authenticated source preview never spends; explicit approval and intact receipt required for analysis',async()=>{
  let calls=0,reserved=0,fetched=0;const records=[];
  const sources=createSourceFetcher({resolve:async()=>[{address:'93.184.216.34',family:4}],transport:async()=>{fetched++;return {body:`<main><p>${text}</p></main>`};}});
- const server=createInferenceServer({sources,projectId:'demo-bursyar',origin:'http://localhost:5173',verify:async()=>({uid:'one',aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true}),quota:{reserve(){reserved++;}},infer:async()=>{calls++;return JSON.stringify({criteria:[],deadline:null,funding:[]});},diagnose:r=>records.push(r)});
+ const server=createInferenceServer({policyContextForRequest,sources,projectId:'demo-bursyar',origin:'http://localhost:5173',verify:async()=>({uid:'one',aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true}),quota:{reserve(){reserved++;}},infer:async()=>{calls++;return JSON.stringify({criteria:[],deadline:null,funding:[]});},diagnose:r=>records.push(r)});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}`;
  const post=(path,body,headers={authorization:'Bearer test-only','content-type':'application/json'})=>fetch(base+path,{method:'POST',headers,body:JSON.stringify(body)});
  try{

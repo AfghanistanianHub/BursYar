@@ -30,9 +30,9 @@ test('no resolver denies analysis before provider or quota',async()=>{
  assert.deepEqual(await runGateway(undefined),{status:403,calls:0,reservations:0});
 });
 test('restricted, minor, unknown and Contributor contexts deny before provider',async()=>{
- const baseline={provider:'meta',model:'muse-spark-1.3',subjectAgeBand:'adult_18_plus',audience:'adult_only',locationDecision:'allowed',consentVerified:true,dataClass:'user_content'};
+ const baseline={provider:'meta',model:'muse-spark-1.3',userAgeBand:'adult_18_plus',subjectAgeBand:'adult_18_plus',audience:'adult_only',locationDecision:'allowed',consentVerified:true,dataClass:'user_content'};
  for(const change of [
-  {locationDecision:'restricted'}, {locationDecision:'unknown'}, {subjectAgeBand:'under_18'},
+  {locationDecision:'restricted'}, {locationDecision:'unknown'}, {userAgeBand:'adult_18_plus',subjectAgeBand:'under_18'},
   {audience:'minor_targeted'}, {model:'muse-spark-1.3-contributor'}, {consentVerified:false}
  ])assert.deepEqual(await runGateway(async()=>({...baseline,...change})),{status:403,calls:0,reservations:0});
  assert.deepEqual(await runGateway(async()=>{throw Error('No reliable policy source');}),{status:403,calls:0,reservations:0});

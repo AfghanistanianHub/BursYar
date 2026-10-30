@@ -1,9 +1,10 @@
+import {policyContextForRequest} from './helpers/policy.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {mkdtempSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
-import {createInferenceServer} from '../engine/http.js';
+import {createInferenceServer} from './helpers/server.js';
 import {QuotaStore} from '../engine/quota.js';
 import {MetaFailure,createMetaInference} from '../engine/meta.js';
 const projectId='demo-bursyar';
@@ -13,7 +14,7 @@ const result={criteria:[{kind:'transcripts',required:true,excerpt:'Applicants mu
 async function fixture(run,{infer=async()=>JSON.stringify(result),verify=async()=>({uid:'one',aud:projectId,iss:`https://securetoken.google.com/${projectId}`,bursyarDemo:true}),quotaOverride,diagnose,canInfer}={}){
  const dir=mkdtempSync(join(tmpdir(),'bursyar-http-'));
  const quota=new QuotaStore(join(dir,'quota.db'),{userMinute:2,userDay:3,globalDay:4,lifetimeUnits:200000});
- const server=createInferenceServer({verify,projectId,quota:quotaOverride||quota,infer,origin:'http://localhost:5173',...(diagnose?{diagnose}:{}),...(canInfer?{canInfer}:{})});
+ const server=createInferenceServer({policyContextForRequest,verify,projectId,quota:quotaOverride||quota,infer,origin:'http://localhost:5173',...(diagnose?{diagnose}:{}),...(canInfer?{canInfer}:{})});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const url=`http://127.0.0.1:${server.address().port}/api/analyze`;
  const post=(payload=body,headers={authorization:'Bearer signed-token','content-type':'application/json'})=>fetch(url,{method:'POST',headers,body:typeof payload==='string'?payload:JSON.stringify(payload)});

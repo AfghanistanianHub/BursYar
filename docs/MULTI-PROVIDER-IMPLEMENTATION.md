@@ -27,3 +27,12 @@ Document-first onboarding must require review and approval before claims enter p
 
 ## Cost control
 No API keys, billing modifications or live API calls included. No automatic provider fallback to a billable service.
+
+## Mission 2 implementation (supersedes prototype status above)
+The gateway now binds trusted policy to exact configured adapters; separate Meta, Gemini and local Qwen adapters are disabled without explicit configuration. Private server records have identity, consent, verification and expiry checks. Meta restricted countries cannot be overridden by the region allowlist. Family-enabled deployments disable Meta and Gemini entirely. Credentials remain environment-only; no provider was activated or called live.
+
+Authenticated deterministic catalog, evaluation, profile, document, export and erase APIs support guardian-scoped identities. Academic scores, degree, language, explicit exemptions, documents, submission deadlines and funding conditions retain unknown outcomes for absent/conflicting/unsupported evidence. Default Oxford exclusions are a partial official-source review and cannot produce overall met. Catalog review expires; broader program curation remains required. The en/fa/ps interface exposes local assessment and scoped degree saving; full guardian document actions are API functionality.
+
+Configuration: BURSYAR_PROVIDER_CONFIG, BURSYAR_POLICY_RECORDS, BURSYAR_FAMILY_GRANTS and BURSYAR_REVIEWED_CATALOG reference absolute owner-only JSON files. No browser write API provisions trusted evidence or guardian grants. Provider configuration requires enabled, provider, model, models, regions, audience, termsReviewed, termsValidUntil (epoch milliseconds), privacyReviewed, consentVersion, dataClasses, maxReservationUnits, costReviewed, worstCaseUsdPerUnit, spendLimitUSD and spendingApproved. Existing spending confirmation remains required. Quota lifetime units are capped by the reviewed worst-case price and spend limit. Missing configuration leaves external providers unavailable. Actual verification service, legal/contract decisions and guardian authority verification remain owner provisioning responsibilities.
+
+Local verification: restored baseline 139 passing Node tests; expanded suite 152 passing, 0 failing; 42 offline evaluation assertions; 47 Firebase Emulator checks; production build passes. Local Chromium exits SIGTRAP before tests; browser verification requires CI. All model tests use synthetic transports. No live provider accuracy, fluent translation approval or production verification is claimed.

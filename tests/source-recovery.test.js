@@ -1,8 +1,9 @@
+import {policyContextForRequest} from './helpers/policy.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {createSourceFetcher,extractArticle} from '../engine/source-fetch.js';
-import {createInferenceServer} from '../engine/http.js';
+import {createInferenceServer} from './helpers/server.js';
 const url='https://www.ox.ac.uk/admissions/graduate/fees-and-funding/funding/clarendon/applicants';
 const text='Applicants must provide academic transcripts.';
 const encoded=s=>Buffer.from(s).toString('base64');
@@ -29,7 +30,7 @@ test('public university-page fixture retains whole requirements without inventin
 });
 test('fallback import uses authenticated existing analysis pipeline, user isolation, approval, evidence and prompt boundaries',async()=>{
  let calls=0,reservations=0;const sources=createSourceFetcher();let messages;
- const projectId='demo-bursyar';const server=createInferenceServer({sources,origin:'http://localhost:5173',projectId,verify:async uid=>({uid,aud:projectId,iss:`https://securetoken.google.com/${projectId}`,bursyarDemo:true}),quota:{reserve(){reservations++;}},infer:async m=>{calls++;messages=m;return JSON.stringify({criteria:[{kind:'transcripts',required:true,excerpt:text,en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],deadline:null,funding:[]});},diagnose(){}});
+ const projectId='demo-bursyar';const server=createInferenceServer({policyContextForRequest,sources,origin:'http://localhost:5173',projectId,verify:async uid=>({uid,aud:projectId,iss:`https://securetoken.google.com/${projectId}`,bursyarDemo:true}),quota:{reserve(){reservations++;}},infer:async m=>{calls++;messages=m;return JSON.stringify({criteria:[{kind:'transcripts',required:true,excerpt:text,en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],deadline:null,funding:[]});},diagnose(){}});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));const base=`http://127.0.0.1:${server.address().port}`;
  const post=(path,body,uid='alice',origin='http://localhost:5173')=>fetch(base+path,{method:'POST',headers:{'content-type':'application/json',origin,...(uid?{authorization:`Bearer ${uid}`}:{})},body:JSON.stringify(body)});
  try{

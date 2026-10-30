@@ -1,0 +1,33 @@
+import {getInferenceToken} from './auth.js';
+const copy={
+ en:{title:'Assessment without an AI provider',note:'Use reviewed scholarship criteria and your saved profile. Unknown evidence stays unknown. This is not an award or issuer authentication.',student:'Student scope ID (guardian grant required; leave empty for yourself)',refresh:'Load reviewed scholarships',program:'Reviewed scholarship',degree:'Highest degree',unknown:'Unknown',bachelor:'Bachelor',master:'Master',doctorate:'Doctorate',secondary:'Secondary',consent:'I confirm this degree and consent to private local storage.',save:'Save degree in this scope',evaluate:'Assess saved profile',empty:'No current reviewed scholarships are available.',error:'Unavailable. Sign in and check the reviewed catalog or guardian grant.',saved:'Degree saved in the selected scope.',met:'Meets reviewed requirements only',not_met:'A reviewed requirement is not met',unknownResult:'Missing, conflicting or unsupported evidence'},
+ fa:{title:'ارزیابی بدون ارائه‌دهندهٔ هوش مصنوعی',note:'از شرایط بازبینی‌شدهٔ بورسیه و پروفایل ذخیره‌شده استفاده کنید. شواهد نامعلوم، نامعلوم می‌مانند. این ارزیابی اعطای بورسیه یا تأیید صادرکننده نیست.',student:'شناسهٔ دانش‌آموز (نیازمند مجوز سرپرست؛ برای خودتان خالی بگذارید)',refresh:'بارگذاری بورسیه‌های بازبینی‌شده',program:'بورسیهٔ بازبینی‌شده',degree:'بالاترین مدرک',unknown:'نامعلوم',bachelor:'لیسانس',master:'ماستری',doctorate:'دوکتورا',secondary:'مکتب',consent:'این مدرک را تأیید می‌کنم و با ذخیرهٔ خصوصی محلی موافقم.',save:'ذخیرهٔ مدرک در این پروفایل',evaluate:'ارزیابی پروفایل ذخیره‌شده',empty:'بورسیهٔ بازبینی‌شدهٔ معتبر در دسترس نیست.',error:'در دسترس نیست. ورود، فهرست بازبینی‌شده یا مجوز سرپرست را بررسی کنید.',saved:'مدرک در پروفایل انتخاب‌شده ذخیره شد.',met:'فقط شرایط بازبینی‌شده برآورده شده‌اند',not_met:'یک شرط بازبینی‌شده برآورده نشده است',unknownResult:'شواهد مفقود، متناقض یا پشتیبانی‌نشده'},
+ ps:{title:'له هوښیار ماډل پرته ارزونه',note:'د بورس بیاکتل شوي شرایط او ساتل شوی پروفایل وکاروئ. نامعلوم شواهد نامعلوم پاتې کېږي. دا د بورس ورکول یا د صادرونکي تایید نه دی.',student:'د زده کوونکي پېژند (د سرپرست اجازه غواړي؛ د ځان لپاره تش پرېږدئ)',refresh:'بیاکتل شوي بورسونه راوړئ',program:'بیاکتل شوی بورس',degree:'لوړ تحصیلي سند',unknown:'نامعلوم',bachelor:'لېسانس',master:'ماسټري',doctorate:'دوکتورا',secondary:'ثانوي',consent:'دا سند منم او شخصي محلي ساتنې ته اجازه ورکوم.',save:'په دې پروفایل کې سند وساتئ',evaluate:'ساتل شوی پروفایل وارزوئ',empty:'اوس مهال د بیاکتنې معتبر بورس نشته.',error:'نه شته. ننوتل، بیاکتل شوی لړ یا د سرپرست اجازه وګورئ.',saved:'سند په ټاکلي پروفایل کې وساتل شو.',met:'یوازې بیاکتل شوي شرایط پوره دي',not_met:'یو بیاکتل شوی شرط نه دی پوره',unknownResult:'ورک، متضاد یا نه ملاتړ شوي شواهد'}
+};
+const handlers=new WeakMap();
+export function mountLocalWorkflow(root,language='en'){
+ handlers.get(root)?.();const t=copy[language]??copy.en;root.replaceChildren();
+ const add=(tag,text,parent=root)=>{const e=document.createElement(tag);if(text)e.textContent=text;parent.append(e);return e;};
+ const panel=add('details');panel.className='local-workflow section';add('summary',t.title,panel);add('p',t.note,panel);
+ const form=add('form',null,panel);form.id='local-assessment';
+ const label=(text,tag,id)=>{const l=add('label',text,form);l.htmlFor=id;const input=add(tag,null,form);input.id=id;return input;};
+ const scope=label(t.student,'input','local-scope');scope.maxLength=80;scope.pattern='[a-zA-Z0-9_-]{1,80}';scope.autocomplete='off';
+ const degree=label(t.degree,'select','local-degree');for(const value of ['', 'secondary','bachelor','master','doctorate']){const o=add('option',t[value||'unknown'],degree);o.value=value;}
+ const consent=label(t.consent,'input','local-consent');consent.type='checkbox';
+ const save=add('button',t.save,form);save.type='button';
+ const refresh=add('button',t.refresh,form);refresh.type='button';
+ const select=label(t.program,'select','local-program');select.required=true;
+ const submit=add('button',t.evaluate,form);submit.type='submit';submit.disabled=true;
+ const status=add('p',null,panel);status.id='local-status';status.setAttribute('role','status');
+ const output=add('div',null,panel);let epoch=0;
+ const clear=()=>{epoch++;for(const e of form.elements)e.disabled=false;scope.value='';degree.value='';consent.checked=false;select.replaceChildren();submit.disabled=true;status.textContent='';output.replaceChildren();};
+ const identity=()=>clear();document.addEventListener('bursyar:identity',identity);
+ // Re-rendered panels discard their handler before another identity event.
+ const cleanup=()=>document.removeEventListener('bursyar:identity',identity);handlers.set(root,cleanup);
+ scope.addEventListener('input',()=>{epoch++;select.replaceChildren();submit.disabled=true;output.replaceChildren();status.textContent='';consent.checked=false;});
+ async function api(path,method='GET',body){const started=epoch;const scopeId=scope.value;const token=await getInferenceToken();if(started!==epoch)throw Error();const response=await fetch('/api'+(scopeId?'/family/'+encodeURIComponent(scopeId):'')+path,{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});if(!response.ok||started!==epoch)throw Error();const data=await response.json();if(started!==epoch)throw Error();return data;}
+ async function busy(action){const started=epoch;for(const e of form.elements)e.disabled=true;try{await action();}catch{if(started===epoch)status.textContent=t.error;}finally{if(started===epoch){for(const e of form.elements)e.disabled=false;submit.disabled=!select.value;}}}
+ save.addEventListener('click',()=>{if(!consent.checked||!scope.reportValidity())return;busy(async()=>{await api('/profile','PUT',{consent:true,values:{degree:degree.value||null}});status.textContent=t.saved;});});
+ refresh.addEventListener('click',()=>{if(!scope.reportValidity())return;busy(async()=>{const data=await api('/scholarships');select.replaceChildren();for(const p of data.scholarships){const o=add('option',p.id,select);o.value=p.id;}status.textContent=data.scholarships.length?'':t.empty;});});
+ form.addEventListener('submit',event=>{event.preventDefault();busy(async()=>{const result=await api('/evaluate','POST',{scholarshipId:select.value});output.replaceChildren();status.textContent=t[result.summary==='unknown'?'unknownResult':result.summary];for(const r of result.results){const p=add('p',`${r.requirementId}: ${t[r.status==='unknown'?'unknownResult':r.status]}`,output);p.dir='auto';const quote=add('blockquote',r.source.excerpt,output);quote.dir='auto';}});});
+}

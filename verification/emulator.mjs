@@ -1,3 +1,4 @@
+import {policyContextForRequest} from '../tests/helpers/policy.js';
 // Isolated emulator integration only. No live Meta call; no production project.
 import assert from 'node:assert/strict';
 import {readFileSync,mkdtempSync,rmSync} from 'node:fs';
@@ -7,7 +8,7 @@ import {initializeTestEnvironment,assertSucceeds,assertFails} from '@firebase/ru
 import {doc,setDoc,getDoc,getDocs,collection,query,where,updateDoc,deleteDoc} from 'firebase/firestore';
 import {initializeApp,deleteApp} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
-import {createInferenceServer} from '../engine/http.js';
+import {createInferenceServer} from '../tests/helpers/server.js';
 import {QuotaStore} from '../engine/quota.js';
 import {DocumentStore} from '../engine/documents.js';
 const projectId='demo-bursyar';
@@ -38,7 +39,7 @@ try {
  const source='Applicants must provide academic transcripts. Tuition fees are covered.';
  const inference={criteria:[{kind:'transcripts',required:true,excerpt:'Applicants must provide academic transcripts.',en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],deadline:null,funding:['Tuition fees are covered.']};
  documents=new DocumentStore(join(dir,'documents.db'));
- server=createInferenceServer({documents,projectId,origin:'http://localhost:5173',verify:token=>auth.verifyIdToken(token,true),quota,infer:async()=>{calls++;return JSON.stringify(inference);},maxConcurrent:10});
+ server=createInferenceServer({policyContextForRequest,documents,projectId,origin:'http://localhost:5173',verify:token=>auth.verifyIdToken(token,true),quota,infer:async()=>{calls++;return JSON.stringify(inference);},maxConcurrent:10});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const post=(token,extra={})=>fetch(`http://127.0.0.1:${server.address().port}/api/analyze`,{method:'POST',headers:{'content-type':'application/json',...(token?{authorization:`Bearer ${token}`}:{})},body:JSON.stringify({text:source,sourceUrl:'https://example.edu/scholarship',language:'ps',...extra})});
  assert.equal((await post()).status,401);assert.equal((await post(unapproved.idToken)).status,401);checks+=2;
