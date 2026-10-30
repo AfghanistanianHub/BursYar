@@ -32,3 +32,11 @@ test('wrong assessment source digest and stale same-key alternative deny endorse
  assert.equal(createReviewedAlternativeResolver({entries:[valid],today:()=> '2026-10-30'})({...request,source:{url:sourceUrl,provenance:{sourceDigest:'f'.repeat(64)}}}),null);
  assert.equal(resolve([valid,{...valid,revoked:true,alternativeId:'waiver-2'}]),null);
 });
+
+test('catalog never treats literal IPs or internal test domains as institutional references',()=>{
+ for(const url of ['https://127.0.0.1/policy','https://[::1]/policy','https://university.internal/policy','https://university.local/policy','https://university.example/policy','https://university.ac.uk/policy?reviewed=true']){
+  const entry={...valid,sourceUrl:url};
+  const requestForUrl={...request,source:{url,provenance:{sourceDigest:valid.sourceDigest}}};
+  assert.equal(createReviewedAlternativeResolver({entries:[entry],today:()=> '2026-10-30'})(requestForUrl),null,url);
+ }
+});
