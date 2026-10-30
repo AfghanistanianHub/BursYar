@@ -22,3 +22,5 @@ Reboot continuation: **09-mac-reboot-recovery.md** and **../MAC-REBOOT-STARTUP.m
 Spending continuation: **10-spending-attestation.md**. Owner confirms a USD 5 Meta cap; setup now preserves saved state and supports a targeted, verified attestation-only update without API-key re-entry. Redacted diagnose mode exposes no credential or model values. Agent-side live Keychain access remains blocked by OSStatus -67674; no paid inference was invoked.
 
 Latest mission: **11-autonomous-mission.md** and **../HACKATHON-DEMO.md** supersede earlier current-status claims. PR #8 now targets main; #9 remains stacked. Main history has been reconciled without restoring the old shared-token service. See the mission checkpoint for actual test counts and unresolved live gates.
+
+Muse mission: **12-muse-mission.md** on branch `feat/muse-evidence-trilingual-pathfinder` (from `4fcc73e`). Offline-only: challenging evidence fixtures, GPA/TOEFL compiler grammars, UNREVIEWED controlled glossary, PathFinder assessment wiring, evaluation fixtures. No live inference, no credential/billing/deployment changes, no PR #25/#26 changes.
