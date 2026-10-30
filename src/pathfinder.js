@@ -1,4 +1,5 @@
 // No answers are sent to the API or persisted. Availability never proves eligibility.
+import {glossary} from './glossary.js';
 export function findBarriers(criteria, answers = {}) {
   return criteria.map(c=>{
     const missing = c.required === true && ['transcripts','language_test','travel_document'].includes(c.kind) && answers[c.kind] === 'unavailable';
@@ -6,24 +7,39 @@ export function findBarriers(criteria, answers = {}) {
   });
 }
 const labels={
- en:{mismatch:'Potential mismatch',unknown:'Cannot determine',ask:'Ask the institution whether this requirement applies and which alternatives it explicitly accepts.',verify:'Verify the exact requirement with the institution. Availability alone does not establish eligibility.'},
- fa:{mismatch:'ناسازگاری احتمالی',unknown:'قابل تعیین نیست',ask:'از مؤسسه بپرسید آیا این شرط شامل شما می‌شود و کدام اسناد جایگزین را صریحاً می‌پذیرد.',verify:'شرط دقیق را از مؤسسه تأیید کنید. موجود بودن سند به‌تنهایی واجد شرایط بودن را ثابت نمی‌کند.'},
- ps:{mismatch:'احتمالي نه سمون',unknown:'نه شي ټاکل کېدای',ask:'له ادارې وپوښتئ چې دا شرط پر تاسو پلي کېږي او کوم بدیل اسناد په څرګند ډول مني.',verify:'دقیق شرط له ادارې تایید کړئ. یوازې د سند شتون د شرایطو پوره کول نه ثابتوي.'}
+ en:{mismatch:glossary.potentialMismatch.en,unknown:glossary.cannotDetermine.en,ask:'Ask the institution whether this requirement applies and which alternatives it explicitly accepts.',verify:'Verify the exact requirement with the institution. Availability alone does not establish eligibility.'},
+ fa:{mismatch:glossary.potentialMismatch.fa,unknown:glossary.cannotDetermine.fa,ask:'از مؤسسه بپرسید آیا این شرط شامل شما می‌شود و کدام اسناد جایگزین را صریحاً می‌پذیرد.',verify:'شرط دقیق را از مؤسسه تأیید کنید. موجود بودن سند به‌تنهایی واجد شرایط بودن را ثابت نمی‌کند.'},
+ ps:{mismatch:glossary.potentialMismatch.ps,unknown:glossary.cannotDetermine.ps,ask:'له ادارې وپوښتئ چې دا شرط پر تاسو پلي کېږي او کوم بدیل اسناد په څرګند ډول مني.',verify:'دقیق شرط له ادارې تایید کړئ. یوازې د سند شتون د شرایطو پوره کول نه ثابتوي.'}
 };
-export function barrierText(result,language='en'){const t=labels[language]||labels.en;const mismatch=result.status==='potential mismatch';return {status:mismatch?t.mismatch:t.unknown,action:mismatch?t.ask:t.verify};}
-
-// Assess deterministic engine results without trusting caller-supplied alternatives.
-// A URL+text pair is not provenance. Until a server-verified, curated alternative
-// registry exists, never label a suggested alternative as officially documented.
-export function assessBarriers(results,{alternatives={}}={}) {
+export const assessmentActionText={
+ en:{keep_evidence:'Keep the documented evidence; the institution still makes the admission decision.',ask_alternative:'Ask the institution whether an explicitly documented alternative applies to this requirement.',use_documented_alternative:'Use only the documented alternative cited with this requirement.',verify_requirement:'Verify the exact requirement with the institution. Availability alone does not establish eligibility.'},
+ fa:{keep_evidence:'مدرک مستند را نگه دارید؛ تصمیم نهایی با مؤسسه است.',ask_alternative:'از مؤسسه بپرسید آیا جایگزین صریحاً مستند برای این شرط وجود دارد.',use_documented_alternative:'فقط از جایگزین مستند ذکرشده برای این شرط استفاده کنید.',verify_requirement:'شرط دقیق را از مؤسسه تأیید کنید. موجود بودن سند به‌تنهایی واجد شرایط بودن را ثابت نمی‌کند.'},
+ ps:{keep_evidence:'مستند ثبوت وساتئ؛ وروستۍ پرېکړه د ادارې ده.',ask_alternative:'له ادارې وپوښتئ چې ایا د دې شرط لپاره په څرګند ډول مستند بدیل شته.',use_documented_alternative:'یوازې له هغه مستند بدیل څخه کار واخلئ چې له دې شرط سره یاد شوی.',verify_requirement:'دقیق شرط له ادارې تایید کړئ. یوازې د سند شتون د شرایطو پوره کول نه ثابتوي.'}
+};
+// Maps deterministic assessment results to barrier guidance. Statuses never
+// promise admission; alternatives are cited only when explicitly curated.
+export function assessBarriers(results,{alternatives={}}={}){
  if(!Array.isArray(results))throw new TypeError('Invalid assessment results');
- // Deliberately do not read alternatives: untrusted suggestions must not be
- // upgraded into endorsements even if their sourceUrl uses an official domain.
- void alternatives;
  return results.map(r=>{
-  const id=typeof r?.requirementId==='string'?r.requirementId:'invalid';
-  const status=r?.status==='met'?'appears to meet':r?.status==='not_met'?'potential mismatch':'cannot determine';
-  const actionCode=r?.status==='met'?'keep_evidence':r?.status==='not_met'?'ask_alternative':'verify_requirement';
-  return {requirementId:id,status,actionCode,evidence:{excerpt:r?.source?.excerpt??null,url:r?.source?.url??null},documentedAlternative:null};
+  const id=r?.requirementId??'invalid';
+  const excerpt=r?.source?.excerpt??null,url=r?.source?.url??null;
+  if(r?.status==='met')return {requirementId:id,status:'appears to meet',actionCode:'keep_evidence',detail:null,evidence:{excerpt,url}};
+  if(r?.status==='not_met'){
+   // Caller-supplied alternatives are untrusted. Text + URL are not proof
+   // that an official institution accepts an alternative. Until a separate,
+   // server-owned curator/official-source verification pipeline supplies an
+   // authenticated provenance decision, fail closed rather than recommend it.
+   // Deliberately ignore alternatives[id], including forged verification flags.
+   return {requirementId:id,status:'potential mismatch',actionCode:'ask_alternative',detail:excerpt,evidence:{excerpt,url}};
+  }
+  return {requirementId:id,status:'cannot determine',actionCode:'verify_requirement',detail:excerpt,evidence:{excerpt,url}};
  });
+}
+export function barrierText(result,language='en'){
+ const t=labels[language]||labels.en,a=assessmentActionText[language]||assessmentActionText.en;
+ if(result?.actionCode&&a[result.actionCode]){
+  const status=result.status==='appears to meet'?(glossary.appearsToMeet[language]||glossary.appearsToMeet.en):result.status==='potential mismatch'?t.mismatch:t.unknown;
+  return {status,action:a[result.actionCode]};
+ }
+ const mismatch=result.status==='potential mismatch';return {status:mismatch?t.mismatch:t.unknown,action:mismatch?t.ask:t.verify};
 }
