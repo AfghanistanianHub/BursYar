@@ -46,6 +46,8 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
     // Family routes have no generative endpoint, even for an adult guardian.
     if(!documentRoute&&!localRoute)return send(res,403,{error:'Family request unavailable'});
     try{storageOwner=(await resolveFamilyScope({uid,subjectId:family[1],loadGrant:loadFamilyGrant})).storageOwner;}catch{return send(res,403,{error:'Family request unavailable'});}
+    // A majority handoff durably revokes the old guardian-scoped data route.
+    if(documents?.isTransferred(storageOwner))return send(res,403,{error:'Family request unavailable'});
    }
    if(localRoute){
     try{
