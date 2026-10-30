@@ -71,3 +71,14 @@ test('interrupted receipt persistence rolls back every ownership change',async()
   assert.equal(f.documents.list(targetUid).length,1);
  }finally{f.close();}
 });
+
+test('transferred guardian scope cannot recreate records through direct store methods',async()=>{
+ const f=fixture();try{
+  const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>verified});
+  await service.transfer({sourceScope,targetUid});
+  assert.throws(()=>f.documents.updateProfile(sourceScope,{consent:true,values:{degree:'master'}}),{status:403});
+  assert.throws(()=>f.documents.upload(sourceScope,{consent:true,mime:'text/plain',text:'Degree: master'}),{status:403});
+  assert.throws(()=>f.documents.eraseOwner(sourceScope),{status:403});
+  assert.equal(f.documents.profile(targetUid).degree.value,'bachelor');
+ }finally{f.close();}
+});
