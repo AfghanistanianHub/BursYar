@@ -1,4 +1,5 @@
 import {createHash} from 'node:crypto';
+import ipaddr from 'ipaddr.js';
 
 // This factory must be initialized exclusively from an operator-controlled,
 // separately authenticated, non-user-writable reviewed catalog. Calling the
@@ -6,7 +7,7 @@ import {createHash} from 'node:crypto';
 const digest=s=>createHash('sha256').update(s).digest('hex');
 const id=/^[A-Za-z0-9_-]{1,80}$/;
 const day=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s))&&new Date(s).toISOString().slice(0,10)===s;
-const officialUrl=s=>{try{const u=new URL(s);return u.protocol==='https:'&&!u.username&&!u.password&&!u.hash&&u.hostname.includes('.')&&!u.hostname.endsWith('.example')&&!u.hostname.endsWith('.test')&&!u.hostname.endsWith('.localhost')&&u.port==='';}catch{return false;}};
+const officialUrl=s=>{try{const u=new URL(s);const host=u.hostname.toLowerCase();let isIp=false;try{isIp=ipaddr.isValid(host.replace(/^\\[|\\]$/g,''));}catch{/* hostname validation below */}return u.protocol==='https:'&&!u.username&&!u.password&&!u.hash&&!u.search&&u.port===''&&host.includes('.')&&!host.endsWith('.')&&!host.includes('%')&&!isIp&&!host.endsWith('.example')&&!host.endsWith('.test')&&!host.endsWith('.localhost')&&!host.endsWith('.local')&&!host.endsWith('.internal');}catch{return false;}};
 function check(entry,requirement,now){
  if(!entry||entry.revoked!==false||entry.reviewStatus!=='human_approved'||entry.sourceStatus!=='official_verified'||entry.acceptanceDecision!=='explicitly_accepted')return false;
  if(!id.test(entry.scholarshipId??'')||!id.test(entry.requirementId??'')||entry.requirementId!==requirement.requirementId||entry.scholarshipId!==requirement.scholarshipId)return false;
