@@ -12,7 +12,7 @@ test('only exact scoped human approved official snapshot can yield a documented 
  assert.equal(result.sourceUrl,sourceUrl);
 });
 test('reject absent, forged, unreviewed, wrong programme, expired or revoked alternatives',()=>{
- for(const delta of [{reviewStatus:'unreviewed'},{sourceStatus:'user_supplied_unverified'},{acceptanceDecision:'unknown'},{sourceDigest:'0'.repeat(64)},{policyScope:'bachelor-2026'},{scholarshipId:'scholar-2'},{sourceUrl:'https://other.ac.uk/admissions/policy'},{revoked:true},{alternativeExcerpt:'Not present in source'},{reviewerId:''},{expiresOn:'2026-10-20'},{reviewedOn:'2026-11-10'}])
+ for(const delta of [{reviewStatus:'unreviewed'},{sourceStatus:'user_supplied_unverified'},{acceptanceDecision:'unknown'},{sourceDigest:'0'.repeat(64)},{policyScope:'bachelor-2026'},{scholarshipId:'scholar-2'},{sourceUrl:'https://other.ac.uk/admissions/policy'},{revoked:true},{revoked:undefined},{alternativeExcerpt:'Not present in source'},{reviewerId:''},{expiresOn:'2026-10-20'},{reviewedOn:'2026-11-10'}])
  assert.equal(resolve([{...valid,...delta}]),null,JSON.stringify(delta));
  assert.equal(resolve([]),null);
 });
