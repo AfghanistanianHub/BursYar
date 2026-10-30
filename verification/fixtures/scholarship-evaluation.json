@@ -44,6 +44,27 @@
       "text": "Cambridge Gates Scholarships are awarded to applicants from countries outside the UK to pursue a full-time postgraduate degree.",
       "expected": "unknown",
       "reason": "Nationality and intended full-time study are unsupported; a held degree does not establish these conditions."
+    },
+    {
+      "id": "synthetic-conditional-degree",
+      "sourceUrl": "https://university.example/admissions",
+      "text": "Applicants must hold a bachelor degree unless they qualify for advanced standing.",
+      "expected": "unknown",
+      "reason": "Conditional clauses never compile into unconditional rules; the exception scope is unmodeled."
+    },
+    {
+      "id": "synthetic-vague-gpa",
+      "sourceUrl": "https://university.example/admissions",
+      "text": "Applicants must have a strong academic record with good grades in relevant subjects.",
+      "expected": "unknown",
+      "reason": "Vague standing without an explicit GPA threshold and scale cannot become a numeric rule."
+    },
+    {
+      "id": "synthetic-work-exemption",
+      "sourceUrl": "https://university.example/admissions",
+      "text": "Applicants with five years of work experience are exempt from the degree requirement.",
+      "expected": "unknown",
+      "reason": "Exemptions and equivalent-experience clauses are unsupported; never infer eligibility from them."
     }
   ]
 }
