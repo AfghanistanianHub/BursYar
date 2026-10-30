@@ -8,7 +8,7 @@ const id=/^[A-Za-z0-9_-]{1,80}$/;
 const day=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&!Number.isNaN(Date.parse(s))&&new Date(s).toISOString().slice(0,10)===s;
 const officialUrl=s=>{try{const u=new URL(s);return u.protocol==='https:'&&!u.username&&!u.password&&!u.hash&&u.hostname.includes('.')&&!u.hostname.endsWith('.example')&&!u.hostname.endsWith('.test')&&!u.hostname.endsWith('.localhost')&&u.port==='';}catch{return false;}};
 function check(entry,requirement,now){
- if(!entry||entry.revoked===true||entry.reviewStatus!=='human_approved'||entry.sourceStatus!=='official_verified'||entry.acceptanceDecision!=='explicitly_accepted')return false;
+ if(!entry||entry.revoked!==false||entry.reviewStatus!=='human_approved'||entry.sourceStatus!=='official_verified'||entry.acceptanceDecision!=='explicitly_accepted')return false;
  if(!id.test(entry.scholarshipId??'')||!id.test(entry.requirementId??'')||entry.requirementId!==requirement.requirementId||entry.scholarshipId!==requirement.scholarshipId)return false;
  if(!officialUrl(entry.sourceUrl)||entry.sourceUrl!==requirement.source?.url)return false;
  if(typeof entry.sourceText!=='string'||typeof entry.alternativeExcerpt!=='string'||!entry.sourceText.split(/\r?\n/).some(l=>l.trim()===entry.alternativeExcerpt))return false;
@@ -22,6 +22,7 @@ export function createReviewedAlternativeResolver({entries=[],today=()=>new Date
  if(!Array.isArray(entries)||entries.length>1000)throw new TypeError('Invalid trusted catalog');
  // Freeze independent snapshot so later mutation cannot change approval.
  const snapshot=structuredClone(entries);
+ // A record missing required explicit revocation status is not approved.
  return requirement=>{
   const valid=snapshot.filter(entry=>check(entry,requirement,today()));
   if(valid.length!==1)return null; // no conflict/ambiguous duplicates
