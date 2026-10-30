@@ -2,6 +2,7 @@ import {resolveFamilyScope} from './family.js';
 import {evaluateReviewedScholarship} from './deterministic.js';
 import {authorizeAnalysisContext} from './provider-policy.js';
 import {createSourceFetcher,SourceFailure} from './source-fetch.js';
+import {auditScholarshipEvidence} from './source-provenance.js';
 import {metaReservationUnits} from './meta-request.js';
 import {MAX_META_TIMEOUT_MS,safeProviderDiagnostics} from './provider-config.js';
 import {DocumentError} from './documents.js';
@@ -111,6 +112,21 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
     const raw=await adapter.infer(messages,{signal:pending.signal,requestId});
     stage='evidence';
     const output=normalizeEvidence(raw,input);
+    // A source receipt is verified by sources.verify(uid, digest, URL) above.
+    // Only a verified server-fetched receipt can attest collection time;
+    // it still cannot establish issuer authenticity or institutional policy.
+    if (retrieval?.kind==='server_fetched') {
+      const collected=typeof retrieval.retrievedAt==='string'?retrieval.retrievedAt.slice(0,10):null;
+      const checked=new Date().toISOString().slice(0,10);
+      output.sourceAudits=output.criteria.map(criterion=>({
+        criterionId:criterion.id,
+        ...auditScholarshipEvidence({
+          sourceUrl:input.sourceUrl,sourceText:input.text,excerpt:criterion.excerpt,
+          expectedDigest:output.sourceDigest,capturedOn:collected,checkedOn:checked,
+          contradictions:output.compilation.contradictions.filter(x=>x.requirementIds?.includes(criterion.id))
+        })
+      }));
+    }
     output.sourceProvenance=retrieval??{kind:'user_pasted_text',sourceUrl:input.sourceUrl,retrievedAt:null,suppliedAt:new Date().toISOString(),digest:output.sourceDigest,trust:'user_supplied_unverified'};
     if(retrieval?.kind==='server_fetched')output.retrieval=retrieval;
     try{diagnose({event:'analysis_validated',requestId,stage:'evidence',elapsedMs:Math.round(performance.now()-started),criteriaCount:output.criteria.length,fundingCount:output.funding.length,requiresHumanReview:true,coverageComplete:false});}catch{/* Logging does not alter validation. */}
