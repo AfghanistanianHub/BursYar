@@ -45,3 +45,17 @@ test('caller-supplied claims of verification cannot elevate an audit',()=>{
  assert.equal(a.institutionalAcceptance,'unknown');
  assert.equal(a.requiresHumanReview,true);
 });
+
+test('normalization attaches a conservative source audit to each requirement', async()=>{
+ const {normalizeEvidence}=await import('../engine/evidence.js');
+ const input={text,sourceUrl:valid.sourceUrl,language:'en'};
+ const raw=JSON.stringify({criteria:[{kind:'education',required:true,excerpt,en:'Review needed',fa:'تفسیر نیاز به بررسی دارد',ps:'تفسیر بیاکتنې ته اړتیا لري'}],deadline:null,funding:[]});
+ const result=normalizeEvidence(raw,input);
+ assert.equal(result.sourceAudits.length,1);
+ assert.equal(result.sourceAudits[0].criterionId,'criterion-1');
+ assert.equal(result.sourceAudits[0].excerptMatched,true);
+ assert.equal(result.sourceAudits[0].sourceAuthenticity,'unverified');
+ assert.equal(result.sourceAudits[0].institutionalAcceptance,'unknown');
+ assert.ok(result.sourceAudits[0].issues.includes('invalid_freshness_metadata'));
+ assert.equal(result.compilation.sourceStatus,'user_supplied_unverified');
+});
