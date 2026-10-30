@@ -197,6 +197,8 @@ try {
    await page.locator('#local-scope').fill(scope);
    await page.locator('#local-assessment button').filter({hasText:{en:'Load reviewed scholarships',fa:'بارگذاری بورسیه‌های بازبینی‌شده',ps:'بیاکتل شوي بورسونه راوړئ'}[language]}).click();
    await expect(page.locator('#local-program')).toHaveValue('synthetic-local-test');
+   await expect(page.locator('#local-source-info a')).toHaveAttribute('href',/^https:\/\//);
+   await expect(page.locator('#local-source-info')).toContainText({en:'Source was reviewed',fa:'بازبینی شده',ps:'بیاکتل شوې'}[language]);
    await page.locator('#local-degree').selectOption('bachelor');await page.locator('#local-consent').check();
    await page.locator('#local-assessment button').filter({hasText:{en:'Save degree in this scope',fa:'ذخیرهٔ مدرک در این پروفایل',ps:'په دې پروفایل کې سند وساتئ'}[language]}).click();
    await expect(page.locator('#local-status')).toContainText({en:'Degree saved',fa:'مدرک در پروفایل',ps:'سند په ټاکلي'}[language]);
