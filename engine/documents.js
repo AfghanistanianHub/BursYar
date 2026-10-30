@@ -15,8 +15,9 @@ export class DocumentStore {
   const fd=openSync(path,constants.O_CREAT|constants.O_RDWR|constants.O_NOFOLLOW,0o600);closeSync(fd);
   const file=lstatSync(path);if(file.uid!==process.getuid()||!file.isFile()||(file.mode&0o077))throw Error('Private document file required');
   this.db=new DatabaseSync(path);
-  this.db.exec(`PRAGMA busy_timeout=5000; PRAGMA secure_delete=ON; CREATE TABLE IF NOT EXISTS documents(id TEXT PRIMARY KEY, owner TEXT NOT NULL, data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS profiles(owner TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS profile_history(owner TEXT NOT NULL,data TEXT NOT NULL);`);
+  this.db.exec(`PRAGMA busy_timeout=5000; PRAGMA secure_delete=ON; CREATE TABLE IF NOT EXISTS documents(id TEXT PRIMARY KEY, owner TEXT NOT NULL, data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS profiles(owner TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS profile_history(owner TEXT NOT NULL,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS majority_transfers(source_owner TEXT PRIMARY KEY,target_owner TEXT NOT NULL, transferred_at TEXT NOT NULL);`);
  }
+ isTransferred(uid){return !!this.db.prepare('SELECT 1 FROM majority_transfers WHERE source_owner=?').get(this.owner(uid));}
  owner(uid){if(typeof uid!=='string'||!uid||uid.length>128)throw new DocumentError(400);return createHash('sha256').update(uid).digest('hex');}
  upload(uid,input){
   const owner=this.owner(uid);
