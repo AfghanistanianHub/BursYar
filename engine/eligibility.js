@@ -30,12 +30,6 @@ function boundedToeflOverall(v) {
 function boundedToeflSection(v) {
   return Number.isInteger(v) && v>=0 && v<=30;
 }
-function boundedToeflOverall(v) {
-  return Number.isInteger(v) && v>=0 && v<=120;
-}
-function boundedToeflSection(v) {
-  return Number.isInteger(v) && v>=0 && v<=30;
-}
 function evaluateRequirement(requirement,profile) {
   const id=requirement?.id ?? 'invalid';
   if (!validRequirement(requirement) || requirement.ambiguous!==false || typeof requirement.sourceExcerpt!=='string' || !requirement.sourceExcerpt.trim() || typeof requirement.sourceUrl!=='string' || !sourceUrlValid(requirement.sourceUrl))
