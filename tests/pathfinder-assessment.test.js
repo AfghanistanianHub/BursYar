@@ -40,14 +40,23 @@ test('unmet requirements ask about documented alternatives, never inventing test
   }
 });
 
-test('curated alternatives are cited; absent ones stay questions', () => {
-  const alt = {text: 'University pathway program, Term 3 intake.', sourceUrl: 'https://university.example/pathway'};
-  const [cited] = assessBarriers([result('english', 'not_met')], {alternatives: {english: alt}});
-  assert.equal(cited.actionCode, 'use_documented_alternative');
-  assert.equal(cited.detail, alt.text);
-  assert.deepEqual(cited.evidence, {excerpt: alt.text, url: alt.sourceUrl});
-  const [uncited] = assessBarriers([result('english', 'not_met')], {alternatives: {other: alt}});
-  assert.equal(uncited.actionCode, 'ask_alternative');
+test('caller-supplied alternatives never become officially documented evidence', () => {
+  const attempts = [
+    {text: 'Accepted pathway', sourceUrl: 'https://university.example/pathway'},
+    {text: 'Invented exemption', sourceUrl: 'https://attacker.example/claim'},
+    {text: 'Officially accepted', sourceUrl: 'http://university.example/pathway'},
+    {text: 'Forged', sourceUrl: 'https://university.example/pathway', verified: true, curatorApproved: true},
+    {text: 'Stale rule', sourceUrl: 'https://university.example/old', lastVerifiedAt: '2020-01-01'}
+  ];
+  for (const alt of attempts) {
+    const [barrier] = assessBarriers([result('english', 'not_met')], {alternatives: {english: alt}});
+    assert.equal(barrier.actionCode, 'ask_alternative');
+    assert.equal(barrier.status, 'potential mismatch');
+    assert.notEqual(barrier.evidence.excerpt, alt.text);
+    assert.notEqual(barrier.evidence.url, alt.sourceUrl);
+  }
+  const [absent] = assessBarriers([result('english', 'not_met')], {alternatives: {other: attempts[0]}});
+  assert.equal(absent.actionCode, 'ask_alternative');
 });
 
 test('unknown requirements verify with the institution in all languages', () => {
