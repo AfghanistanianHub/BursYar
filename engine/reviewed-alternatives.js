@@ -12,7 +12,7 @@ function check(entry,requirement,now){
  if(!id.test(entry.scholarshipId??'')||!id.test(entry.requirementId??'')||entry.requirementId!==requirement.requirementId||entry.scholarshipId!==requirement.scholarshipId)return false;
  if(!officialUrl(entry.sourceUrl)||entry.sourceUrl!==requirement.source?.url)return false;
  if(typeof entry.sourceText!=='string'||typeof entry.alternativeExcerpt!=='string'||!entry.sourceText.split(/\r?\n/).some(l=>l.trim()===entry.alternativeExcerpt))return false;
- if(!/^[a-f0-9]{64}$/.test(entry.sourceDigest??'')||entry.sourceDigest!==digest(entry.sourceText))return false;
+ if(!/^[a-f0-9]{64}$/.test(entry.sourceDigest??'')||entry.sourceDigest!==digest(entry.sourceText)||entry.sourceDigest!==requirement.source?.provenance?.sourceDigest)return false;
  if(typeof entry.reviewerId!=='string'||!id.test(entry.reviewerId)||!day(entry.reviewedOn)||!day(entry.expiresOn)||!day(now)||entry.reviewedOn>now||entry.expiresOn<now||entry.expiresOn<entry.reviewedOn)return false;
  if(typeof entry.policyScope!=='string'||entry.policyScope!==requirement.policyScope||!entry.policyScope.trim())return false;
  if(typeof entry.alternativeId!=='string'||!id.test(entry.alternativeId))return false;
@@ -24,8 +24,11 @@ export function createReviewedAlternativeResolver({entries=[],today=()=>new Date
  const snapshot=structuredClone(entries);
  // A record missing required explicit revocation status is not approved.
  return requirement=>{
-  const valid=snapshot.filter(entry=>check(entry,requirement,today()));
-  if(valid.length!==1)return null; // no conflict/ambiguous duplicates
+  const candidates=snapshot.filter(entry=>entry?.scholarshipId===requirement?.scholarshipId&&entry?.requirementId===requirement?.requirementId&&entry?.policyScope===requirement?.policyScope);
+  // Any stale, revoked or contradictory record for the same policy key blocks endorsement.
+  if(candidates.length!==1)return null;
+  const valid=candidates.filter(entry=>check(entry,requirement,today()));
+  if(valid.length!==1)return null;
   const e=valid[0];
   return Object.freeze({alternativeId:e.alternativeId,excerpt:e.alternativeExcerpt,sourceUrl:e.sourceUrl,sourceDigest:e.sourceDigest,reviewedOn:e.reviewedOn,expiresOn:e.expiresOn,reviewStatus:'human_approved'});
  };
