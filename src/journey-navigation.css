@@ -7,3 +7,6 @@
 .journey-nav .journey-note{font-size:14px;color:#516258;margin:10px 0 0}
 @media(max-width:600px){.journey-nav ol{grid-template-columns:1fr;gap:2px}}
 @media(prefers-reduced-motion:reduce){.journey-nav{scroll-behavior:auto}}
+
+.journey-offline{margin-block-start:12px;background:#204c40;color:#fff;border:1px solid #204c40;min-height:44px}
+.journey-offline:hover{background:#173b31}
