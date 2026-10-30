@@ -13,5 +13,5 @@ for(const scenario of fixture.cases)for(const language of ['en','fa','ps']){
  assert.equal(assessment.summary,scenario.expected);
  results.push({case:scenario.id,language,status:assessment.summary,sourceDigest:evidence.sourceDigest,passed:true});
 }
-const report={mode:fixture.mode,liveMetaVerified:false,semanticModelAccuracyEvaluated:false,coverage:'three official excerpt fixtures; conservative unknown handling only',checks:results.length,passed:true,results};
+const report={mode:fixture.mode,liveMetaVerified:false,semanticModelAccuracyEvaluated:false,coverage:'three official plus three synthetic excerpt fixtures; conservative unknown handling only',checks:results.length,passed:true,results};
 mkdirSync('verification/artifacts',{recursive:true});writeFileSync('verification/artifacts/evaluation-report.json',JSON.stringify(report,null,2));console.log(JSON.stringify(report));
