@@ -36,3 +36,12 @@ export function decideProviderRoute(context) {
   return denied('self_hosted_not_cleared');
  return allowed('self_hosted');
 }
+
+// The /api/analyze input is always supplied by an authenticated user. Even if
+// it contains an official excerpt, it is not a certified public-only payload:
+// a pasted text field can contain personal/student information. A policy record
+// claiming public_source must never downgrade this classification at the gateway.
+export function authorizeAnalysisContext(context) {
+ if (!context || context.dataClass !== 'user_content') return denied('private_payload_classification_required');
+ return decideProviderRoute(context);
+}
