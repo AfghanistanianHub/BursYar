@@ -10,7 +10,7 @@ async function check(context,adapter){
  try{const response=await fetch(`http://127.0.0.1:${server.address().port}/api/analyze`,{method:'POST',headers:{authorization:'Bearer test','content-type':'application/json','x-country':'CA','x-age':'25'},body:JSON.stringify({text:'Applicants must hold a bachelor degree.',sourceUrl:'https://example.edu',language:'en',country:'CA',age:25})});return {status:response.status,calls,reservations,prompts};}finally{await new Promise(r=>server.close(r));}
 }
 test('every denial precedes prompt reservation and outbound transport, including mismatched real models',async()=>{
- for(const change of [{userAgeBand:'under_18'},{subjectAgeBand:'under_18'},{audience:'minor_targeted'},{locationDecision:'unknown'},{locationDecision:'restricted'},{consentVerified:false},{model:'muse-spark-1.3-contributor'}])assert.deepEqual(await check({...adultPolicy,...change}),{status:403,calls:0,reservations:0,prompts:0});
+ for(const change of [{userAgeBand:'under_18'},{subjectAgeBand:'under_18'},{audience:'minor_targeted'},{locationDecision:'unknown'},{locationDecision:'restricted'},{consentVerified:false},{dataClass:'public_source'},{model:'muse-spark-1.3-contributor'}])assert.deepEqual(await check({...adultPolicy,...change}),{status:403,calls:0,reservations:0,prompts:0});
  assert.deepEqual(await check(adultPolicy,{model:'muse-spark-1.3-contributor'}),{status:403,calls:0,reservations:0,prompts:0});
  assert.deepEqual(await check(adultPolicy,{available:false}),{status:503,calls:0,reservations:0,prompts:0});
 });
