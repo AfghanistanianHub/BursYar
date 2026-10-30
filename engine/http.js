@@ -17,7 +17,7 @@ async function readInput(req,validate=validateEvidenceRequest,maxBody=MAX_BODY){
  for await(const chunk of req){size+=chunk.length;if(size>maxBody)throw Object.assign(Error(),{status:413});chunks.push(chunk);}
  try{return validate(JSON.parse(Buffer.concat(chunks).toString('utf8')));}catch{throw Object.assign(Error(),{status:400});}
 }
-export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,policyContextForRequest=null,documents=null,sources=createSourceFetcher(),diagnose=record=>console.error(JSON.stringify(record))}){
+export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,policyContextForRequest=async()=>{throw Error('Provider policy unavailable');},documents=null,sources=createSourceFetcher(),diagnose=record=>console.error(JSON.stringify(record))}){
  if(!verify || !projectId || !quota || !infer || !origin || !Number.isSafeInteger(maxConcurrent) || maxConcurrent<1)throw Error('Missing gateway configuration');
  let active=0;
  const server=createServer(async(req,res)=>{
@@ -59,7 +59,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
    let retrieval=null;
    if(rawInput.receipt){if(rawInput.sourceApproved!==true)return send(res,400,{error:'Review source before analysis'});try{retrieval=sources.verify(rawInput.receipt,input.text,input.sourceUrl,uid);}catch{return send(res,400,{error:'Source preview expired or changed; fetch again or use manual text'});}}
    // Policy is evaluated before prompts, quota reservation or any provider call.
-   if (policyContextForRequest) {
+   {
     let context;
     try {context=await policyContextForRequest({uid});}catch {return send(res,403,{error:'Analysis unavailable for this request'});}
     const decision=decideProviderRoute(context);
