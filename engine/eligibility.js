@@ -68,6 +68,29 @@ function evaluateRequirement(requirement,profile) {
     const pass=v.overall>=requirement.overallMin && names.every(n=>v.sections[n]>=requirement.eachSectionMin);
     return result(id,pass?'met':'not_met',pass?'test_thresholds_met':'test_thresholds_not_met',f.claimIds??[]);
   }
+  if (requirement.type==='minimum_gpa') {
+    if (!Number.isFinite(requirement.gpaMin) || ![4,5].includes(requirement.scale) || requirement.gpaMin<=0 || requirement.gpaMin>requirement.scale)
+      return result(id,UNKNOWN,'unsupported_gpa_rule');
+    const f=fact(profile,'gpa');
+    if (!f) return result(id,UNKNOWN,'missing_or_unsupported_gpa');
+    const v=f.value;
+    if (!v || typeof v!=='object' || v.scale!==requirement.scale) return result(id,UNKNOWN,'unsupported_gpa_scale');
+    if (typeof v.gpa!=='number' || !Number.isFinite(v.gpa) || v.gpa<0 || v.gpa>requirement.scale) return result(id,UNKNOWN,'missing_or_unsupported_gpa');
+    return result(id,v.gpa>=requirement.gpaMin?'met':'not_met','gpa_comparison',f.claimIds??[]);
+  }
+  if (requirement.type==='toefl_ibt') {
+    if (requirement.test!=='TOEFL iBT' || !boundedToeflOverall(requirement.overallMin) || !boundedToeflSection(requirement.eachSectionMin))
+      return result(id,UNKNOWN,'unsupported_test_rule');
+    const f=fact(profile,'languageTest');
+    if (!f) return result(id,UNKNOWN,'missing_language_test');
+    const v=f.value;
+    if (!v || v.test!=='TOEFL iBT' || !boundedToeflOverall(v.overall) || !v.sections || typeof v.sections!=='object')
+      return result(id,UNKNOWN,'unsupported_or_incomplete_test');
+    const names=['reading','listening','speaking','writing'];
+    if (!names.every(n=>boundedToeflSection(v.sections[n]))) return result(id,UNKNOWN,'missing_or_invalid_section');
+    const pass=v.overall>=requirement.overallMin && names.every(n=>v.sections[n]>=requirement.eachSectionMin);
+    return result(id,pass?'met':'not_met',pass?'test_thresholds_met':'test_thresholds_not_met',f.claimIds??[]);
+  }
   if (requirement.test!=='IELTS Academic' || !boundedScore(requirement.overallMin) || !boundedScore(requirement.eachBandMin))
     return result(id,UNKNOWN,'unsupported_test_rule');
   const f=fact(profile,'languageTest');

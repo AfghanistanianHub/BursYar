@@ -2,7 +2,16 @@
 
 English, Dari/Persian and Pashto scholarship reader and bounded Barrier PathFinder for Afghan applicants. No CTO dependency.
 
-## Current development status
+## Mission 04 — verified frontend integration checkpoint (Draft PR #33)
+
+The independent frontend branch `feat/mission-04-journey-navigation` integrates English/Farsi/Pashto responsive navigation, authenticated private-profile review, evidence-focused source inspection, deterministic scholarship assessment and conservative next steps. Users can enter the deterministic path directly without Meta or switch to it if AI analysis is unavailable. This does **not** assert a fully reviewed institutional scholarship catalog or verified live inference.
+
+The implementation commit `b0a8903` passed all four GitHub Actions jobs in [run 169](https://github.com/AfghanistanianHub/BursYar/actions/runs/41023801642): verify/build, emulator, Playwright browser tests and macOS helper. Tests use mocked identities and synthetic sources, **not** live Google sign-in or Meta inference.
+
+See [Mission 04 verification and acceptance gates](docs/checkpoints/mission-04-frontend.md). Mission 03 Figma parity, human Farsi/Pashto review, official university-source approval, guardian/privacy sign-off and authorized live OAuth remain outstanding. PR #33 remains Draft; nothing was merged or deployed.
+
+## Historical development status (earlier PR stack)
+
 
 Draft PR #9 is stacked on draft PR #8. The stack now reconciles main history while preserving the Firebase-authenticated gateway, durable quotas, Keychain configuration and spending gates. Implemented: evidence-selected conservative compiler, deterministic three-valued evaluation, source provenance, contradictory-threshold detection, isolated score/degree scenarios, multilingual UI and private local UTF-8 document review/profile storage.
 

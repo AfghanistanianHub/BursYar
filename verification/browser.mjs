@@ -35,6 +35,20 @@ try {
   let responseEvidence=evidence;let responseStatus=200;let sawRequest=false;let calls=0;
   await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?{...normalizeEvidence(JSON.stringify({criteria:responseEvidence.criteria.map(({kind,required,excerpt,en,fa,ps})=>({kind,required,excerpt,en,fa,ps})),deadline:responseEvidence.deadline,funding:responseEvidence.funding}),{text:body.text,sourceUrl:body.sourceUrl}),sourceProvenance:body.receipt??{kind:'user_pasted_text'}}:{error:'test-error'})});});
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
+  // Mission 04: localized navigation across all RTL/LTR viewport variants.
+  const steps=page.locator('.journey-nav ol a');
+  await expect(steps).toHaveCount(4);
+  await page.locator('.journey-offline').click();
+  await expect(page.locator('.local-workflow')).toHaveAttribute('open','');
+  await expect(page.locator('#local-assessment')).toBeVisible();
+  await expect(steps.nth(0)).toHaveAttribute('href','#profile-mount');
+  await expect(page.locator('html')).toHaveAttribute('dir',language==='en'?'ltr':'rtl');
+  await steps.nth(0).click();
+  await expect(page.locator('details.workspace')).toHaveAttribute('open','');
+  await expect(page.locator('#profile-form')).toBeVisible();
+  await expect(steps.nth(1)).toHaveAttribute('href','#assistant');
+  await expect(steps.nth(2)).toHaveAttribute('href','#eligibility-mount');
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
   await expect(page.locator('html')).toHaveAttribute('dir',language==='en'?'ltr':'rtl');
   await expect(page.locator('#fetch-source')).toBeVisible();
   await expect(page.locator('#requirements')).toBeHidden();
@@ -104,6 +118,10 @@ try {
   // Re-rendering via unrelated search must retain ephemeral source input.
   await page.locator('.resources').evaluate(el=>el.open=true);await page.locator('#search').fill('test');await expect(page.locator('#requirements')).toHaveValue('Applicants must provide academic transcripts. Tuition fees are covered.');
   responseStatus=429;await page.locator('#analyze-form button[type=submit]').click();await expect(page.locator('#analysis-result')).toContainText({en:'Quota',fa:'محدودیت',ps:'حد'}[language]);
+  await expect(page.locator('#deterministic-fallback')).toBeVisible();
+  await page.locator('#deterministic-fallback').click();
+  await expect(page.locator('.local-workflow')).toHaveAttribute('open','');
+  await expect(page.locator('#local-assessment')).toBeVisible();
   for(const status of [502,503,504]){
    responseStatus=status;await page.locator('#analyze-form button[type=submit]').click();
    await expect(page.locator('#analyze-form')).not.toHaveAttribute('aria-busy','true');
@@ -179,11 +197,23 @@ try {
    await page.locator('#local-scope').fill(scope);
    await page.locator('#local-assessment button').filter({hasText:{en:'Load reviewed scholarships',fa:'بارگذاری بورسیه‌های بازبینی‌شده',ps:'بیاکتل شوي بورسونه راوړئ'}[language]}).click();
    await expect(page.locator('#local-program')).toHaveValue('synthetic-local-test');
+   await expect(page.locator('#local-source-info a')).toHaveAttribute('href',/^https:\/\//);
+   await expect(page.locator('#local-source-info')).toContainText({en:'Source was reviewed',fa:'بازبینی شده',ps:'بیاکتل شوې'}[language]);
    await page.locator('#local-degree').selectOption('bachelor');await page.locator('#local-consent').check();
    await page.locator('#local-assessment button').filter({hasText:{en:'Save degree in this scope',fa:'ذخیرهٔ مدرک در این پروفایل',ps:'په دې پروفایل کې سند وساتئ'}[language]}).click();
    await expect(page.locator('#local-status')).toContainText({en:'Degree saved',fa:'مدرک در پروفایل',ps:'سند په ټاکلي'}[language]);
    await page.locator('#local-assessment button[type=submit]').click();
    await expect(page.locator('#local-status')).toContainText({en:'Meets reviewed requirements only',fa:'فقط شرایط بازبینی‌شده',ps:'یوازې بیاکتل شوي'}[language]);
+   await expect(page.locator('.local-workflow [role=note]')).toContainText({en:'Next: verify current policy',fa:'گام بعدی:',ps:'بل ګام:'}[language]);
+   await expect(page.locator('#next-steps')).toBeVisible();
+   await expect(page.locator('#next-actions')).toContainText({en:'Next: verify current policy',fa:'گام بعدی:',ps:'بل ګام:'}[language]);
+   await page.locator('#local-degree').selectOption('master');
+   await expect(page.locator('.local-workflow [role=note]')).toHaveCount(0);
+   await expect(page.locator('#next-actions')).not.toContainText({en:'Next: verify current policy',fa:'گام بعدی:',ps:'بل ګام:'}[language]);
+   await page.locator('#local-degree').selectOption('bachelor');
+   // Re-fetching a catalog must invalidate the old result, not display it under a different program.
+   await page.locator('#local-assessment button').filter({hasText:{en:'Load reviewed scholarships',fa:'بارگذاری بورسیه‌های بازبینی‌شده',ps:'بیاکتل شوي بورسونه راوړئ'}[language]}).click();
+   await expect(page.locator('.local-workflow [role=note]')).toHaveCount(0);
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
   expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
