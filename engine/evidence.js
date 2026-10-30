@@ -1,5 +1,6 @@
 import {EVIDENCE_LIMITS,exactKeys} from './evidence-contract.js';
 import {compileRequirements} from './compiler.js';
+import {auditScholarshipEvidence} from './source-provenance.js';
 import { createHash } from 'node:crypto';
 export class EvidenceFailure extends Error {
  constructor(code){super('Invalid evidence');this.code=code;}
@@ -29,6 +30,21 @@ export function normalizeEvidence(raw, input) {
   if (value.deadline !== null && !exact(value.deadline))throw new EvidenceFailure('evidence_deadline');
   if(!value.funding.every(exact))throw new EvidenceFailure('evidence_funding');
   const output={selection:{complete:false,maxCriteria:EVIDENCE_LIMITS.criteria,mode:'compact_selected_evidence'},criteria,deadline:value.deadline,funding:value.funding,sourceUrl:input.sourceUrl,sourceDigest:createHash('sha256').update(input.text).digest('hex'),analyzedAt:new Date().toISOString(),verifiedAt:null,requiresHumanReview:true,reviewStatus:'unreviewed',uncertainties:['Source authenticity, completeness, interpretation and translations require human verification. Missing fields are unknown. Compact output contains at most four selected requirements and two funding excerpts; other conditions may be omitted.']};
+  // Attached integrity metadata is advisory and never authenticates a university.
+  // User-supplied timestamps or provenance claims cannot verify institutional
+  // acceptance. With no captured timestamp, freshness fails closed.
   output.compilation=compileRequirements(output,input);
+  output.sourceAudits=criteria.map(c=>({
+    criterionId:c.id,
+    ...auditScholarshipEvidence({
+      sourceUrl:input.sourceUrl,
+      sourceText:input.text,
+      excerpt:c.excerpt,
+      expectedDigest:output.sourceDigest,
+      capturedOn:input.sourceCapturedOn,
+      checkedOn:input.sourceCheckedOn,
+      contradictions:output.compilation.contradictions.filter(entry=>entry.requirementIds?.includes(c.id))
+    })
+  }));
   return output;
 }
