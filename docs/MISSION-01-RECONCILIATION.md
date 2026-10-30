@@ -38,3 +38,7 @@
 - Independent reliable authority verification (recipient identity, legal adulthood, guardian authority and consent) must be provisioned, with a threat-model review, before handoff activation.
 - Human fluent Dari/Pashto semantic and typography approval, official scholarship-source coverage, provider-contract and geographic compliance checks, and explicit production/privacy authorization remain external to synthetic CI.
 - CI must pass on the final exact SHA, including emulator/browser, before this Draft can be reviewed for promotion. Avoid presenting earlier successful heads as proof for later changes.
+
+## Final read-only audit follow-up
+- A post-handoff resurrection risk was found: even though guardian HTTP access rejects transferred scopes, direct DocumentStore mutators could previously recreate a transferred source profile. Added `assertWritable()` across write methods plus an adversarial test. Source-scope tombstones now deny these direct writes. This guard is synchronous and should be revisited if the storage layer is moved to asynchronous multi-worker transactions; do not treat this as proof of distributed transaction safety.
+- CI for the exact updated SHA is required again. Do not reuse the successful CI from `dc03351b` for the newer fix.
