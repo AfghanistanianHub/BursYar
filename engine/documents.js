@@ -19,7 +19,10 @@ export class DocumentStore {
  }
  isTransferred(uid){return !!this.db.prepare('SELECT 1 FROM majority_transfers WHERE source_owner=?').get(this.owner(uid));}
  owner(uid){if(typeof uid!=='string'||!uid||uid.length>128)throw new DocumentError(400);return createHash('sha256').update(uid).digest('hex');}
+ assertWritable(uid){if(this.isTransferred(uid))throw new DocumentError(403);}
+
  upload(uid,input){
+  this.assertWritable(uid);
   const owner=this.owner(uid);
   if(input?.consent!==true||input?.mime!=='text/plain'||typeof input.text!=='string'||!input.text.trim()||Buffer.byteLength(input.text)>12000||/[\x00-\x08\x0b\x0c\x0e-\x1f\ufffd]/u.test(input.text))throw new DocumentError(400);
   const id=randomUUID(),claims=[];
@@ -45,6 +48,7 @@ export class DocumentStore {
  profile(uid){const row=this.db.prepare('SELECT data FROM profiles WHERE owner=?').get(this.owner(uid));return row?JSON.parse(row.data):{};}
  list(uid){return this.db.prepare('SELECT data FROM documents WHERE owner=?').all(this.owner(uid)).map(row=>{const r=JSON.parse(row.data);return {id:r.id,uploadedAt:r.uploadedAt,reviewed:!!r.reviewedAt,consistency:r.consistency,authenticity:r.authenticity};});}
  updateProfile(uid,input){
+  this.assertWritable(uid);
   if(input?.consent!==true)throw new DocumentError(400);
   let updates;try{updates=manualProfileUpdates(input.values);}catch{throw new DocumentError(400);}
   const owner=this.owner(uid);this.db.exec('BEGIN IMMEDIATE');
@@ -61,8 +65,10 @@ export class DocumentStore {
    this.db.exec('COMMIT');return next;
   }catch(e){this.db.exec('ROLLBACK');throw e;}
  }
- deleteProfile(uid){const owner=this.owner(uid);this.db.exec('BEGIN IMMEDIATE');try{this.db.prepare('DELETE FROM profiles WHERE owner=?').run(owner);this.db.prepare('DELETE FROM profile_history WHERE owner=?').run(owner);for(const row of this.db.prepare('SELECT id,data FROM documents WHERE owner=?').all(owner)){const doc=JSON.parse(row.data);for(const entry of doc.reviewHistory??[])entry.previousFact=null;this.db.prepare('UPDATE documents SET data=? WHERE id=? AND owner=?').run(JSON.stringify(doc),row.id,owner);}this.db.exec('COMMIT');return {deleted:true};}catch(e){this.db.exec('ROLLBACK');throw e;}}
+ deleteProfile(uid){
+  this.assertWritable(uid);const owner=this.owner(uid);this.db.exec('BEGIN IMMEDIATE');try{this.db.prepare('DELETE FROM profiles WHERE owner=?').run(owner);this.db.prepare('DELETE FROM profile_history WHERE owner=?').run(owner);for(const row of this.db.prepare('SELECT id,data FROM documents WHERE owner=?').all(owner)){const doc=JSON.parse(row.data);for(const entry of doc.reviewHistory??[])entry.previousFact=null;this.db.prepare('UPDATE documents SET data=? WHERE id=? AND owner=?').run(JSON.stringify(doc),row.id,owner);}this.db.exec('COMMIT');return {deleted:true};}catch(e){this.db.exec('ROLLBACK');throw e;}}
  review(uid,id,decisions){
+  this.assertWritable(uid);
   this.db.exec('BEGIN IMMEDIATE');
   try{
    const record=this.get(uid,id);
@@ -78,6 +84,7 @@ export class DocumentStore {
   }catch(e){this.db.exec('ROLLBACK');throw e;}
  }
  delete(uid,id){
+  this.assertWritable(uid);
   this.db.exec('BEGIN IMMEDIATE');
   try{this.get(uid,id);const owner=this.owner(uid),profile=this.profile(uid);
    for(const [key,fact]of Object.entries(profile))if(fact.sourceDocumentId===id)delete profile[key];
@@ -89,6 +96,7 @@ export class DocumentStore {
   }catch(e){this.db.exec('ROLLBACK');throw e;}
  }
  eraseOwner(uid){
+  this.assertWritable(uid);
   const owner=this.owner(uid);this.db.exec('BEGIN IMMEDIATE');
   try{for(const table of ['documents','profiles','profile_history'])this.db.prepare(`DELETE FROM ${table} WHERE owner=?`).run(owner);this.db.exec('COMMIT');}catch(error){this.db.exec('ROLLBACK');throw error;}
  }
