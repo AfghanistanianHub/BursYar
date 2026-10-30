@@ -56,3 +56,18 @@ test('empty guardian scope never reports a transfer success',async()=>{
   assert.equal(f.documents.profile(sourceScope).degree.value,'bachelor');
  }finally{f.close();}
 });
+
+test('interrupted receipt persistence rolls back every ownership change',async()=>{
+ const f=fixture();try{
+  f.documents.db.exec("CREATE TRIGGER synthetic_interrupt BEFORE INSERT ON majority_transfers BEGIN SELECT RAISE(ABORT, 'synthetic interruption'); END");
+  const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>verified});
+  await assert.rejects(service.transfer({sourceScope,targetUid}));
+  assert.equal(f.documents.profile(sourceScope).degree.value,'bachelor');
+  assert.equal(f.documents.list(sourceScope).length,1);
+  assert.equal(f.documents.list(targetUid).length,0);
+  assert.equal(f.documents.isTransferred(sourceScope),false);
+  f.documents.db.exec('DROP TRIGGER synthetic_interrupt');
+  assert.equal((await service.transfer({sourceScope,targetUid})).transferred,true);
+  assert.equal(f.documents.list(targetUid).length,1);
+ }finally{f.close();}
+});
