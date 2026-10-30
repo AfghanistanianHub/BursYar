@@ -8,6 +8,10 @@ function parse(excerpt){
  if(m)return {type:'minimum_degree',minimum:m[1].toLowerCase()};
  m=/^Applicants must have IELTS Academic (\d(?:\.\d)?) overall, with no band below (\d(?:\.\d)?)\.$/i.exec(excerpt);
  if(m && m.slice(1).every(v=>score(v)<=9 && Number.isInteger(score(v)*2)))return {type:'ielts_academic',test:'IELTS Academic',overallMin:score(m[1]),eachBandMin:score(m[2])};
+ m=/^Applicants must hold a minimum GPA of (\d(?:\.\d{1,2})?) on a (4\.0|5\.0) scale\.$/i.exec(excerpt);
+ if(m){const gpaMin=score(m[1]),scale=score(m[2]);if(gpaMin>0&&gpaMin<=scale)return {type:'minimum_gpa',gpaMin,scale};}
+ m=/^Applicants must have TOEFL iBT (\d{1,3}) overall, with no section below (\d{1,2})\.$/i.exec(excerpt);
+ if(m){const overall=score(m[1]),section=score(m[2]);if(Number.isInteger(overall)&&overall<=120&&Number.isInteger(section)&&section<=30)return {type:'toefl_ibt',test:'TOEFL iBT',overallMin:overall,eachSectionMin:section};}
  return null;
 }
 export function compileRequirements(evidence,input){
