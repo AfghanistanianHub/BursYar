@@ -40,3 +40,10 @@ New test sources were committed, **but none has been executed locally**: connect
 - Missing source capture/check dates are explicitly flagged `invalid_freshness_metadata`. Caller-supplied date values cannot establish official issuer provenance.
 - The deterministic eligibility engine remains offline; `met` means matching **enumerated requirement with supplied facts**, never verified eligibility, admission or funding.
 - Additional regression test protects these limits. External validation and source-policy curator authorization still require implementation; no trusted external source registry was activated.
+
+## Credential versus competence follow-up
+- `planGaps` now marks missing language-test evidence as `missing_credential_evidence` and sets `competenceAssessment: not_assessed`. This does not infer language weakness from an absent certificate.
+- A supplied below-threshold score is reported as `reported_score_below_stated_threshold`, not as a generalized judgement about language ability.
+- No examination provider, service partner, equivalency, or institution acceptance link is invented. Program-specific official acceptance review remains necessary.
+- The new offline synthetic regression tests exercise missing certificates, below-threshold reports, unsupported scores and uncertainty.
+- These metadata changes do not alter deterministic tri-state eligibility verdicts or transfer responsibility for institutional decisions.
