@@ -1,6 +1,7 @@
-export const PROFILE_FIELDS=['degree','languageTest','academicHistory','languages','targetDegree','deferredOffer','continuingSameDegree','courseStart','testExpiry','academicScore','documents','applicationSubmitted','fullTimeEnrollment','languageExemption'];
+export const PROFILE_FIELDS=['degree','languageTest','academicHistory','languages','targetDegree','deferredOffer','continuingSameDegree','courseStart','testExpiry','academicScore','gpa','documents','applicationSubmitted','fullTimeEnrollment','languageExemption'];
 const date=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString().slice(0,10)===s;
 export function validProfileValue(key,value){
+ if(key==='gpa')return !!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')==='gpa,scale'&&[4,5].includes(value.scale)&&typeof value.gpa==='number'&&Number.isFinite(value.gpa)&&value.gpa>=0&&value.gpa<=value.scale;
  if(key==='academicScore')return !!value&&Object.keys(value).sort().join(',')==='scale,score'&&Number.isFinite(value.score)&&Number.isFinite(value.scale)&&value.scale>0&&value.score>=0&&value.score<=value.scale;
  if(key==='documents')return Array.isArray(value)&&value.length<=4&&new Set(value).size===value.length&&value.every(v=>['transcripts','language_certificate','passport','recommendation'].includes(v));
  if(['fullTimeEnrollment','languageExemption'].includes(key))return typeof value==='boolean';
@@ -10,6 +11,7 @@ export function validProfileValue(key,value){
  if(['deferredOffer','continuingSameDegree'].includes(key))return typeof value==='boolean';
  if(['courseStart','testExpiry'].includes(key))return date(value);
  if(['academicHistory','languages'].includes(key))return typeof value==='string'&&value.trim().length>0&&value.length<=(key==='languages'?300:1000);
+ if(key==='languageTest'&&value?.test==='TOEFL iBT')return !!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')==='overall,sections,test'&&Number.isInteger(value.overall)&&value.overall>=0&&value.overall<=120&&value.sections&&typeof value.sections==='object'&&!Array.isArray(value.sections)&&Object.keys(value.sections).sort().join(',')==='listening,reading,speaking,writing'&&Object.values(value.sections).every(n=>Number.isInteger(n)&&n>=0&&n<=30);
  if(key==='languageTest')return !!value&&Object.keys(value).sort().join(',')==='bands,overall,test'&&!!value.bands&&Object.keys(value.bands).sort().join(',')==='listening,reading,speaking,writing'&&value.test==='IELTS Academic'&&['overall','listening','reading','writing','speaking'].every(k=>{const n=k==='overall'?value.overall:value.bands?.[k];return typeof n==='number'&&Number.isFinite(n)&&n>=0&&n<=9&&Number.isInteger(n*2);});
  return false;
 }
