@@ -33,6 +33,7 @@ export function normalizeEvidence(raw, input) {
   // Attached integrity metadata is advisory and never authenticates a university.
   // User-supplied timestamps or provenance claims cannot verify institutional
   // acceptance. With no captured timestamp, freshness fails closed.
+  output.compilation=compileRequirements(output,input);
   output.sourceAudits=criteria.map(c=>({
     criterionId:c.id,
     ...auditScholarshipEvidence({
@@ -41,9 +42,9 @@ export function normalizeEvidence(raw, input) {
       excerpt:c.excerpt,
       expectedDigest:output.sourceDigest,
       capturedOn:input.sourceCapturedOn,
-      checkedOn:input.sourceCheckedOn
+      checkedOn:input.sourceCheckedOn,
+      contradictions:output.compilation.contradictions.filter(entry=>entry.requirementIds?.includes(c.id))
     })
   }));
-  output.compilation=compileRequirements(output,input);
   return output;
 }
