@@ -24,3 +24,13 @@ New test sources were committed, **but none has been executed locally**: connect
 ## Remaining usability
 - Student UI wiring for the new GPA field/PathFinder actions may require a separate migration; do not silently display unsupported interpretations.
 - Document-first profile extraction and official issuer authenticity checks require separate authorized integrations.
+
+## Source integrity follow-up
+- `engine/source-provenance.js` now audits exact complete-line excerpt matching, SHA-256 capture integrity, strict HTTPS URL syntax, source age metadata, contradictions and invalid dates, entirely offline.
+- `tests/source-provenance.test.js` covers tampering, stale/contradictory inputs, forged institution approval and unsafe URLs.
+- The audit intentionally **never claims** official authenticity or scholarship-specific acceptance. It is a supporting forensic check, not an issuer-verification integration or a curator authorization channel. The active compiler still labels the overall source unverified, and PathFinder still cannot recommend undocumented alternatives.
+- No automated age threshold or source-review timestamp is equivalent to verifying live institution pages. Human review gates are unchanged.
+
+## Observed CI checkpoints
+- Commit `05b6067`: GitHub Actions run 41015342003 completed all four jobs successfully: Node 194/194, offline evaluation 42/42, build, browser, Firebase emulator and macOS helper.
+- Subsequent source-integrity commits require a separate CI green result and must not inherit that success claim.
