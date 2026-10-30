@@ -37,7 +37,7 @@ export class DocumentStore {
   const duplicate=claims.some((c,i)=>claims.findIndex(x=>x.field===c.field)!==i);
   const record={id,text:input.text,sha256:createHash('sha256').update(input.text).digest('hex'),uploadedAt:new Date().toISOString(),consentVersion:1,extractionMethod:'bounded_text_parser',authenticity:'not_verified',translationStatus:'not_assessed',consistency:duplicate?'discrepancy_requires_review':'not_assessed',pending:duplicate?[]:prepareClaims(id,claims)};
   this.db.exec('BEGIN IMMEDIATE');
-  try{if(this.db.prepare('SELECT count(*) AS n FROM documents WHERE owner=?').get(owner).n>=10)throw new DocumentError(429);this.db.prepare('INSERT INTO documents VALUES(?,?,?)').run(id,owner,JSON.stringify(record));this.db.exec('COMMIT');}catch(e){this.db.exec('ROLLBACK');throw e;}
+  try{this.assertWritable(uid);if(this.db.prepare('SELECT count(*) AS n FROM documents WHERE owner=?').get(owner).n>=10)throw new DocumentError(429);this.db.prepare('INSERT INTO documents VALUES(?,?,?)').run(id,owner,JSON.stringify(record));this.db.exec('COMMIT');}catch(e){this.db.exec('ROLLBACK');throw e;}
   return record;
  }
  get(uid,id){
@@ -52,7 +52,7 @@ export class DocumentStore {
   if(input?.consent!==true)throw new DocumentError(400);
   let updates;try{updates=manualProfileUpdates(input.values);}catch{throw new DocumentError(400);}
   const owner=this.owner(uid);this.db.exec('BEGIN IMMEDIATE');
-  try{
+  try{this.assertWritable(uid);
    const current=this.profile(uid),next=structuredClone(current);
    for(const [key,value]of Object.entries(updates)){
     if(current[key]?.origin==='issuer_verified')throw new DocumentError(409);
@@ -66,11 +66,11 @@ export class DocumentStore {
   }catch(e){this.db.exec('ROLLBACK');throw e;}
  }
  deleteProfile(uid){
-  this.assertWritable(uid);const owner=this.owner(uid);this.db.exec('BEGIN IMMEDIATE');try{this.db.prepare('DELETE FROM profiles WHERE owner=?').run(owner);this.db.prepare('DELETE FROM profile_history WHERE owner=?').run(owner);for(const row of this.db.prepare('SELECT id,data FROM documents WHERE owner=?').all(owner)){const doc=JSON.parse(row.data);for(const entry of doc.reviewHistory??[])entry.previousFact=null;this.db.prepare('UPDATE documents SET data=? WHERE id=? AND owner=?').run(JSON.stringify(doc),row.id,owner);}this.db.exec('COMMIT');return {deleted:true};}catch(e){this.db.exec('ROLLBACK');throw e;}}
+  this.assertWritable(uid);const owner=this.owner(uid);this.db.exec('BEGIN IMMEDIATE');try{this.assertWritable(uid);this.db.prepare('DELETE FROM profiles WHERE owner=?').run(owner);this.db.prepare('DELETE FROM profile_history WHERE owner=?').run(owner);for(const row of this.db.prepare('SELECT id,data FROM documents WHERE owner=?').all(owner)){const doc=JSON.parse(row.data);for(const entry of doc.reviewHistory??[])entry.previousFact=null;this.db.prepare('UPDATE documents SET data=? WHERE id=? AND owner=?').run(JSON.stringify(doc),row.id,owner);}this.db.exec('COMMIT');return {deleted:true};}catch(e){this.db.exec('ROLLBACK');throw e;}}
  review(uid,id,decisions){
   this.assertWritable(uid);
   this.db.exec('BEGIN IMMEDIATE');
-  try{
+  try{this.assertWritable(uid);
    const record=this.get(uid,id);
    if(record.reviewedAt||record.consistency==='discrepancy_requires_review'||record.pending.length===0)throw new DocumentError(409);
    let updates;try{updates=reviewClaims(record.pending,decisions);}catch{throw new DocumentError(400);}
@@ -86,7 +86,7 @@ export class DocumentStore {
  delete(uid,id){
   this.assertWritable(uid);
   this.db.exec('BEGIN IMMEDIATE');
-  try{this.get(uid,id);const owner=this.owner(uid),profile=this.profile(uid);
+  try{this.assertWritable(uid);this.get(uid,id);const owner=this.owner(uid),profile=this.profile(uid);
    for(const [key,fact]of Object.entries(profile))if(fact.sourceDocumentId===id)delete profile[key];
    this.db.prepare('DELETE FROM documents WHERE owner=? AND id=?').run(owner,id);
    this.db.prepare('DELETE FROM profile_history WHERE owner=?').run(owner);
@@ -98,7 +98,7 @@ export class DocumentStore {
  eraseOwner(uid){
   this.assertWritable(uid);
   const owner=this.owner(uid);this.db.exec('BEGIN IMMEDIATE');
-  try{for(const table of ['documents','profiles','profile_history'])this.db.prepare(`DELETE FROM ${table} WHERE owner=?`).run(owner);this.db.exec('COMMIT');}catch(error){this.db.exec('ROLLBACK');throw error;}
+  try{this.assertWritable(uid);for(const table of ['documents','profiles','profile_history'])this.db.prepare(`DELETE FROM ${table} WHERE owner=?`).run(owner);this.db.exec('COMMIT');}catch(error){this.db.exec('ROLLBACK');throw error;}
  }
  close(){this.db.close();}
 }
