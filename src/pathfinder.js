@@ -11,3 +11,19 @@ const labels={
  ps:{mismatch:'احتمالي نه سمون',unknown:'نه شي ټاکل کېدای',ask:'له ادارې وپوښتئ چې دا شرط پر تاسو پلي کېږي او کوم بدیل اسناد په څرګند ډول مني.',verify:'دقیق شرط له ادارې تایید کړئ. یوازې د سند شتون د شرایطو پوره کول نه ثابتوي.'}
 };
 export function barrierText(result,language='en'){const t=labels[language]||labels.en;const mismatch=result.status==='potential mismatch';return {status:mismatch?t.mismatch:t.unknown,action:mismatch?t.ask:t.verify};}
+
+// Assess deterministic engine results without trusting caller-supplied alternatives.
+// A URL+text pair is not provenance. Until a server-verified, curated alternative
+// registry exists, never label a suggested alternative as officially documented.
+export function assessBarriers(results,{alternatives={}}={}) {
+ if(!Array.isArray(results))throw new TypeError('Invalid assessment results');
+ // Deliberately do not read alternatives: untrusted suggestions must not be
+ // upgraded into endorsements even if their sourceUrl uses an official domain.
+ void alternatives;
+ return results.map(r=>{
+  const id=typeof r?.requirementId==='string'?r.requirementId:'invalid';
+  const status=r?.status==='met'?'appears to meet':r?.status==='not_met'?'potential mismatch':'cannot determine';
+  const actionCode=r?.status==='met'?'keep_evidence':r?.status==='not_met'?'ask_alternative':'verify_requirement';
+  return {requirementId:id,status,actionCode,evidence:{excerpt:r?.source?.excerpt??null,url:r?.source?.url??null},documentedAlternative:null};
+ });
+}
