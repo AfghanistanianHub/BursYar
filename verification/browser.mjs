@@ -205,6 +205,9 @@ try {
    await page.locator('#local-assessment button[type=submit]').click();
    await expect(page.locator('#local-status')).toContainText({en:'Meets reviewed requirements only',fa:'فقط شرایط بازبینی‌شده',ps:'یوازې بیاکتل شوي'}[language]);
    await expect(page.locator('.local-workflow [role=note]')).toContainText({en:'Next: verify current policy',fa:'گام بعدی:',ps:'بل ګام:'}[language]);
+   // Re-fetching a catalog must invalidate the old result, not display it under a different program.
+   await page.locator('#local-assessment button').filter({hasText:{en:'Load reviewed scholarships',fa:'بارگذاری بورسیه‌های بازبینی‌شده',ps:'بیاکتل شوي بورسونه راوړئ'}[language]}).click();
+   await expect(page.locator('.local-workflow [role=note]')).toHaveCount(0);
   }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
   expect((await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze()).violations).toEqual([]);
