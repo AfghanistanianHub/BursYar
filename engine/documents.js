@@ -87,5 +87,9 @@ export class DocumentStore {
    this.db.exec('COMMIT');return {deleted:true};
   }catch(e){this.db.exec('ROLLBACK');throw e;}
  }
+ eraseOwner(uid){
+  const owner=this.owner(uid);this.db.exec('BEGIN IMMEDIATE');
+  try{for(const table of ['documents','profiles','profile_history'])this.db.prepare(`DELETE FROM ${table} WHERE owner=?`).run(owner);this.db.exec('COMMIT');}catch(error){this.db.exec('ROLLBACK');throw error;}
+ }
  close(){this.db.close();}
 }

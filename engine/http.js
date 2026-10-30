@@ -1,3 +1,6 @@
+import {resolveFamilyScope} from './family.js';
+import {evaluateReviewedScholarship} from './deterministic.js';
+import {decideProviderRoute} from './provider-policy.js';
 import {createSourceFetcher,SourceFailure} from './source-fetch.js';
 import {metaReservationUnits} from './meta-request.js';
 import {MAX_META_TIMEOUT_MS,safeProviderDiagnostics} from './provider-config.js';
@@ -16,15 +19,19 @@ async function readInput(req,validate=validateEvidenceRequest,maxBody=MAX_BODY){
  for await(const chunk of req){size+=chunk.length;if(size>maxBody)throw Object.assign(Error(),{status:413});chunks.push(chunk);}
  try{return validate(JSON.parse(Buffer.concat(chunks).toString('utf8')));}catch{throw Object.assign(Error(),{status:400});}
 }
-export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,documents=null,sources=createSourceFetcher(),diagnose=record=>console.error(JSON.stringify(record))}){
- if(!verify || !projectId || !quota || !infer || !origin || !Number.isSafeInteger(maxConcurrent) || maxConcurrent<1)throw Error('Missing gateway configuration');
+export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,providers=null,catalog=null,loadFamilyGrant=null,policyContextForRequest=async()=>{throw Error('Provider policy unavailable');},documents=null,sources=createSourceFetcher(),diagnose=record=>console.error(JSON.stringify(record))}){
+ if(!verify || !projectId || !quota || (!infer&&!providers) || !origin || !Number.isSafeInteger(maxConcurrent) || maxConcurrent<1)throw Error('Missing gateway configuration');
  let active=0;
  const server=createServer(async(req,res)=>{
   if(req.method==='GET' && req.url==='/health')return send(res,200,{ok:true});
-  const sourceRoute=req.method==='POST'&&['/api/source','/api/source/import'].includes(req.url);
-  const importRoute=req.url==='/api/source/import';
-  const documentRoute=/^\/api\/(?:documents(?:\/[a-f0-9-]{36}(?:\/review)?)?|profile)$/.test(req.url??'');
-  if(!(req.method==='POST'&&req.url==='/api/analyze')&&!documentRoute&&!sourceRoute)return send(res,404,{error:'Not found'});
+  let route=req.url;
+  const family=/^\/api\/family\/([a-zA-Z0-9_-]{1,80})(\/.*)$/.exec(route??'');
+  if(family)route='/api'+family[2];
+  const localRoute=['/api/evaluate','/api/scholarships','/api/export','/api/erase'].includes(route);
+  const sourceRoute=!family&&req.method==='POST'&&['/api/source','/api/source/import'].includes(route);
+  const importRoute=route==='/api/source/import';
+  const documentRoute=/^\/api\/(?:documents(?:\/[a-f0-9-]{36}(?:\/review)?)?|profile)$/.test(route??'');
+  if(!(req.method==='POST'&&req.url==='/api/analyze')&&!documentRoute&&!sourceRoute&&!localRoute&&!family)return send(res,404,{error:'Not found'});
   if(req.headers.origin && req.headers.origin!==origin)return send(res,403,{error:'Origin denied'});
   // No CORS headers; proxy same-origin /api to this service. No cookie authentication.
   if(active>=maxConcurrent)return send(res,429,{error:'Busy; retry later'});
@@ -34,6 +41,27 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
   res.once('close',disconnected);
   try {
    let uid;try{uid=await authenticate(req.headers.authorization,verify,projectId);}catch{return send(res,401,{error:'Sign in with an approved account'});}
+   let storageOwner=uid;
+   if(family){
+    // Family routes have no generative endpoint, even for an adult guardian.
+    if(!documentRoute&&!localRoute)return send(res,403,{error:'Family request unavailable'});
+    try{storageOwner=(await resolveFamilyScope({uid,subjectId:family[1],loadGrant:loadFamilyGrant})).storageOwner;}catch{return send(res,403,{error:'Family request unavailable'});}
+   }
+   if(localRoute){
+    try{
+     if(route==='/api/scholarships'&&req.method==='GET')return send(res,200,{scholarships:catalog?.list()??[],externalInference:false});
+     if(!documents)return send(res,503,{error:'Local processing unavailable'});
+     if(route==='/api/evaluate'&&req.method==='POST'){
+      const body=await readInput(req,x=>x);if(!catalog||typeof body?.scholarshipId!=='string')return send(res,422,{error:'Reviewed scholarship unavailable'});
+      return send(res,200,evaluateReviewedScholarship(catalog.get(body.scholarshipId),documents.profile(storageOwner)));
+     }
+     if(route==='/api/export'&&req.method==='GET')return send(res,200,{profile:documents.profile(storageOwner),documents:documents.list(storageOwner).map(d=>documents.get(storageOwner,d.id)),issuerAuthenticated:false});
+     if(route==='/api/erase'&&req.method==='DELETE'){
+      documents.eraseOwner(storageOwner);return send(res,200,{deleted:true});
+     }
+     return send(res,405,{error:'Method unavailable'});
+    }catch{return send(res,422,{error:'Local processing unavailable'});}
+   }
    if(sourceRoute){
     try{const body=await readInput(req,x=>x,importRoute?400*1024:MAX_BODY);const source=importRoute?sources.importSource(body,{uid}):await sources.fetchSource(body?.url,{signal:pending.signal,uid});return send(res,200,source);}
     catch(error){return send(res,error instanceof SourceFailure?(error.code==='busy'?429:422):400,{error:'Source retrieval unavailable',code:error instanceof SourceFailure?error.code:'invalid_request'});}
@@ -41,15 +69,15 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
    if(documentRoute){
     if(!documents)return send(res,503,{error:'Document workflow unavailable'});
     try{
-     const id=req.url.split('/')[3];
-     if(req.method==='PUT'&&req.url==='/api/profile')return send(res,200,documents.updateProfile(uid,await readInput(req,x=>x)));
-     if(req.method==='DELETE'&&req.url==='/api/profile')return send(res,200,documents.deleteProfile(uid));
-     if(req.method==='GET'&&req.url==='/api/documents')return send(res,200,documents.list(uid));
-     if(req.method==='GET'&&req.url==='/api/profile')return send(res,200,documents.profile(uid));
-     if(req.method==='POST'&&req.url==='/api/documents')return send(res,201,documents.upload(uid,await readInput(req,x=>x)));
-     if(req.method==='GET'&&id)return send(res,200,documents.get(uid,id));
-     if(req.method==='DELETE'&&id)return send(res,200,documents.delete(uid,id));
-     if(req.method==='POST'&&id&&req.url.endsWith('/review'))return send(res,200,documents.review(uid,id,(await readInput(req,x=>x))?.decisions));
+     const id=route.split('/')[3];
+     if(req.method==='PUT'&&route==='/api/profile')return send(res,200,documents.updateProfile(storageOwner,await readInput(req,x=>x)));
+     if(req.method==='DELETE'&&route==='/api/profile')return send(res,200,documents.deleteProfile(storageOwner));
+     if(req.method==='GET'&&route==='/api/documents')return send(res,200,documents.list(storageOwner));
+     if(req.method==='GET'&&route==='/api/profile')return send(res,200,documents.profile(storageOwner));
+     if(req.method==='POST'&&route==='/api/documents')return send(res,201,documents.upload(storageOwner,await readInput(req,x=>x)));
+     if(req.method==='GET'&&id)return send(res,200,documents.get(storageOwner,id));
+     if(req.method==='DELETE'&&id)return send(res,200,documents.delete(storageOwner,id));
+     if(req.method==='POST'&&id&&route.endsWith('/review'))return send(res,200,documents.review(storageOwner,id,(await readInput(req,x=>x))?.decisions));
      return send(res,405,{error:'Method unavailable'});
     }catch(error){return send(res,error instanceof DocumentError?error.status:[400,413,415].includes(error.status)?error.status:503,{error:'Document request unavailable'});}
    }
@@ -57,16 +85,28 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
    let input;try{input=validateEvidenceRequest(rawInput);}catch{return send(res,400,{error:'Invalid analysis request'});}
    let retrieval=null;
    if(rawInput.receipt){if(rawInput.sourceApproved!==true)return send(res,400,{error:'Review source before analysis'});try{retrieval=sources.verify(rawInput.receipt,input.text,input.sourceUrl,uid);}catch{return send(res,400,{error:'Source preview expired or changed; fetch again or use manual text'});}}
-   if(!canInfer())return send(res,503,{error:'Analysis unavailable'});
+   // Policy is evaluated before prompts, quota reservation or any provider call.
+   let adapter,context;
+   {
+    try {context=await policyContextForRequest({uid});}catch {return send(res,403,{error:'Analysis unavailable for this request'});}
+    const decision=decideProviderRoute(context);
+    if (!decision.allowed || decision.route==='deterministic'||loadFamilyGrant&&context.provider!=='self_hosted')return send(res,403,{error:'Analysis unavailable for this request'});
+   }
+   adapter=providers?.[context.provider??'meta']??(!providers&&infer?{provider:'meta',model:infer.configuration?.model,available:true,infer,reservationUnits:infer.reservationUnits,quota}:null);
+   if(adapter&&adapter.model!==context.model)return send(res,403,{error:'Analysis unavailable for this request'});
+   if(!adapter||adapter.available!==true||typeof adapter.infer!=='function')return send(res,503,{error:'Analysis unavailable'});
+   if(adapter.provider!==(context.provider??'meta'))return send(res,403,{error:'Analysis unavailable for this request'});
+   if(!canInfer(adapter.provider))return send(res,503,{error:'Analysis unavailable'});
    if(res.destroyed)return;
    const messages=evidencePrompt(input);
    // UTF-8 bytes conservatively bound input tokens; fixed maximum output reservation.
-   const units=typeof infer.reservationUnits==='function'?infer.reservationUnits(messages):metaReservationUnits('muse-spark-1.3',messages);
-   try{quota.reserve(uid,units);}catch(error){return send(res,error instanceof QuotaExceeded?429:503,{error:error instanceof QuotaExceeded?'Quota exhausted':'Quota storage unavailable'});}
+   const units=typeof adapter.reservationUnits==='function'?adapter.reservationUnits(messages):metaReservationUnits(adapter.model,messages);
+   if(!Number.isSafeInteger(units)||units<1||(context.maxReservationUnits!==undefined&&units>context.maxReservationUnits))return send(res,403,{error:'Analysis unavailable for this request'});
+   try{(adapter.quota??quota).reserve(uid,units);}catch(error){return send(res,error instanceof QuotaExceeded?429:503,{error:error instanceof QuotaExceeded?'Quota exhausted':'Quota storage unavailable'});}
    const started=performance.now(),requestId=randomUUID();
    let stage='provider';
    try {
-    const raw=await infer(messages,{signal:pending.signal,requestId});
+    const raw=await adapter.infer(messages,{signal:pending.signal,requestId});
     stage='evidence';
     const output=normalizeEvidence(raw,input);
     output.sourceProvenance=retrieval??{kind:'user_pasted_text',sourceUrl:input.sourceUrl,retrievedAt:null,suppliedAt:new Date().toISOString(),digest:output.sourceDigest,trust:'user_supplied_unverified'};
