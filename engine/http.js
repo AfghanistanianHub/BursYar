@@ -1,3 +1,5 @@
+import {decideProviderRoute} from './provider-policy.js';
+import {dispatchProviderRequest, ProviderDenied, ProviderUnavailable} from './provider-router.js';
 import {createSourceFetcher,SourceFailure} from './source-fetch.js';
 import {metaReservationUnits} from './meta-request.js';
 import {MAX_META_TIMEOUT_MS,safeProviderDiagnostics} from './provider-config.js';
@@ -15,8 +17,7 @@ async function readInput(req,validate=validateEvidenceRequest,maxBody=MAX_BODY){
  let size=0;const chunks=[];
  for await(const chunk of req){size+=chunk.length;if(size>maxBody)throw Object.assign(Error(),{status:413});chunks.push(chunk);}
  try{return validate(JSON.parse(Buffer.concat(chunks).toString('utf8')));}catch{throw Object.assign(Error(),{status:400});}
-}
-export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,documents=null,sources=createSourceFetcher(),diagnose=record=>console.error(JSON.stringify(record))}){
+}export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,policyContextForRequest=async()=>{throw Error('Provider policy unavailable');},documents=null,sources=createSourceFetcher(),diagnose=record=>console.error(JSON.stringify(record)),geminiInfer=null,selfHostedInfer=null}) {
  if(!verify || !projectId || !quota || !infer || !origin || !Number.isSafeInteger(maxConcurrent) || maxConcurrent<1)throw Error('Missing gateway configuration');
  let active=0;
  const server=createServer(async(req,res)=>{
@@ -57,16 +58,38 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
    let input;try{input=validateEvidenceRequest(rawInput);}catch{return send(res,400,{error:'Invalid analysis request'});}
    let retrieval=null;
    if(rawInput.receipt){if(rawInput.sourceApproved!==true)return send(res,400,{error:'Review source before analysis'});try{retrieval=sources.verify(rawInput.receipt,input.text,input.sourceUrl,uid);}catch{return send(res,400,{error:'Source preview expired or changed; fetch again or use manual text'});}}
+   // Policy is evaluated before prompts, quota reservation or any provider call.
+   // Centralized dispatch: exactly one adapter runs; denies and unconfigured
+   // routes produce zero provider calls and never fall back to another provider.
+   // Deterministic matching uses the local offline engine (assessScholarship),
+   // not this model endpoint, so it is directed there without quota or inference.
+   let route;
+   try {
+    const context=await policyContextForRequest({uid});
+    const dispatched=await dispatchProviderRequest(context, {
+     meta: async () => 'meta_selected',
+     gemini: geminiInfer ? async () => 'gemini_selected' : null,
+     selfHosted: selfHostedInfer ? async () => 'self_hosted_selected' : null,
+     deterministic: async () => 'deterministic_selected'
+    });
+    route=dispatched.route;
+   } catch(error) {
+    if (error instanceof ProviderUnavailable) return send(res,503,{error:'Analysis unavailable'});
+    return send(res,403,{error:'Analysis unavailable for this request'});
+   }
+   if (route==='deterministic') return send(res,403,{error:'Model analysis unavailable for this request; use local deterministic matching'});
+   const activeInfer = route==='gemini_eligible' ? geminiInfer : route==='self_hosted' ? selfHostedInfer : infer;
+   if(!activeInfer)return send(res,503,{error:'Analysis unavailable'});
    if(!canInfer())return send(res,503,{error:'Analysis unavailable'});
    if(res.destroyed)return;
    const messages=evidencePrompt(input);
    // UTF-8 bytes conservatively bound input tokens; fixed maximum output reservation.
-   const units=typeof infer.reservationUnits==='function'?infer.reservationUnits(messages):metaReservationUnits('muse-spark-1.3',messages);
+   const units=typeof activeInfer.reservationUnits==='function'?activeInfer.reservationUnits(messages):metaReservationUnits('muse-spark-1.3',messages);
    try{quota.reserve(uid,units);}catch(error){return send(res,error instanceof QuotaExceeded?429:503,{error:error instanceof QuotaExceeded?'Quota exhausted':'Quota storage unavailable'});}
    const started=performance.now(),requestId=randomUUID();
    let stage='provider';
    try {
-    const raw=await infer(messages,{signal:pending.signal,requestId});
+    const raw=await activeInfer(messages,{signal:pending.signal,requestId});
     stage='evidence';
     const output=normalizeEvidence(raw,input);
     output.sourceProvenance=retrieval??{kind:'user_pasted_text',sourceUrl:input.sourceUrl,retrievedAt:null,suppliedAt:new Date().toISOString(),digest:output.sourceDigest,trust:'user_supplied_unverified'};
