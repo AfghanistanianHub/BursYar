@@ -32,5 +32,16 @@ mountDocuments(document.querySelector('#documents-mount'),state.language);
 mountEligibility(document.querySelector('#eligibility-mount'),state.language,document.querySelector('#analyze-form')?.analysis?.data?.compilation);
 for(const [key,open]of Object.entries(disclosures))if(open!==undefined&&document.querySelector('.'+key))document.querySelector('.'+key).open=open;
 }
+// Only a localized action message is propagated; never broadcast private profile data.
+document.addEventListener('bursyar:local-next',event=>{
+ const target=document.querySelector('#next-steps'),actions=document.querySelector('#next-actions');
+ if(!target||!actions)return;
+ actions.replaceChildren();
+ if(typeof event.detail==='string'&&event.detail){
+  const p=document.createElement('p');p.textContent=event.detail;actions.append(p);target.hidden=false;
+ }else{
+  target.hidden=!document.querySelector('#analyze-form')?.analysis?.data?.compilation;
+ }
+});
 document.addEventListener('bursyar:compilation',event=>{mountEligibility(document.querySelector('#eligibility-mount'),state.language,event.detail);queueMicrotask(()=>{const active=!!event.detail;document.querySelector('#requirements-step').hidden=!active&&document.querySelector('#analysis-result').hidden;document.querySelector('#next-steps').hidden=!active;if(!active)document.querySelector('#next-actions').replaceChildren();if(active){const result=document.querySelector('#analysis-result');const fields=result.querySelector('fieldset'),guidance=result.querySelector('#barrier-guidance');if(fields)document.querySelector('#next-actions').replaceChildren(fields,guidance);}});});
 render();
