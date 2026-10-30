@@ -25,7 +25,7 @@ function fact(profile,key){const f=profile?.[key];return f&&['user_declared','do
 const bool=(v,pass)=>typeof v==='boolean'?(v===pass?'met':'not_met'):'unknown';
 function evaluate(r,profile,depth=0){
  if(r.ambiguous===true||r.conflicting===true||depth>2)return 'unknown';
- if(['minimum_degree','ielts_academic','boolean_exclusion'].includes(r.type))return assessRequirement({...r,ambiguous:false},profile).status;
+ if(['minimum_degree','ielts_academic','boolean_exclusion','minimum_gpa','toefl_ibt'].includes(r.type))return assessRequirement({...r,ambiguous:false},profile).status;
  if(r.type==='any_of'){
   if(!Array.isArray(r.alternatives)||!r.alternatives.length||r.alternatives.length>10)return 'unknown';
   const statuses=r.alternatives.map(a=>evaluate({...a,id:r.id,sourceUrl:r.sourceUrl,sourceExcerpt:r.sourceExcerpt},profile,depth+1));
