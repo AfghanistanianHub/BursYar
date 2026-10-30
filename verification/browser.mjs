@@ -115,6 +115,10 @@ try {
   // Re-rendering via unrelated search must retain ephemeral source input.
   await page.locator('.resources').evaluate(el=>el.open=true);await page.locator('#search').fill('test');await expect(page.locator('#requirements')).toHaveValue('Applicants must provide academic transcripts. Tuition fees are covered.');
   responseStatus=429;await page.locator('#analyze-form button[type=submit]').click();await expect(page.locator('#analysis-result')).toContainText({en:'Quota',fa:'محدودیت',ps:'حد'}[language]);
+  await expect(page.locator('#deterministic-fallback')).toBeVisible();
+  await page.locator('#deterministic-fallback').click();
+  await expect(page.locator('.local-workflow')).toHaveAttribute('open','');
+  await expect(page.locator('#local-assessment')).toBeVisible();
   for(const status of [502,503,504]){
    responseStatus=status;await page.locator('#analyze-form button[type=submit]').click();
    await expect(page.locator('#analyze-form')).not.toHaveAttribute('aria-busy','true');
