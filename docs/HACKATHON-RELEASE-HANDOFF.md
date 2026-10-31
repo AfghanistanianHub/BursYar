@@ -15,8 +15,11 @@ Date: 2026-10-31. No deployment, submission, billing change, or paid inference c
      duplicate GPA/TOEFL evaluator blocks; README release note.
   4. `3a1481d445811449a9c20912ddbcf0ad8b73d297` — code-freeze head: restore `src/main.js`
      tail dropped during conflict resolution (see repairs).
-- This handoff is committed on top of the code freeze; the exact pushed tip SHA and
-  exact-head CI run links are recorded in the Draft release PR description.
+- Draft release PR: #35 (`release/hackathon-rc-2026-10-31` → `main`).
+- Pushed tip at PR creation: `54a1bff88fc0d979e131698409a4d318a9f6dc6b` (handoff
+  docs on top of code freeze `3a1481d`; docs-only delta, local counts unaffected).
+  If a later docs commit moves the tip, the PR checks section always shows the
+  exact-head CI state; local verification below applies to the code freeze.
 - `main` (`68d72f5`) adds zero content over this lineage: `git diff 3dd9187 68d72f5`
   is empty (the PR #8 merge kept the reconciled tree), and `3dd9187` is an ancestor
   of this branch. No main-reconciliation debt.
