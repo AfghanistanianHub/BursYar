@@ -1,0 +1,12 @@
+/* Mission 04: accessible and direction-neutral navigation, no new design tokens. */
+.journey-nav{max-width:720px;margin:0 auto 32px;border-block:1px solid #d7dfd4;padding-block:16px}
+.journey-nav ol{margin:0;padding-inline-start:24px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 20px}
+.journey-nav li{min-width:0}
+.journey-nav a{display:inline-block;min-height:44px;padding-block:9px;color:#204c40;font-weight:600;text-underline-offset:4px;overflow-wrap:anywhere}
+.journey-nav a:focus-visible{outline:3px solid #204c40;outline-offset:3px;border-radius:3px}
+.journey-nav .journey-note{font-size:14px;color:#516258;margin:10px 0 0}
+@media(max-width:600px){.journey-nav ol{grid-template-columns:1fr;gap:2px}}
+@media(prefers-reduced-motion:reduce){.journey-nav{scroll-behavior:auto}}
+
+.journey-offline{margin-block-start:12px;background:#204c40;color:#fff;border:1px solid #204c40;min-height:44px}
+.journey-offline:hover{background:#173b31}
