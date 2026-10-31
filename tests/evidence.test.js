@@ -17,3 +17,18 @@ test('failure diagnostics distinguish fabricated excerpts, deadline, funding and
   assert.throws(()=>normalizeEvidence(raw,input),error=>error.code===code&&!error.message.includes('invented'));
  }
 });
+
+test('compact contract rejects extra/missing keys, overlong explanations and excess selected evidence',()=>{
+ for(const mutate of [v=>v.eligibility='approved',v=>v.criteria[0].authentic=true,v=>delete v.criteria[0].required,v=>v.criteria[0].required='true',v=>v.criteria[0].en='x'.repeat(121),v=>v.criteria=Array.from({length:5},()=>v.criteria[0]),v=>v.funding=Array(3).fill('Tuition fees are covered.')]){
+  const v=output();mutate(v);assert.throws(()=>normalizeEvidence(JSON.stringify(v),input),e=>e.code==='evidence_schema');
+ }
+});
+test('compact selection explicitly remains incomplete and never clips evidence to fit',()=>{
+ const value=normalizeEvidence(JSON.stringify(output()),input);
+ assert.deepEqual(value.selection,{complete:false,maxCriteria:4,mode:'compact_selected_evidence'});
+ assert.equal(value.compilation.coverage,'selected_requirements_only');
+ assert.equal(value.criteria[0].excerpt,output().criteria[0].excerpt);assert.equal(value.requiresHumanReview,true);
+ const v=output();v.criteria[0].excerpt='x'.repeat(601);
+ assert.throws(()=>normalizeEvidence(JSON.stringify(v),{...input,text:v.criteria[0].excerpt}),e=>e.code==='evidence_excerpt');
+ const messages=evidencePrompt(input);assert.match(messages[0].content,/up to 4/);assert.match(messages[0].content,/never shorten a quote/);assert.equal(messages.length,2);
+});

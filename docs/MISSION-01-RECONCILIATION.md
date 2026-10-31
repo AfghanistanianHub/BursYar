@@ -1,0 +1,44 @@
+# Mission 01 — architecture reconciliation (Draft / NOT release approved)
+
+## Baseline and observed ancestry
+- Preserved release candidate PR #21 head `84ea455`. GitHub compare reports PR #26 head `646e494` is **12 commits ahead / 0 behind** that head. This integration branch starts at the exact PR #26 head, without changing #21/#25/#26/#27.
+- Selected **one** provider stack from #26: `trusted-policy.js` (server-only expiring evidence), `provider-policy.js` (pure deny-by-default routing), `providers.js` (exact adapters), and `http.js` (single authenticated route and actual adapter binding). PR #25's competing `provider-router.js`, family database and HTTP route implementation are **not imported**.
+- Guardian grants are resolved from server-owned records on every request; `resolveFamilyScope` returns a derived, guardian-scoped storage identity. Family routes expose deterministic operations only. Revocation and expiration deny subsequent accesses.
+- Deterministic catalog/evaluation from #26 remains functional independent of all external providers. Incomplete source coverage cannot become a complete eligibility decision.
+- New hardening: the analysis gateway requires `user_content` classification. Client-submitted text can include student identifiers even if an accompanying URL looks official, so no `public_source` downgrade is permitted on this endpoint.
+
+## Rejected implementations and data preservation
+- **Critical rejection — PR #25**: `FamilyStore.transferAtMajority()` deletes the minor row and reports success without persistently creating an adult-owned profile. **Never cherry-pick or run that transfer.** This branch does not expose a transfer-at-majority endpoint. Existing guardian-scoped profile remains intact until a separately designed and reviewed migration is implemented.
+- A future transfer must independently verify the adult recipient and legal majority, fresh owner consent and authority, make the destination write and old-owner authorization revocation a **single durable database transaction**, verify committed ownership before reporting success, support idempotent retries, and deny if the source or destination state is ambiguous. If databases differ, use a durable staged handoff with no source deletion before the destination is verified and an explicit acknowledgement is persisted. Test crash/retry/rollback and cross-user access.
+- PR #27's candidate `assessBarriers()` trusts arbitrary caller-provided alternative text/URLs. Integrated only a fail-closed deterministic assessment mapping: `src/pathfinder.js` ignores alternatives and asks the institution instead of claiming documentation. A cited-alternative action remains blocked until evidence is verified by a trusted server-reviewed catalog. No fabricated eligibility, deadline or accepted test.
+
+## Trust boundaries
+1. Firebase token verification establishes a UID, not legal adulthood, residence, guardian authority or verified student age.
+2. Server provisioned, short-lived, revocable records establish geography, age and consent for a named provider/model and subject; unknown is a denial.
+3. `/api/analyze` accepts user-controlled text; assume it can carry personal information. Contributor Mode and public-only processing paths **must not** receive it.
+4. Do not infer provider eligibility from guardian consent: Meta/Gemini underage subjects remain denied. Self-hosted local models require reviewed legal/security clearance and local-only endpoints.
+5. Do not accept provider/model, guardian grants, age, country, provenance or funding terms from browser-supplied authoritative claims.
+6. Source quotation matching is traceability, not authenticity, exhaustive coverage or semantic entailment.
+
+## Security verification and release blockers
+- Tests introduced: `engine/analysis-boundary.test.js` checks private classification, minor-targeted/guardian proxies, Contributor IDs, unknown policies, denied geography, consent; `tests/pathfinder-provenance.test.js` rejects fabricated source links and preserves tri-state fallbacks.
+- Pending combined-head GitHub Actions verification: Node tests, offline evaluation, Firebase Emulator, browser/RTL and macOS helper. Prior green PR #21 and #27 checks **do not establish** this integration commit is green.
+- **Blocking**: verified guardian authority/revocation and cross-user adversarial review; independent legal/terms verification for supported providers and countries; PR #27 proven-source alternative validation; selective GPA/TOEFL/glossary port and multilingual human approval; atomic transfer protocol and recovery tests if transfer is added; provider privacy/cost approval; final end-to-end combined CI and security review.
+- No paid inference, live model requests, production changes, secrets changes or deployment in this mission. Never merge this Draft into a protected branch until blockers are resolved.
+
+## Integrated improvements and verified restrictions (October 2026)
+- GPA (4.0 and 5.0 scales) and TOEFL iBT exact-rule grammars from #27 are now ported without removing curated Oxford exclusions, IELTS, tri-state eligibility or existing simulations. Profile input validates numeric bounds, finite values, fixed field names and matching scales. The reviewed deterministic catalog can apply these new rule types without any external AI provider. Missing official-source coverage still means an overall `unknown`.
+- The UNREVIEWED controlled en/fa/ps glossary and drift tests are retained. PathFinder labels now reference the glossary. A caller-provided URL or text never establishes an accepted alternative, even if the domain appears official.
+- Majority handoff is implemented only as an **internal offline service** `engine/majority-transfer.js`, **not a public API**. An independently trusted verifier must approve adult identity, legal adulthood, fresh recipient consent, guardian authority and revocation. In one SQLite `BEGIN IMMEDIATE` transaction, rows are moved, counts verified, and an immutable source-scope transfer tombstone recorded before commit. All failed operations roll back and leave the original profile intact. Idempotent retries for the same recipient return the durable receipt. The previous guardian HTTP routes deny the transferred scope even if a stale grant remains. No live transfer is possible until a trustworthy authority provider is provisioned and audited.
+- Additional adversarial tests: forged alternatives and unknown tri-state, scale/TOEFL bounds, incomplete program coverage, guardian cross-user IDOR, revoked grants, transfer rollback and idempotence, and post-transfer HTTP access rejection.
+- Meta's current terms (last updated 2026-10-09) require end users of Meta-integrated products to be 18+ and disallow products targeted at under-18s. Guardian consent does not override this. Meta Standard and Contributor designations remain distinct; submitted personal/student data must never reach Contributor. Relevant official terms: https://dev.meta.ai/legal/terms-of-service and https://dev.meta.ai/legal/geographic-use-policy .
+- Meta geographic policy (last updated 2026-10-12) explicitly restricts Crimea, Donetsk and Luhansk regions. Because current server records have only an ISO country code, all `UA` routes are conservatively blocked until independently verified subnational clearance exists. Afghanistan, Iran, Pakistan and other listed territories remain denied. If policy terms change, provider access must fail closed pending renewed legal review.
+
+## Remaining non-code release gates
+- Independent reliable authority verification (recipient identity, legal adulthood, guardian authority and consent) must be provisioned, with a threat-model review, before handoff activation.
+- Human fluent Dari/Pashto semantic and typography approval, official scholarship-source coverage, provider-contract and geographic compliance checks, and explicit production/privacy authorization remain external to synthetic CI.
+- CI must pass on the final exact SHA, including emulator/browser, before this Draft can be reviewed for promotion. Avoid presenting earlier successful heads as proof for later changes.
+
+## Final read-only audit follow-up
+- A post-handoff resurrection risk was found: even though guardian HTTP access rejects transferred scopes, direct DocumentStore mutators could previously recreate a transferred source profile. Added `assertWritable()` across write methods, with a second tombstone check **inside every BEGIN IMMEDIATE transaction** to close cross-process SQLite write races, plus an adversarial test. This protects a shared SQLite database; a future asynchronous/distributed storage implementation must reestablish the invariant with its own transaction/locking semantics.
+- CI for the exact updated SHA is required again. Do not reuse the successful CI from `dc03351b` for the newer fix.

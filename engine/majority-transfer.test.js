@@ -1,0 +1,110 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {DocumentStore} from './documents.js';
+import {createMajorityTransferService} from './majority-transfer.js';
+const sourceScope='family:synthetic-guardian-and-subject',targetUid='verified-adult-synthetic-user';
+const verified={approved:true,sourceScope,targetUid,recipientAdultVerified:true,recipientIdentityVerified:true,recipientConsentVerified:true,guardianAuthorityVerified:true,guardianRevocationAuthorized:true};
+function fixture(){
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-majority-')),documents=new DocumentStore(join(dir,'documents.sqlite'));
+ documents.updateProfile(sourceScope,{consent:true,values:{degree:'bachelor'}});
+ const doc=documents.upload(sourceScope,{consent:true,mime:'text/plain',text:'Degree: bachelor'});
+ return {documents,doc,close:()=>{documents.close();rmSync(dir,{recursive:true,force:true});}};
+}
+test('revoked, unverified or wrong recipient cannot move any profile or document',async()=>{
+ const f=fixture();try{
+  for(const change of [{recipientAdultVerified:false},{recipientConsentVerified:false},{guardianAuthorityVerified:false},{guardianRevocationAuthorized:false},{targetUid:'other'},{approved:false}]){
+   const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>({...verified,...change})});
+   await assert.rejects(service.transfer({sourceScope,targetUid}),{status:403});
+   assert.equal(f.documents.profile(sourceScope).degree.value,'bachelor');
+   assert.equal(f.documents.list(sourceScope).length,1);
+   assert.equal(f.documents.list(targetUid).length,0);
+  }
+ }finally{f.close();}
+});
+test('atomic handoff moves profile and all documents, revokes guardian scope, and is idempotent',async()=>{
+ const f=fixture();try{
+  const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>verified});
+  assert.deepEqual(await service.transfer({sourceScope,targetUid}),{transferred:true,alreadyTransferred:false});
+  assert.equal(f.documents.isTransferred(sourceScope),true);
+  assert.deepEqual(f.documents.profile(sourceScope),{});
+  assert.equal(f.documents.list(sourceScope).length,0);
+  assert.equal(f.documents.profile(targetUid).degree.value,'bachelor');
+  assert.equal(f.documents.get(targetUid,f.doc.id).text,'Degree: bachelor');
+  assert.deepEqual(await service.transfer({sourceScope,targetUid}),{transferred:true,alreadyTransferred:true});
+  assert.equal(f.documents.list(targetUid).length,1);
+  await assert.rejects(service.transfer({sourceScope,targetUid:'other'}),{status:403});
+ }finally{f.close();}
+});
+test('existing destination conflicts roll back without source loss',async()=>{
+ const f=fixture();try{
+  f.documents.updateProfile(targetUid,{consent:true,values:{degree:'master'}});
+  const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>verified});
+  await assert.rejects(service.transfer({sourceScope,targetUid}),{status:409});
+  assert.equal(f.documents.profile(sourceScope).degree.value,'bachelor');
+  assert.equal(f.documents.list(sourceScope).length,1);
+  assert.equal(f.documents.profile(targetUid).degree.value,'master');
+  assert.equal(f.documents.isTransferred(sourceScope),false);
+ }finally{f.close();}
+});
+test('empty guardian scope never reports a transfer success',async()=>{
+ const f=fixture();try{
+  const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>({...verified,sourceScope:'family:empty'})});
+  await assert.rejects(service.transfer({sourceScope:'family:empty',targetUid}),{status:404});
+  assert.equal(f.documents.profile(sourceScope).degree.value,'bachelor');
+ }finally{f.close();}
+});
+
+test('interrupted receipt persistence rolls back every ownership change',async()=>{
+ const f=fixture();try{
+  f.documents.db.exec("CREATE TRIGGER synthetic_interrupt BEFORE INSERT ON majority_transfers BEGIN SELECT RAISE(ABORT, 'synthetic interruption'); END");
+  const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>verified});
+  await assert.rejects(service.transfer({sourceScope,targetUid}));
+  assert.equal(f.documents.profile(sourceScope).degree.value,'bachelor');
+  assert.equal(f.documents.list(sourceScope).length,1);
+  assert.equal(f.documents.list(targetUid).length,0);
+  assert.equal(f.documents.isTransferred(sourceScope),false);
+  f.documents.db.exec('DROP TRIGGER synthetic_interrupt');
+  assert.equal((await service.transfer({sourceScope,targetUid})).transferred,true);
+  assert.equal(f.documents.list(targetUid).length,1);
+ }finally{f.close();}
+});
+
+test('transferred guardian scope cannot recreate records through direct store methods',async()=>{
+ const f=fixture();try{
+  const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>verified});
+  await service.transfer({sourceScope,targetUid});
+  assert.throws(()=>f.documents.updateProfile(sourceScope,{consent:true,values:{degree:'master'}}),{status:403});
+  assert.throws(()=>f.documents.upload(sourceScope,{consent:true,mime:'text/plain',text:'Degree: master'}),{status:403});
+  assert.throws(()=>f.documents.eraseOwner(sourceScope),{status:403});
+  assert.equal(f.documents.profile(targetUid).degree.value,'bachelor');
+ }finally{f.close();}
+});
+
+test('document-only destination collision cannot silently combine private records',async()=>{
+ const f=fixture();try{
+  f.documents.upload(targetUid,{consent:true,mime:'text/plain',text:'Degree: master'});
+  const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>verified});
+  await assert.rejects(service.transfer({sourceScope,targetUid}),{status:409});
+  assert.equal(f.documents.list(sourceScope).length,1);
+  assert.equal(f.documents.list(targetUid).length,1);
+  assert.equal(f.documents.isTransferred(sourceScope),false);
+ }finally{f.close();}
+});
+test('profile edit history remains with recipient, and cannot be replayed by former guardian',async()=>{
+ const f=fixture();try{
+  f.documents.updateProfile(sourceScope,{consent:true,values:{targetDegree:'master'}});
+  const historyCount=f.documents.db.prepare('SELECT COUNT(*) AS n FROM profile_history WHERE owner=?').get(f.documents.owner(sourceScope)).n;
+  assert.ok(historyCount>0);
+  const service=createMajorityTransferService({documents:f.documents,verifyAuthority:async()=>verified});
+  await service.transfer({sourceScope,targetUid});
+  const oldHistory=f.documents.db.prepare('SELECT COUNT(*) AS n FROM profile_history WHERE owner=?').get(f.documents.owner(sourceScope)).n;
+  const newHistory=f.documents.db.prepare('SELECT COUNT(*) AS n FROM profile_history WHERE owner=?').get(f.documents.owner(targetUid)).n;
+  assert.equal(oldHistory,0);
+  assert.equal(newHistory,historyCount);
+  assert.throws(()=>f.documents.deleteProfile(sourceScope),{status:403});
+  assert.equal(f.documents.profile(targetUid).targetDegree.value,'master');
+ }finally{f.close();}
+});

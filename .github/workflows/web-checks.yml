@@ -16,6 +16,7 @@ jobs:
       - run: npm install --global npm@11.9.0 --no-audit --no-fund
       - run: npm ci --no-audit --no-fund
       - run: npm test
+      - run: npm run test:evaluation
       - run: npm run build
   emulator:
     runs-on: ubuntu-latest
@@ -41,7 +42,14 @@ jobs:
       - run: npm install --global npm@11.9.0 --no-audit --no-fund
       - run: npm ci --no-audit --no-fund
       - run: npx playwright install --with-deps chromium
+      - run: node verification/typography-probe.mjs
       - run: npm run test:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-evidence
+          path: verification/artifacts/
+          retention-days: 7
   macos-helper:
     runs-on: macos-14
     steps:
