@@ -2,6 +2,10 @@
 
 English, Dari/Persian and Pashto scholarship reader and bounded Barrier PathFinder for Afghan applicants. No CTO dependency.
 
+## Hackathon release candidate (Draft, unmerged)
+
+Branch `release/hackathon-rc-2026-10-31` integrates Draft PRs #30 (secure reconciliation + GPA/TOEFL UI), #34 (Mission 02 evidence) and #33 (Mission 04 navigation) as one unmerged candidate. Source PR branches are unchanged. See [the release handoff](docs/HACKATHON-RELEASE-HANDOFF.md) for the exact commit, integration decisions, test evidence and remaining gates. Nothing here is deployed or submitted.
+
 ## Mission 04 — verified frontend integration checkpoint (Draft PR #33)
 
 The independent frontend branch `feat/mission-04-journey-navigation` integrates English/Farsi/Pashto responsive navigation, authenticated private-profile review, evidence-focused source inspection, deterministic scholarship assessment and conservative next steps. Users can enter the deterministic path directly without Meta or switch to it if AI analysis is unavailable. This does **not** assert a fully reviewed institutional scholarship catalog or verified live inference.
