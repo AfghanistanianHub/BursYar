@@ -11,7 +11,7 @@ const copy={
 const sections=['listening','reading','speaking','writing'];
 let profile={},epoch=0,notice='';
 document.addEventListener('bursyar:identity',()=>{profile={};epoch++;notice='';});
-document.addEventListener('bursyar:profile',event=>{profile=structuredClone(event.detail??{});});
+document.addEventListener('bursyar:profile',event=>{profile=structuredClone(event.detail??{});const root=document.querySelector('#academic-evidence-mount');if(root)mountAcademicEvidence(root,document.documentElement.lang);});
 export function mountAcademicEvidence(root,language='en'){
  if(!root)return;
  const t=copy[language]??copy.en,ownEpoch=epoch;
@@ -46,6 +46,7 @@ export function mountAcademicEvidence(root,language='en'){
   test.value=['IELTS Academic','TOEFL iBT'].includes(lang?.test)?lang.test:'';
   overall.value=lang?.overall??'';
   for(const key of sections)sectionInputs[key].value=lang?.bands?.[key]??lang?.sections?.[key]??'';
+  gpa.max=scale.value;
   gpa.disabled=scale.disabled=locked('gpa');
   test.disabled=overall.disabled=locked('languageTest');
   for(const key of sections)sectionInputs[key].disabled=locked('languageTest');
