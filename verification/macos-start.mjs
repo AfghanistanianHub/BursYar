@@ -43,7 +43,10 @@ try{
   try{const {stdout}=await run(helper,['read'],{timeout:60000,maxBuffer:16384});privateConfig=validateKeychainConfig(JSON.parse(stdout));}catch(error){throw new KeychainAccessError(error.stderr,error.code);}
   const saved=rebootEnvironment(privateConfig,homedir(),{timeoutMs:process.env.META_TIMEOUT_MS});
   if(mode==='check'){
-   console.log(JSON.stringify({credentialsPresent:true,quotaDatabaseExists:true,spendingConfirmed:privateConfig.spendingConfirmed,savedSpendingLimitUSD:privateConfig.spendLimitUSD,confirmationTimestampValid:Number.isFinite(Date.parse(privateConfig.confirmedAt)),backendSpendingConfirmed:saved.BURSYAR_SPENDING_CONFIRMED==='1',providerConfigForwarded:'BURSYAR_PROVIDER_CONFIG' in forwarded,policyRecordsForwarded:'BURSYAR_POLICY_RECORDS' in forwarded,liveInferenceVerified:false}));
+   const providerConfigForwarded='BURSYAR_PROVIDER_CONFIG' in forwarded,policyRecordsForwarded='BURSYAR_POLICY_RECORDS' in forwarded,backendSpendingConfirmed=saved.BURSYAR_SPENDING_CONFIRMED==='1';
+   const deterministicOnlyExpected=!providerConfigForwarded||!policyRecordsForwarded||!backendSpendingConfirmed;
+   const forwardingReason=!providerConfigForwarded?'provider_config_not_forwarded':!policyRecordsForwarded?'policy_records_not_forwarded':!backendSpendingConfirmed?'spending_not_confirmed':'forwarding_complete_backend_validation_pending';
+   console.log(JSON.stringify({credentialsPresent:true,quotaDatabaseExists:true,spendingConfirmed:privateConfig.spendingConfirmed,savedSpendingLimitUSD:privateConfig.spendLimitUSD,confirmationTimestampValid:Number.isFinite(Date.parse(privateConfig.confirmedAt)),backendSpendingConfirmed,providerConfigForwarded,policyRecordsForwarded,deterministicReady:true,deterministicOnlyExpected,forwardingReason,liveInferenceVerified:false,inferenceNote:'Forwarding is necessary but not sufficient; the backend still validates provider enablement, spending approval, and per-request policy. Server health never implies successful inference.'}));
   }else{
    // Do not inherit stale provider/model/cap/emulator or secret frontend variables.
    const env={PATH:process.env.PATH,HOME:homedir(),LANG:process.env.LANG||'en_US.UTF-8',TMPDIR:process.env.TMPDIR,...saved,...forwarded};

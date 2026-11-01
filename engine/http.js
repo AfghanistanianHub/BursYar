@@ -20,11 +20,11 @@ async function readInput(req,validate=validateEvidenceRequest,maxBody=MAX_BODY){
  for await(const chunk of req){size+=chunk.length;if(size>maxBody)throw Object.assign(Error(),{status:413});chunks.push(chunk);}
  try{return validate(JSON.parse(Buffer.concat(chunks).toString('utf8')));}catch{throw Object.assign(Error(),{status:400});}
 }
-export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,providers=null,catalog=null,loadFamilyGrant=null,policyContextForRequest=async()=>{throw Error('Provider policy unavailable');},documents=null,sources=createSourceFetcher(),diagnose=record=>console.error(JSON.stringify(record))}){
+export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,providers=null,catalog=null,loadFamilyGrant=null,policyContextForRequest=async()=>{throw Error('Provider policy unavailable');},documents=null,sources=createSourceFetcher(),capabilities=null,diagnose=record=>console.error(JSON.stringify(record))}){
  if(!verify || !projectId || !quota || (!infer&&!providers) || !origin || !Number.isSafeInteger(maxConcurrent) || maxConcurrent<1)throw Error('Missing gateway configuration');
  let active=0;
  const server=createServer(async(req,res)=>{
-  if(req.method==='GET' && req.url==='/health')return send(res,200,{ok:true});
+  if(req.method==='GET' && req.url==='/health')return send(res,200,capabilities?{ok:true,capabilities}: {ok:true});
   let route=req.url;
   const family=/^\/api\/family\/([a-zA-Z0-9_-]{1,80})(\/.*)$/.exec(route??'');
   if(family)route='/api'+family[2];

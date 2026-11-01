@@ -24,7 +24,7 @@ The executable gateway requires `BURSYAR_SPENDING_CONFIRMED=1`, a positive finit
 
 ## Checks and recovery
 
-`npm run check:mac` checks the existing private files and reads the Keychain item without printing its content. `node verification/macos-start.mjs status` checks metadata without opening a credential-entry dialog. Missing/locked/denied Keychain access fails closed; the launcher never falls back to secrets in Git, .env, history or plaintext configuration. Compiled helper and its source digest live in `~/.bursyar-private/bin`; Swift compiler cache lives in ignored verification/artifacts. Rebuild happens only when the checked-in helper source changes.
+`npm run check:mac` checks the existing private files and reads the Keychain item without printing its content; it also reports provider/policy forwarding plus `deterministicOnlyExpected`/`forwardingReason` (forwarding is necessary but not sufficient for inference). After startup, `GET /health` reports the backend's real capabilities. `node verification/macos-start.mjs status` checks metadata without opening a credential-entry dialog. Missing/locked/denied Keychain access fails closed; the launcher never falls back to secrets in Git, .env, history or plaintext configuration. Compiled helper and its source digest live in `~/.bursyar-private/bin`; Swift compiler cache lives in ignored verification/artifacts. Rebuild happens only when the checked-in helper source changes.
 
 ## Provider/policy configuration (live inference only)
 

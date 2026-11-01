@@ -197,26 +197,98 @@ the gates — see next section).
   procedure below. Backend logs are readable from here after startup, so no manual
   log-copying is needed.
 
+## Launcher/server agreement repair (2026-11-01, code + offline checks only)
+
+Audit finding: `engine/server.js` requires trusted provider configuration and
+user-policy records, while the launcher path primarily supported the earlier
+key/spending-attestation startup — a launcher could report readiness while the
+current server had no enabled inference provider. Traced
+`start-bursyar.command` → `macos-start` → `start-demo` → `server` → trusted
+policy (`engine/trusted-policy.js` + `engine/provider-policy.js` gateway order:
+policy → adapter → `canInfer` → quota → infer) → per-provider `QuotaStore`.
+
+Repair (same release branch, no new branch/PR; Keychain, private ADC, document
+DB, quota DB, and the USD 5 cap untouched — no resets, no credential writes):
+
+- `engine/capabilities.js` (new): pure, secret-free capability report — local
+  assessment available; source retrieval / document storage available or
+  unavailable; Meta `configured` / `disabled` / `blocked` with a safe actionable
+  reason. `inferenceVerified:false` always; health/catalog never imply success.
+- `engine/server.js` + `engine/http.js`: the server computes capabilities from
+  its real state (provider config presence/enablement, adapter availability,
+  spending confirmation + `spendingApproved`, policy-records presence, family
+  grants, documents, catalog) and serves them on unauthenticated `GET /health`
+  as `{ok:true, capabilities}` (`{ok:true}` unchanged when absent, so existing
+  consumers keep working).
+- `verification/demo-readiness.mjs` (new) + `verification/start-demo.mjs`: Meta
+  catalog check is now advisory — missing keys or any catalog failure degrade
+  to deterministic-only startup instead of blocking local features. After the
+  backend is up, the launcher reads `/health` capabilities and prints them plus
+  `Inference verified: false`; the ready line is explicitly labeled
+  `ready (deterministic-only)` unless Meta is configured.
+- `verification/macos-start.mjs` `check`: adds `deterministicReady`,
+  `deterministicOnlyExpected`, and `forwardingReason` (forwarding is necessary
+  but not sufficient; backend + per-request policy still validate).
+- `verification/live-demo.mjs`: opt-in E2E now runs the full journey — approved
+  ID token (from a real Google sign-in) → official Oxford text → explicit
+  gateway source approval (server-fetched receipt, `user_supplied` import
+  fallback) → exactly one `/api/analyze` with `receipt` + `sourceApproved:true`
+  → evidence validation. Records code version, latency, receipt kind,
+  validation outcome, and source digest; requestId/model/token counts correlate
+  from the backend `meta_response` + `analysis_validated` log pair. Mode stays
+  `REAL_GATEWAY_AND_META_REQUIRED` (`fixture:false`), strictly distinct from
+  `BROWSER_WITH_MOCK_AUTH_AND_API` fixtures. No retries, no model/provider
+  switching, no cost estimates, no secrets logged.
+- Regression coverage (14 new tests, all passing): `engine/capabilities.test.js`
+  (missing config, every disabled/blocked reason, configured-still-requires-policy,
+  formatting truthfulness), `verification/demo-readiness.test.js` (deterministic
+  catalog skip, readiness messaging, deterministic-only labeling),
+  `tests/runtime-readiness.test.js` (`/health` capabilities unauthenticated,
+  missing/expired/revoked policy denial before provider/quota, missing-adapter
+  503, unconfirmed-spending 503).
+
+Offline verification on this tree: `npm test` 235/235 pass;
+`npm run test:evaluation` 51/51 (`OFFLINE_EXCERPT_FIXTURES_NOT_LIVE_META`);
+`npm run build` passes; `node verification/live-demo.mjs` without the gate exits
+1 with a safe blocker and no network; a real `engine/server.js` deterministic
+probe (no key, no provider/policy config) serves `/health` with
+`Meta disabled (provider_config_missing)`, `deterministicOnly:true`, and
+`401` on unauthenticated `/api/analyze`. No live inference was attempted: no
+explicitly authorized live-test scope, credentials, or trustworthy policy
+evidence exists in this session.
+
+ONE owner action for the remaining live step: reply with the consolidated
+confirmation (terms/privacy/cost meanings + USD 5 cap re-affirmed + consent and
+adult-operator attestation for exactly one Oxford submit), then perform the
+single Google sign-in + one Prepare-analysis submit per the procedure below.
+
 ## Outstanding defects and environment dependencies
 
-1. Live Meta inference is unverified end to end. Prior live evidence: one client
-   timeout and one HTTP 200 / `finish_reason=length` (correctly rejected as
-   `provider_truncated`) against `muse-spark-1.3` — provider reachability shown, but
-   no validated analysis. Owner authorized ONE live request (prior message); the
-   consolidated terms/consent confirmation and the single browser submit remain.
+1. Live Meta inference is unverified end to end on the current runtime.
+   Historical fact preserved: Checkpoint 15 records one owner-supplied
+   successful `muse-spark-1.3` request (`stop` + `analysis_validated`, same
+   requestId) on an earlier implementation; it does not certify the current
+   runtime. On recent attempts: one client timeout and one HTTP 200 /
+   `finish_reason=length` (correctly rejected as `provider_truncated`) —
+   provider reachability shown, but no validated analysis on this tree. No
+   standing live-test authorization exists in this session; the consolidated
+   terms/consent confirmation and the single opt-in submit below remain.
 2. App-side spending confirmation: RESOLVED since the earlier DISABLED report.
    `npm run check:mac` on 2026-11-01 (redacted output, no secrets) reports
    `spendingConfirmed:true, savedSpendingLimitUSD:5, confirmationTimestampValid:true,
    backendSpendingConfirmed:true`. The owner's Meta-dashboard $5 cap itself remains
    owner-reported and unverified by this work.
-3. Launcher scope limit (verified in code): `start-bursyar.command` /
-   `verification/macos-start.mjs` build a scrubbed child environment that does NOT
-   forward `BURSYAR_PROVIDER_CONFIG` / `BURSYAR_POLICY_RECORDS` (only
-   `META_TIMEOUT_MS` is inherited). A launcher-started backend therefore serves the
-   deterministic UI plus documents/quotas, but `/api/analyze` can only reach live
-   inference via a manual `start:engine` process with owner-provisioned config files
-   (see procedure). Changing launcher inheritance is a security-sensitive owner
-   decision — not changed here.
+3. Launcher/provider handoff: RESOLVED by `973a519` plus this update. The Mac
+   launcher forwards exactly `BURSYAR_PROVIDER_CONFIG` / `BURSYAR_POLICY_RECORDS`
+   as validated absolute owner-only mode-600 paths (all other parent variables
+   stay dropped). The backend validates enablement, reviewed spending bounds,
+   and per-request trusted policy; without them it serves deterministic-only and
+   now says so explicitly (`Meta disabled/blocked` + actionable reason on
+   `/health` and in launcher output). The manual `start:engine` procedure below
+   remains valid; a launcher start with the two variables exported in the
+   launching shell now reaches the same backend gates. No fake age, location,
+   consent, contractual-clearance, or guardian-authority values were generated;
+   provisioning those records remains an explicit owner attestation.
 4. Human Farsi/Pashto review outstanding; all new translations remain UNREVIEWED.
 5. No authenticated institutional catalog provisioned; official-source approval and
    guardian/privacy sign-off outstanding. PR stays Draft.

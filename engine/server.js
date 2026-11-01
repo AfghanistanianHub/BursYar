@@ -8,6 +8,7 @@ import {createProvider} from './providers.js';
 import {createTrustedPolicyResolver} from './trusted-policy.js';
 import {createScholarshipCatalog} from './deterministic.js';
 import {readPrivateJson} from './private-config.js';
+import {describeCapabilities} from './capabilities.js';
 import {createInferenceServer} from './http.js';
 const env=process.env;
 const port=Number(env.PORT||8080);
@@ -40,6 +41,7 @@ const catalog=env.BURSYAR_REVIEWED_CATALOG?createScholarshipCatalog(await readPr
 const loadFamilyGrant=env.BURSYAR_FAMILY_GRANTS?async(uid,subjectId)=>(await readPrivateJson(env.BURSYAR_FAMILY_GRANTS)).find(r=>r.guardianUid===uid&&r.subjectId===subjectId):null;
 const documents=env.BURSYAR_DOCUMENT_DB?new DocumentStore(env.BURSYAR_DOCUMENT_DB):null;
 const verify=createFirebaseVerifier({projectId:env.FIREBASE_PROJECT_ID});
-const server=createInferenceServer({documents,verify,projectId:env.FIREBASE_PROJECT_ID,quota:{reserve(){throw Error('Provider unavailable');}},providers,catalog,loadFamilyGrant,origin:env.BURSYAR_ORIGIN,canInfer:provider=>isSpendingConfirmed(env)&&config[provider]?.spendingApproved===true,policyContextForRequest});
+const capabilities=describeCapabilities({providerConfigPresent:!!env.BURSYAR_PROVIDER_CONFIG,providerEnabled:config.meta?.enabled===true,familyGrantsPresent:!!env.BURSYAR_FAMILY_GRANTS,metaAvailable:providers.meta?.available===true,spendingConfirmed:isSpendingConfirmed(env),spendingApproved:config.meta?.spendingApproved===true,policyRecordsConfigured:!!env.BURSYAR_POLICY_RECORDS,documentsAvailable:!!documents,catalogAvailable:!!catalog});
+const server=createInferenceServer({documents,verify,projectId:env.FIREBASE_PROJECT_ID,quota:{reserve(){throw Error('Provider unavailable');}},providers,catalog,loadFamilyGrant,origin:env.BURSYAR_ORIGIN,canInfer:provider=>isSpendingConfirmed(env)&&config[provider]?.spendingApproved===true,policyContextForRequest,capabilities});
 server.listen(port,'127.0.0.1');
 for(const signal of ['SIGTERM','SIGINT'])process.once(signal,()=>{server.close(()=>{for(const quota of quotas)quota.close();documents?.close();process.exit(0);});server.closeIdleConnections();});
