@@ -1,9 +1,14 @@
-# Exact remaining user intervention / live demo gates
+# Live demo gates
+
+> Current hosted authentication and release status: [HOSTED-BACKEND.md](HOSTED-BACKEND.md).
+> The setup record below predates the hosted release; its remaining Meta,
+> persistent-storage and human-review gates still apply. Google sign-in, public
+> Firebase settings and the authenticated catalog are now verified in production.
 
 No routine approval is needed for local emulator, mocked integration, unit or browser tests. None of these prove live Meta inference or production Google sign-in.
 
 ## Secure provisioning needed from account owner
-Use the machine/process secret environment or an existing hosting secret manager. Do not put secrets in chat, GitHub issues, any repository files (including ignored .env files), screenshots or browser logs. This session has no Firebase/Meta connector or credentials.
+Use the machine/process secret environment or an existing hosting secret manager. Do not put secrets in chat, GitHub issues, any repository files (including ignored .env files), screenshots or browser logs. The hosted release uses public Firebase web configuration and keyless account verification; no private Admin credential was created. Meta credentials are not provisioned in the hosted service.
 
 | Configuration | Where / action | Secret? |
 |---|---|---|
@@ -32,4 +37,4 @@ The test never supplies fake identity/provider replies. It fails rather than ski
 Human English/Dari/Pashto review tracked in TRANSLATION-REVIEW.json. Never mark it complete automatically.
 
 ## Hosting status
-Confirmed SAM's workspace: only static bursyar-web-preview, auto deploy off, live commit9626269. No inference backend exists. Local demo is the immediate path without new spending. Public hosting remains blocked pending verified live authentication/revocation, abuse/spend limits, persistent storage, TLS/proxy and human review. No deployment or billing change made.
+The public frontend is https://bursyar.vercel.app, connected through same-origin rewrites to the free `bursyar-api` Render service in the owner-confirmed SAM's workspace. Google sign-in and an authenticated catalog request succeeded. The backend tracks main with automatic code deploys off. Hosted Meta inference and private document/profile persistence remain disabled pending provisioning; no billing upgrade was made. See HOSTED-BACKEND.md for deployed commit and verification scope.
