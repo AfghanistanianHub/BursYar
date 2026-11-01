@@ -2,7 +2,7 @@ export const PROFILE_FIELDS=['degree','languageTest','academicHistory','language
 const date=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString().slice(0,10)===s;
 export function validProfileValue(key,value){
  if(key==='degree')return ['secondary','bachelor','master','doctorate'].includes(value);
- if(key==='targetDegree')return ['master','doctorate'].includes(value);
+ if(key==='targetDegree')return ['bachelor','master','doctorate'].includes(value);
  if(['deferredOffer','continuingSameDegree'].includes(key))return typeof value==='boolean';
  if(['courseStart','testExpiry'].includes(key))return date(value);
  if(['academicHistory','languages'].includes(key))return typeof value==='string'&&value.trim().length>0&&value.length<=(key==='languages'?300:1000);
