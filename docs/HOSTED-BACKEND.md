@@ -15,9 +15,11 @@ branch with automatic redeploys disabled; reconcile its branch before future rel
 - Google sign-in: public Firebase web app configuration (`VITE_FIREBASE_API_KEY`,
   `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_AUTH_DOMAIN`) plus the production
   hostname in Firebase Authentication authorized domains.
-- Server authentication: an authorized Firebase Admin credential or workload
-  identity is required for `verifyIdToken(token, true)` revocation checking.
-  Knowing a Firebase project ID does not supply those credentials.
+- Server authentication: the default mode uses a Firebase Admin credential or
+  workload identity for `verifyIdToken(token, true)`. Optional public
+  `FIREBASE_WEB_API_KEY` mode retains SDK signature validation and uses a
+  mandatory caller-account REST lookup for disabled/revoked status. See
+  KEYLESS-FIREBASE-AUTH.md. Neither mode treats a project ID as authentication.
 - Documents/profile: no document database is enabled on ephemeral free storage.
   Enable only with an appropriate durable private storage deployment.
 - Meta: no key, provider file, policy records, spending approval or quota database

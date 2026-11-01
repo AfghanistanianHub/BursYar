@@ -8,7 +8,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 test('hosted server starts without provider credentials and denies private APIs', {timeout:15000},async()=>{
  const reserve=createServer();await new Promise(resolve=>reserve.listen(0,'127.0.0.1',resolve));
  const port=reserve.address().port;await new Promise(resolve=>reserve.close(resolve));
- const child=spawn(process.execPath,['engine/server.js'],{cwd:new URL('..',import.meta.url),env:{PATH:process.env.PATH,PORT:String(port),BURSYAR_HOST:'0.0.0.0',BURSYAR_ORIGIN:'https://bursyar.vercel.app',FIREBASE_PROJECT_ID:'demo-bursyar'},stdio:'ignore'});
+ const child=spawn(process.execPath,['engine/server.js'],{cwd:new URL('..',import.meta.url),env:{PATH:process.env.PATH,PORT:String(port),BURSYAR_HOST:'0.0.0.0',BURSYAR_ORIGIN:'https://bursyar.vercel.app',FIREBASE_PROJECT_ID:'demo-bursyar',FIREBASE_WEB_API_KEY:''},stdio:'ignore'});
  const exited=once(child,'exit');
  try{
   const url=`http://127.0.0.1:${port}`;let response;
