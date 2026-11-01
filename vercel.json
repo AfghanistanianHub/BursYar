@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    {"source": "/api/:path*", "destination": "https://bursyar-api.onrender.com/api/:path*"},
+    {"source": "/health", "destination": "https://bursyar-api.onrender.com/health"}
+  ],
+  "headers": [
+    {"source": "/api/:path*", "headers": [{"key": "Cache-Control", "value": "no-store"}]},
+    {"source": "/health", "headers": [{"key": "Cache-Control", "value": "no-store"}]}
+  ]
+}
