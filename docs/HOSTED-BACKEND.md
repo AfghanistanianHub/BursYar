@@ -26,9 +26,9 @@ No private Admin key was created or exported. See KEYLESS-FIREBASE-AUTH.md.
 The project ID and public key alone do not authorize a caller; the existing
 project, issuer, nonanonymous identity and `bursyarDemo` checks remain required.
 
-Backend code: `81372715e81f2099c319f1b99616d38b7e1b1c0a`, Render deployment
-`dep-dbjo0049v7es73alsr9g` (verified live). The storage implementation passed
-285 Node tests, production build and all four CI jobs. The subsequent consent
+Backend code: `4e272a74e65df5ccf2318f3adac312196f5db443`, Render deployment
+`dep-dbjooe0u01pc7383tj2g` (verified live). The storage implementation passed
+293 Node tests, production build and all four CI jobs. The subsequent consent
 wording release also passed all four CI jobs and is READY in production.
 
 ## Durable document/profile storage
@@ -41,15 +41,20 @@ synthetic record was cleared with CAS. No real student data was used. The full
 file-upload/review UI smoke test remains pending after a browser file-transfer
 timeout. See DURABLE-DOCUMENTS.md for the exact verification scope.
 
-## Remaining provisioning gates
-- Meta: no key, provider file, policy records, spending approval or quota database
-  is provisioned. No live or paid inference is enabled.
+## Meta demo activation
+
+Meta Standard Muse Spark 1.3 is configured for the owner-approved adult Canadian
+demo account. A dedicated server-only key, short-lived policy record, durable
+atomic quota budget and USD50 spending ceiling are provisioned. One authorized
+public-source request passed real inference and evidence validation. See
+HOSTED-META.md for the exact request ID, live deploy and verification limits.
+Unverified accounts and expired/restricted policy records remain denied.
 
 Add credentials only through provider secret settings, never a repository or chat.
 Do not disable revocation, demo-claim, origin, provider-policy or spending checks
 to make a deployment appear functional. A healthy `/health` is not proof of
 successful sign-in, persistence or inference. Free-service cold starts can delay
-requests. Durable spending quotas remain a separate prerequisite for Meta.
+requests. Spending quotas are durable in the existing private Supabase project.
 
 
 ## Read-only release check
@@ -57,13 +62,14 @@ requests. Durable spending quotas remain a separate prerequisite for Meta.
 Open https://bursyar.vercel.app/health directly. The earlier authentication-only release returned `ok: true`, deterministic
 features available, storage disabled and `inferenceVerified: false`. The current
 storage adapter must pass a real read-only RPC probe at startup before reporting
-`documentStorage.available: true`. Meta remains disabled and inference unverified.
+`documentStorage.available: true`. Meta is now configured. Startup `inferenceVerified: false` remains intentional;
+actual per-request evidence is recorded separately in HOSTED-META.md.
 The route matches `/health` exactly. A deployment inspection tool that appends
 its own authentication query parameters can receive 404; that response is not
 evidence that the exact public health URL is broken.
 
 Storage owner isolation and document deletion passed automated checks; actual
-synthetic profile persistence across a deployment was verified separately. A
-later Meta release must retain trusted policy checks and durable atomic quotas,
-provision the server-only key, and use the separately authorized spending limit.
-No paid inference or real student document has been exercised on this deployment.
+synthetic profile persistence across a deployment was verified separately. The
+live Meta demo retains trusted policy checks, durable atomic quotas, server-only
+credentials and the owner-approved spending cap. One public-source inference
+succeeded; no real student document was used.
