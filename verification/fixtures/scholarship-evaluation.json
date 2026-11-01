@@ -1,7 +1,7 @@
 {
   "mode": "OFFLINE_EXCERPT_FIXTURES_NOT_LIVE_META",
-  "checkedDate": "2026-10-27",
-  "retrievalMethod": "Official pages reviewed through web browsing; limited excerpts, not full policy snapshots",
+  "checkedDate": "2026-10-29",
+  "retrievalMethod": "Official pages reviewed through web browsing (Toronto Pearson and ETH ESOP fetched 2026-10-29; Melbourne awards page bot-blocked with 403, wording grounded in official page snippets); limited excerpts, not full policy snapshots",
   "cases": [
     {
       "id": "oxford-current-student-exclusion",
@@ -16,6 +16,27 @@
       "text": "Have at least two years’ work experience, acquired after completing your undergraduate degree, equivalent to 2,800 hours.",
       "expected": "unknown",
       "reason": "Hours and completion-date predicates are unsupported; never infer that pre-degree work qualifies."
+    },
+    {
+      "id": "toronto-pearson-nomination",
+      "sourceUrl": "https://future.utoronto.ca/pearson-scholarships",
+      "text": "To become a Pearson Scholar, you need to be nominated by your school and apply to undergraduate studies at the University of Toronto.",
+      "expected": "unknown",
+      "reason": "School nomination and undergraduate-entry predicates are unsupported; a held degree must never satisfy a nomination requirement."
+    },
+    {
+      "id": "eth-esop-top-ten-percent",
+      "sourceUrl": "https://ethz.ch/students/en/studies/financial/scholarships/excellencescholarship.html",
+      "text": "Very good result in Bachelor's degree programme (top 10% of Bachelor's degree programme = grade A).",
+      "expected": "unknown",
+      "reason": "Rank-percentile predicates are unsupported; holding a bachelor's degree must never satisfy a top-10% result requirement."
+    },
+    {
+      "id": "melbourne-graduate-research-entry",
+      "sourceUrl": "https://scholarships.unimelb.edu.au/awards/graduate-research-scholarships",
+      "text": "Have applied for and meet the entry requirements for a graduate research degree at the University of Melbourne, or be currently enrolled in a graduate research degree.",
+      "expected": "unknown",
+      "reason": "Research-degree admission and enrolment predicates are unsupported; eligibility for one award must never imply another. Direct page fetch blocked (403); wording grounded in official page snippets."
     },
     {
       "id": "cambridge-nationality-and-enrolment",
