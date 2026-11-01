@@ -48,7 +48,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
     if(!documentRoute&&!localRoute)return send(res,403,{error:'Family request unavailable'});
     try{storageOwner=(await resolveFamilyScope({uid,subjectId:family[1],loadGrant:loadFamilyGrant})).storageOwner;}catch{return send(res,403,{error:'Family request unavailable'});}
     // A majority handoff durably revokes the old guardian-scoped data route.
-    if(documents?.isTransferred(storageOwner))return send(res,403,{error:'Family request unavailable'});
+    if(await documents?.isTransferred(storageOwner))return send(res,403,{error:'Family request unavailable'});
    }
    if(localRoute){
     try{
@@ -56,11 +56,11 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
      if(!documents)return send(res,503,{error:'Local processing unavailable'});
      if(route==='/api/evaluate'&&req.method==='POST'){
       const body=await readInput(req,x=>x);if(!catalog||typeof body?.scholarshipId!=='string')return send(res,422,{error:'Reviewed scholarship unavailable'});
-      return send(res,200,evaluateReviewedScholarship(catalog.get(body.scholarshipId),documents.profile(storageOwner)));
+      return send(res,200,evaluateReviewedScholarship(catalog.get(body.scholarshipId),await documents.profile(storageOwner)));
      }
-     if(route==='/api/export'&&req.method==='GET')return send(res,200,{profile:documents.profile(storageOwner),documents:documents.list(storageOwner).map(d=>documents.get(storageOwner,d.id)),issuerAuthenticated:false});
+     if(route==='/api/export'&&req.method==='GET')return send(res,200,await documents.export(storageOwner));
      if(route==='/api/erase'&&req.method==='DELETE'){
-      documents.eraseOwner(storageOwner);return send(res,200,{deleted:true});
+      await documents.eraseOwner(storageOwner);return send(res,200,{deleted:true});
      }
      return send(res,405,{error:'Method unavailable'});
     }catch{return send(res,422,{error:'Local processing unavailable'});}
@@ -73,14 +73,14 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
     if(!documents)return send(res,503,{error:'Document workflow unavailable'});
     try{
      const id=route.split('/')[3];
-     if(req.method==='PUT'&&route==='/api/profile')return send(res,200,documents.updateProfile(storageOwner,await readInput(req,x=>x)));
-     if(req.method==='DELETE'&&route==='/api/profile')return send(res,200,documents.deleteProfile(storageOwner));
-     if(req.method==='GET'&&route==='/api/documents')return send(res,200,documents.list(storageOwner));
-     if(req.method==='GET'&&route==='/api/profile')return send(res,200,documents.profile(storageOwner));
-     if(req.method==='POST'&&route==='/api/documents')return send(res,201,documents.upload(storageOwner,await readInput(req,x=>x)));
-     if(req.method==='GET'&&id)return send(res,200,documents.get(storageOwner,id));
-     if(req.method==='DELETE'&&id)return send(res,200,documents.delete(storageOwner,id));
-     if(req.method==='POST'&&id&&route.endsWith('/review'))return send(res,200,documents.review(storageOwner,id,(await readInput(req,x=>x))?.decisions));
+     if(req.method==='PUT'&&route==='/api/profile')return send(res,200,await documents.updateProfile(storageOwner,await readInput(req,x=>x)));
+     if(req.method==='DELETE'&&route==='/api/profile')return send(res,200,await documents.deleteProfile(storageOwner));
+     if(req.method==='GET'&&route==='/api/documents')return send(res,200,await documents.list(storageOwner));
+     if(req.method==='GET'&&route==='/api/profile')return send(res,200,await documents.profile(storageOwner));
+     if(req.method==='POST'&&route==='/api/documents')return send(res,201,await documents.upload(storageOwner,await readInput(req,x=>x)));
+     if(req.method==='GET'&&id)return send(res,200,await documents.get(storageOwner,id));
+     if(req.method==='DELETE'&&id)return send(res,200,await documents.delete(storageOwner,id));
+     if(req.method==='POST'&&id&&route.endsWith('/review'))return send(res,200,await documents.review(storageOwner,id,(await readInput(req,x=>x))?.decisions));
      return send(res,405,{error:'Method unavailable'});
     }catch(error){return send(res,error instanceof DocumentError?error.status:[400,413,415].includes(error.status)?error.status:503,{error:'Document request unavailable'});}
    }

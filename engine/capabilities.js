@@ -36,7 +36,7 @@ export function describeCapabilities(input={}){
   sourceRetrieval:Object.freeze({available:true,trust:'public_web_unverified'}),
   documentStorage:documentsAvailable
    ?Object.freeze({available:true})
-   :Object.freeze({available:false,reason:'document_database_not_configured',actionable:'Set BURSYAR_DOCUMENT_DB to an owner-only SQLite path and restart to enable documents/profile.'}),
+   :Object.freeze({available:false,reason:'document_database_not_configured',actionable:'Configure a durable private document store (SQLite path or server-only Supabase adapter) and restart.'}),
   meta,
   deterministicOnly:meta.state!=='configured',
   inferenceVerified:false

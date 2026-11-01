@@ -7,6 +7,7 @@ import {prepareClaims,reviewClaims,mergeProfile} from './profile-staging.js';
 export class DocumentError extends Error {constructor(status){super('Document request unavailable');this.status=status;}}
 // Local-only UTF-8 text document workflow. No external inference or authenticity check.
 // Require a dedicated private directory; never re-use the quota database.
+const DOCUMENT_SCHEMA=`PRAGMA busy_timeout=5000; PRAGMA secure_delete=ON; CREATE TABLE IF NOT EXISTS documents(id TEXT PRIMARY KEY, owner TEXT NOT NULL, data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS profiles(owner TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS profile_history(owner TEXT NOT NULL,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS majority_transfers(source_owner TEXT PRIMARY KEY,target_owner TEXT NOT NULL, transferred_at TEXT NOT NULL);`;
 export class DocumentStore {
  constructor(path){
   if(!isAbsolute(path))throw Error('Absolute document database path required');
@@ -15,8 +16,20 @@ export class DocumentStore {
   const fd=openSync(path,constants.O_CREAT|constants.O_RDWR|constants.O_NOFOLLOW,0o600);closeSync(fd);
   const file=lstatSync(path);if(file.uid!==process.getuid()||!file.isFile()||(file.mode&0o077))throw Error('Private document file required');
   this.db=new DatabaseSync(path);
-  this.db.exec(`PRAGMA busy_timeout=5000; PRAGMA secure_delete=ON; CREATE TABLE IF NOT EXISTS documents(id TEXT PRIMARY KEY, owner TEXT NOT NULL, data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS profiles(owner TEXT PRIMARY KEY,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS profile_history(owner TEXT NOT NULL,data TEXT NOT NULL); CREATE TABLE IF NOT EXISTS majority_transfers(source_owner TEXT PRIMARY KEY,target_owner TEXT NOT NULL, transferred_at TEXT NOT NULL);`);
+  this.db.exec(DOCUMENT_SCHEMA);
  }
+ // A request-scoped working copy; never a persistence fallback.
+ static memory(){const store=Object.create(DocumentStore.prototype);store.db=new DatabaseSync(':memory:');store.db.exec(DOCUMENT_SCHEMA);return store;}
+ restore(uid,state){
+  if(state===null)return;
+  if(!state||!Array.isArray(state.documents)||state.documents.length>10||!Array.isArray(state.history)||state.history.length>20||(state.profile!==null&&typeof state.profile!=='string'))throw new DocumentError(503);
+  const owner=this.owner(uid);
+  for(const row of state.documents){if(!row||typeof row.id!=='string'||!/^[a-f0-9-]{36}$/.test(row.id)||typeof row.data!=='string'||JSON.parse(row.data).id!==row.id)throw new DocumentError(503);this.db.prepare('INSERT INTO documents VALUES(?,?,?)').run(row.id,owner,row.data);}
+  if(state.profile!==null){const profile=JSON.parse(state.profile);if(!profile||typeof profile!=='object'||Array.isArray(profile))throw new DocumentError(503);this.db.prepare('INSERT INTO profiles VALUES(?,?)').run(owner,state.profile);}
+  for(const item of state.history){if(typeof item!=='string')throw new DocumentError(503);JSON.parse(item);this.db.prepare('INSERT INTO profile_history VALUES(?,?)').run(owner,item);}
+ }
+ snapshot(uid){const owner=this.owner(uid);return {documents:this.db.prepare('SELECT id,data FROM documents WHERE owner=? ORDER BY rowid').all(owner).map(r=>({...r})),profile:this.db.prepare('SELECT data FROM profiles WHERE owner=?').get(owner)?.data??null,history:this.db.prepare('SELECT data FROM profile_history WHERE owner=? ORDER BY rowid').all(owner).map(r=>r.data)};}
+ export(uid){return {profile:this.profile(uid),documents:this.list(uid).map(d=>this.get(uid,d.id)),issuerAuthenticated:false};}
  isTransferred(uid){return !!this.db.prepare('SELECT 1 FROM majority_transfers WHERE source_owner=?').get(this.owner(uid));}
  owner(uid){if(typeof uid!=='string'||!uid||uid.length>128)throw new DocumentError(400);return createHash('sha256').update(uid).digest('hex');}
  assertWritable(uid){if(this.isTransferred(uid))throw new DocumentError(403);}

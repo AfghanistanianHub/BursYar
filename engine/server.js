@@ -1,7 +1,7 @@
 import {listenHost} from './listen-config.js';
 import {defaultCatalog} from './default-catalog.js';
 import {resolve} from 'node:path';
-import {DocumentStore} from './documents.js';
+import {createDocumentStorage} from './document-storage.js';
 import {isSpendingConfirmed} from './spending.js';
 import {createFirebaseVerifier} from './auth.js';
 import {QuotaStore} from './quota.js';
@@ -40,7 +40,7 @@ const policyContextForRequest=createTrustedPolicyResolver({providers:config,load
 }});
 const catalog=env.BURSYAR_REVIEWED_CATALOG?createScholarshipCatalog(await readPrivateJson(env.BURSYAR_REVIEWED_CATALOG)):createScholarshipCatalog(defaultCatalog);
 const loadFamilyGrant=env.BURSYAR_FAMILY_GRANTS?async(uid,subjectId)=>(await readPrivateJson(env.BURSYAR_FAMILY_GRANTS)).find(r=>r.guardianUid===uid&&r.subjectId===subjectId):null;
-const documents=env.BURSYAR_DOCUMENT_DB?new DocumentStore(env.BURSYAR_DOCUMENT_DB):null;
+const documents=await createDocumentStorage(env);
 const verify=createFirebaseVerifier({projectId:env.FIREBASE_PROJECT_ID,webApiKey:env.FIREBASE_WEB_API_KEY?.trim()||undefined});
 const capabilities=describeCapabilities({providerConfigPresent:!!env.BURSYAR_PROVIDER_CONFIG,providerEnabled:config.meta?.enabled===true,familyGrantsPresent:!!env.BURSYAR_FAMILY_GRANTS,metaAvailable:providers.meta?.available===true,spendingConfirmed:isSpendingConfirmed(env),spendingApproved:config.meta?.spendingApproved===true,policyRecordsConfigured:!!env.BURSYAR_POLICY_RECORDS,documentsAvailable:!!documents,catalogAvailable:!!catalog});
 const server=createInferenceServer({documents,verify,projectId:env.FIREBASE_PROJECT_ID,quota:{reserve(){throw Error('Provider unavailable');}},providers,catalog,loadFamilyGrant,origin:env.BURSYAR_ORIGIN,canInfer:provider=>isSpendingConfirmed(env)&&config[provider]?.spendingApproved===true,policyContextForRequest,capabilities});
