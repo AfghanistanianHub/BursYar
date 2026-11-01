@@ -14,6 +14,11 @@ const result={criteria:[{kind:'transcripts',required:true,excerpt:'Applicants mu
 async function fixture(run,{infer=async()=>JSON.stringify(result),verify=async()=>({uid:'one',aud:projectId,iss:`https://securetoken.google.com/${projectId}`,bursyarDemo:true}),quotaOverride,diagnose,canInfer}={}){
  const dir=mkdtempSync(join(tmpdir(),'bursyar-http-'));
  const quota=new QuotaStore(join(dir,'quota.db'),{userMinute:2,userDay:3,globalDay:4,lifetimeUnits:200000});
+ // Pin quota accounting to fixture start: a real UTC minute rollover during
+ // adapter timeout checks must not reset the bucket under the assertion.
+ // Provider deadlines still use real timers; production quota clocks are unchanged.
+ const quotaNow=Date.now(),reserve=quota.reserve.bind(quota);
+ quota.reserve=(uid,units,now=quotaNow)=>reserve(uid,units,now);
  const server=createInferenceServer({policyContextForRequest,verify,projectId,quota:quotaOverride||quota,infer,origin:'http://localhost:5173',...(diagnose?{diagnose}:{}),...(canInfer?{canInfer}:{})});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const url=`http://127.0.0.1:${server.address().port}/api/analyze`;

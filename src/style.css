@@ -283,3 +283,14 @@ footer span:last-child{max-width:70ch}
 }
 @media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+/* Research references are public metadata, distinct from reviewed eligibility. */
+#research-explorer{border-block-end:1px solid var(--line,#d8d7cf); padding-block-end:2rem}
+#research-explorer .research-notice{padding:1rem; border-inline-start:3px solid currentColor; background:#f3f2ec}
+#research-explorer .research-filters{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr)}
+#research-explorer label{min-width:0}
+#research-explorer select,#research-explorer input[type=search]{width:100%; min-width:0; max-width:100%}
+#research-explorer .research-toggles,#research-explorer .research-actions{display:flex; flex-wrap:wrap; gap:1rem; margin-block:1rem}
+#research-explorer .research-toggles label{display:flex; align-items:center; gap:.4rem}
+#research-explorer .scholarship{overflow-wrap:anywhere; min-width:0}
+#research-explorer .card-bottom{flex-wrap:wrap; gap:1rem}
+@media(max-width:700px){#research-explorer .research-filters{grid-template-columns:minmax(0,1fr)}}

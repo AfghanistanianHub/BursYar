@@ -1,0 +1,56 @@
+// Offline UI fixtures: no identity, personal data, source retrieval or inference.
+import {chromium,expect} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import {createServer} from 'vite';
+const server=await createServer({server:{host:'127.0.0.1',port:0}});
+await server.listen();
+const url=`http://127.0.0.1:${server.httpServer.address().port}`;
+let browser;
+try {
+ browser=await chromium.launch({headless:true});
+ for(const language of ['en','fa','ps']) {
+  const context=await browser.newContext({viewport:{width:390,height:844}});
+  const page=await context.newPage();
+  await page.addInitScript(lang=>localStorage.setItem('bursyar-language',lang),language);
+  let paidRequests=0;
+  await page.route('**/api/**',route=>{if(route.request().method()==='POST')paidRequests++;return route.fulfill({status:503,contentType:'application/json',body:'{}'});});
+  await page.goto(url);
+  await page.locator('.resources').evaluate(el=>el.open=true);
+  await expect(page.locator('#research-explorer article')).toHaveCount(12);
+  await page.locator('#research-search').fill('Gates');
+  await expect(page.locator('#research-explorer article')).toHaveCount(1);
+  await page.locator('[data-research-save]').click();
+  await expect(page.locator('[data-research-save]')).toHaveAttribute('aria-pressed','true');
+  await page.locator('#research-search').fill('');
+  await page.locator('#research-saved-only').check();
+  await expect(page.locator('#research-explorer article')).toHaveCount(1);
+  await page.locator('#language').selectOption(language==='en'?'fa':'en');
+  await expect(page.locator('#research-saved-only')).toBeChecked();
+  await expect(page.locator('#research-explorer article')).toHaveCount(1);
+  await page.locator('#language').selectOption(language);
+  const downloadPromise=page.waitForEvent('download');
+  await page.locator('#research-export').click();
+  const download=await downloadPromise;
+  const stream=await download.createReadStream();let body='';for await(const chunk of stream)body+=chunk;
+  const data=JSON.parse(body);expect(data.entries).toHaveLength(1);expect(data.verification).toBe('needs_reverification');
+  await page.reload();await page.locator('.resources').evaluate(el=>el.open=true);
+  await page.locator('#research-saved-only').check();
+  await expect(page.locator('#research-explorer article')).toHaveCount(1);
+  await page.locator('#research-clear').click();
+  await expect(page.locator('#research-explorer article')).toHaveCount(0);
+  await expect(page.locator('#research-export')).toBeDisabled();
+  await page.locator('#research-saved-only').uncheck();
+  await page.locator('#research-no-fee').check();
+  await expect(page.locator('#research-explorer article')).toHaveCount(0);
+  await page.locator('#research-no-fee').uncheck();
+  await page.locator('#research-no-ielts').check();
+  await expect(page.locator('#research-explorer article')).toHaveCount(0);
+  await page.locator('#research-no-ielts').uncheck();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
+  const a11y=await new AxeBuilder({page}).include('#research-explorer').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
+  expect(a11y.violations.map(x=>({id:x.id,nodes:x.nodes.map(n=>n.target)}))).toEqual([]);
+  expect(paidRequests).toBe(0);
+  console.log(`${language}: search, save, reload, export, clear, strict filters, mobile layout, axe passed; zero POST requests`);
+  await context.close();
+ }
+}finally{await browser?.close();await server.close();}
