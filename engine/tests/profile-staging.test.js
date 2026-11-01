@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {prepareClaims,reviewClaims,mergeProfile} from '../profile-staging.js';
+const sample=()=>prepareClaims('synthetic_doc_01',[{field:'degree',value:'bachelor',sourceExcerpt:'Synthetic degree record: bachelor'}]);
+test('extracted claims remain pending and unverified',()=>{const x=sample();assert.equal(x[0].reviewStatus,'pending');assert.equal(x[0].verificationStatus,'not_verified');});
+test('user approval preserves document provenance, not issuer verification',()=>{const x=sample();const p=reviewClaims(x,{[x[0].id]:{action:'accept'}});assert.equal(p.degree.origin,'document_extracted');assert.deepEqual(p.degree.claimIds,[x[0].id]);assert.equal(p.degree.verificationStatus,'not_verified');});
+test('corrections are user declarations and do not inherit extracted evidence',()=>{const x=sample();const p=reviewClaims(x,{[x[0].id]:{action:'correct',value:'master'}});assert.equal(p.degree.origin,'user_declared');assert.deepEqual(p.degree.claimIds,[]);});
+test('rejected claims never enter a profile',()=>{const x=sample();assert.deepEqual(reviewClaims(x,{[x[0].id]:{action:'reject'}}),{});});
+test('pending claims cannot be automatically accepted',()=>{const x=sample();assert.throws(()=>reviewClaims(x,{}),/Review decision required/);});
+test('issuer verified facts are not overwritten by document extraction',()=>{const x=sample();const p=reviewClaims(x,{[x[0].id]:{action:'accept'}});assert.throws(()=>mergeProfile({degree:{origin:'issuer_verified',value:'master'}},p),/Cannot overwrite/);});
+test('malformed claims, duplicates and absent excerpts fail closed',()=>{assert.throws(()=>prepareClaims('abc',[{field:'degree',value:'bachelor',sourceExcerpt:''}]));assert.throws(()=>prepareClaims('abc',[{field:'degree',value:'bachelor',sourceExcerpt:'a'},{field:'degree',value:'master',sourceExcerpt:'b'}]),/Duplicate/);});

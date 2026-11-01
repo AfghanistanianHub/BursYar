@@ -1,0 +1,16 @@
+[
+  {
+    "url": "https://www.ox.ac.uk/admissions/graduate/fees-and-funding/funding/clarendon/applicants",
+    "responses": [
+      {
+        "url": "https://www.ox.ac.uk/admissions/graduate/fees-and-funding/funding/clarendon/applicants",
+        "status": 403,
+        "challenge": true
+      }
+    ],
+    "success": false,
+    "code": "inaccessible",
+    "verification": "LIVE_UNPAID_SERVER_RETRIEVAL",
+    "implementationRef": "c9423b25454fe702909bfaff344138ac47976506"
+  }
+]

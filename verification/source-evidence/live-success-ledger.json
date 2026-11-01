@@ -1,0 +1,98 @@
+[
+  {
+    "url": "https://www.law.ox.ac.uk/admissions/scholarships-index/other-sources-funding-index/clarendon-scholarships",
+    "verification": "LIVE_UNPAID_SERVER_RETRIEVAL",
+    "responses": [
+      {
+        "url": "https://www.law.ox.ac.uk/admissions/scholarships-index/other-sources-funding-index/clarendon-scholarships",
+        "status": 200,
+        "challenge": false
+      }
+    ],
+    "success": true,
+    "characters": 1010,
+    "provenance": {
+      "kind": "server_fetched",
+      "rawDigest": "a36fbf86bda1400385884719f8c3afb99148e3ba34ced88a89c35c3191963423",
+      "requestedUrl": "https://www.law.ox.ac.uk/admissions/scholarships-index/other-sources-funding-index/clarendon-scholarships",
+      "sourceUrl": "https://www.law.ox.ac.uk/admissions/scholarships-index/other-sources-funding-index/clarendon-scholarships",
+      "retrievedAt": "2026-10-28T22:11:05.550Z",
+      "digest": "5024bad6f84bbe4dddc6d018b8d5c1a42bdbfb98b154f643c7a4db9df8516290",
+      "extraction": "semantic_article",
+      "redirects": [],
+      "trust": "public_web_unverified"
+    }
+  },
+  {
+    "url": "https://www.english.ox.ac.uk/funding-scholarships",
+    "verification": "LIVE_UNPAID_SERVER_RETRIEVAL",
+    "responses": [
+      {
+        "url": "https://www.english.ox.ac.uk/funding-scholarships",
+        "status": 200,
+        "challenge": false
+      }
+    ],
+    "success": true,
+    "characters": 4268,
+    "provenance": {
+      "kind": "server_fetched",
+      "rawDigest": "53108878ff6b734d4bf2d84513de32378ed86601738c36eb870c06752a166e29",
+      "requestedUrl": "https://www.english.ox.ac.uk/funding-scholarships",
+      "sourceUrl": "https://www.english.ox.ac.uk/funding-scholarships",
+      "retrievedAt": "2026-10-28T22:11:06.992Z",
+      "digest": "1481da91da3f893dbf66d6271efeb898dd2885ddb039fb61b29980e56f5a1514",
+      "extraction": "semantic_article",
+      "redirects": [],
+      "trust": "public_web_unverified"
+    }
+  },
+  {
+    "url": "https://www.humanities.ox.ac.uk/node/62406",
+    "verification": "LIVE_UNPAID_SERVER_RETRIEVAL",
+    "responses": [
+      {
+        "url": "https://www.humanities.ox.ac.uk/node/62406",
+        "status": 200,
+        "challenge": false
+      }
+    ],
+    "success": true,
+    "characters": 2428,
+    "provenance": {
+      "kind": "server_fetched",
+      "rawDigest": "8ae18bb2e111b7d5513b5b698aa744e3516e531dbec8723b271789898e2cff43",
+      "requestedUrl": "https://www.humanities.ox.ac.uk/node/62406",
+      "sourceUrl": "https://www.humanities.ox.ac.uk/node/62406",
+      "retrievedAt": "2026-10-28T22:11:08.235Z",
+      "digest": "e28274492be3d7c0932bb3724732029fa32d821511d6aca7fc415806b593b6c7",
+      "extraction": "semantic_article",
+      "redirects": [],
+      "trust": "public_web_unverified"
+    }
+  },
+  {
+    "url": "https://www.bristol.ac.uk/students/support/finances/scholarships/think-big-scholarships/",
+    "verification": "LIVE_UNPAID_SERVER_RETRIEVAL",
+    "responses": [
+      {
+        "url": "https://www.bristol.ac.uk/students/support/finances/scholarships/think-big-scholarships/",
+        "status": 200,
+        "challenge": false
+      }
+    ],
+    "success": true,
+    "characters": 1731,
+    "provenance": {
+      "kind": "server_fetched",
+      "rawDigest": "b8ffcf0bc490828faf37a10cb4a442183bd638f2043e856dbadc88c18d2db491",
+      "requestedUrl": "https://www.bristol.ac.uk/students/support/finances/scholarships/think-big-scholarships/",
+      "sourceUrl": "https://www.bristol.ac.uk/students/support/finances/scholarships/think-big-scholarships/",
+      "retrievedAt": "2026-10-28T22:11:09.569Z",
+      "digest": "39b7f93f427ca83d9b3527868c51979db3b90332e7d3e3e0ad40fe64c29cc44c",
+      "extraction": "semantic_article",
+      "redirects": [],
+      "trust": "public_web_unverified"
+    }
+  }
+]

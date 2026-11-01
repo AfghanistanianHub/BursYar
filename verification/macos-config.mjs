@@ -1,3 +1,4 @@
+import {metaTimeout} from '../engine/provider-config.js';
 import {homedir} from 'node:os';
 import {join,isAbsolute} from 'node:path';
 import {lstatSync} from 'node:fs';
@@ -12,13 +13,28 @@ export function existingPrivateFile(path){
  if(!s.isFile()||s.isSymbolicLink()||(s.mode&0o077)!==0||s.uid!==process.getuid())throw Error('Private file must be owned by this user, mode 600, without symlinks');
  return path;
 }
-export function rebootEnvironment(config,home=homedir()){
+// Narrow path-only passthrough for owner-provisioned provider/policy JSON files.
+// Only these two variable names are ever forwarded, only as validated paths;
+// values are never read, logged, or printed here. Anything else from the parent
+// environment stays dropped. Throws fail-closed on any invalid entry.
+const PRIVATE_CONFIG_PATH_VARS=['BURSYAR_PROVIDER_CONFIG','BURSYAR_POLICY_RECORDS'];
+export function forwardPrivateConfigPaths(env={}){
+ const forwarded={};
+ for(const name of PRIVATE_CONFIG_PATH_VARS){
+  const value=env[name];
+  if(value===undefined||value==='')continue;
+  try{forwarded[name]=existingPrivateFile(value);}catch{throw Error(`Private configuration file for ${name} is missing or unsafe; use an absolute owner-only mode-600 JSON path`);}
+ }
+ return forwarded;
+}
+export function rebootEnvironment(config,home=homedir(),options={}){
  validateKeychainConfig(config);
  return {
  FIREBASE_PROJECT_ID:'afghanistanian-scholarships',GOOGLE_APPLICATION_CREDENTIALS:join(home,'.bursyar-private/firebase-admin.json'),
+ BURSYAR_DOCUMENT_DB:join(home,'.bursyar-private/documents.sqlite'),
  BURSYAR_QUOTA_DB:join(home,'.bursyar-private/quota.sqlite'),BURSYAR_ORIGIN:'http://localhost:5173',PORT:'8080',
  BURSYAR_USER_MINUTE:'2',BURSYAR_USER_DAY:'5',BURSYAR_GLOBAL_DAY:'20',BURSYAR_LIFETIME_UNITS:'200000',
- META_API_KEY:config.metaApiKey,META_MODEL_ID:config.metaModelId,META_TIMEOUT_MS:'20000',
+ META_API_KEY:config.metaApiKey,META_MODEL_ID:config.metaModelId,META_TIMEOUT_MS:String(metaTimeout(options.timeoutMs)),
  BURSYAR_SPENDING_CONFIRMED:config.spendingConfirmed?'1':'0',BURSYAR_SPEND_LIMIT_USD:config.spendingConfirmed?String(config.spendLimitUSD):'0',
  BURSYAR_SPENDING_CONFIRMED_AT:config.spendingConfirmed?config.confirmedAt:''
  };

@@ -7,7 +7,7 @@ import {join} from 'node:path';
 import {validateKeychainConfig,rebootEnvironment,existingPrivateFile,KeychainAccessError,parseSpendingLimit} from '../verification/macos-config.mjs';
 const config=()=>({version:1,metaApiKey:'test-key-not-real',metaModelId:'test-model',spendingConfirmed:false,spendLimitUSD:0,confirmedAt:''});
 test('reboot startup is deterministic with an empty shell and live spending disabled',()=>{
- const env=rebootEnvironment(config(),'/private/test-user');assert.equal(env.BURSYAR_QUOTA_DB,'/private/test-user/.bursyar-private/quota.sqlite');assert.equal(env.GOOGLE_APPLICATION_CREDENTIALS,'/private/test-user/.bursyar-private/firebase-admin.json');assert.equal(env.BURSYAR_SPENDING_CONFIRMED,'0');assert.equal(env.BURSYAR_SPEND_LIMIT_USD,'0');assert.equal(env.META_API_KEY,'test-key-not-real');assert.equal(Object.keys(env).filter(k=>k.startsWith('VITE_')).length,0);
+ const env=rebootEnvironment(config(),'/private/test-user');assert.equal(env.BURSYAR_QUOTA_DB,'/private/test-user/.bursyar-private/quota.sqlite');assert.equal(env.BURSYAR_DOCUMENT_DB,'/private/test-user/.bursyar-private/documents.sqlite');assert.notEqual(env.BURSYAR_DOCUMENT_DB,env.BURSYAR_QUOTA_DB);assert.equal(env.GOOGLE_APPLICATION_CREDENTIALS,'/private/test-user/.bursyar-private/firebase-admin.json');assert.equal(env.BURSYAR_SPENDING_CONFIRMED,'0');assert.equal(env.BURSYAR_SPEND_LIMIT_USD,'0');assert.equal(env.META_API_KEY,'test-key-not-real');assert.equal(Object.keys(env).filter(k=>k.startsWith('VITE_')).length,0);
 });
 test('spending gate requires positive finite account limit and explicit confirmation timestamp',()=>{
  for(const c of [{...config(),spendingConfirmed:true},{...config(),spendingConfirmed:true,spendLimitUSD:-1,confirmedAt:new Date().toISOString()},{...config(),spendingConfirmed:true,spendLimitUSD:Infinity,confirmedAt:new Date().toISOString()}])assert.throws(()=>validateKeychainConfig(c));
@@ -36,4 +36,14 @@ test('a saved USD 5 amount alone is not confirmation; confirmed USD 5 survives t
 test('explicit attestation accepts plain or dollar-prefixed USD amounts, rejects invalid or ambiguous values',()=>{
  for(const input of ['5','5.00','$5','$ 5.00'])assert.equal(parseSpendingLimit(input),5);
  for(const input of [undefined,'','0','-5','5junk','5,00','NaN','Infinity','1.001','1e3'])assert.equal(parseSpendingLimit(input),null);
+});
+
+test('Mac launcher takes only a bounded timeout override without altering saved spending or credentials',()=>{
+ const record={...config(),metaModelId:'muse-spark-1.3',spendLimitUSD:5,spendingConfirmed:true,confirmedAt:'2026-10-27T00:00:00Z'};
+ const before=structuredClone(record),base=rebootEnvironment(record,'/private/test-user');
+ assert.equal(base.META_TIMEOUT_MS,'60000');
+ const overridden=rebootEnvironment(record,'/private/test-user',{timeoutMs:'120000'});
+ assert.equal(overridden.META_TIMEOUT_MS,'120000');delete base.META_TIMEOUT_MS;delete overridden.META_TIMEOUT_MS;
+ assert.deepEqual(overridden,base);assert.deepEqual(record,before);
+ for(const timeoutMs of ['0','120001','NaN','60000junk','',Infinity])assert.throws(()=>rebootEnvironment(record,'/private/test-user',{timeoutMs}));
 });

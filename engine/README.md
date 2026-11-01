@@ -1,6 +1,6 @@
 # BursYar server-side inference
 
-The active implementation is `server.js` → `http.js` with `auth.js`, `quota.js`, `meta.js` and `evidence.js`. Requires Node >=22.13 and root `npm ci`. Start from repository root, not this subdirectory.
+The active implementation is `server.js` → `http.js` with `auth.js`, `quota.js`, `meta.js` and `evidence.js`. Requires Node >=24.12 and root `npm ci`. Start from repository root, not this subdirectory.
 
 Use [INFERENCE-RUNBOOK.md](../docs/INFERENCE-RUNBOOK.md) for exact setup and release gates. The active route is `POST /api/analyze` with a Firebase user ID token; shared internal tokens are no longer accepted. Approved demo custom claim is required. Durable SQLite reservations replace the earlier process counter.
 
