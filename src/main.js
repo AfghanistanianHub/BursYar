@@ -2,6 +2,7 @@ import {mountProfile} from './profile-form.js';
 import {mountDocuments} from './documents.js';
 import {mountAnalyzer} from './analyzer.js';
 import {mountEligibility} from './eligibility-demo.js';
+import './fonts.css';
 import './style.css';
 import {sampleScholarships,filterScholarships} from './catalog.js';
 import {journeyCopy} from './journey-copy.js';
