@@ -1,33 +1,11 @@
 import {createHash} from 'node:crypto';
 import {DocumentStore,DocumentError} from './documents.js';
-const MAX_STATE=1024*1024,MAX_RESPONSE=MAX_STATE+65536;
+import {createPrivateSupabaseRpc} from './private-supabase-rpc.js';
+const MAX_STATE=1024*1024;
 const unavailable=()=>new DocumentError(503);
-function serverKey(key){
- if(typeof key!=='string'||key.length>8192||/\s/.test(key))return false;
- if(/^sb_secret_[A-Za-z0-9_-]{20,}$/.test(key))return true;
- try{return key.split('.').length===3&&JSON.parse(Buffer.from(key.split('.')[1],'base64url')).role==='service_role';}catch{return false;}
-}
-// No browser Supabase session or Firebase ID token is sent to this service.
-// Each operation loads only its verified owner's state, applies existing rules
-// in memory, then atomically commits by revision. No disk/cache fallback.
+// Per-owner in-memory working copy backed by durable revision CAS. No cache/disk fallback.
 export class RemoteDocumentStore {
- constructor({url,key,fetchImpl=fetch,timeoutMs=4000}){
-  if(typeof url!=='string'||!/^https:\/\/[a-z]{20}\.supabase\.co$/.test(url)||!serverKey(key)||!Number.isSafeInteger(timeoutMs)||timeoutMs<1||timeoutMs>10000)throw Error('Invalid private document storage configuration');
-  // Keep credentials out of enumerable diagnostics/JSON representations.
-  Object.defineProperties(this,{rpc:{value:async(name,body)=>{
-   const controller=new AbortController();let timer,reader;
-   const deadline=new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(unavailable());},timeoutMs);});
-   const operation=async()=>{
-    const response=await fetchImpl(url+'/rest/v1/rpc/'+name,{method:'POST',redirect:'error',cache:'no-store',credentials:'omit',headers:{apikey:key,...(key.startsWith('sb_secret_')?{}:{authorization:'Bearer '+key}),'content-type':'application/json'},body:JSON.stringify(body),signal:controller.signal});
-    if(!response.ok||!/^application\/json(?:\s*;|$)/i.test(response.headers.get('content-type')??'')||!response.body)throw unavailable();
-    reader=response.body.getReader();let size=0;const chunks=[];
-    try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>MAX_RESPONSE)throw unavailable();chunks.push(value);}}finally{reader.releaseLock();reader=null;}
-    return JSON.parse(Buffer.concat(chunks).toString('utf8'));
-   };
-   try{return await Promise.race([operation(),deadline]);}catch{throw unavailable();}
-   finally{clearTimeout(timer);controller.abort();if(reader)reader.cancel().catch(()=>{});}
-  }}});
- }
+ constructor(config){Object.defineProperty(this,'rpc',{value:createPrivateSupabaseRpc(config,unavailable)});}
  owner(uid){if(typeof uid!=='string'||!uid||uid.length>128)throw new DocumentError(400);if(uid.startsWith('family:'))throw new DocumentError(403);return createHash('sha256').update(uid).digest('hex');}
  async run(uid,method,args,write=false){
   const owner=this.owner(uid);

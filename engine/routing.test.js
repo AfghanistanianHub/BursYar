@@ -17,3 +17,7 @@ test('every denial precedes prompt reservation and outbound transport, including
 test('permitted outage consumes its provider reservation once and never falls back',async()=>{
  assert.deepEqual(await check(adultPolicy),{status:502,calls:1,reservations:1,prompts:1});
 });
+test('gateway awaits durable reservation and never calls provider after async quota denial',async()=>{
+ let calls=0;const result=await check(adultPolicy,{infer:async()=>{calls++;throw Error('must not call');},quota:{async reserve(){await new Promise(r=>setTimeout(r,10));throw new (await import('./quota.js')).QuotaExceeded();}}});
+ assert.equal(result.status,429);assert.equal(calls,0);
+});
