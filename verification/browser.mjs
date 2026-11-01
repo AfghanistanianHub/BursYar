@@ -1,4 +1,4 @@
-import {createSourceFetcher} from '../engine/source-fetch.js';
+import {createSourceFetcher,SourceFailure} from '../engine/source-fetch.js';
 import {normalizeEvidence} from '../engine/evidence.js';
 import {chromium,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
@@ -12,7 +12,7 @@ const vite=await createServer({root:process.cwd(),server:{host:'127.0.0.1',port:
 const baseUrl=`http://127.0.0.1:${vite.httpServer.address().port}`;
 const documentDir=mkdtempSync(join(tmpdir(),'bursyar-browser-docs-'));
 const documents=new DocumentStore(join(documentDir,'docs.db'));
-const sources=createSourceFetcher({resolve:async()=>[{address:'93.184.216.34',family:4}],transport:async()=>({body:'<main><h1>SYNTHETIC OFFLINE SOURCE FIXTURE</h1><p>Applicants must provide academic transcripts.</p><p>Tuition fees are covered.</p><a href="/course">Course conditions require confirmation.</a></main>'})});
+const sources=createSourceFetcher({resolve:async()=>[{address:'93.184.216.34',family:4}],transport:async url=>{if(url.pathname.endsWith('/blocked'))throw new SourceFailure('challenge');return {body:'<main><h1>SYNTHETIC OFFLINE SOURCE FIXTURE</h1><p>Applicants must provide academic transcripts.</p><p>Tuition fees are covered.</p><a href="/course">Course conditions require confirmation.</a></main>'};}});
 const api=createInferenceServer({sources,projectId:'demo-bursyar',origin:baseUrl,documents,quota:{reserve(){}},infer:async()=>{throw Error('Browser model must remain mocked');},verify:async token=>({uid:token,aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true})});
 await new Promise(resolve=>api.listen(0,'127.0.0.1',resolve));
 const apiUrl=`http://127.0.0.1:${api.address().port}`;
@@ -23,19 +23,20 @@ const report={mode:'BROWSER_WITH_MOCK_AUTH_AND_API',liveMetaVerified:false,liveG
 mkdirSync('verification/artifacts',{recursive:true});
 try {
  for(const language of ['en','fa','ps'])for(const width of [320,390,768,1280,1440]){
-  const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();
+  const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();let unexpectedSourceRequests=0;page.on('request',request=>{if(new URL(request.url()).hostname==='malicious.invalid')unexpectedSourceRequests++;});
   await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{const note=document.createElement('p');note.textContent='OFFLINE REHEARSAL — mocked identity and Meta; synthetic applicant data';note.setAttribute('role','note');note.style.cssText='padding:12px;background:#fff;color:#111;border:2px solid #111';document.body.prepend(note);},{once:true}));
   // Test-only network interception, not a runtime bypass or simulated live verification.
   const browserToken=`browser-test-${language}-${width}`;
   await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function getInferenceToken(){return "'+browserToken+'";}'}));
-  await page.route(/\/api\/(documents|profile|source)/,async route=>{const request=route.request();const response=await fetch(apiUrl+new URL(request.url()).pathname,{method:request.method(),headers:{authorization:request.headers().authorization,origin:baseUrl,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});});
+  let importGate=null;
+  await page.route(/\/api\/(documents|profile|source)/,async route=>{const request=route.request();if(new URL(request.url()).pathname.endsWith('/source/import')&&importGate)await importGate;const response=await fetch(apiUrl+new URL(request.url()).pathname,{method:request.method(),headers:{authorization:request.headers().authorization,origin:baseUrl,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});});
   let responseEvidence=evidence;let responseStatus=200;let sawRequest=false;let calls=0;
-  await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?responseEvidence:{error:'test-error'})});});
+  await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?{...normalizeEvidence(JSON.stringify({criteria:responseEvidence.criteria.map(({kind,required,excerpt,en,fa,ps})=>({kind,required,excerpt,en,fa,ps})),deadline:responseEvidence.deadline,funding:responseEvidence.funding}),{text:body.text,sourceUrl:body.sourceUrl}),sourceProvenance:body.receipt??{kind:'user_pasted_text'}}:{error:'test-error'})});});
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
   await expect(page.locator('html')).toHaveAttribute('dir',language==='en'?'ltr':'rtl');
   await expect(page.locator('#fetch-source')).toBeVisible();
   await expect(page.locator('#requirements')).toBeHidden();
-  await expect(page.locator('#analysis-consent')).toBeHidden();
+  await expect(page.locator('#analysis-consent')).toBeHidden();await expect(page.locator('#analyze-form button.primary-link:visible')).toHaveCount(1);
   await page.screenshot({path:`verification/artifacts/${language}-entry-${width}.png`,fullPage:true});
   const zoomStyle=await page.addStyleTag({content:'html{font-size:200%}'});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
@@ -43,6 +44,11 @@ try {
   await zoomStyle.evaluate(el=>el.remove());
   if(width===1280){const zoom=await page.addStyleTag({content:'body{zoom:2}'});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);await page.screenshot({path:`verification/artifacts/${language}-layout200-1280.png`,fullPage:true});await zoom.evaluate(el=>el.remove());}
   await page.locator('#source-url').focus();await page.keyboard.press('Tab');await expect(page.locator('#fetch-source')).toBeFocused();
+  await page.locator('#source-url').fill('https://university.example/blocked');await page.locator('#fetch-source').click();
+  await expect(page.locator('#source-status')).toContainText({en:'does not let BursYar',fa:'اجازهٔ خواندن',ps:'لوستلو اجازه'}[language]);
+  await expect(page.locator('#requirements')).toBeHidden();await expect(page.locator('#analyze-form button.primary-link:visible')).toHaveCount(1);
+  if(width===390)await page.screenshot({path:`verification/artifacts/${language}-minimal-recovery-390.png`,fullPage:true});
+
   if(width===390){
    await page.locator('#eligibility-example > summary').click();
    await page.locator('#eligibility-form [name=degree]').selectOption('bachelor');
@@ -136,6 +142,35 @@ try {
   await expect(page.locator('#source-approved')).not.toBeChecked();await expect(page.locator('#analyze-form button[type=submit]')).toBeDisabled();
   await page.locator('#fetch-source').click();await expect(page.locator('#requirements')).toHaveAttribute('readonly','');
   await page.locator('#source-url').fill('https://other.example/scholarship');await expect(page.locator('#requirements')).toHaveValue('');await expect(page.locator('#requirements')).not.toHaveAttribute('readonly','');
+  // Challenge recovery exercises the real import/extraction API with offline source/provider fixtures.
+  await page.locator('#source-url').fill('https://university.example/blocked');const callsBeforeRecovery=calls;
+  await page.locator('#fetch-source').click();
+  await expect(page.locator('#source-status')).toContainText({en:'does not let BursYar',fa:'اجازهٔ خواندن',ps:'لوستلو اجازه'}[language]);
+  await expect(page.locator('#source-url')).toHaveValue('https://university.example/blocked');
+  await expect(page.locator('#source-status')).not.toContainText(/403|HTTP|Cloudflare/);
+  const recoveryAxe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(recoveryAxe.violations).toEqual([]);
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
+  if(width===390)await page.screenshot({path:`verification/artifacts/${language}-recovery-390.png`,fullPage:true});
+  await page.locator('#source-options > summary').click();await expect(page.locator('#open-source')).toHaveAttribute('href','https://university.example/blocked');
+  await page.locator('#language').selectOption(language==='en'?'fa':'en');await expect(page.locator('#manual-source')).toBeVisible();await page.locator('#language').selectOption(language);
+  await page.locator('#manual-source').click();await page.locator('#requirements').fill('Applicants must provide academic transcripts. Tuition fees are covered.');
+  await expect(submit).toBeDisabled();expect(calls).toBe(callsBeforeRecovery);await page.locator('#source-approved').check();await submit.click();await expect(page.locator('.criterion')).toBeVisible();
+  await expect(page.locator('#analysis-result > .source-origin')).toContainText({en:'Provided by you',fa:'شما ارائه',ps:'تاسې ورکړی'}[language]);
+  await expect(page.locator('#eligibility-result')).toBeVisible();await expect(page.locator('#next-steps')).toBeVisible();
+  for(const [extension,content] of [['html','<main><p>Applicants must provide academic transcripts.</p><p>Tuition fees are covered.</p><script>window.fakeExecution=true</script><img src="https://malicious.invalid/secret"></main>'],['txt','Applicants must provide academic transcripts. Tuition fees are covered.']]){
+   if(!await page.locator('#source-options').evaluate(el=>el.open))await page.locator('#source-options > summary').click();
+   let releaseImport;importGate=new Promise(resolve=>releaseImport=resolve);
+   await page.locator('#source-file').setInputFiles({name:`public-page.${extension}`,mimeType:extension==='html'?'text/html':'text/plain',buffer:Buffer.from(content)});
+   await expect(page.locator('#source-approved')).toBeDisabled();await expect(submit).toBeDisabled();releaseImport();importGate=null;
+   await expect(page.locator('.source-preview')).toBeVisible();await expect(page.locator('#requirements')).toHaveAttribute('readonly','');await expect(page.locator('#requirements')).toHaveValue(/Applicants must provide academic transcripts/);
+   await expect(page.locator('#source-origin')).toContainText({en:'Provided by you',fa:'شما ارائه',ps:'تاسې ورکړی'}[language]);await expect(submit).toBeDisabled();
+   expect(await page.evaluate(()=>window.fakeExecution)).toBeUndefined();expect(unexpectedSourceRequests).toBe(0);
+   await page.locator('#language').selectOption(language==='en'?'fa':'en');await expect(page.locator('#requirements')).toHaveAttribute('readonly','');await expect(page.locator('#source-approved')).not.toBeChecked();await page.locator('#language').selectOption(language);
+   await page.locator('#source-approved').check();await submit.click();await expect(page.locator('.criterion')).toBeVisible();await expect(page.locator('#eligibility-result')).toBeVisible();
+  }
+  const importedAxe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(importedAxe.violations).toEqual([]);
+  if(width===390)await page.screenshot({path:`verification/artifacts/${language}-supplied-source-390.png`,fullPage:true});
+  report.recoveryCases=(report.recoveryCases??0)+1;
   report.sourcePreviewCases=(report.sourcePreviewCases??0)+1;
   await context.close();
  }
