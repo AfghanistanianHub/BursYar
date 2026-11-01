@@ -11,8 +11,8 @@ const copy={
  fa:{title:'بررسی شرایط تحصیلی',disclaimer:'نمونه آفلاین با شرایط کاملاً فرضی است. هیچ سند یا نمره‌ای تأیید نشده و این ارزیابی مربوط به بورسیه واقعی نیست.',degree:'بالاترین مدرک تحصیلی (اظهار کاربر)',missing:'ارائه نشده',secondary:'مکتب',bachelor:'لیسانس',master:'ماستری',doctorate:'دوکتورا',overall:'نمره مجموع آیلتس',bands:['شنیدن','خواندن','نوشتن','صحبت کردن'],test:'نتیجه آیلتس اکادمیک دارم (اظهار کاربر)',real:'ارزیابی اطلاعات فعلی',future:'اگر نمره مجموع آیلتس تغییر کند چه می‌شود؟',simulate:'مقایسه سناریوی فرضی',state:{met:'شروط نمونه برآورده شده‌اند (تأیید نشده)',not_met:'یک یا چند شرط برآورده نشده است',unknown:'به علت اطلاعات ناکافی نتیجه مشخص نیست'},next:'نداشتن سند زبان به معنای ضعف انگلیسی نیست. پیش از ثبت‌نام آزمون، شرایط پذیرش دانشگاه واقعی را بررسی کنید.',fiction:'شرایط بورسیه فرضی',hypothetical:'نتیجه فرضی است؛ پروفایل واقعی تغییر نکرده',yes:'بله',no:'خیر'},
  ps:{title:'د وړتیاوو ارزونه',disclaimer:'دا یوازې د فرضي شرایطو آفلاین بېلګه ده. هېڅ سند یا نمره نه ده تایید شوې او د واقعي بورس ارزونه نه ده.',degree:'لوړه زده کړه (ستاسې وینا)',missing:'نه ده ورکړل شوې',secondary:'ثانوي',bachelor:'لېسانس',master:'ماسټري',doctorate:'دوکتورا',overall:'د IELTS عمومي نمره',bands:['اورېدل','لوستل','لیکل','خبرې کول'],test:'د IELTS Academic پایله لرم (خپله وینا)',real:'د اوسني پروفایل ارزونه',future:'که د IELTS نمره بدله شي، څه پېښېږي؟',simulate:'د فرضي حالت پرتله',state:{met:'د بېلګې شرطونه پوره دي (نه دي تایید شوي)',not_met:'ځینې شرطونه نه دي پوره شوي',unknown:'د معلوماتو د نشتوالي له امله نامعلوم'},next:'د ژبې سند نه لرل د انګلیسي کمزوري نه ثابتوي. د ازموینې له ثبت مخکې د پوهنتون شرطونه وګورئ.',fiction:'د فرضي بورس شرطونه',hypothetical:'فرضی پایله؛ اصلي پروفایل نه دی بدل شوی',yes:'هو',no:'نه'}
 };
-let savedFields={},approvedProfile={},lastScenario=false,lastExclusion=null;
-document.addEventListener('bursyar:identity',()=>{savedFields={};approvedProfile={};lastScenario=false;lastExclusion=null;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
+let savedFields={},approvedProfile={},lastScenario=false,lastExclusion=null,demoOpen=false;
+document.addEventListener('bursyar:identity',()=>{savedFields={};approvedProfile={};lastScenario=false;lastExclusion=null;demoOpen=false;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
 document.addEventListener('bursyar:profile',event=>{
  lastScenario=false;lastExclusion=null;approvedProfile=event.detail??{};
  savedFields={degree:approvedProfile.degree?.value??'',hasTest:!!approvedProfile.languageTest,deferredOffer:approvedProfile.deferredOffer?.value===undefined?'':String(approvedProfile.deferredOffer.value),continuingSameDegree:approvedProfile.continuingSameDegree?.value===undefined?'':String(approvedProfile.continuingSameDegree.value)};
@@ -28,7 +28,8 @@ export function mountEligibility(root,language='en',compilation=null){
  const rules=compilation?.rules??fixture;
  const liveCopy={en:'Selected AI interpretations and retained source conditions; coverage is incomplete. Source authenticity, completeness and translations are unverified. This is not an admissions decision.',fa:'فقط شرایط انتخاب‌شده از برداشت هوش مصنوعی. اعتبار منبع، کامل بودن و ترجمه‌ها تأیید نشده است. این تصمیم پذیرش نیست.',ps:'یوازې د مصنوعي ځیرکتیا له خوا ټاکل شوي شرطونه. د سرچینې اعتبار، بشپړتیا او ژباړې نه دي تایید شوي. دا د منلو پرېکړه نه ده.'};
  if(!root)return;
- root.innerHTML=`<section class="section" id="eligibility-demo" aria-labelledby="eligibility-heading">
+ const example={en:'Optional fictional example — not a scholarship assessment',fa:'نمونهٔ فرضی اختیاری — ارزیابی بورسیه نیست',ps:'اختیاري فرضي بېلګه — د بورس ارزونه نه ده'}[language];
+ root.innerHTML=`${!compilation?`<details id="eligibility-example" ${demoOpen?'open':''}><summary>${escape(example)}</summary>`:''}<section class="section" id="eligibility-demo" aria-labelledby="eligibility-heading">
  <p class="eyebrow">BURS YAR / EXPERIMENTAL</p><h2 id="eligibility-heading">${escape(t.title)}</h2>
  <p role="note">${escape(compilation?liveCopy[language]:t.disclaimer)}</p><ul>${rules.map(r=>`<li dir="auto">${escape(r.sourceExcerpt)}</li>`).join('')}</ul>
  <form id="eligibility-form">
@@ -40,7 +41,8 @@ export function mountEligibility(root,language='en',compilation=null){
  <p><strong>${escape(t.real)}</strong></p><output id="eligibility-result" aria-live="polite"></output><ol id="eligibility-details"></ol>
  <label>${escape(t.future)} <input name="futureScore" type="number" min="0" max="9" step=".5" value="7"></label>
  <button type="button" id="eligibility-simulate">${escape(t.simulate)}</button>
- <output id="eligibility-future" aria-live="polite"></output>${rules.some(r=>r.type==='boolean_exclusion')?`<label>${escape(extra.future)}<select id="exclusion-override"><option value="deferredOffer">${escape(extra.deferredOffer)}</option><option value="continuingSameDegree">${escape(extra.continuingSameDegree)}</option></select></label><button type="button" id="exclusion-simulate">${escape(extra.apply)}</button><output id="exclusion-future" aria-live="polite"></output>`:''}</form><p>${escape(t.next)}</p></section>`;
+ <output id="eligibility-future" aria-live="polite"></output>${rules.some(r=>r.type==='boolean_exclusion')?`<label>${escape(extra.future)}<select id="exclusion-override"><option value="deferredOffer">${escape(extra.deferredOffer)}</option><option value="continuingSameDegree">${escape(extra.continuingSameDegree)}</option></select></label><button type="button" id="exclusion-simulate">${escape(extra.apply)}</button><output id="exclusion-future" aria-live="polite"></output>`:''}</form><p>${escape(t.next)}</p></section>${!compilation?'</details>':''}`;
+ root.querySelector('#eligibility-example')?.addEventListener('toggle',event=>{demoOpen=event.currentTarget.open;});
  const form=root.querySelector('#eligibility-form'),scores=form.querySelector('.eligibility-scores');
  form.addEventListener('submit',event=>event.preventDefault());
  const asFact=value=>({value,origin:'user_declared',claimIds:[]});
