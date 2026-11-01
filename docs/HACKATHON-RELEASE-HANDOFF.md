@@ -676,3 +676,28 @@ this session's instructions authorize integration + verification + PR
 updates, never publication. PR #35 stays Draft and unmerged; nothing has
 been published. Record the redesign tip SHA and its exact-head CI in the
 PR #35 description.
+
+## Origin merge fa10ebc + Codex triage (2026-11-01, no inference)
+
+Origin advanced while the redesign was in flight: `fa10ebc` merges the CTO
+research library (12 reference cards with honest needs-re-verification /
+unknown states, filters, save/export; `src/research-*`,
+`tests/research-catalog.test.js`, `verification/research-browser.mjs`, CI
+job added) plus a quota-clock test fix. Merged here as `f843396` with one
+conflict (`src/style.css`, whole-file): kept the redesign and appended the
+research style block verbatim — research cards inherit the card system and
+render verified en/fa at 1280/390 with zero errors and zero overflow.
+
+Codex review on `fa10ebc` (2 inline findings, both validated and fixed):
+- P1 academic-evidence-form kept stale private scores mounted after
+  sign-out and broke later requests via epoch mismatch. Fixed to clear
+  AND remount on identity, mirroring profile/documents exactly.
+- P2 eligibility snapshot rebuilt saved TOEFL facts as IELTS (sections
+  dropped), forcing `unknown`. Fixed to preserve the saved test type and
+  sections/bands, defaulting to IELTS only with no saved test.
+Fixes plus `tests/identity-toefl-fixes.test.js` (+2) committed on top of
+the merge. Verification: `npm test` 264/264; mocked browser 15/15
+axe-clean; research-browser en/fa/ps pass with zero POST requests; render
+spot-checks read back. A Vercel preview comment exists on the PR (owner
+infra); it is not a publication and changes nothing above. Push the merge
+plus the fix commit together; record the final tip SHA and exact-head CI.

@@ -10,7 +10,7 @@ const copy={
 };
 const sections=['listening','reading','speaking','writing'];
 let profile={},epoch=0,notice='';
-document.addEventListener('bursyar:identity',()=>{profile={};epoch++;notice='';});
+document.addEventListener('bursyar:identity',()=>{profile={};epoch++;notice='';const root=document.querySelector('#academic-evidence-mount');if(root)mountAcademicEvidence(root,document.documentElement.lang);});
 document.addEventListener('bursyar:profile',event=>{profile=structuredClone(event.detail??{});const root=document.querySelector('#academic-evidence-mount');if(root)mountAcademicEvidence(root,document.documentElement.lang);});
 export function mountAcademicEvidence(root,language='en'){
  if(!root)return;

@@ -18,7 +18,7 @@ document.addEventListener('bursyar:profile',event=>{
  lastScenario=false;lastExclusion=null;approvedProfile=event.detail??{};
  savedFields={degree:approvedProfile.degree?.value??'',hasTest:!!approvedProfile.languageTest,deferredOffer:approvedProfile.deferredOffer?.value===undefined?'':String(approvedProfile.deferredOffer.value),continuingSameDegree:approvedProfile.continuingSameDegree?.value===undefined?'':String(approvedProfile.continuingSameDegree.value)};
  const test=approvedProfile.languageTest?.value;
- if(test){savedFields.overall=test.overall;for(const key of ['listening','reading','writing','speaking'])savedFields[key]=test.bands?.[key]??'';}
+ if(test){savedFields.testType=test.test;savedFields.overall=test.overall;const sections=test.bands??test.sections??{};for(const key of ['listening','reading','writing','speaking'])savedFields[key]=sections[key]??'';}
  document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:document.querySelector('#analyze-form')?.analysis?.data?.compilation??null}));
 });
 const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -52,7 +52,8 @@ export function mountEligibility(root,language='en',compilation=null){
   const profile=structuredClone(approvedProfile);delete profile.degree;delete profile.languageTest;if(degree)profile.degree=asFact(degree);
   if(form.elements.namedItem('hasTest').checked){
    const field=x=>{const value=form.elements.namedItem(x).value;return value===''?null:Number(value)};
-   profile.languageTest=asFact({test:'IELTS Academic',overall:field('overall'),bands:Object.fromEntries(['listening','reading','writing','speaking'].map(x=>[x,field(x)]))});
+   const scores=Object.fromEntries(['listening','reading','writing','speaking'].map(x=>[x,field(x)]));
+   profile.languageTest=savedFields.testType==='TOEFL iBT'?asFact({test:'TOEFL iBT',overall:field('overall'),sections:scores}):asFact({test:'IELTS Academic',overall:field('overall'),bands:scores});
   }
   for(const key of ['deferredOffer','continuingSameDegree']){const control=form.elements.namedItem(key);if(control){delete profile[key];if(control.value!=='')profile[key]=asFact(control.value==='true');}}
   for(const key of Object.keys(profile))if(JSON.stringify(profile[key].value)===JSON.stringify(approvedProfile[key]?.value))profile[key]=structuredClone(approvedProfile[key]);
