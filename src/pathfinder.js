@@ -6,7 +6,8 @@ export function findBarriers(criteria, answers = {}) {
     return {criterionId:c.id,status:missing?'potential mismatch':'cannot determine',action:missing?'Ask the institution whether this requirement applies and which alternatives it explicitly accepts.':'Verify the exact requirement with the institution. Availability alone does not establish eligibility.'};
   });
 }
-const labels={
+// fa/ps strings are UNREVIEWED pending fluent human review (see docs/TRANSLATION-REVIEW.json).
+export const barrierLabels={
  en:{mismatch:glossary.potentialMismatch.en,unknown:glossary.cannotDetermine.en,ask:'Ask the institution whether this requirement applies and which alternatives it explicitly accepts.',verify:'Verify the exact requirement with the institution. Availability alone does not establish eligibility.'},
  fa:{mismatch:glossary.potentialMismatch.fa,unknown:glossary.cannotDetermine.fa,ask:'از مؤسسه بپرسید آیا این شرط شامل شما می‌شود و کدام اسناد جایگزین را صریحاً می‌پذیرد.',verify:'شرط دقیق را از مؤسسه تأیید کنید. موجود بودن سند به‌تنهایی واجد شرایط بودن را ثابت نمی‌کند.'},
  ps:{mismatch:glossary.potentialMismatch.ps,unknown:glossary.cannotDetermine.ps,ask:'له ادارې وپوښتئ چې دا شرط پر تاسو پلي کېږي او کوم بدیل اسناد په څرګند ډول مني.',verify:'دقیق شرط له ادارې تایید کړئ. یوازې د سند شتون د شرایطو پوره کول نه ثابتوي.'}
@@ -36,7 +37,7 @@ export function assessBarriers(results,{alternatives={}}={}){
  });
 }
 export function barrierText(result,language='en'){
- const t=labels[language]||labels.en,a=assessmentActionText[language]||assessmentActionText.en;
+ const t=barrierLabels[language]||barrierLabels.en,a=assessmentActionText[language]||assessmentActionText.en;
  if(result?.actionCode&&a[result.actionCode]){
   const status=result.status==='appears to meet'?(glossary.appearsToMeet[language]||glossary.appearsToMeet.en):result.status==='potential mismatch'?t.mismatch:t.unknown;
   return {status,action:a[result.actionCode]};
