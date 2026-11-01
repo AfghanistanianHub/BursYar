@@ -1,11 +1,14 @@
-import {initializeApp, applicationDefault} from 'firebase-admin/app';
+import {initializeApp, applicationDefault, getApp} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
 
 export function createFirebaseVerifier({projectId, credential=applicationDefault()} = {}) {
   if (!projectId || !/^[a-z][a-z0-9-]{4,62}$/.test(projectId)) throw new Error('Firebase project ID required');
   // Admin SDK accepts emulator unsigned tokens; this executable must never use that mode.
   if (process.env.FIREBASE_AUTH_EMULATOR_HOST) throw new Error('Auth emulator forbidden in inference server');
-  const app=initializeApp({projectId,credential},'bursyar-inference');
+  let app=null;
+  try{app=getApp('bursyar-inference');}catch{/* No existing instance; initialize below. */}
+  if(app){if(app.options?.projectId!==projectId)throw new Error('Firebase project mismatch in inference server');}
+  else app=initializeApp({projectId,credential},'bursyar-inference');
   const auth=getAuth(app);
   return async token => auth.verifyIdToken(token,true);
 }

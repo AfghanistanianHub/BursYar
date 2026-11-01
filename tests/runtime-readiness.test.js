@@ -26,6 +26,17 @@ test('health reports truthful capabilities without authentication and never clai
   assert.deepEqual(await (await fetch(`${base}/health`)).json(),{ok:true});
  });
 });
+test('JSON responses carry baseline hardening headers',async()=>{
+ await withServer({infer:async()=>{throw Error('must not infer');}},async base=>{
+  for(const path of ['/health','/no-such-route']){
+   const r=await fetch(`${base}${path}`);
+   assert.equal(r.headers.get('x-content-type-options'),'nosniff');
+   assert.equal(r.headers.get('cache-control'),'no-store');
+   assert.equal(r.headers.get('referrer-policy'),'no-referrer');
+   assert.equal(r.headers.get('content-security-policy'),"default-src 'none'; frame-ancestors 'none'");
+  }
+ });
+});
 test('missing policy records deny analysis before provider or quota',async()=>{
  let calls=0,reservations=0;
  await withServer({policyContextForRequest:async()=>{throw Error('Trusted evidence unavailable');},infer:async()=>{calls++;return '{}';},quota:{reserve(){reservations++;}}},async base=>{

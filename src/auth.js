@@ -13,6 +13,7 @@ async function getSession(){
 }
 export async function signIn(){const {auth,sdk}=await getSession();await sdk.signInWithPopup(auth,new sdk.GoogleAuthProvider());}
 export async function signOut(){const {auth,sdk}=await getSession();await sdk.signOut(auth);}
+export async function onAuthChange(callback){const {auth,sdk}=await getSession();return sdk.onAuthStateChanged(auth,callback);}
 export async function getInferenceToken(){
  const {auth}=await getSession();if(!auth.currentUser)throw Error('Sign in required');
  return auth.currentUser.getIdToken();
