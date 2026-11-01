@@ -423,3 +423,73 @@ None proves the others. Endpoint/model inspected without secrets:
 `POST https://api.meta.ai/v1/chat/completions`, configured model ID from the
 Keychain record (server default when config omits it: `muse-spark-1.3`; previously
 observed live model: `muse-spark-1.3`).
+
+## UI defect repair (2026-11-01, same release branch, no inference)
+
+Serving identity (established before any fix): `localhost:5173` is PID 1611
+`node verification/start-demo.mjs`, cwd `/Users/sayadalimousaviazad/Documents/BursYar`,
+embedding Vite (frontend) plus PID 1612 `node engine/server.js` (backend).
+At inspection, local `HEAD`, `origin/release/hackathon-rc-2026-10-31`, and PR #35
+`headRefOid` were all `12c48b9fb7796339df4381b92316e0fd80a2872e` — the defects
+were in the tree, not a cache or branch mismatch. No branch switch was needed
+for diagnosis.
+
+Design reference: none accessible. `docs/checkpoints/mission-04-frontend.md`
+records Figma Mission 03 blocked by the Starter-plan tool-call limit with
+explicit instruction to reuse current UI tokens. No new brand direction was
+introduced and no visual-parity claim is made. Implemented on this branch:
+journey navigation structure, account dropdown structure, source-entry flow,
+RTL layout and font subsets. Unfinished/incorrect until this repair: step
+numbering, popover dismiss behavior, auth-button toggle, source→analysis
+progression clarity.
+
+Fix commit `aaa00ec` ("journey: numbered steps, account popover behavior and
+source progression"), 8 files, +66/−15:
+- `src/journey-navigation.js`/`.css`: removed duplicated `1.`/`۱.` prefixes
+  from en/fa/ps copy; numerals now come only from the `<ol>` with
+  `decimal` (en) / `persian` (fa/ps) list styling.
+- `src/auth.js` + `src/analyzer.js`: new `onAuthChange` helper drives
+  sign-in/sign-out visibility (exactly one shown); account `<details>`
+  dismisses on outside click and Escape with focus return. No auto-sign-in,
+  no token logging.
+- `src/source-preview.js` + `src/style.css`: always-visible 3-step
+  progression list (`#source-progression`, `aria-current`, decimal/persian)
+  plus focus move to the reviewed source after fetch. Approval checkbox and
+  `submit.disabled=busy||!approval.checked` gating unchanged; consent,
+  source approval, privacy and quota paths untouched. New fa/ps step strings
+  are UNREVIEWED (same standing gate as all other translations).
+- `verification/browser.mjs`: mock auth module exports `onAuthChange`.
+- `tests/journey-account-progression.test.js`: 3 static regression tests.
+
+Verification on this tree (all without live inference; submit never clicked
+and fetch attempted only unsigned, stopping at the client auth gate):
+- `npm test`: 238/238 pass (235 existing + 3 new), 0 fail.
+- `npm run build`: passes. `node verification/typography-probe.mjs`: 6/6,
+  zero external font requests.
+- `npm run test:browser`: 15/15 pass, `BROWSER_WITH_MOCK_AUTH_AND_API`
+  (`liveMetaVerified:false`, `liveGoogleSignInVerified:false`), axe
+  wcag2a/wcag2aa/wcag21aa zero violations.
+- Headless real-server pass against `localhost:5173` (real engine, real
+  Oxford URL input, synthetic manual text): 6/6 en/fa/ps × 1280/390 combos
+  pass — single localized numerals, 0→1→2 progression with submit enabled
+  only after approval, account closed-by-default with both dismiss paths,
+  zero `/api/analyze` and zero `/api/source` requests, zero page errors,
+  zero horizontal overflow. Mean page load 166 ms, mean language switch
+  562 ms. Before/after/final screenshots retained under `/tmp`
+  (`bursyar-before-*`, `bursyar-after-*`, `bursyar-final-*`) and every final
+  image was read back before judging.
+- Live-inference status: NOT consumed. Quota DB (read-only aggregates, no
+  identities) shows the latest reservation buckets dated day 20755 /
+  minute 29887346 vs now 20758 / 29891738 (~3 days stale; pruning only runs
+  on reserve), lifetime 47147 cumulative from historical runs.
+  `verification/artifacts/live-report.json` remains blocked/not-validated.
+  The single authorized request is still untouched; no new authorization
+  was created or exercised.
+
+History note: during verification a concurrent session committed this same
+tree as `2117fb4` on a local-only branch `feat/journey-account-progression`
+and moved this checkout onto it; the peer was notified and that branch was
+left untouched (never pushed). The release branch carries the identical
+content as `aaa00ec` (`git diff 2117fb4 aaa00ec` empty). Push `aaa00ec` plus
+this handoff commit together; record the new tip SHA and its exact-head CI
+in the PR #35 description.
