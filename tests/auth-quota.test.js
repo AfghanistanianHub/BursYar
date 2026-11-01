@@ -54,6 +54,28 @@ test('Firebase Admin verifier rejects malformed and unsigned tokens without live
  }finally{await deleteApp(getApp('bursyar-inference'));}
 });
 
+test('Firebase verifier creation is idempotent within one project',async()=>{
+ const {createFirebaseVerifier}=await import('../engine/auth.js');
+ const {deleteApp,getApp}=await import('firebase-admin/app');
+ const credential={getAccessToken:async()=>{throw Error('No live credentials in test');}};
+ const first=createFirebaseVerifier({projectId:project,credential});
+ const second=createFirebaseVerifier({projectId:project,credential});
+ try{
+  await assert.rejects(first('not-a-jwt'));
+  await assert.rejects(second('not-a-jwt'));
+ }finally{await deleteApp(getApp('bursyar-inference'));}
+});
+
+test('Firebase verifier refuses a second project in one process',async()=>{
+ const {createFirebaseVerifier}=await import('../engine/auth.js');
+ const {deleteApp,getApp}=await import('firebase-admin/app');
+ const credential={getAccessToken:async()=>{throw Error('No live credentials in test');}};
+ createFirebaseVerifier({projectId:project,credential});
+ try{
+  assert.throws(()=>createFirebaseVerifier({projectId:'other-project-id',credential}),/project/i);
+ }finally{await deleteApp(getApp('bursyar-inference'));}
+});
+
 test('independent worker processes cannot overspend the shared SQLite global cap',async()=>{
  const {spawn}=await import('node:child_process');
  const {pathToFileURL}=await import('node:url');
