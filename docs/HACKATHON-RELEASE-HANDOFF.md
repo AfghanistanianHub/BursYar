@@ -640,3 +640,34 @@ Hosted frontend/backend deploy only through the owner's existing
 Vercel/Render wiring; a merge alone does not deploy the backend (see
 HOSTED-BACKEND.md). Record the follow-up PR number, its head SHA, the
 exact-head CI run, and the post-merge main SHA in the PR description.
+
+## Workspace UI implementation (2026-11-01, no inference)
+
+MagicPath integration is unavailable in this environment (no skill, CLI,
+config, or repo reference) and no export arrived, so per explicit owner
+direction the approved light-workspace requirements were implemented
+directly as the specification — sidebar navigation, compact headings,
+restrained accents; the green hero banner is gone. No substitute brand,
+no mockup, no disconnected prototype.
+
+Change (CSS-only, zero template/ID/hook edits, all protections intact):
+sticky slim topbar; compact page header; sticky nav sidebar on desktop
+(mirrored in RTL) collapsing to stacked nav on mobile; single content
+column of workspace panels; refined opportunity/research cards, filters,
+evidence panels, tri-state pills, and PathFinder timeline; light footer.
+New FA/PS strings: none. Research styles preserved and verified.
+
+Verification on the branch: unit 293/293, build, mocked browser 15/15
+axe-clean, research-browser en/fa/ps zero-POST, read-back desktop/mobile
+screenshots across en/fa/ps (numbering, popover fit, cards, RTL mirror).
+Live Meta: already passed on hosted (request 5a58bff8); no new calls per
+the preserved one-request limit; policy-window renewal remains the only
+live prerequisite. Demo: start via ./start-bursyar.command, open
+http://localhost:5173 — journey: sign in → review profile/documents →
+paste official URL → fetch → review → approve → Prepare analysis →
+evidence/eligibility → PathFinder actions; deterministic fallback when
+AI is unavailable; sign-out clears private panels. Roadmap (not built):
+real opportunity catalog, fluent FA/PS review, Evidence Graph,
+clarification flows, verified time/cost, issuer integrations, 2FA,
+offline support. Record the PR number, head SHA, and exact-head CI run
+in the PR description.
