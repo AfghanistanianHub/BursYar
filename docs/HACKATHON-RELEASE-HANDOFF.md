@@ -701,3 +701,14 @@ axe-clean; research-browser en/fa/ps pass with zero POST requests; render
 spot-checks read back. A Vercel preview comment exists on the PR (owner
 infra); it is not a publication and changes nothing above. Push the merge
 plus the fix commit together; record the final tip SHA and exact-head CI.
+
+## Mobile popover fit fix (2026-11-01, no inference)
+
+Screenshot review of the final verification pass caught the account
+popover clipped off-viewport on 390px widths (absolute positioning
+relative to the mid-header summary; left/top overflow is invisible to
+scrollWidth assertions, so the suites stayed green). Fixed in
+`src/style.css`: below 700px the summary is statically positioned and the
+open popover anchors to the sticky header with `inset-inline-end:12px`,
+verified fully inside the viewport (geometry + read-back screenshots) in
+en/fa/ps. Committed with this note; CI re-run on the new tip.

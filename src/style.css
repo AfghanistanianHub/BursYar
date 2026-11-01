@@ -42,6 +42,10 @@ button,a,input,select,textarea,summary{-webkit-tap-highlight-color:transparent}
  max-width:160px; padding:8px 10px; min-height:44px; font-weight:600}
 .language select:hover{border-color:var(--line)}
 .account{position:relative; font-size:14px; font-weight:600}
+@media(max-width:700px){
+ .account{position:static}
+ .account[open] #account-controls{inset-inline-end:12px; top:calc(100% + 8px); width:min(300px,82vw)}
+}
 .account summary{min-height:44px; display:flex; align-items:center; padding:6px 12px;
  border-radius:var(--r-sm); background:var(--surface-2); list-style:none}
 .account summary::-webkit-details-marker{display:none}
