@@ -105,7 +105,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
    // UTF-8 bytes conservatively bound input tokens; fixed maximum output reservation.
    const units=typeof adapter.reservationUnits==='function'?adapter.reservationUnits(messages):metaReservationUnits(adapter.model,messages);
    if(!Number.isSafeInteger(units)||units<1||(context.maxReservationUnits!==undefined&&units>context.maxReservationUnits))return send(res,403,{error:'Analysis unavailable for this request'});
-   try{(adapter.quota??quota).reserve(uid,units);}catch(error){return send(res,error instanceof QuotaExceeded?429:503,{error:error instanceof QuotaExceeded?'Quota exhausted':'Quota storage unavailable'});}
+   try{await (adapter.quota??quota).reserve(uid,units);}catch(error){return send(res,error instanceof QuotaExceeded?429:503,{error:error instanceof QuotaExceeded?'Quota exhausted':'Quota storage unavailable'});}
    const started=performance.now(),requestId=randomUUID();
    let stage='provider';
    try {
