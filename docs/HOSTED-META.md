@@ -35,7 +35,7 @@ unverified location, unknown age, expired consent or restricted jurisdiction.
 
 - Existing `META_API_KEY` in Render's secret environment, never a repository/chat.
 - Exact `muse-spark-1.3` Standard model; no Contributor or fallback adapter.
-- Owner-confirmed account spending cap (USD 5), confirmation timestamp and reviewed
+- Owner-confirmed account spending cap (now USD 50), confirmation timestamp and reviewed
   conservative provider cost bound. Do not infer a spending cap from credits.
 - Genuine fresh adult/subject/region/consent evidence bound to the approved
   Firebase UID. Do not manufacture `ageVerified` or `locationVerified` flags from
@@ -49,9 +49,9 @@ unverified location, unknown age, expired consent or restricted jurisdiction.
 
 Official pricing lists Muse Spark Standard input USD1.25 and output USD4.25 per
 million tokens. Existing reservation units bound full request UTF-8 bytes plus
-maximum completion tokens. At USD0.00000425 per unit, one million lifetime units
-conservatively bound this gateway's text-token requests to USD4.25 at those
-reviewed rates, below the USD5 app cap. This excludes other tools/accounts/API
+maximum completion tokens. At USD0.00000425 per unit, ten million lifetime units
+conservatively bound this gateway's text-token requests to USD42.50 at those
+reviewed rates, below the owner-approved USD50 app cap. This excludes other tools/accounts/API
 keys; retain the independent account cap and re-review pricing before renewal.
 No web-search/image/voice tools are used. Standard content is not used to train
 Meta models; this is not a claim of zero retention or institutional endorsement.
@@ -68,3 +68,35 @@ for immutable budget registration, per-user/global/lifetime caps, exact lifetime
 boundary, unchanged usage on denial and denied client privileges. The advisor
 reported no findings on the new quota objects. No real usage budget was left by
 these synthetic SQL checks and no provider was invoked.
+
+
+## Live activation — 2026-11-01
+
+The owner confirmed Canadian use, creation of a dedicated `BursYar-Hosted`
+Meta key, secure Render provisioning, one public-source test, and an increased
+USD50 cap. The generated key and approved-account policy record are server-only;
+no key or Firebase UID is included here. The account-bound adult Canadian demo
+record expires after approximately 24 hours. Other/unverified accounts remain
+denied; no family or restricted-region access was enabled.
+
+The reviewed lifetime budget was administratively raised from 1,000,000 to
+10,000,000 units with an exact-old-limits guard and without resetting usage.
+Per-user/global daily caps remain unchanged. Render's effective provider/spend
+settings were updated through its configuration API to match the database.
+
+Backend `4e272a74e65df5ccf2318f3adac312196f5db443` is LIVE in Render deployment
+`dep-dbjooe0u01pc7383tj2g`. One real Firebase-authenticated Muse Spark 1.3
+Standard request passed the evidence validator: request ID
+`5a58bff8-0885-42c3-a707-60ce1fe4a8e9`, elapsed 3480 ms, one criterion and one
+funding excerpt. The public Oxford Clarendon source was manually excerpted after
+the server fetch declined robots access; provenance correctly remains manually
+supplied and unverified, not server-fetched or issuer-authenticated.
+
+English/Farsi/Pashto UI switching preserved the result without another request.
+The actual durable database recorded one global request and 6089 reserved units.
+Reserved units are not actual billed dollars. No retry, private student data,
+profile or document was sent. Output remains partial and human-unreviewed;
+success is integration evidence, not a scholarship eligibility or fluency claim.
+All four CI jobs on the implementation, including the migrated macOS15 job,
+completed successfully. Live document file-upload UI verification remains a
+separate unfinished check.
