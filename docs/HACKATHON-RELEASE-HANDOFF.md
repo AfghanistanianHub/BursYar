@@ -493,3 +493,98 @@ left untouched (never pushed). The release branch carries the identical
 content as `aaa00ec` (`git diff 2117fb4 aaa00ec` empty). Push `aaa00ec` plus
 this handoff commit together; record the new tip SHA and its exact-head CI
 in the PR #35 description.
+
+## Integration of #36–#38 (2026-11-01, same release branch, no inference)
+
+All three PRs target this release branch, fork from `12c48b9`, arrived with
+green exact-head CI and zero reviews/comments. Each was reviewed here
+(heads, full diffs, tests, PR-body claims) and merged locally with
+`--no-ff`, zero conflicts:
+- `cd0a914` ← #36 `feat/backend-auth-security-hardening` @ `c6e0d10`
+  (owner-only quota store, Firebase verifier reuse with project-mismatch
+  refusal, referrer-policy + CSP hardening headers; +4 tests).
+- `abde4d8` ← #37 `feat/frontend-multilingual-completion` @ `51de126`
+  (explorer country/level localization + localized search, shell
+  title/counts/numerals/close-label; +5 parity tests). New fa/ps strings
+  UNREVIEWED per repo rule.
+- `322f803` ← #38 `feat/matching-verification-pathfinder` @ `bda8505`
+  (bounded GPA `x/4|5` + TOEFL iBT grammars in document parsing with
+  discrepancy-on-duplicate, GPA/TOEFL review editors, PathFinder
+  barrier/gap wiring in local assessment; +8 tests).
+`aaa00ec` protections verified present after merge (persian numbering,
+`onAuthChange` toggle, `#source-progression`, approval gating); local
+`2117fb4` was not duplicated (not an ancestor; its branch left untouched).
+Provider/privacy, consent, quota and evidence paths unchanged: prompt
+boundary still `{untrustedSource: text}` only, no retry (sole "retry"
+string is the 429 concurrency message), reservations kept on failure,
+`documentedAlternative` null with the reviewed resolver off the public
+path. Source PRs #36–#38 left OPEN for the owner (closing is an owner
+decision, as with #30/#33/#34).
+
+#36 operator note: the existing private files already satisfy the new
+checks — verified by permission stat only (no contents read): dir
+`~/.bursyar-private` 0700 uid-owned; `quota.sqlite`,
+`provider-config.json`, `policy-records.json`, `firebase-admin.json` all
+0600 uid-owned. The running demo server was NOT restarted (owner process);
+the checks apply on the next owner restart, where they pass as-is.
+
+Verification on the merged tree, evidence distinguished:
+- LOCAL (this tree, real code, no mocks): `npm test` 255/255
+  (235 + 4 + 5 + 8 + 3 UI-regression — the 255 figure is now confirmed on
+  the release branch, not a scratch tree); `npm run build` passes;
+  `npm run test:evaluation` 51/51 `OFFLINE_EXCERPT_FIXTURES_NOT_LIVE_META`;
+  typography probe 6/6, zero external font requests.
+- MOCKED: `npm run test:browser` 15/15 `BROWSER_WITH_MOCK_AUTH_AND_API`
+  (`liveMetaVerified:false`, `liveGoogleSignInVerified:false`), axe
+  wcag2a/wcag2aa/wcag21aa zero violations. Headless real-server render
+  check en/fa/ps: single localized numerals, 3-step progression, localized
+  explorer labels/counts/cards, documents mount present, zero page errors,
+  zero overflow, zero `/api/*` requests (submit never clicked).
+- EMULATOR: not run locally (no Java runtime); covered by CI `emulator`
+  job on the exact head, as before.
+- LIVE: nothing attempted and nothing consumed. Quota buckets still ~3
+  days stale; `live-report.json` still blocked/not-validated. Redacted
+  `npm run check:mac` on 2026-11-01: credentials present, quota DB exists,
+  spending confirmed $5 with valid timestamp, `liveInferenceVerified:false`
+  (forwarding flags false in the agent shell only — the demo server runs
+  in its own credential-bearing shell). No setup repeated, no attestation
+  invented, no inference requested.
+
+Untracked `docs/HACKATHON-READINESS.md` (owner file, left in place and
+uncommitted): §1 endpoint/params, §3 request-path privacy core, §4
+budget/no-retry mechanics, §7 evidence checklist, §8–§9 fallback/story
+verified still accurate against this tree (60000/120000/4000/low/
+json_schema, prompt carries text only, no retry path). SUPERSEDED parts:
+§3 "no age/region gate" (this tree has fail-closed trusted-policy gates),
+§6 startup procedure (release backend prints no `meta_configuration`
+line; use the live procedure in this handoff), §10 test counts and branch
+(pre-date this release). Its accurate substance is preserved by reference
+here; the file itself is untouched.
+
+Inventory for the owner-directed visual redesign (descriptive only — the
+redesign is NOT complete and no current UI is claimed as final):
+- Navigable components with real behavior: 4-step journey nav; source
+  URL→fetch→review→approve→`Prepare analysis` flow with receipts/digests;
+  criteria/funding/deadline/uncertainty rendering with excerpts;
+  tri-state eligibility + hypothetical scenarios; deterministic local
+  assessment with barrier/gap actions; document upload/review/delete
+  (degree/IELTS/GPA/TOEFL bounded claims); profile + academic-evidence
+  forms; account popover with Google sign-in/out.
+- Real data available: user-pasted source text + server receipts/digests;
+  local profile/document facts (`user_declared`/`document_extracted`,
+  never verified); deterministic `/scholarships` + `/evaluate` API
+  (currently only the synthetic-local-test fixture — no institutional
+  catalog provisioned); Meta analysis only through an authorized live
+  call (`requiresHumanReview:true`, partial by design).
+- Explicitly NOT real: explorer listings are synthetic demo rows labeled
+  unverified (no opportunity cards data source); no verification badges,
+  scores, or statistics may be shown as authoritative; no inactive
+  controls may be added. Redesign must keep consent, approval, privacy,
+  quota and evidence-failure behavior intact.
+
+Remaining blockers: fluent fa/ps review (scope grew: #37 labels +
+progression steps); institutional reviewed catalog; guardian/privacy
+sign-off; a NEW explicit live-inference authorization (none exists);
+owner decisions on closing #30/#33/#34/#36/#37/#38. Push the three merges
+plus this handoff commit together; record the final tip SHA and its
+exact-head CI in the PR #35 description.
