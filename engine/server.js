@@ -1,3 +1,4 @@
+import {listenHost} from './listen-config.js';
 import {defaultCatalog} from './default-catalog.js';
 import {resolve} from 'node:path';
 import {DocumentStore} from './documents.js';
@@ -43,5 +44,5 @@ const documents=env.BURSYAR_DOCUMENT_DB?new DocumentStore(env.BURSYAR_DOCUMENT_D
 const verify=createFirebaseVerifier({projectId:env.FIREBASE_PROJECT_ID});
 const capabilities=describeCapabilities({providerConfigPresent:!!env.BURSYAR_PROVIDER_CONFIG,providerEnabled:config.meta?.enabled===true,familyGrantsPresent:!!env.BURSYAR_FAMILY_GRANTS,metaAvailable:providers.meta?.available===true,spendingConfirmed:isSpendingConfirmed(env),spendingApproved:config.meta?.spendingApproved===true,policyRecordsConfigured:!!env.BURSYAR_POLICY_RECORDS,documentsAvailable:!!documents,catalogAvailable:!!catalog});
 const server=createInferenceServer({documents,verify,projectId:env.FIREBASE_PROJECT_ID,quota:{reserve(){throw Error('Provider unavailable');}},providers,catalog,loadFamilyGrant,origin:env.BURSYAR_ORIGIN,canInfer:provider=>isSpendingConfirmed(env)&&config[provider]?.spendingApproved===true,policyContextForRequest,capabilities});
-server.listen(port,'127.0.0.1');
+server.listen(port,listenHost(env));
 for(const signal of ['SIGTERM','SIGINT'])process.once(signal,()=>{server.close(()=>{for(const quota of quotas)quota.close();documents?.close();process.exit(0);});server.closeIdleConnections();});
