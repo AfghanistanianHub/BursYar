@@ -1,14 +1,23 @@
 import {DatabaseSync} from 'node:sqlite';
 import {createHash} from 'node:crypto';
-import {isAbsolute} from 'node:path';
+import {isAbsolute,dirname} from 'node:path';
+import {lstatSync,openSync,closeSync,constants,chmodSync} from 'node:fs';
 export class QuotaExceeded extends Error {}
 export class QuotaStore {
   constructor(path, limits) {
     if (!isAbsolute(path)) throw new Error('Absolute quota database path required');
     for (const key of ['userMinute','userDay','globalDay','lifetimeUnits']) if(!Number.isSafeInteger(limits[key]) || limits[key]<1) throw new Error('Invalid quota limits');
+    // Usage buckets are keyed by hashed UID and back spending-relevant caps.
+    // Match the document store posture: owner-only directory and file, no symlinks.
+    const parent=lstatSync(dirname(path));
+    if(parent.uid!==process.getuid()||!parent.isDirectory()||parent.isSymbolicLink()||(parent.mode&0o077))throw new Error('Private quota directory required');
+    const fd=openSync(path,constants.O_CREAT|constants.O_RDWR|constants.O_NOFOLLOW,0o600);closeSync(fd);
+    const file=lstatSync(path);if(file.uid!==process.getuid()||!file.isFile()||(file.mode&0o077))throw new Error('Private quota file required');
     this.limits=limits;
     this.db=new DatabaseSync(path);
     this.db.exec('PRAGMA busy_timeout=5000; PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS quota (bucket TEXT PRIMARY KEY, used INTEGER NOT NULL CHECK(used >= 0));');
+    // WAL sidecars inherit the process umask; tighten best-effort when present.
+    for(const suffix of ['-wal','-shm'])try{chmodSync(path+suffix,0o600);}catch{}
   }
   reserve(uid, units, now=Date.now()) {
     if(typeof uid!=='string' || !uid || !Number.isSafeInteger(units) || units<1 || !Number.isSafeInteger(now) || now<0)throw new Error('Invalid reservation');

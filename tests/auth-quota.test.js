@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {mkdtempSync,rmSync} from 'node:fs';
+import {mkdtempSync,rmSync,mkdirSync,chmodSync,statSync,symlinkSync,writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {authenticate} from '../engine/auth.js';
@@ -26,6 +26,21 @@ test('SQLite reservations survive restart; multiple connections share caps; fail
  }finally{a.close();b.close();rmSync(dir,{recursive:true,force:true});}
 });
 test('storage path and invalid limits fail closed',()=>{assert.throws(()=>new QuotaStore('relative.db',{}));});
+
+test('quota database requires a private directory and private file',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-quota-private-'));
+ const limits={userMinute:1,userDay:2,globalDay:3,lifetimeUnits:10};
+ try{
+  const lax=join(dir,'lax');mkdirSync(lax);chmodSync(lax,0o755);
+  assert.throws(()=>new QuotaStore(join(lax,'quota.sqlite'),limits),/Private quota directory/);
+  const loose=join(dir,'quota.sqlite');writeFileSync(loose,'x');chmodSync(loose,0o644);
+  assert.throws(()=>new QuotaStore(loose,limits),/Private quota file/);
+  const target=join(dir,'target.sqlite'),link=join(dir,'link.sqlite');writeFileSync(target,'x');chmodSync(target,0o600);symlinkSync(target,link);
+  assert.throws(()=>new QuotaStore(link,limits));
+  const fresh=join(dir,'fresh.sqlite');const store=new QuotaStore(fresh,limits);
+  try{assert.equal(statSync(fresh).mode&0o077,0);}finally{store.close();}
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
 
 test('Firebase Admin verifier rejects malformed and unsigned tokens without live credentials',async()=>{
  const {createFirebaseVerifier}=await import('../engine/auth.js');
