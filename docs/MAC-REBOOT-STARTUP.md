@@ -26,6 +26,17 @@ The executable gateway requires `BURSYAR_SPENDING_CONFIRMED=1`, a positive finit
 
 `npm run check:mac` checks the existing private files and reads the Keychain item without printing its content. `node verification/macos-start.mjs status` checks metadata without opening a credential-entry dialog. Missing/locked/denied Keychain access fails closed; the launcher never falls back to secrets in Git, .env, history or plaintext configuration. Compiled helper and its source digest live in `~/.bursyar-private/bin`; Swift compiler cache lives in ignored verification/artifacts. Rebuild happens only when the checked-in helper source changes.
 
+## Provider/policy configuration (live inference only)
+
+Without owner-provisioned provider/policy files the launcher starts a deterministic-only backend: documents, quotas and local assessment work, but `/api/analyze` denies before any provider call. To enable live inference, export exactly these two variables in the launching shell before starting:
+
+```sh
+export BURSYAR_PROVIDER_CONFIG="$HOME/.bursyar-private/provider-config.json"
+export BURSYAR_POLICY_RECORDS="$HOME/.bursyar-private/policy-records.json"
+```
+
+Each must be an absolute path to an existing owner-only mode-600 regular JSON file (no symlinks); anything else fails startup with an actionable message. Only these two names pass the launcher's environment filter, and only as paths — file contents are read solely by the backend through its own strict loader, never printed. All other parent variables (keys, quotas, caps, emulator, VITE_*) stay dropped, exactly as before. `npm run check:mac` reports `providerConfigForwarded`/`policyRecordsForwarded` so forwarding is visible before startup. Required file schemas are documented in `docs/MULTI-PROVIDER-IMPLEMENTATION.md`; provisioning the records (identity, region, age, consent, terms/privacy review) remains an explicit owner attestation, never inferred.
+
 After a reboot, no previous shell variables are needed. Node >=24.12, installed dependencies and the existing private directory remain prerequisites. The launcher will not kill occupied processes or reset quota state. Human translation review remains pending, and no public merge/deployment is implied.
 
 Apple references: https://developer.apple.com/documentation/security/using-the-keychain-to-manage-user-secrets ; https://developer.apple.com/documentation/security/ksecclassgenericpassword .

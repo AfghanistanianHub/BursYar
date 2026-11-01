@@ -13,6 +13,20 @@ export function existingPrivateFile(path){
  if(!s.isFile()||s.isSymbolicLink()||(s.mode&0o077)!==0||s.uid!==process.getuid())throw Error('Private file must be owned by this user, mode 600, without symlinks');
  return path;
 }
+// Narrow path-only passthrough for owner-provisioned provider/policy JSON files.
+// Only these two variable names are ever forwarded, only as validated paths;
+// values are never read, logged, or printed here. Anything else from the parent
+// environment stays dropped. Throws fail-closed on any invalid entry.
+const PRIVATE_CONFIG_PATH_VARS=['BURSYAR_PROVIDER_CONFIG','BURSYAR_POLICY_RECORDS'];
+export function forwardPrivateConfigPaths(env={}){
+ const forwarded={};
+ for(const name of PRIVATE_CONFIG_PATH_VARS){
+  const value=env[name];
+  if(value===undefined||value==='')continue;
+  try{forwarded[name]=existingPrivateFile(value);}catch{throw Error(`Private configuration file for ${name} is missing or unsafe; use an absolute owner-only mode-600 JSON path`);}
+ }
+ return forwarded;
+}
 export function rebootEnvironment(config,home=homedir(),options={}){
  validateKeychainConfig(config);
  return {
