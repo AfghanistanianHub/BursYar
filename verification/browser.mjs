@@ -29,7 +29,7 @@ try {
   await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{const note=document.createElement('p');note.textContent='OFFLINE REHEARSAL — mocked identity and Meta; synthetic applicant data';note.setAttribute('role','note');note.style.cssText='padding:12px;background:#fff;color:#111;border:2px solid #111';document.body.prepend(note);},{once:true}));
   // Test-only network interception, not a runtime bypass or simulated live verification.
   const browserToken=`browser-test-${language}-${width}`;
-  await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function getInferenceToken(){return "'+browserToken+'";}'}));
+  await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{};} export async function getInferenceToken(){return "'+browserToken+'";}'}));
   let importGate=null;
   await page.route(/\/api\/(documents|profile|source|scholarships|evaluate|family)/,async route=>{const request=route.request();if(new URL(request.url()).pathname.endsWith('/source/import')&&importGate)await importGate;const response=await fetch(apiUrl+new URL(request.url()).pathname,{method:request.method(),headers:{authorization:request.headers().authorization,origin:baseUrl,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});});
   let responseEvidence=evidence;let responseStatus=200;let sawRequest=false;let calls=0;
