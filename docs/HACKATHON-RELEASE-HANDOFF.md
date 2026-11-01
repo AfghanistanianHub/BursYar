@@ -588,3 +588,55 @@ sign-off; a NEW explicit live-inference authorization (none exists);
 owner decisions on closing #30/#33/#34/#36/#37/#38. Push the three merges
 plus this handoff commit together; record the final tip SHA and its
 exact-head CI in the PR #35 description.
+
+## Follow-up: redesign + review fixes onto main (2026-11-01, no inference)
+
+PR #35 was merged by the owner at 2026-11-01T04:41:48Z (merge `5767260`,
+head `fa10ebc`, which contains the #36–#38 integration). Main has since
+moved on (hosted Render backend, same-origin API routing, keyless
+Firebase caller checks, CTO research; see HOSTED-BACKEND.md,
+KEYLESS-FIREBASE-AUTH.md, LIVE-DEMO-GATES.md). The "Draft, unmerged" and
+"no deployment" statements above are therefore historical. This section
+records the single authorized follow-up PR porting what the merge left
+behind; no other release PR exists or is planned.
+
+CORRECTION (carried from the release branch): the standing live-test
+authorization EXISTS — one inference request plus consolidated
+terms/consent confirmed by the owner and recorded in owner-only
+`provider-config.json` + `policy-records.json`. Earlier "(none exists)"
+claims are superseded. Validity checked 2026-11-01T10:05Z by structural
+inspection only (no contents reproduced): provider attestation complete
+with ~161h remaining; the policy record's 6h window EXPIRED at 09:17:38Z
+(all flags still true, only time lapsed). The single genuinely expired
+item is that window: renewal is the owner re-issuing the one record with
+fresh verifiedAt/expiresAt (same subject, consent v1, jurisdiction) —
+no questionnaire, no new authorization, no file edits by the agent
+(none were made).
+
+Ported onto latest main, preserving all main-side work (no src/ overlap:
+main touched only engine/infra/docs/tests since `fa10ebc`):
+- Full presentation redesign (`src/style.css`, `src/journey-navigation.css`):
+  app shell, stepper nav, workspace grid, opportunity/research cards,
+  tri-state color+dot+text, timeline journey, consent/approval UI —
+  behavior-identical, zero backend scope, zero new dependencies.
+- Codex P1 (academic scores remount on identity) + P2 (TOEFL type and
+  sections preserved) with `tests/identity-toefl-fixes.test.js`.
+- Mobile account-popover fit fix (anchors to header below 700px).
+Not ported: the empty CI-retrigger commit, merge scaffolding, and the
+release-branch-only PR #35 bookkeeping. Research styles merge cleanly
+with the redesign (verified renders).
+
+Verification on the follow-up head: full unit suite, production build,
+mocked browser + research-browser suites with axe, and read-back
+desktop/mobile screenshots across en/fa/ps RTL — all recorded in the
+follow-up PR with its exact-head CI run. Zero live or paid inference;
+quota untouched; hosted gates (no durable doc storage, no Meta
+provisioning on hosted) unchanged.
+
+Startup: local demo still runs only via `./start-bursyar.command`
+(loopback backend + Vite); the backend/frontend pair must be restarted
+through the launcher to pick up merged main code — never piecemeal.
+Hosted frontend/backend deploy only through the owner's existing
+Vercel/Render wiring; a merge alone does not deploy the backend (see
+HOSTED-BACKEND.md). Record the follow-up PR number, its head SHA, the
+exact-head CI run, and the post-merge main SHA in the PR description.
