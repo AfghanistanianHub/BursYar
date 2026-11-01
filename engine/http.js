@@ -13,7 +13,7 @@ import {authenticate} from './auth.js';
 import {QuotaExceeded} from './quota.js';
 import {validateEvidenceRequest,normalizeEvidence,evidencePrompt,EvidenceFailure} from './evidence.js';
 const MAX_BODY=56*1024;
-function send(res,status,body){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff'});res.end(JSON.stringify(body));}
+function send(res,status,body){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer','content-security-policy':"default-src 'none'; frame-ancestors 'none'"});res.end(JSON.stringify(body));}
 async function readInput(req,validate=validateEvidenceRequest,maxBody=MAX_BODY){
  if(!/^application\/json(?:\s*;|$)/i.test(req.headers['content-type']??''))throw Object.assign(Error(),{status:415});
  let size=0;const chunks=[];
