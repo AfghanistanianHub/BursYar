@@ -671,3 +671,27 @@ real opportunity catalog, fluent FA/PS review, Evidence Graph,
 clarification flows, verified time/cost, issuer integrations, 2FA,
 offline support. Record the PR number, head SHA, and exact-head CI run
 in the PR description.
+
+## Workspace UI landed on main (2026-11-01, no inference)
+
+Follow-up PR #49 (https://github.com/AfghanistanianHub/BursYar/pull/49)
+merged to main as 985e332 via merge commit (no bypass, no force-push).
+PR head: 1f76a38 (single commit: workspace CSS + journey sidebar CSS +
+implementation note). Exact-head CI run 41352661590: verify, emulator,
+browser, macos-helper all SUCCESS; zero blocking review findings (no
+inline comments posted). Post-merge main CI: see PR #49 description for
+the run link and result.
+
+Live Meta status: already passed on hosted infrastructure (authorized
+request 5a58bff8, Oxford/Clarendon manual excerpt, validated evidence,
+6089 units reserved under the owner-confirmed $50 ceiling). No new
+inference was requested or consumed in this work; the one-request limit
+stands. Only remaining live prerequisite: owner re-issue of the expired
+policy-window timestamps when a live test is scheduled.
+
+Startup procedure (local demo): run ./start-bursyar.command from a
+logged-in macOS Terminal (doubles as the documented reboot path), open
+http://localhost:5173. After this merge, stop the old launcher pair and
+restart so both tiers serve main @ 985e332 or later; never start a
+second pair or restart piecemeal. Hosted frontend/backend deploy only
+through the owner's existing Vercel/Render wiring.
