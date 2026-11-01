@@ -48,10 +48,17 @@ them, and never become officially verified through storage.
 
 ## Activation record
 
-Implementation and synthetic verification are recorded in the PR. Hosted storage
-must remain disabled until the server credential is securely provisioned and a
-real authenticated synthetic-document round trip succeeds. Quota persistence,
-Meta credentials and trusted provider policy records remain separate gates.
+The owner approved reusing the existing BursYar Supabase server key in Render's
+secret environment. No new key was created. Hosted storage is enabled. An actual
+Firebase-authenticated synthetic profile was saved through the production UI,
+confirmed in the private table, and loaded again after a new backend deployment.
+The synthetic profile and history were then cleared using revision CAS; the
+empty owner/revision tombstone remains. No real student data was used.
+
+The full file-upload/review UI smoke test is still pending: the browser file
+transfer operation timed out. Automated document workflow, isolation and deletion
+tests passed, but these are not represented as a completed live file-upload test.
+Quota persistence, Meta credentials and trusted policy remain separate gates.
 
 
 ## Verified provisioning — 2026-11-01
@@ -69,5 +76,8 @@ uses the gateway authorization boundary. Existing community-function and Auth
 advisories predate this change; those unrelated features were not modified.
 
 Local checks: 285 Node tests and production build passed. Independent review
-reported no actionable findings. Hosted activation/persistence is still pending
-the existing server credential being securely provisioned in Render.
+reported no actionable findings. Both implementation PR #43 and consent PR #44
+passed all four CI jobs. Production frontend is READY at deployment
+`dpl_6bV2ebp894rCPRvv6cbgoD8DyTXw`. Backend commit
+`81372715e81f2099c319f1b99616d38b7e1b1c0a` is live on Render deployment
+`dep-dbjo0049v7es73alsr9g`; the synthetic profile survived this redeploy.
