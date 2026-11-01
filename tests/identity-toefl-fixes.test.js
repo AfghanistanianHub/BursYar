@@ -18,4 +18,5 @@ test('eligibility assessment preserves saved TOEFL type and sections', () => {
   assert.match(eligibility, /test\.bands\?\?test\.sections/);
   assert.match(eligibility, /savedFields\.testType==='TOEFL iBT'\?asFact\(\{test:'TOEFL iBT',overall:[^}]+sections/);
   assert.match(eligibility, /:\s*asFact\(\{test:'IELTS Academic',overall:[^}]+bands/);
+  assert.match(eligibility, /eligibility-simulate'\)\.addEventListener\('click',\(\)=>\{[^]*?savedFields\.testType==='TOEFL iBT'/s);
 });

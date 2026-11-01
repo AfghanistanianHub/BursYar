@@ -67,7 +67,7 @@ export function mountEligibility(root,language='en',compilation=null){
  form.addEventListener('input',()=>{lastScenario=false;lastExclusion=null;render();});form.addEventListener('change',()=>{lastScenario=false;lastExclusion=null;render();});
  form.querySelector('#eligibility-simulate').addEventListener('click',()=>{
   const value=form.elements.namedItem('futureScore').value;
-  if(!form.elements.namedItem('hasTest').checked || value==='' || !Number.isInteger(Number(value)*2)||Number(value)<0||Number(value)>9){
+  if(!form.elements.namedItem('hasTest').checked || value==='' || !Number.isInteger(Number(value)*2)||Number(value)<0||Number(value)>9||savedFields.testType==='TOEFL iBT'){
    form.querySelector('#eligibility-future').textContent=t.state.unknown;return;
   }
   const profile=snapshot(),hypothetical=structuredClone(profile.languageTest.value);
