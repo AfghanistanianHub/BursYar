@@ -122,22 +122,88 @@ the gates — see next section).
   **macos-helper CANCELLED by GitHub: scheduled macOS 14 runner-image brownout**
   (image retires 2026-11-02; annotation links the vendor migration notice).
   Run: `https://github.com/AfghanistanianHub/BursYar/actions/runs/41252791907`
-- The macos-helper cancellation is infrastructure, not a code failure; the workflow
-  was NOT edited to dodge it, and the identical helper checks pass locally (above).
-  Final-tip rerun status is recorded in the PR #35 description/checks section.
+- Run `41258158988` on tip `8f87c9a`: **all four jobs SUCCESS**.
+  Run: `https://github.com/AfghanistanianHub/BursYar/actions/runs/41258158988`
+- Run `41265914737` on head `973a519` (launcher fix): **all four jobs SUCCESS**
+  (verify incl. 4 new regression tests, emulator, browser, macos-helper).
+  Run: `https://github.com/AfghanistanianHub/BursYar/actions/runs/41265914737`
+- The earlier macos-helper cancellation was infrastructure, not a code failure; the
+  workflow was NOT edited to dodge it. Final-tip status is recorded in the PR #35
+  description/checks section.
 - Source-PR CI claims (#30/#34/#33) were never treated as validation of this head.
 - Comment triage (complete): zero review comments and zero reviews on #30, #33, #35;
   PR #34 has three owner-authored technical checkpoint comments (verification status
   + approval checklists, Oct 30) — no change requests, no Bugbot findings. Nothing
   actionable outstanding beyond the gates listed below.
 
+## Live-verification preparation (2026-11-01, no inference made)
+
+- Launcher fix `973a519` (CI-green above): `verification/macos-start.mjs` now
+  forwards exactly `BURSYAR_PROVIDER_CONFIG` and `BURSYAR_POLICY_RECORDS`,
+  path-only, each validated as an absolute owner-only mode-600 regular file (fail
+  closed otherwise). All other parent variables stay dropped; nothing is read,
+  logged, or printed. `check:mac` reports forwarding booleans. 4 focused regression
+  tests added (`verification/macos-config.test.js`); deterministic-only startup
+  without the files is unchanged. Verified live here: absent→flags false;
+  unsafe path→actionable exit-1; valid 600 file→flags true.
+- Configured model established via redacted Keychain read (helper output parsed in
+  memory; only the model ID reported, key never printed): **`muse-spark-1.3`** —
+  BursYar's API model, unrelated to any coding-session model. Key present; $5
+  spending attestation still confirmed with valid timestamp.
+- Demo UID + claim established via read-only Firebase Admin `listUsers` (first user
+  matched, scan stopped; nothing else printed): exactly one account carries
+  `bursyarDemo:true`; no claim changes made or needed. The UID is stored ONLY in the
+  local owner-only policy file, never in this repo or logs.
+- Official Meta terms consulted (live docs, not third parties):
+  - Pricing: `muse-spark-1.3` Standard = $1.25/1M input, $4.25/1M output tokens
+    ([pricing](https://dev.meta.ai/docs/pricing-rate-limits)).
+  - Standard mode content is NOT used to train Meta models; Contributor mode may be,
+    at lower prices ([pricing](https://dev.meta.ai/docs/pricing-rate-limits),
+    [models](https://dev.meta.ai/docs/models), Terms §5.1/§6).
+    This test uses the Standard model ID only.
+  - Age: Terms §10.1 requires operators and End Users to be 18+; no products
+    targeted at under-18s ([terms](https://dev.meta.ai/legal/terms-of-service)).
+    Owner states they are the adult operator in Canada; the test subject stays
+    explicitly synthetic and adult. Recorded as owner statements, not independent
+    identity/age verification.
+  - Geography: Canada is not restricted. Restricted Territories include Afghanistan
+    ([geo policy](https://dev.meta.ai/legal/geographic-use-policy) §3): the repo's
+    country set was verified conservative relative to official terms (it denies all
+    of UA where official terms restrict only Crimea/Donetsk/Luhansk — deliberate,
+    documented in code). This single test has no End User in a restricted territory
+    (operator in CA, synthetic subject). PRODUCT-LEVEL FLAG (unresolved, out of
+    scope for this test): serving real Afghan-located end users through Meta would
+    violate geo-policy §3; that traffic must stay on the deterministic/self-hosted
+    path unless Meta authorization says otherwise.
+- Spending math from the implementation's unit definition (reservation units =
+  request UTF-8 bytes + 4000; `engine/meta-request.js`): worst case 1 unit ≈ 1
+  billable token, so worstCaseUsdPerUnit = $4.25/1M = **0.00000425**. Lifetime cap =
+  floor(5/0.00000425) = 1,176,470 → min(200000) = **200000 units**: the $5 cap can
+  never bind before the quota cap. Estimated single-test cost ≈ $0.01–0.03
+  (estimate only; the backend records `costUSD:null` by design — provider-reported
+  usage counts, not dollars, will be captured from `meta_response`).
+- No-retry posture verified: no automatic inference retry exists in the request path
+  (the only "retry" string is a 429 message asking the client to retry later).
+  Operational rule stands: exactly one submit; on failure/timeout, stop and diagnose
+  from redacted evidence.
+- Config templates + an offline validator using the real loaders/gates are prepared
+  and synthetic-proven in both directions (accept valid shape, reject placeholders).
+  Real files are NOT yet written: `termsReviewed`, `privacyReviewed`, `costReviewed`,
+  `spendingApproved`, consent, and age/location flags require the owner's
+  consolidated informed confirmation. Nothing is pre-marked true.
+- Remaining owner actions (minimal): (1) answer the single consolidated confirmation
+  (terms/privacy/cost/consent/attestation meanings + $5 cap re-affirmed); (2) Google
+  sign-in in the browser (cannot be delegated) and exactly one Oxford submit per the
+  procedure below. Backend logs are readable from here after startup, so no manual
+  log-copying is needed.
+
 ## Outstanding defects and environment dependencies
 
 1. Live Meta inference is unverified end to end. Prior live evidence: one client
    timeout and one HTTP 200 / `finish_reason=length` (correctly rejected as
    `provider_truncated`) against `muse-spark-1.3` — provider reachability shown, but
-   no validated analysis. A NEW explicit owner authorization is required for the next
-   test; earlier authorizations do not carry over.
+   no validated analysis. Owner authorized ONE live request (prior message); the
+   consolidated terms/consent confirmation and the single browser submit remain.
 2. App-side spending confirmation: RESOLVED since the earlier DISABLED report.
    `npm run check:mac` on 2026-11-01 (redacted output, no secrets) reports
    `spendingConfirmed:true, savedSpendingLimitUSD:5, confirmationTimestampValid:true,
