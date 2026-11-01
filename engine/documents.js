@@ -27,12 +27,17 @@ export class DocumentStore {
   if(input?.consent!==true||input?.mime!=='text/plain'||typeof input.text!=='string'||!input.text.trim()||Buffer.byteLength(input.text)>12000||/[\x00-\x08\x0b\x0c\x0e-\x1f\ufffd]/u.test(input.text))throw new DocumentError(400);
   const id=randomUUID(),claims=[];
   // Deliberately narrow extraction; preserve full original and exact line evidence.
-  // A document must use these explicit field labels. Other text is retained for review.
+  // A document must use these explicit field labels: Degree, IELTS Academic,
+  // GPA and TOEFL iBT. Other text is retained for review, never parsed.
   for(const line of input.text.split(/\r?\n/)){
    let m=/^Degree: (secondary|bachelor|master|doctorate)$/.exec(line);
    if(m)claims.push({field:'degree',value:m[1],sourceExcerpt:line});
    m=/^IELTS Academic: overall=(\d(?:\.\d)?); listening=(\d(?:\.\d)?); reading=(\d(?:\.\d)?); writing=(\d(?:\.\d)?); speaking=(\d(?:\.\d)?)$/.exec(line);
    if(m&&m.slice(1).every(v=>Number(v)<=9&&Number.isInteger(Number(v)*2)))claims.push({field:'languageTest',value:{test:'IELTS Academic',overall:Number(m[1]),bands:Object.fromEntries(['listening','reading','writing','speaking'].map((n,i)=>[n,Number(m[i+2])]))},sourceExcerpt:line});
+   m=/^GPA: (\d(?:\.\d{1,2})?)\/(4(?:\.0)?|5(?:\.0)?)$/.exec(line);
+   if(m){const gpa=Number(m[1]),scale=Number(m[2]);if(gpa<=scale)claims.push({field:'gpa',value:{gpa,scale},sourceExcerpt:line});}
+   m=/^TOEFL iBT: overall=(\d{1,3}); listening=(\d{1,2}); reading=(\d{1,2}); writing=(\d{1,2}); speaking=(\d{1,2})$/.exec(line);
+   if(m){const n=m.slice(1).map(Number);if(n[0]<=120&&n.slice(1).every(v=>v<=30))claims.push({field:'languageTest',value:{test:'TOEFL iBT',overall:n[0],sections:Object.fromEntries(['listening','reading','writing','speaking'].map((k,i)=>[k,n[i+1]]))},sourceExcerpt:line});}
   }
   const duplicate=claims.some((c,i)=>claims.findIndex(x=>x.field===c.field)!==i);
   const record={id,text:input.text,sha256:createHash('sha256').update(input.text).digest('hex'),uploadedAt:new Date().toISOString(),consentVersion:1,extractionMethod:'bounded_text_parser',authenticity:'not_verified',translationStatus:'not_assessed',consistency:duplicate?'discrepancy_requires_review':'not_assessed',pending:duplicate?[]:prepareClaims(id,claims)};
