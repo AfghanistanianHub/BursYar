@@ -588,3 +588,91 @@ sign-off; a NEW explicit live-inference authorization (none exists);
 owner decisions on closing #30/#33/#34/#36/#37/#38. Push the three merges
 plus this handoff commit together; record the final tip SHA and its
 exact-head CI in the PR #35 description.
+
+## CORRECTION: live-test authorization exists and is recorded (2026-11-01)
+
+Earlier sections of this handoff state that no live-test authorization
+exists and that the private config files were not yet written. That is
+wrong for the current state and is superseded here; the error was mine
+(claims written after the record already existed), not the owner's.
+
+Record (verified 2026-11-01 ~07:52 UTC by structural inspection only —
+flags, shapes, and time windows; no identities, credentials, or file
+contents are reproduced here):
+- The owner authorized exactly one live inference request and confirmed
+  the consolidated terms/consent. An earlier session recorded it in the
+  owner-only `provider-config.json` (meta, `muse-spark-1.3`, adult_only,
+  terms/privacy/cost reviewed, spendingApproved, $5, consentVersion 1,
+  user_content declared, sane limits) and `policy-records.json` (one
+  record: allowed, location/age/subject verified, active v1 meta consent
+  bound to the subject, allowlisted unrestricted jurisdiction).
+- Provider attestation is valid for ~163 more hours (terms window).
+- The policy record's 6-hour window (verified 03:16:38 UTC, within the
+  ≤24h rule) expires 09:17:38 UTC on 2026-11-01 — about 85 minutes after
+  this check. Every `trusted-policy.js` gate passes until then.
+
+Renewal rule: if the policy window has expired when the live test runs,
+the ONLY renewal needed is the owner re-issuing that one record with a
+fresh verifiedAt/expiresAt window (same subject, consent version, and
+jurisdiction). No new terms review, no setup repetition, no second
+authorization, no quota or spending changes. Do not re-run any
+questionnaire and do not reinterpret this standing authorization as a
+blanket approval: it covers exactly one submit, as before.
+
+## Visual redesign (2026-11-01, same release branch, no inference)
+
+Owner direction: neither the text-heavy interface nor the CTO site is the
+final design. Rebuilt the presentation layer only — `src/style.css` (full
+design-system rewrite) and `src/journey-navigation.css` (stepper cards).
+No template, ID, class-hook, module, copy, or backend change; all behavior
+contracts are byte-identical, so every protection (auth, consent, source
+approval, privacy, quota, evidence failure) is preserved by construction.
+- App frame: sticky white header (logo, account, language), deep-green
+  hero banner, dark footer band.
+- Navigation: 4-step journey stepper (native decimal/persian numerals),
+  offline-assessment entry, static (non-covering) below the header after
+  a sticky-overlap defect found in screenshots was fixed.
+- Workspace: desktop two-column grid (analysis column + rail with local
+  assessment and profile/documents), single column on mobile; all panels
+  are white cards on a pale sage ground.
+- Explorer: filter bar + responsive opportunity-card grid; every card
+  keeps its "sample / not verified" labeling — no real opportunity data
+  exists, and none was invented.
+- Source review + analysis: review panel, receipt/evidence boxes,
+  consent box, criterion cards with excerpt blocks.
+- Tri-state: met/not_met/unknown render as color + dot + full text
+  (never color alone) on verdict outputs and per-requirement rows.
+- Documents/profile: status-card panels reusing each module's own
+  headings; unverified/consent wording untouched.
+- PathFinder journey: barrier guidance and next-actions render as a
+  timeline with action text; scenarios stay a dashed panel.
+- No match percentages, statistics, verification badges, inactive
+  controls, new dependencies, or backend scope. New FA/PS strings: none
+  (redesign reuses existing copy).
+
+VISUAL completion (judged from screenshots I read back, separately from
+tests): desktop 1280 + mobile 390 across en/fa/ps RTL — shell, stepper,
+hero, cards, filters, workspace, consent, tri-state pills, timeline, and
+full mock analyzed flow inspected; one overlap defect found and fixed;
+all finals accepted. Screenshots retained under `/tmp`
+(`bursyar-redesign-*`, `bursyar-mock-*`).
+
+FUNCTIONAL checks on the same tree: `npm test` 255/255; mocked browser
+15/15 axe-clean with zero overflow at all widths; mock-auth/API pass 12/12
+(sign-in/out toggle both directions, signed-out auth gate with 0 analyze
+calls, signed-in fetch→review→approve→submit with mocked criterion).
+Emulator via CI. Nothing live attempted or consumed; the policy-window
+renewal rule above still applies. Restart note: the running demo server
+(owner process, untouched) serves the new frontend CSS live via Vite, but
+its backend still runs the Oct-31 code (predates the #36 hardening and all
+later commits) — restart ONLY via the supported launcher
+(`./start-bursyar.command` after stopping the existing pair) before any
+live test so both tiers use the final tree. Never restart for screenshots
+alone.
+
+Merge/deploy authorization (latest explicit owner instructions only):
+PR bodies and this handoff require owner authorization before any merge;
+this session's instructions authorize integration + verification + PR
+updates, never publication. PR #35 stays Draft and unmerged; nothing has
+been published. Record the redesign tip SHA and its exact-head CI in the
+PR #35 description.
