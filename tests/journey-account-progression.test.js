@@ -33,6 +33,7 @@ test('journey navigation marks the visible section without changing links', () =
   assert.match(journey, /IntersectionObserver/);
   assert.match(journeyCss, /aria-current/);
   assert.match(journey, /profile-mount.*assistant.*eligibility-mount.*next-steps/s);
+  assert.match(journey, /offline\.addEventListener\('click',\(\)=>\{[^}]*removeAttribute\('aria-current'\)/);
 });
 
 test('barrier guidance exposes per-requirement status and honest counts', () => {

@@ -37,7 +37,7 @@ export function mountJourney(root,language='en'){
   for(const [,id] of links){const section=document.getElementById(id);if(section)spy.observe(section);}
  }
  nav.append(list);
- const offline=document.createElement('button');offline.type='button';offline.className='journey-offline';offline.textContent=t.offline;offline.addEventListener('click',()=>{const panel=document.querySelector('.local-workflow');if(!panel)return;panel.open=true;panel.scrollIntoView({block:'start'});panel.querySelector('summary')?.focus();});nav.append(offline);
+ const offline=document.createElement('button');offline.type='button';offline.className='journey-offline';offline.textContent=t.offline;offline.addEventListener('click',()=>{const panel=document.querySelector('.local-workflow');if(!panel)return;for(const [a] of links)a.removeAttribute('aria-current');panel.open=true;panel.scrollIntoView({block:'start'});panel.querySelector('summary')?.focus();});nav.append(offline);
  const note=document.createElement('p');note.textContent=t.note;note.className='journey-note';nav.append(note);
  root.replaceChildren(nav);
 }
