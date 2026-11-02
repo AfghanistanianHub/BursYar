@@ -22,6 +22,11 @@ html[lang=fa] .journey-nav ol,html[lang=ps] .journey-nav ol{list-style-type:pers
  .journey-nav a{display:inline-block; min-height:44px}
  .journey-nav .journey-offline{width:auto}
 }
+/* Phones: wrap chips 2x2 so every step stays visible without scroll discovery. */
+@media(max-width:700px){
+ .journey-nav ol{flex-wrap:wrap; overflow-x:visible}
+ .journey-nav li{flex:1 1 40%}
+}
 .journey-nav .journey-offline{margin-block-start:10px; width:100%}
 .journey-nav .journey-note{font-size:12px; color:var(--muted); margin:8px 2px 0}
 @media(prefers-reduced-motion:reduce){.journey-nav{scroll-behavior:auto}}

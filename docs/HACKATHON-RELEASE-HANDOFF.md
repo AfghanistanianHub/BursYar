@@ -697,3 +697,87 @@ http://localhost:5173. After this merge, stop the old launcher pair and
 restart so both tiers serve main @ 985e332 or later; never start a
 second pair or restart piecemeal. Hosted frontend/backend deploy only
 through the owner's existing Vercel/Render wiring.
+
+## Merged release #50–#60 on main (2026-11-02, no inference)
+
+Main advanced 985e332 → 9e00755 through owner merges (merge commits,
+no bypass). Recorded from the repository and GitHub CI:
+
+- #50 docs handoff record — merge `281f6d4`.
+- #51 backend docs refresh — merge `12f9727`.
+- #52 mounted-copy i18n parity tables + tests — merge `8fd26ef`.
+- #53 source ledger, eval provenance, submission docs — merge `d915c7e`.
+- #54 MagicPath-connected workspace — merge `0e48f83`: workspace
+  overview panel plus research→source prepare flow (`workspace-overview.js`,
+  `workspace-theme.css`, research funding filter).
+- #55 assistant-copy style fix — merge `a40b506`, head `70e48f7`,
+  exact-head CI run 41390453022 (verify, emulator, browser,
+  macos-helper all SUCCESS).
+- #56 visual workspace polish — merge `62f0be3`: nav active state,
+  mobile chip rail, PathFinder summary, filter empty state; post-merge
+  main CI run 41395277749 SUCCESS.
+- #57 document-first workspace — merge `f83e117`: explicit document
+  review with clarified validation/provenance/errors; post-merge main
+  CI run 41396606055 SUCCESS.
+- #59 consent-gated pasted document text — merge `0e722bf`;
+  post-merge main CI run 41398135699 SUCCESS.
+- #58 clear stale nav highlight on offline jump — merge `503f365`,
+  head `e664299`, head CI run 41397141040 SUCCESS, post-merge main CI
+  run 41398404005 SUCCESS.
+- #60 document timeout/uncertain-write distinction without retry —
+  merge `9e00755`; merge CI run 41399662600: verify, emulator,
+  macos-helper SUCCESS, browser job still running at time of writing.
+
+Final readiness validation on this tip (mocked/offline only, zero
+live or paid inference, quotas untouched):
+
+- Unit suite 307/307 on `0e722bf`; 313/313 on this branch head
+  (includes #60 additions plus the nav regression test); production
+  build green; offline evaluation 60/60 across en/fa/ps (recorded
+  baseline, behavior unchanged by this work).
+- Regenerated 69 render artifacts on `0e722bf`: mocked browser 15/15
+  axe-clean, research-browser en/fa/ps zero-POST, document-review
+  en/fa/ps no-inference — all passing.
+- Real-render review of desktop 1280 (en, fa) and mobile 390 (ps,
+  research, documents): sidebar/content grid measured as specified
+  (overview in column 2 beside the sticky nav; single-column stack on
+  phones); RTL mirror correct including header, disclosure markers and
+  Persian step numerals; analysis, UNKNOWN eligibility pills, barrier
+  guidance, scenarios, document library and research cards all render
+  correctly. The absent mobile header in fullPage captures was proven
+  a sticky-position capture artifact (normal viewports show the
+  correct sticky header).
+- One genuine defect found and fixed on this branch: the #56 mobile
+  chip rail showed only steps 1–2 at phone widths with zero peek or
+  scroll affordance, hiding Assess eligibility and Review next steps.
+  Fix wraps chips 2×2 at 700px and below (chip styling unchanged,
+  RTL-safe flex); verified live at 320/390/700 (all four steps in
+  view) with the tablet rail kept where chips fit or peek (54px peek
+  at 701, 117px at 768, all fit at 900) plus thin scrollbar.
+  Regression test added to `tests/journey-account-progression.test.js`.
+- End-to-end demo path re-verified deterministically through the
+  mocked harnesses: journey → offline assessment → source fetch and
+  blocked-page recovery → manual source → approval → analysis →
+  barriers → eligibility → scenarios → profile/documents → research
+  explore/prepare → deterministic fallback and quota/error paths.
+  Operational/demo labeling intact (rehearsal banner, UNREVIEWED
+  strings, unverified pills, needs_reverification ledger).
+
+Live Meta status unchanged from the record: hosted request `5a58bff8`
+under the owner-confirmed $50 ceiling (HOSTED-META.md) plus the
+earlier local milestone `d1bb0e0f` (checkpoint 15); no new inference
+requested or consumed. Only live prerequisite remains owner re-issue
+of the expired policy-window timestamps (owner-only config files are
+absent from agent checkouts, so renewal is owner-side only).
+
+Demo startup unchanged: `./start-bursyar.command` from a logged-in
+macOS Terminal, open http://localhost:5173; restart the launcher pair
+to serve the latest main. Journey now includes the workspace overview
+cards, research prepare flow and the paste-document path alongside the
+previous evidence/eligibility/PathFinder steps. Hosted serving-SHA
+proof and live production checks are recorded separately in
+docs/checkpoints/18-production-release-verification.md (PR #62,
+owner-directed release work, not duplicated here); repo-side
+corroboration: `engine/` is byte-identical between the deployed
+backend commit `4e272a7` and `9e00755`, so no inference-path change
+is in this release.

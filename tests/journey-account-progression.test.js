@@ -36,6 +36,11 @@ test('journey navigation marks the visible section without changing links', () =
   assert.match(journey, /offline\.addEventListener\('click',\(\)=>\{[^}]*removeAttribute\('aria-current'\)/);
 });
 
+test('phone widths wrap journey chips so no step hides in scroll', () => {
+  assert.match(journeyCss, /max-width:700px[\s\S]*?\.journey-nav ol\{[^}]*flex-wrap:wrap/);
+  assert.match(journeyCss, /max-width:700px[\s\S]*?\.journey-nav li\{[^}]*flex:1 1 40%/);
+});
+
 test('barrier guidance exposes per-requirement status and honest counts', () => {
   assert.match(analyzer, /barrier-summary/);
   assert.match(analyzer, /dataset\.status/);
