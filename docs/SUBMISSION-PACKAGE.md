@@ -4,6 +4,10 @@ This file assembles the submission narrative from verified in-repo evidence.
 It files nothing and claims no organizer compliance. Anything not confirmed
 against an authoritative source is labeled **UNVERIFIED**.
 
+Consolidated release snapshot: [HACKATHON-SUBMISSION.md](HACKATHON-SUBMISSION.md)
+(project description, verified inventory, architecture, walkthrough,
+Meta contribution, limitations, outstanding-actions checklist).
+
 ## Description
 
 BursYar connects scholarship evidence to a consent-based student profile and
