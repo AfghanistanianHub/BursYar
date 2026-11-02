@@ -1,8 +1,10 @@
 // Historical CTO discovery metadata. Not a reviewed eligibility catalog.
+// Funding labels summarize the historical export titles, not confirmed coverage.
 // Checked dates are claims in the supplied export, not current verification.
 export const researchData = [
   {
     "id": "chevening-2027",
+    "funding": "full",
     "title": "Chevening Scholarship 2027/28 — UK government fully-funded master's",
     "provider": "UK Foreign, Commonwealth & Development Office (FCDO)",
     "country": "United Kingdom",
@@ -18,6 +20,7 @@ export const researchData = [
   },
   {
     "id": "gates-cambridge-2027",
+    "funding": "full",
     "title": "Gates Cambridge Scholarship 2027/28 — full postgraduate funding at Cambridge",
     "provider": "Gates Cambridge Trust",
     "country": "United Kingdom",
@@ -94,6 +97,7 @@ export const researchData = [
   },
   {
     "id": "kaust-2027",
+    "funding": "full",
     "title": "KAUST — fully funded MS / PhD graduate admission (Fall 2027 & Spring 2027 rounds)",
     "provider": "King Abdullah University of Science and Technology (KAUST)",
     "country": "Saudi Arabia",
@@ -138,6 +142,7 @@ export const researchData = [
   },
   {
     "id": "uts-twente-2027",
+    "funding": "partial",
     "title": "University of Twente Scholarship (UTS) — €3,000–€22,000/year for non-EU/EER MSc students",
     "provider": "University of Twente",
     "country": "Netherlands",
@@ -153,6 +158,7 @@ export const researchData = [
   },
   {
     "id": "adb-jsp",
+    "funding": "full",
     "title": "ADB–Japan Scholarship Program (ADB-JSP) — full funding for master's study at 27 designated institutions",
     "provider": "Asian Development Bank (financing from the Government of Japan)",
     "country": "Asia and the Pacific (17 of the 27 designated institutions are in Japan)",
@@ -168,6 +174,7 @@ export const researchData = [
   },
   {
     "id": "radboud-2027",
+    "funding": "partial",
     "title": "Radboud Scholarship Programme 2027/2028 — tuition reduced to €2,771 for non-EEA master's students",
     "provider": "Radboud University",
     "country": "Netherlands",
