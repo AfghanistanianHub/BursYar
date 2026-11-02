@@ -14,7 +14,7 @@ const api=createInferenceServer({quota:{reserve(){throw Error('Inference quota f
 await new Promise(resolve=>api.listen(0,'127.0.0.1',resolve));
 const browser=await chromium.launch({headless:true});mkdirSync('verification/artifacts',{recursive:true});
 try{for(const language of ['en','fa','ps']){
- const context=await browser.newContext({viewport:{width:390,height:900}});const page=await context.newPage();const uid='document-review-'+language;let uploads=0,reviews=0;let statusOverride=null,releaseUpload=null;
+ const context=await browser.newContext({viewport:{width:390,height:900}});const page=await context.newPage();const uid='document-review-'+language;let uploads=0,reviews=0;let statusOverride=null,releaseUpload=null,dropNextUpload=false;
  await page.addInitScript(lang=>localStorage.setItem('bursyar-language',lang),language);
  await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:`export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{}};export async function getInferenceToken(){return '${uid}'}` }));
  await page.route('**/api/**',async route=>{
@@ -24,6 +24,7 @@ try{for(const language of ['en','fa','ps']){
   if(path.endsWith('/review')&&request.method()==='POST')reviews++;
   if(statusOverride){await route.fulfill({status:statusOverride,contentType:'application/json',body:'{}'});return;}
   const response=await fetch(`http://127.0.0.1:${api.address().port}`+path,{method:request.method(),headers:{authorization:request.headers().authorization,origin,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});
+  if(dropNextUpload&&path==='/api/documents'&&request.method()==='POST'){dropNextUpload=false;await route.abort('failed');return;}
   await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});
  });
  await page.goto(origin);await page.locator('#workspace-overview a[href="#profile-mount"]').click();
@@ -55,6 +56,14 @@ try{for(const language of ['en','fa','ps']){
  await secondForm.locator('input[type=file]').setInputFiles({name:'synthetic-conflict.txt',mimeType:'text/plain',buffer:Buffer.from('SYNTHETIC TEST ONLY\nDegree: bachelor\nDegree: master')});await secondForm.locator('button').click();
  await expect(page.locator('#documents > div > p')).toContainText({en:'Conflicting values',fa:'مقادیر متعارض',ps:'متضاد ارزښتونه'}[language]);
  await expect(page.locator('.document-claim')).toHaveCount(0);expect(documents.profile(uid)).toEqual({});
+ await page.locator('#documents > div > button').click();await expect(page.locator('.document-source')).toHaveCount(0);
+ // The server commits but the response is lost: never silently re-submit.
+ const uploadsBeforeLoss=uploads;dropNextUpload=true;
+ await secondForm.locator('.document-paste summary').click();await secondForm.locator('textarea').fill('SYNTHETIC LOST RESPONSE TEST ONLY\nDegree: bachelor');await secondForm.locator('button').click();
+ await expect(status).toContainText({en:'Your change may already be saved',fa:'ممکن است تغییر شما ذخیره شده باشد',ps:'ښايي بدلون خوندي شوی وي'}[language]);
+ expect(documents.list(uid)).toHaveLength(1);expect(uploads).toBe(uploadsBeforeLoss+1);
+ await page.locator('#documents > fieldset > button').first().click();await page.locator('#documents > fieldset > button').nth(1).click();await expect(page.locator('.document-source')).toContainText('SYNTHETIC LOST RESPONSE TEST ONLY');
+ expect(uploads).toBe(uploadsBeforeLoss+1);
  await page.locator('#documents > div > button').click();await expect(page.locator('.document-source')).toHaveCount(0);
  for(const code of [401,409,429,503]){statusOverride=code;await page.locator('#documents > fieldset > button').first().click();await expect(status).not.toBeEmpty();}
  statusOverride=null;
