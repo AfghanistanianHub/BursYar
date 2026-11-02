@@ -16,6 +16,24 @@ recording. Use only evidence already available; do not click Analyze live.
 | 3:10–3:40 | Show central Oxford's honest blocked-page recovery: original URL retained; paste primary action; official browser and saved HTML/TXT secondary. The central page was blocked; no protection bypass is needed. Supplied material stays labeled supplied. |
 | 3:40–4:00 | Switch English/Dari/Pashto and show RTL, retained canonical state and source quotations. Close with pending human review, incomplete coverage, TXT-only educational ingestion and absence of issuer verification. |
 
+## Provisional three-minute cut (UNCONFIRMED)
+
+One fellow participant's public build log reports a three-minute demo
+video requirement. This is **UNVERIFIED** — confirm the required
+length/format inside the participant portal before recording. If
+three minutes is confirmed, record this condensed cut instead of the
+four-minute plan above (same recording rules below apply).
+
+| Time | Shot and narration |
+|---|---|
+| 0:00–0:25 | One URL field: official Bristol Think Big retrieval (or dated capture, labeled). Identify URL and preview. |
+| 0:25–0:55 | The retained Oxford live result or its diagnostic record only: one real Meta request, validated evidence, review pending. Do not click Analyze. |
+| 0:55–1:25 | Synthetic education text: consent, pending claims, exact source lines, review/correction, unverified provenance. Local-only, never sent to Meta. |
+| 1:25–1:50 | Conservative MET/NOT MET/UNKNOWN, missing evidence, practical actions; one isolated hypothetical change with real facts unchanged. |
+| 1:50–2:10 | Blocked-page recovery: original URL retained, paste primary, saved HTML/TXT secondary. Supplied stays labeled supplied. |
+| 2:10–2:35 | Research explorer: filter, save, prepare-to-source (approval still required); all records need re-verification. |
+| 2:35–3:00 | English/Dari/Pashto switch with RTL and retained state; close with pending human review and incomplete coverage. |
+
 ## Recording rules
 
 - Label every screen: live evidence, dated capture, or synthetic/offline.

@@ -781,3 +781,33 @@ owner-directed release work, not duplicated here); repo-side
 corroboration: `engine/` is byte-identical between the deployed
 backend commit `4e272a7` and `9e00755`, so no inference-path change
 is in this release.
+
+## Final integration and submission readiness (2026-11-02, no inference)
+
+Owner-authorized completion. PR #61 (mobile nav wrap + submission
+package, head `34c1efb`, exact-head CI run 41401010484 all SUCCESS)
+merged as `ab889f0`; PRs #62 (production evidence) and #63 (current
+demo doc) merged earlier the same session (`1503ef9`, `83547df`).
+Post-merge main CI run 41402830506: all four jobs SUCCESS.
+
+Official requirements verified against authoritative public sources
+(dev.meta.ai event page and Cerebral Valley portal page): Meta Global
+AI Developer Hackathon, submissions due November 4, 9:00 PM ET,
+judging Nov 4–8, Indie/Startup tracks and theme fit recorded in
+HACKATHON-SUBMISSION.md §7. Submission asset formats and Official
+Rules text stay behind participant login; participant-reported leads
+(three-minute video, public repo, event-period work, judging weights)
+are recorded as UNVERIFIED with a provisional three-minute script cut
+in VIDEO-SCRIPT.md. Repo is PUBLIC with meaningful history from
+2026-10-26; no repo-visibility action needed.
+
+Production serving re-verified by direct inspection: frontend serves
+the `ab889f0` bundles (unique #61 CSS markers present) and `/health`
+returns 200 `ok:true` with all capabilities available; `engine/`
+byte-identical `4e272a7`→`ab889f0`, backend current and compatible,
+no redeploy needed. Fluent-review scope counted exactly (389 Dari +
+389 Pashto strings, all UNREVIEWED, review NOT marked complete).
+Meta integration evidence (`d1bb0e0f`, `5a58bff8`) stands without new
+inference. Remaining actions are owner-side only: merge this PR, fluent
+review, ledger binding, portal format confirmation, video recording,
+and filing before the deadline.
