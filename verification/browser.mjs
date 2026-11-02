@@ -100,6 +100,11 @@ try {
    await upload.locator('input[type=file]').setInputFiles({name:'synthetic-education.txt',mimeType:'text/plain',buffer:Buffer.from('SYNTHETIC TEST ONLY\nDegree: bachelor\nIELTS Academic: overall=7; listening=7; reading=7; writing=6; speaking=7')});
    await upload.locator('input[type=checkbox]').check();await upload.locator('button[type=submit]').click();
    await expect(page.locator('#documents .document-claim')).toHaveCount(2);
+   const decisions=page.locator('#documents .document-claim select');
+   await expect(decisions.nth(0)).toHaveValue('');await expect(decisions.nth(1)).toHaveValue('');
+   await page.locator('#documents form').nth(1).locator('button[type=submit]').click();
+   await expect(page.locator('#documents .document-claim')).toHaveCount(2); // No implicit acceptance.
+   await decisions.nth(0).selectOption('accept');await decisions.nth(1).selectOption('accept');
    await page.locator('#documents form').nth(1).locator('button[type=submit]').click();
    await expect(page.locator('#eligibility-form [name=degree]')).toHaveValue('bachelor');
    await expect(page.locator('#eligibility-form [name=hasTest]')).toBeChecked();
@@ -111,7 +116,7 @@ try {
    await expect(page.locator('#documents .document-claim')).toHaveCount(0);
    await page.locator('#documents fieldset > button').first().click();await page.locator('#documents fieldset > button').nth(1).click();await expect(page.locator('#documents .document-claim')).toHaveCount(0);
    await page.locator('#documents button').last().click();
-   await expect(page.locator('#documents pre')).toHaveCount(0);
+   await expect(page.locator('#documents .document-source')).toHaveCount(0);
    await expect(page.locator('#eligibility-form [name=degree]')).toHaveValue('');
   }
   if(width===390)await page.screenshot({path:`verification/artifacts/${language}-390.png`,fullPage:true});
