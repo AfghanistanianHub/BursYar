@@ -15,7 +15,9 @@ test('mission 07 uses no gradients, decorative transitions or rotating accents',
   assert.doesNotMatch(theme, /linear-gradient|radial-gradient/);
   assert.doesNotMatch(theme, /transition/);
   assert.doesNotMatch(theme, /nth-child\(3n/);
-  assert.match(theme, /#research-explorer \.scholarship\{border-top:3px solid var\(--card-accent\)\}/);
+  // Mission 08 replaced the top rule with a shared header band (M08-3).
+  assert.doesNotMatch(theme, /--card-accent/);
+  assert.match(theme, /\.scholarship::before\{[^}]*var\(--glyph-doc\)/);
 });
 
 test('mission 07 unifies opportunity cards across both explorers', () => {
