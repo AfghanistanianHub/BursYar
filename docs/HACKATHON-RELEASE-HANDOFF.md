@@ -772,6 +772,10 @@ Demo startup unchanged: `./start-bursyar.command` from a logged-in
 macOS Terminal, open http://localhost:5173; restart the launcher pair
 to serve the latest main. Journey now includes the workspace overview
 cards, research prepare flow and the paste-document path alongside the
-previous evidence/eligibility/PathFinder steps. Hosted serving SHAs
-remain UNVERIFIED here; production deploy verification is handled
-separately by the owner-directed release work.
+previous evidence/eligibility/PathFinder steps. Hosted serving-SHA
+proof and live production checks are recorded separately in
+docs/checkpoints/18-production-release-verification.md (PR #62,
+owner-directed release work, not duplicated here); repo-side
+corroboration: `engine/` is byte-identical between the deployed
+backend commit `4e272a7` and `9e00755`, so no inference-path change
+is in this release.

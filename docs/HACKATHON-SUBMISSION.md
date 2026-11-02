@@ -125,8 +125,11 @@ eligibility, or admission.
   integration, no award/admission prediction.
 - Live inference needs fresh owner authorization plus policy-window
   re-issue; prior approvals are superseded.
-- Hosted serving SHAs unverified here; production deploy verification
-  is handled by separate owner-directed release work.
+- Hosted serving-SHA proof and 29/29 live production checks are
+  recorded separately in
+  [18-production-release-verification.md](checkpoints/18-production-release-verification.md)
+  (PR #62, owner-directed release work); confirm it is merged before
+  filing.
 - Submission logistics (portal, rules, assets, official deadline)
   unverified; no submission filed by this work.
 
@@ -139,7 +142,9 @@ eligibility, or admission.
 - [ ] Live policy-window re-issue + fresh explicit inference approval
       if any further live run is wanted (none is required for the
       recorded milestones).
-- [ ] Serving SHAs confirmed against the deploy verification.
+- [ ] Serving-SHA proof reviewed in
+      [18-production-release-verification.md](checkpoints/18-production-release-verification.md)
+      (PR #62); confirm merged before filing.
 - [ ] Submission logistics confirmed with the owner (portal, rules,
       assets, deadline); video recorded per VIDEO-SCRIPT.md rules.
 - [ ] Owner merges this PR, reruns CI on the integration head, and
