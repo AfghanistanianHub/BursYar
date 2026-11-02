@@ -28,6 +28,20 @@ test('account popover dismisses without obscuring content and auth buttons toggl
   assert.match(browserHarness, /onAuthChange/);
 });
 
+test('journey navigation marks the visible section without changing links', () => {
+  assert.match(journey, /aria-current/);
+  assert.match(journey, /IntersectionObserver/);
+  assert.match(journeyCss, /aria-current/);
+  assert.match(journey, /profile-mount.*assistant.*eligibility-mount.*next-steps/s);
+});
+
+test('barrier guidance exposes per-requirement status and honest counts', () => {
+  assert.match(analyzer, /barrier-summary/);
+  assert.match(analyzer, /dataset\.status/);
+  assert.match(analyzer, /barrierLabels/);
+  assert.match(style, /barrier-summary/);
+});
+
 test('source progression is visible while approval gating stays intact', () => {
   assert.match(preview, /source-progression/);
   assert.match(preview, /aria-current/);

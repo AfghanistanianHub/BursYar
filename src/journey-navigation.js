@@ -11,6 +11,7 @@ export function mountJourney(root,language='en'){
  const nav=document.createElement('nav');
  nav.className='journey-nav';nav.setAttribute('aria-label',t.label);
  const list=document.createElement('ol');
+ const links=[];
  for(const [label,id,disclosure] of [[t.profile,'profile-mount','workspace'],[t.source,'assistant',null],[t.assessment,'eligibility-mount',null],[t.next,'next-steps',null]]){
   const li=document.createElement('li'),a=document.createElement('a');a.href='#'+id;a.textContent=label;
   a.addEventListener('click',event=>{
@@ -20,6 +21,20 @@ export function mountJourney(root,language='en'){
    // Do not intercept normal anchor behavior or move sensitive data to URLs.
   });
   li.append(a);list.append(li);
+  links.push([a,id]);
+ }
+ if(typeof IntersectionObserver!=='undefined'){
+  const byId=new Map(links.map(([a,id])=>[id,a]));
+  const spy=new IntersectionObserver(entries=>{
+   for(const entry of entries){
+    if(!entry.isIntersecting)continue;
+    const current=byId.get(entry.target.id);
+    if(!current)continue;
+    for(const [a] of links)a.removeAttribute('aria-current');
+    current.setAttribute('aria-current','true');
+   }
+  },{rootMargin:'-25% 0px -65% 0px'});
+  for(const [,id] of links){const section=document.getElementById(id);if(section)spy.observe(section);}
  }
  nav.append(list);
  const offline=document.createElement('button');offline.type='button';offline.className='journey-offline';offline.textContent=t.offline;offline.addEventListener('click',()=>{const panel=document.querySelector('.local-workflow');if(!panel)return;panel.open=true;panel.scrollIntoView({block:'start'});panel.querySelector('summary')?.focus();});nav.append(offline);

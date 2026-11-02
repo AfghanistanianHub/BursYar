@@ -289,3 +289,23 @@ footer span:last-child{max-width:70ch}
 #research-explorer .scholarship{overflow-wrap:anywhere; min-width:0}
 #research-explorer .card-bottom{flex-wrap:wrap; gap:.5rem 1rem}
 @media(max-width:700px){#research-explorer .research-filters{grid-template-columns:minmax(0,1fr)}}
+/* ---- Workspace polish: visual PathFinder, status, cards ---- */
+#barrier-guidance .barrier-summary{font-weight:800; color:var(--ink); padding-inline-start:0; margin-bottom:10px}
+#barrier-guidance .barrier-summary::before{display:none}
+#barrier-guidance p[data-status=mismatch]::before{background:var(--bad)}
+#barrier-guidance p[data-status=unknown]::before{background:var(--warn)}
+.workspace [role=status]{display:block; background:var(--brand-ghost); border:1px solid var(--line);
+ border-radius:var(--r-sm); padding:8px 12px; margin-top:10px}
+#profile .status{font-weight:800}
+.empty-note{background:var(--surface-2); border:1px dashed #9db3a4; border-radius:var(--r-md);
+ padding:12px 14px; color:var(--muted); margin-top:8px}
+.scholarship h3{font-size:.9375rem}
+.scholarship:hover{border-color:#9db3a4}
+.card-bottom .pill{flex:none}
+.section{padding-block:14px}
+.section-top h2{margin:0}
+@media(max-width:700px){
+ .hero h1{font-size:1.25rem}
+ .assistant{padding:16px}
+ #profile,#academic-evidence,#documents{padding:12px}
+}

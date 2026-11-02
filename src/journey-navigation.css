@@ -12,6 +12,16 @@ html[lang=fa] .journey-nav ol,html[lang=ps] .journey-nav ol{list-style-type:pers
  overflow-wrap:anywhere}
 .journey-nav a:hover{text-decoration:underline; text-underline-offset:4px}
 .journey-nav a:focus-visible{outline:3px solid var(--brand); outline-offset:2px; border-radius:3px}
+.journey-nav li:has(a[aria-current]){background:var(--brand-soft)}
+.journey-nav a[aria-current]{color:var(--brand-dark); text-decoration:underline; text-underline-offset:4px}
+@media(max-width:1023px){
+ .journey-nav ol{display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; scrollbar-width:thin}
+ .journey-nav li{flex:1 0 auto; max-width:min(72vw,320px); background:var(--surface-2);
+  border:1px solid var(--line-soft); padding:8px 12px; font-size:.875rem}
+ .journey-nav li:has(a[aria-current]){border-color:var(--brand)}
+ .journey-nav a{display:inline-block; min-height:44px}
+ .journey-nav .journey-offline{width:auto}
+}
 .journey-nav .journey-offline{margin-block-start:10px; width:100%}
 .journey-nav .journey-note{font-size:12px; color:var(--muted); margin:8px 2px 0}
 @media(prefers-reduced-motion:reduce){.journey-nav{scroll-behavior:auto}}
