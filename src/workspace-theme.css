@@ -6,8 +6,12 @@
  * slate brand is kept instead of the prototype blue accent. No gradients,
  * no decorative effects, no new fonts or dependencies. Logical properties
  * throughout for RTL (fa/ps). No animation of any kind: nothing to guard
- * for prefers-reduced-motion beyond the base smooth-scroll rule. */
-:root{--bg:#f5f7fb;--surface-2:#f4f6fa;--surface-3:#e9edf5;--ink:#26364a;--muted:#52647a;--faint:#718198;--line:#dce3ed;--line-soft:#e8edf4;--brand:#385675;--brand-dark:#243f5b;--brand-soft:#e3ebf4;--brand-ghost:#eff4f9;--accent:#865e32;--accent-bg:#fbf1e0;--r-lg:14px;--shadow-sm:0 2px 6px #243f5b05;--card-accent:#a9bdd0;--topbar-bg:rgba(255,255,255,.97)}
+ * for prefers-reduced-motion beyond the base smooth-scroll rule.
+ * Mission 08: visible assistant heading hook, carded pre-analysis
+ * eligibility disclosure, flat CSS-only card header bands with an embedded
+ * SVG glyph (no new assets), empty-state glyph, box-first consent
+ * checkboxes, stronger PathFinder rails and eligibility verdict weight. */
+:root{--bg:#f5f7fb;--surface-2:#f4f6fa;--surface-3:#e9edf5;--ink:#26364a;--muted:#52647a;--faint:#718198;--line:#dce3ed;--line-soft:#e8edf4;--brand:#385675;--brand-dark:#243f5b;--brand-soft:#e3ebf4;--brand-ghost:#eff4f9;--accent:#865e32;--accent-bg:#fbf1e0;--r-lg:14px;--shadow-sm:0 2px 6px #243f5b05;--topbar-bg:rgba(255,255,255,.97);--glyph-doc:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-opacity='.45'%20stroke-width='1.6'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%203h8l4%204v14H6V3z'/%3E%3Cpath%20d='M14%203v5h4'/%3E%3Cpath%20d='M9%2013h6M9%2017h6'/%3E%3C/svg%3E");--glyph-search:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-opacity='.5'%20stroke-width='1.8'%20stroke-linecap='round'%3E%3Ccircle%20cx='11'%20cy='11'%20r='6'/%3E%3Cpath%20d='m20%2020-4.2-4.2'/%3E%3C/svg%3E")}
 .site{max-width:1480px}
 /* ---- Top bar: calm, aligned, generous touch targets ---- */
 .header{background:var(--topbar-bg)}
@@ -34,10 +38,16 @@
 .workspace-shortcuts{display:flex;flex-wrap:wrap;gap:12px 24px;margin-top:16px}
 .workspace-shortcuts a{display:inline-flex;align-items:center;min-height:44px;font-weight:600;font-size:.875rem}
 .workspace-overview-note{font-size:.8125rem;color:var(--muted);margin-bottom:0}
-/* ---- Opportunity cards: one shared system for both explorers ---- */
-.scholarship{padding:18px 20px;gap:8px}
+/* ---- Source panel heading (M08-1): every journey stage is labeled ---- */
+.assistant>h2{margin:0 0 4px}
+/* ---- Pre-analysis eligibility disclosure (M08-2): card, not bare text ---- */
+#eligibility-example{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:4px 18px 12px}
+#eligibility-example>summary{padding-block:12px;font-size:1rem}
+/* ---- Opportunity cards: one shared system for both explorers ----
+ * Flat header band with embedded glyph (M08-3); replaces the top rule. */
+.scholarship{padding:18px 20px;gap:8px;overflow:hidden}
+.scholarship::before{content:"";display:block;height:64px;margin-block-start:-18px;margin-inline:-20px;margin-block-end:10px;background:var(--brand-ghost) var(--glyph-doc) no-repeat center;border-bottom:1px solid var(--line-soft)}
 .scholarship h3{font-size:1.02rem;line-height:1.5}
-#research-explorer .scholarship{border-top:3px solid var(--card-accent)}
 #research-explorer .scholarship>.pill{align-self:flex-start}
 #research-explorer .scholarship>p{font-size:.8125rem}
 #research-explorer .scholarship>p:first-of-type{font-size:.75rem;font-weight:700;color:var(--muted)}
@@ -45,13 +55,28 @@
 #research-explorer [data-research-prepare]{background:var(--brand);color:#fff;border-color:var(--brand);width:100%}
 #research-explorer [data-research-save][aria-pressed=true]{background:var(--brand-soft);border-color:var(--brand);color:var(--brand-dark)}
 /* ---- Disclosure affordance: brand-tinted markers, native behavior kept ---- */
-.workspace>summary::marker,.resources>summary::marker,.local-workflow>summary::marker{color:var(--brand)}
+.workspace>summary::marker,.resources>summary::marker,.local-workflow>summary::marker,#eligibility-example>summary::marker{color:var(--brand)}
+/* ---- PathFinder rails (M08-4): stronger stage 5–6 visualization ---- */
+#next-actions{gap:12px;border-inline-start-width:3px;padding-inline-start:16px}
+#barrier-guidance{border-inline-start-width:3px}
+#barrier-guidance p{margin-block:10px}
+#barrier-guidance p::before{width:12px;height:12px}
+/* ---- Eligibility verdict weight (M08-5): result scans first ---- */
+#eligibility-demo #eligibility-result{font-size:1.0625rem;padding:14px 16px}
+#eligibility-details li>p:first-child{font-size:.9375rem}
+/* ---- Box-first consent checkboxes (M08-6) ---- */
+#documents label:has(input[type=checkbox]) input,#profile label:has(input[type=checkbox]) input{order:-1}
+#academic-evidence label:has(input[type=checkbox]){display:flex;gap:10px;align-items:flex-start}
+#academic-evidence label:has(input[type=checkbox]) input{order:-1}
+/* ---- Empty-state glyph (M08-7): icon + text, no new assets ---- */
+.empty-note{text-align:center}
+.empty-note::before{content:"";display:block;width:30px;height:30px;margin:2px auto 10px;background:var(--glyph-search) no-repeat center/contain}
 /* ---- Busy state: honest progress cursor, no animation ---- */
 [aria-busy=true]{cursor:progress}
 /* ---- Footer: two-part row on wide screens ---- */
 @media(min-width:701px){footer{justify-content:space-between;align-items:baseline}}
 section[id],div[id$='mount']{scroll-margin-top:90px}
 @media(min-width:1024px){#journey-nav-mount{grid-row:2/span 8}#workspace-overview{grid-column:2}.journey-nav{border:0;background:transparent;box-shadow:none;padding-inline:0}.journey-nav li{margin-block:4px}.journey-nav li:has(a:hover){background:var(--surface)}}
-@media(max-width:700px){.workspace-overview-grid{grid-template-columns:1fr}.workspace-start-card{padding:18px}.workspace-start-card p{min-height:0}#workspace-overview{padding:18px}.workspace-shortcuts{gap:8px 20px}.scholarship{padding:16px}}
+@media(max-width:700px){.workspace-overview-grid{grid-template-columns:1fr}.workspace-start-card{padding:18px}.workspace-start-card p{min-height:0}#workspace-overview{padding:18px}.workspace-shortcuts{gap:8px 20px}.scholarship{padding:16px}.scholarship::before{margin-block-start:-16px;margin-inline:-16px;margin-block-end:8px}}
 #research-explorer .research-filters{grid-template-columns:repeat(3,minmax(0,1fr))}#research-explorer .research-filters>label:first-child{grid-column:1/-1}
 @media(max-width:700px){#research-explorer .research-filters{grid-template-columns:minmax(0,1fr)}}
