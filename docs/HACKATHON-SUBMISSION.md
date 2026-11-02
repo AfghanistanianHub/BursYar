@@ -1,7 +1,8 @@
 # BursYar — hackathon submission package
 
-Prepared 2026-11-02 from verified in-repo evidence at main `ab889f0`
-(PRs #50–#63 merged). This package files nothing by itself; the owner
+Prepared 2026-11-02 from verified in-repo evidence at main `7817a6a`
+(PRs #50–#66 and #69 merged; #67/#68 open docs PRs). This package
+files nothing by itself; the owner
 files through the official portal (§7). Event identity, deadline,
 tracks, and judging criteria below are verified against authoritative
 sources; submission asset formats remain gated behind participant
@@ -139,7 +140,7 @@ contradictions, provenance) before it can influence any assessment,
 and model prose is never presented as certification of authenticity,
 eligibility, or admission. The two recorded runs are sufficient
 evidence of integration: `engine/` is byte-identical from the
-verified backend commit `4e272a7` through release tip `ab889f0`, so
+verified backend commit `4e272a7` through release tip `7817a6a`, so
 nothing in the inference path changed after the hosted proof; no
 further inference run is needed for the submission.
 
@@ -196,16 +197,17 @@ Verified 2026-11-02 against authoritative public sources:
 Serving state (verified by direct inspection 2026-11-02):
 
 - Frontend https://bursyar.vercel.app serves the release tip:
-  production CSS bundle contains the #61 markers
-  (`overflow-x:visible`, `flex:1 1 40%`) plus #54/#55 markers.
+  production bundles `index-2qj-rj_Y.js` / `index-C4GV0vwD.css`
+  contain the #61 markers (`overflow-x:visible`, `flex:1 1 40%`)
+  plus #69 markers (`skip-link`, `hero-actions`).
 - Backend is current and compatible: `engine/` byte-identical from
-  `4e272a7` through `ab889f0` (no redeploy needed); `/health`
+  `4e272a7` through `7817a6a` (no redeploy needed); `/health`
   returns 200 `ok:true` with local assessment, source retrieval,
   document storage, and configured Meta available.
 
 Fluent-review scope (exact, counted from source; all UNREVIEWED,
-review NOT complete): 389 Dari + 389 Pashto strings — 23 exported
-copy tables (344+344: i18n 34, journey 13, recovery 15, gap-actions
+review NOT complete): 390 Dari + 390 Pashto strings — 23 exported
+copy tables (345+345: i18n 35 incl. #69 skipToContent, journey 13, recovery 15, gap-actions
 6, pathfinder 4+4, research 34, journey-nav 7, analyzer 28+1+8+2,
 source-preview 17, documents 47+6, profile 34, academic-evidence 19,
 local-workflow 25, eligibility 25+5+8+1+1), workspace-overview

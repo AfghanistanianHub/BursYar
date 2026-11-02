@@ -5,10 +5,11 @@ This file supersedes historical release status in earlier handoffs. It records o
 ## Open and identify the release
 
 - App: https://bursyar.vercel.app
-- Last verified production code: `ab889f0` (PR #61; serves bundles
-  `index-BxVrFwK4.js` / `index-RMEPvvh8.css` containing the #61 nav
-  markers plus #54/#55 markers). Previous: `9e00755` (PR #60),
-  Vercel deployment `dpl_2P32r5bV6YH1qybpxkZGPrJgHXuZ`, READY.
+- Last verified production code: `7817a6a` (PR #69; serves bundles
+  `index-2qj-rj_Y.js` / `index-C4GV0vwD.css` containing the #61 nav
+  markers plus #69 skip-link/hero-actions markers). Previous:
+  `ab889f0` (PR #61). Vercel deployment for `9e00755` was
+  `dpl_2P32r5bV6YH1qybpxkZGPrJgHXuZ`, READY.
 - CI: https://github.com/AfghanistanianHub/BursYar/actions/runs/41398943906 — all four jobs succeeded on PR head `fa8982419e37eabaeee115b0ce87aa0e64b8959d`.
 - 312 Node tests, production build, full mocked browser journey, research/document browser checks, emulator and macOS-helper checks passed. Network failure injection is local, not a production interruption.
 - Render backend remains `4e272a74e65df5ccf2318f3adac312196f5db443`; later changes have not changed its engine/database code. No backend redeploy was needed for these UI changes.
