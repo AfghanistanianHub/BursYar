@@ -61,6 +61,18 @@ consume budget for zero new signal.
 - Independent runs on the merged trees: 304/304 unit, build,
   60/60 evaluation, 15/15 mocked browser with axe clean.
 
+## Addendum — main `ab889f0` (same day)
+
+- Merged after this checkpoint: #61 (mobile nav 2×2 wrap CSS +
+  submission docs), #62 (this file), #63 (demo handoff docs).
+- `main` `ab889f0` CI: completed/success. Production CSS bundle
+  `index-RMEPvvh8.css` contains the #61 `flex:1 1 40%` wrap rule, so
+  production serves the `ab889f0` tree.
+- Live re-verification of the wrapped phone nav (en/fa 390px): all 4
+  journey steps visible with zero horizontal scroll; screenshot read
+  back. No other release behavior changed (`engine/` still
+  identical to the verified backend commit).
+
 ## Remaining limits
 
 - Authenticated production flows (Google sign-in, document upload,
