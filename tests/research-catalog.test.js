@@ -55,3 +55,21 @@ test('export contains only public metadata with honest verification labels', () 
  assert.ok(!JSON.stringify(data).includes('SECRET'));
  assert.equal(data.entries[0].title,'Award');
 });
+
+test('country facets split destinations and keep regional descriptions out of options',()=>{
+ const rows=catalog.researchScholarships;
+ const countries=catalog.researchCountries(rows);
+ for(const value of ['Canada','United States','Austria','Sweden','United Kingdom','Afghanistan'])assert.ok(countries.includes(value));
+ assert.ok(countries.every(value=>!/[(),]/.test(value)&&!value.includes(' or ')));
+ assert.equal(catalog.filterResearch(rows,{country:'Canada'},NOW)[0].id,'mmeg-us-canada');
+ assert.ok(catalog.filterResearch(rows,{country:'Sweden'},NOW).some(row=>row.id==='mespom-2027'));
+ assert.deepEqual(catalog.researchDestinations(rows.find(row=>row.id==='adb-jsp')),[]);
+ assert.ok(!countries.includes('Japan')); // Regional text is not a complete country list.
+});
+
+test('funding facets never promote unknown research funding to confirmed support',()=>{
+ const rows=[listing({id:'full',funding:'full'}),listing({id:'partial',funding:'partial'}),listing({id:'unknown'})];
+ assert.deepEqual(catalog.filterResearch(rows,{funding:'full'},NOW).map(x=>x.id),['full']);
+ assert.deepEqual(catalog.filterResearch(rows,{funding:'partial'},NOW).map(x=>x.id),['partial']);
+ assert.deepEqual(catalog.filterResearch(rows,{funding:'unknown'},NOW).map(x=>x.id),['unknown']);
+});

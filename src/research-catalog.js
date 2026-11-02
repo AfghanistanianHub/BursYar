@@ -1,6 +1,21 @@
 import {researchData} from './research-data.js';
 export const researchScholarships = Object.freeze(researchData.map(row => Object.freeze({...row,degrees:Object.freeze([...row.degrees])})));
+// Explicit mappings preserve the original display metadata. Regional coverage
+// is deliberately not expanded into an invented complete country list.
+const destinations = {
+ 'United States or Canada':['United States','Canada'],
+ 'Austria, Sweden, United Kingdom':['Austria','Sweden','United Kingdom'],
+ 'Afghanistan (online, international accreditation)':['Afghanistan'],
+ 'Asia and the Pacific (17 of the 27 designated institutions are in Japan)':[]
+};
+export function researchDestinations(row){return destinations[row.country]??(row.country?[row.country]:[]);}
+export function researchCountries(rows=researchScholarships){return [...new Set(rows.flatMap(researchDestinations))].sort();}
 const countryNames = {
+ 'Canada':['کانادا','کاناډا'],
+ 'United States':['ایالات متحده','متحده ایالات'],
+ 'Austria':['اتریش','اتریش'],
+ 'Sweden':['سوئد','سویډن'],
+ 'Afghanistan':['افغانستان','افغانستان'],
  'Germany': ['آلمان','جرمني'],
  'United Kingdom': ['بریتانیا','بریتانیا'],
  'United Arab Emirates': ['امارات متحدهٔ عربی','متحده عربي امارات'],
@@ -30,10 +45,11 @@ export function researchDeadlineState(row,now=new Date()) {
 }
 // Pure discovery filters; no student data, eligibility score, or exclusion for
 // missing credentials. "No IELTS" never means no English requirement.
-export function filterResearch(rows,{q='',country='all',degree='all',noFee=false,noIelts=false,hidePast=false}={},now=new Date()) {
+export function filterResearch(rows,{q='',country='all',degree='all',funding='all',noFee=false,noIelts=false,hidePast=false}={},now=new Date()) {
  const words=q.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
  return rows.filter(row=>{
-  if(country!=='all'&&row.country!==country)return false;
+  if(country!=='all'&&!researchDestinations(row).includes(country))return false;
+  if(funding!=='all'&&(row.funding??'unknown')!==funding)return false;
   if(degree!=='all'&&!row.degrees.includes(degree))return false;
   if(noFee&&!(row.feeVerified===true&&row.applicationFee===0))return false;
   if(noIelts&&!(row.englishVerified===true&&row.ieltsRequired===false))return false;
