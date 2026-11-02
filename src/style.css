@@ -77,6 +77,7 @@ main{max-width:none}
  background:var(--surface); border:1px solid var(--line); border-radius:var(--r-lg);
  box-shadow:var(--shadow-sm)}
 .assistant{padding:clamp(18px,2.6vw,26px)}
+.assistant-copy{font-size:var(--fs-small); color:var(--muted); margin-block:0 12px}
 #eligibility-mount:empty{display:none}
 .local-workflow{padding:14px 18px}
 .local-workflow>summary{font-size:1rem}
