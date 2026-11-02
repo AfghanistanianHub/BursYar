@@ -1,13 +1,14 @@
 import {journeyCopy} from './journey-copy.js';
 import {recoveryCopy} from './recovery-copy.js';
 import {getInferenceToken} from './auth.js';
-const copy={
+// fa/ps strings are UNREVIEWED pending fluent human review (see docs/TRANSLATION-REVIEW.json).
+export const sourcePreviewCopy={
  en:{fetch:'Fetch scholarship page',loading:'Retrieving public page…',manual:'Manual text fallback',review:'Review the extracted source below. Web content and linked pages are unverified; course-specific conditions may remain unresolved.',approve:'I reviewed this source and approve sending this text for AI analysis.',error:'This page could not be retrieved safely. It may be blocked, too large, or unsupported. Use the manual text fallback.',auth:'Sign in with an approved demo account before fetching.',busy:'Retrieval limit reached. Wait a minute and try again.',status:'Retrieved',original:'Requested URL',digest:'Extracted text SHA-256',links:'Same-site links to review manually (not fetched)',changed:'Source changed. Review and approve it again.',translation:'Dari and Pashto translations await fluent human review.',steps:['Paste an official https URL','Fetch the page and review the extracted text','Approve the source to enable Prepare analysis']},
  fa:{fetch:'دریافت صفحهٔ بورسیه',loading:'در حال دریافت صفحهٔ عمومی…',manual:'ورود دستی متن',review:'متن استخراج‌شده را بررسی کنید. محتوای وب و پیوندها تأیید نشده‌اند؛ شرایط خاص دوره ممکن است نامشخص بمانند.',approve:'این منبع را بررسی کردم و ارسال این متن برای تحلیل هوش مصنوعی را می‌پذیرم.',error:'دریافت امن این صفحه ممکن نشد. شاید مسدود، بسیار بزرگ یا پشتیبانی‌نشده باشد. از ورود دستی استفاده کنید.',auth:'پیش از دریافت، با حساب مجاز دمو وارد شوید.',busy:'حد دریافت تکمیل شده است. یک دقیقه منتظر بمانید.',status:'دریافت شد',original:'نشانی درخواستی',digest:'شناسهٔ SHA-256 متن استخراج‌شده',links:'پیوندهای همین وبگاه برای بررسی دستی (دریافت نشده‌اند)',changed:'منبع تغییر کرد. دوباره بررسی و تأیید کنید.',translation:'ترجمه‌های دری و پشتو در انتظار بازبینی فرد مسلط هستند.',steps:['نشانی رسمی https را وارد کنید','صفحه را دریافت و متن استخراج‌شده را بررسی کنید','منبع را تأیید کنید تا آماده‌سازی تحلیل فعال شود']},
  ps:{fetch:'د بورس پاڼه ترلاسه کړئ',loading:'عامه پاڼه ترلاسه کېږي…',manual:'متن په لاس ولیکئ',review:'لاندې راایستل شوی متن وګورئ. د وېب منځپانګه او تړوني نه دي تایید شوي؛ د دورې ځانګړي شرطونه ښايي نامعلوم پاتې شي.',approve:'ما دا سرچینه وکتله او د دې متن د ځیرکتیا تحلیل ته لېږل منم.',error:'دا پاڼه په خوندي ډول ترلاسه نه شوه. ښايي بنده، ډېره لویه یا نه ملاتړ کېدونکې وي. متن په لاس ولیکئ.',auth:'تر ترلاسه کولو مخکې د ډیمو له مجاز حساب سره ننوځئ.',busy:'د ترلاسه کولو حد پوره شوی. یوه دقیقه تم شئ.',status:'ترلاسه شوه',original:'غوښتل شوې پته',digest:'د راایستل شوي متن SHA-256 پېژند',links:'د همدې وېبپاڼې تړوني د لاسي کتنې لپاره (نه دي ترلاسه شوي)',changed:'سرچینه بدله شوه. بیا یې وګورئ او تایید کړئ.',translation:'د دري او پښتو ژباړې د روان ویونکي بیاکتنې ته منتظرې دي.',steps:['رسمي https پته ولیکئ','پاڼه ترلاسه او راایستل شوی متن وګورئ','سرچینه تایید کړئ څو تحلیل ته چمتو کول فعال شي']}
 };
 export function mountSourcePreview(form,url,textarea,submit,language,initial={}){
- const t=copy[language]??copy.en,r=recoveryCopy[language]??recoveryCopy.en;
+ const t=sourcePreviewCopy[language]??sourcePreviewCopy.en,r=recoveryCopy[language]??recoveryCopy.en;
  const fetchButton=document.createElement('button');fetchButton.type='button';fetchButton.id='fetch-source';fetchButton.textContent=t.fetch;
  const manual=document.createElement('button');manual.type='button';manual.id='manual-source';manual.textContent=r.paste;
  const status=document.createElement('p');status.setAttribute('role','status');status.id='source-status';
@@ -21,7 +22,7 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
  const label=document.createElement('label'),approval=document.createElement('input');approval.type='checkbox';approval.id='source-approved';label.append(approval,document.createTextNode(t.approve));
  const warning=document.createElement('p');warning.textContent=t.translation;
  const steps=document.createElement('ol');steps.id='source-progression';steps.className='source-steps';
- const stepItems=(t.steps??copy.en.steps).map(text=>{const li=document.createElement('li');li.textContent=text;steps.append(li);return li;});
+ const stepItems=(t.steps??sourcePreviewCopy.en.steps).map(text=>{const li=document.createElement('li');li.textContent=text;steps.append(li);return li;});
  url.parentElement.after(fetchButton,manual,status,steps,options,preview);form.querySelector('#analysis-consent').prepend(label,warning);
  let controller,revision=0,busy=false;
  form.sourceReceipt=initial.receipt??null;form.sourcePreview=initial.preview??null;form.manualMode=initial.manualMode===true;form.sourceFailure=initial.sourceFailure??null;approval.checked=initial.sourceApproved===true;

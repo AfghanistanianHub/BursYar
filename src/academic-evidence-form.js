@@ -3,7 +3,8 @@ import {validProfileValue} from '../engine/profile-schema.js';
 
 // These are user declarations, never issuer-verified scores or accepted tests.
 // This form edits only GPA and languageTest; existing profile fields remain intact.
-const copy={
+// fa/ps strings are UNREVIEWED pending fluent human review (see docs/TRANSLATION-REVIEW.json).
+export const academicEvidenceCopy={
  en:{title:'Academic scores (optional)',note:'Enter scores only as stated on your records. Nothing here proves issuer authenticity, scholarship eligibility or acceptance of a test.',gpa:'GPA',scale:'Official GPA scale',test:'Language test',none:'Not provided',overall:'Overall',reading:'Reading',listening:'Listening',speaking:'Speaking',writing:'Writing',consent:'I approve storing these scores privately as unverified declarations.',save:'Save score declarations',load:'Reload saved scores',remove:'Clear these score declarations',saved:'Score declarations saved; not issuer verified.',error:'Could not save or load scores.',locked:'Issuer-verified scores cannot be edited here.',working:'Working…'},
  fa:{title:'نمره‌های تحصیلی (اختیاری)',note:'نمره‌ها را فقط مطابق مدارک خود وارد کنید. این اطلاعات تأیید صادرکننده، واجد شرایط بودن یا پذیرش آزمون را اثبات نمی‌کند.',gpa:'معدل (GPA)',scale:'مقیاس رسمی معدل',test:'آزمون زبان',none:'ارائه نشده',overall:'نمره مجموع',reading:'خواندن',listening:'شنیدن',speaking:'صحبت کردن',writing:'نوشتن',consent:'ذخیره خصوصی این نمره‌ها را به‌عنوان اظهارات تأییدنشده می‌پذیرم.',save:'ذخیره نمره‌های اظهارشده',load:'بارگذاری نمره‌های ذخیره‌شده',remove:'پاک کردن نمره‌های اظهارشده',saved:'نمره‌ها ذخیره شدند؛ تأیید صادرکننده نیستند.',error:'ذخیره یا بارگذاری نمره‌ها ممکن نشد.',locked:'نمره‌های تأییدشدهٔ صادرکننده در اینجا قابل ویرایش نیستند.',working:'در حال انجام…'},
  ps:{title:'تحصیلي نمرې (اختیاري)',note:'یوازې د خپلو اسنادو مطابق نمرې ولیکئ. دا د صادرونکي تایید، د بورس وړتیا یا د ازموینې منل نه ثابتوي.',gpa:'اوسط نمره (GPA)',scale:'د اوسط رسمي مقیاس',test:'د ژبې ازموینه',none:'نه ده ورکړل شوې',overall:'ټولیزې نمرې',reading:'لوستل',listening:'اورېدل',speaking:'خبرې کول',writing:'لیکل',consent:'زه د دې نه تایید شویو نمراتو شخصي ساتنې ته رضایت ورکوم.',save:'د نمراتو ثبتول',load:'ساتل شوې نمرې راوړل',remove:'ثبت شوې نمرې پاکول',saved:'نمرې وساتل شوې؛ د صادرونکي تایید نه دی.',error:'د نمراتو ساتل یا راوړل ناکام شول.',locked:'د صادرونکي تایید شوې نمرې دلته نه شي بدلېدای.',working:'کار روان دی…'}
@@ -14,7 +15,7 @@ document.addEventListener('bursyar:identity',()=>{profile={};epoch++;notice='';c
 document.addEventListener('bursyar:profile',event=>{profile=structuredClone(event.detail??{});const root=document.querySelector('#academic-evidence-mount');if(root)mountAcademicEvidence(root,document.documentElement.lang);});
 export function mountAcademicEvidence(root,language='en'){
  if(!root)return;
- const t=copy[language]??copy.en,ownEpoch=epoch;
+ const t=academicEvidenceCopy[language]??academicEvidenceCopy.en,ownEpoch=epoch;
  root.replaceChildren();
  const section=document.createElement('section');section.className='section';section.id='academic-evidence';root.append(section);
  const create=(tag,parent=section,text)=>{const el=document.createElement(tag);if(text)el.textContent=text;parent.append(el);return el;};
