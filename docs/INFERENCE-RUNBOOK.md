@@ -1,6 +1,6 @@
 # BursYar inference demo runbook
 
-Status: implemented/tested with fake identity and provider at HTTP boundary; not live verified, not publicly deployed. Tracks #4; builds on #5. Node >=24.12 required (`node:sqlite`). Install from repository root using `npm ci`.
+Status: implemented/tested with fake identity and provider at HTTP boundary; local-runbook scope only. Hosted live verification is recorded separately in HOSTED-META.md (request 5a58bff8 on 2026-11-01, backend 4e272a7, Render dep-dbjooe0u01pc7383tj2g) and HOSTED-BACKEND.md; this runbook's negative-verification gates still apply before any demo release. Tracks #4; builds on #5. Node >=24.12 required (`node:sqlite`). Install from repository root using `npm ci`.
 
 ## Server path
 Firebase Google sign-in → short-lived user ID token → same-origin POST /api/analyze → Admin SDK verification including revocation → project/issuer and bursyarDemo claim → input validation → atomic SQLite quota reservation → bounded Meta request → evidence validator → unreviewed result.

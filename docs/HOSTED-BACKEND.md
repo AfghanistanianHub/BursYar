@@ -31,6 +31,12 @@ Backend code: `4e272a74e65df5ccf2318f3adac312196f5db443`, Render deployment
 293 Node tests, production build and all four CI jobs. The subsequent consent
 wording release also passed all four CI jobs and is READY in production.
 
+Deploy-ID note: PR #47 recorded earlier preparation deploy
+`dep-dbjoi5k9v7es73angf1g` for the same commit `4e272a7`; the later verified
+live record used here, in HOSTED-META.md, and in PR #48 is
+`dep-dbjooe0u01pc7383tj2g`. No live hosting state was probed to write this
+note; actually-serving SHAs remain unverified from the repository.
+
 ## Durable document/profile storage
 
 The existing BursYar Supabase project now provides private owner-state storage;
