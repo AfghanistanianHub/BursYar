@@ -89,6 +89,11 @@ eligibility, or admission.
 
 ## Minimum video scenes (all verified functionality)
 
+Scenes 1–2 and 7 are covered by the public-flow footage; scenes 3–6
+need the owner's approved demo account (bursyarDemo claim) plus
+interactive sign-in — see CURRENT-DEMO.md. No new live inference is
+needed for any scene.
+
 1. Workspace overview + journey steps (establish the app).
 2. Discovery: research search, country/funding filters, empty state,
    save/export, prepare-to-source (approval still required).
