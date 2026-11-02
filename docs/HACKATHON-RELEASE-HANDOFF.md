@@ -1,3 +1,5 @@
+> **Current status:** Start with [CURRENT-DEMO.md](CURRENT-DEMO.md). The draft/unmerged and no-deployment statements below are historical. PRs #54, #57, #59 and #60 are merged and their frontend changes are deployed.
+
 # Hackathon release handoff — one integrated candidate (Draft, unmerged)
 
 Date: 2026-11-01 (finalized over 2026-10-31..11-01). No deployment, submission,
