@@ -1,7 +1,7 @@
 # BursYar — hackathon submission package
 
-Prepared 2026-11-02 from verified in-repo evidence at main `7817a6a`
-(PRs #50–#66 and #69 merged; #67/#68 open docs PRs). This package
+Prepared 2026-11-02 from verified in-repo evidence at main `0960b24`
+(PRs #50–#66 and #68–#72 merged; #67 open docs PR). This package
 files nothing by itself; the owner
 files through the official portal (§7). Event identity, deadline,
 tracks, and judging criteria below are verified against authoritative
@@ -197,9 +197,10 @@ Verified 2026-11-02 against authoritative public sources:
 Serving state (verified by direct inspection 2026-11-02):
 
 - Frontend https://bursyar.vercel.app serves the release tip:
-  production bundles `index-2qj-rj_Y.js` / `index-C4GV0vwD.css`
-  contain the #61 markers (`overflow-x:visible`, `flex:1 1 40%`)
-  plus #69 markers (`skip-link`, `hero-actions`).
+  production bundles `index-Czy_aVBG.js` / `index-C9znp_fj.css`
+  contain the #69/#71 markers (`skip-link`, `hero-actions`,
+  `empty-note`, `summary::marker`) plus #72 markers
+  (`glyph-doc`, `glyph-search`, `eligibility-example`).
 - Backend is current and compatible: `engine/` byte-identical from
   `4e272a7` through `7817a6a` (no redeploy needed); `/health`
   returns 200 `ok:true` with local assessment, source retrieval,
