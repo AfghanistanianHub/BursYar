@@ -9,13 +9,13 @@ Do not create a replacement design project or new application. Existing BursYar 
 
 ## Connect to Muse Code locally
 
-Muse Code supports external `mcp_servers` with `streamable_http` transport and remote OAuth (`muse mcp login`). The authenticated MagicPath connector reports the remote MCP endpoint as `https://api.magicpath.ai/mcp/openai/v1`. Verify this URL remains current in MagicPath before use.
+Muse Code supports external `mcpServers` with `streamable_http` transport and remote OAuth (`muse mcp login`). The authenticated MagicPath connector reports the remote MCP endpoint as `https://api.magicpath.ai/mcp/openai/v1`. Verify this URL remains current in MagicPath before use.
 
-Merge this object into the existing **user** Muse `settings.json` `mcp_servers` map (do not replace settings or commit secrets):
+Merge this object into the existing **user** Muse `settings.json` `mcpServers` map (do not replace settings or commit secrets):
 
 ```json
 {
-  "mcp_servers": {
+  "mcpServers": {
     "magicpath": {
       "transport": "streamable_http",
       "url": "https://api.magicpath.ai/mcp/openai/v1",
@@ -34,6 +34,8 @@ muse
 ```
 
 Inside Muse: `/mcp` to verify MagicPath tools are available. OAuth is handled through browser sign-in, not manually pasting a key. If the installed Muse build rejects config keys or endpoint, follow its current MCP schema and the official MagicPath agent plugin manifest rather than disabling authentication.
+
+Verified 2026-11-02 on Muse Code 1.4.14: settings merged under `mcpServers`, `muse mcp login magicpath` completed, and a fresh session lists 43 `mcp__magicpath.*` tools. Tool notes: `inspect_component` expects the generated name (`crisply-cave-6289` / `pure-storm-8589`) and returns Resource-not-found for numeric IDs; `get_component_code_context` accepts the numeric component IDs. The project has no custom theme; components share the Default Tailwind theme. MCP sessions started before the settings merge do not see the tools until restarted.
 
 ## Integration assignment for Muse Code
 
