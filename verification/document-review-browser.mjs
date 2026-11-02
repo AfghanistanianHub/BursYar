@@ -44,13 +44,14 @@ try{for(const language of ['en','fa','ps']){
  await page.locator('#documents > div > button').click();await expect(page.locator('.document-source')).toHaveCount(0);expect(documents.list(uid)).toHaveLength(0);expect(documents.profile(uid)).toEqual({});
  // A GPA correction must support changing BOTH the score and its scale.
  const secondForm=page.locator('#documents > form');await secondForm.locator('input[type=checkbox]').check();
- await secondForm.locator('input[type=file]').setInputFiles({name:'synthetic-gpa.txt',mimeType:'text/plain',buffer:Buffer.from('SYNTHETIC TEST ONLY\nGPA: 3.4/4')});await secondForm.locator('button').click();
+ await secondForm.locator('.document-paste summary').click();await secondForm.locator('textarea').fill('SYNTHETIC TEST ONLY\nGPA: 3.4/4');await expect(secondForm.locator('input[type=file]')).toBeDisabled();await secondForm.locator('button').click();
  await expect(page.locator('.document-claim')).toHaveCount(1);await page.locator('.document-claim select').selectOption('correct');
  await page.locator('.document-claim input').nth(1).fill('5');await page.locator('.document-claim input').nth(0).fill('4.5');
  expect(await page.locator('.document-claim input').nth(0).evaluate(el=>el.validity.valid)).toBe(true);
  await page.locator('#documents > div > form button').click();await expect(page.locator('.document-claim')).toHaveCount(0);
  expect(documents.profile(uid).gpa.value).toEqual({gpa:4.5,scale:5});
  await page.locator('#documents > div > button').click();await expect(page.locator('.document-source')).toHaveCount(0);
+ await secondForm.locator('.document-paste summary').click();await expect(secondForm.locator('textarea')).toBeDisabled();
  await secondForm.locator('input[type=file]').setInputFiles({name:'synthetic-conflict.txt',mimeType:'text/plain',buffer:Buffer.from('SYNTHETIC TEST ONLY\nDegree: bachelor\nDegree: master')});await secondForm.locator('button').click();
  await expect(page.locator('#documents > div > p')).toContainText({en:'Conflicting values',fa:'مقادیر متعارض',ps:'متضاد ارزښتونه'}[language]);
  await expect(page.locator('.document-claim')).toHaveCount(0);expect(documents.profile(uid)).toEqual({});
