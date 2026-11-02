@@ -1,12 +1,12 @@
 # BursYar — hackathon submission package
 
-Prepared 2026-11-02 from verified in-repo evidence at main `9e00755`
-(PRs #50–#60 merged). This package files nothing and claims no
-organizer compliance: portal, official rules, required assets and the
-official deadline are **UNVERIFIED** (owner-supplied deadline on
-record: before November 4, 2026). Anything not confirmed against an
-authoritative source is labeled as such. No user numbers, deployment
-status, or institutional partnerships are claimed.
+Prepared 2026-11-02 from verified in-repo evidence at main `ab889f0`
+(PRs #50–#63 merged). This package files nothing by itself; the owner
+files through the official portal (§7). Event identity, deadline,
+tracks, and judging criteria below are verified against authoritative
+sources; submission asset formats remain gated behind participant
+login. No user numbers or institutional partnerships are claimed.
+Production serving state is verified in §7.
 
 ## 1. Project description
 
@@ -22,6 +22,23 @@ guess. Missing evidence becomes practical next steps in the student's
 own language: English, Dari, or Pashto, with full right-to-left
 support. Where a scholarship cannot be assessed, BursYar says what is
 missing and what to do about it, instead of inventing an answer.
+
+Who it serves: Afghan applicants navigating foreign scholarship
+systems in a second or third language — especially women and girls
+whose educational paths face the steepest barriers. Every assessment,
+explanation, barrier question, and next step is available in Dari and
+Pashto as well as English (machine-drafted, human review pending),
+so a student can understand what a scholarship demands, what evidence
+she still needs, and what to do next without relying on an
+English-only intermediary.
+
+Distinguishing features (see DIFFERENTIATORS.md): evidence-first
+exact-excerpt validation with source digests; a conservative 3-valued
+compiler that fails closed to UNKNOWN; fail-closed trusted-policy
+gates with no provider fallback; URL-first retrieval with honest
+blocked-page recovery; a privacy-minimal provider boundary (public
+source text only); and trilingual evidence planning with quotations
+kept untranslated and visibly distinct.
 
 ## 2. Verified feature inventory
 
@@ -67,6 +84,16 @@ receives only pasted public source text — never the URL, identity,
 profile, documents, or quota state. Any policy, quota, network, or
 validation failure fails closed to the deterministic offline path.
 
+Security approach (see SECURITY-PRIVACY-REVIEW.md): verified Firebase
+identity with demo-claim checks before any analysis or storage;
+per-request trusted-policy records (adult caller, active consent,
+allowlisted jurisdiction, Standard models only); atomic quota
+reservations with spending confirmation gates; bounded, timeout-guarded
+transports with no retries on inference; explicit user approval before
+every analysis and document mutation; consent-scoped private storage
+with export and deletion; exact-evidence validation so model prose
+can never fabricate a quotation, a digest, or an eligibility verdict.
+
 ## 4. Demonstration walkthrough (deterministic, no live calls)
 
 Run `./start-bursyar.command`, open http://localhost:5173. The mocked
@@ -110,11 +137,16 @@ reliability distribution is claimed. Everything the model returns is
 re-checked locally (exact quotations, digests, supported rule syntax,
 contradictions, provenance) before it can influence any assessment,
 and model prose is never presented as certification of authenticity,
-eligibility, or admission.
+eligibility, or admission. The two recorded runs are sufficient
+evidence of integration: `engine/` is byte-identical from the
+verified backend commit `4e272a7` through release tip `ab889f0`, so
+nothing in the inference path changed after the hosted proof; no
+further inference run is needed for the submission.
 
 ## 6. Limitations and pending requirements
 
-- All fa/ps strings are UNREVIEWED; no fluent human review recorded.
+- All fa/ps strings are UNREVIEWED (exact scope in §7); no fluent
+  human review recorded.
 - Compact AI selections (≤4 criteria, ≤2 funding excerpts) never imply
   complete policy coverage; `coverageComplete=false` stands.
 - Compiler coverage is deliberately narrow (explicit degree/IELTS
@@ -125,27 +157,71 @@ eligibility, or admission.
   integration, no award/admission prediction.
 - Live inference needs fresh owner authorization plus policy-window
   re-issue; prior approvals are superseded.
-- Hosted serving-SHA proof and 29/29 live production checks are
-  recorded separately in
-  [18-production-release-verification.md](checkpoints/18-production-release-verification.md)
-  (PR #62, owner-directed release work); confirm it is merged before
-  filing.
-- Submission logistics (portal, rules, assets, official deadline)
-  unverified; no submission filed by this work.
+- Hosted serving state is verified (§7); deeper prod-e2e evidence
+  lives in
+  [18-production-release-verification.md](checkpoints/18-production-release-verification.md).
+- Submission asset formats stay gated behind participant login (§7);
+  no submission filed by this work.
 
-## 7. Release checklist — genuinely outstanding only
+## 7. Official requirements, serving state, and review scope
 
-- [ ] Fluent Dari/Pashto + semantic review recorded; public metadata
-      in TRANSLATION-REVIEW.json (now `PENDING_HUMAN_REVIEW`).
+Verified 2026-11-02 against authoritative public sources:
+
+- Event: Meta Global AI Developer Hackathon, virtual and worldwide,
+  $1M prize pool. Portal: https://cerebralvalley.ai/e/meta-ai-developer-hackathon.
+- Deadline: project submissions due **November 4, 9:00 PM ET**
+  (judging Nov 4–8, finals Nov 9). Sources: the Key Dates sections
+  of https://dev.meta.ai/events/global-hackathon and the Cerebral
+  Valley event page (identical dates; both note dates may change at
+  Meta's discretion — recheck the page before filing).
+- Tracks: Indie developer (individuals/students; judged on
+  creativity, technical ambition, whether it works) and Startup
+  (teams/founders; technical execution, holds up in production).
+  BursYar enters Indie. Themes: Build for Your World (BursYar's
+  theme) and Push the Frontier.
+- Participation is selection-capped (20,000); application review is
+  separate from project judging.
+- NOT publicly published (participant-login-gated): submission asset
+  formats (video length/format, repo/demo-link requirements) and the
+  Official Rules text. One fellow participant's public build log
+  reports a three-minute demo video, public repo, event-period-only
+  work, and judging weights (impact 30 / Meta tooling 25 / demo 25 /
+  depth 20) — useful leads, explicitly **UNVERIFIED**. BursYar is
+  structurally ready for all of them: repo is PUBLIC, meaningful
+  history starts 2026-10-26, Meta models are used via the Meta Model
+  API, and VIDEO-SCRIPT.md carries both the four-minute plan and a
+  provisional three-minute cut. The owner must confirm formats inside
+  the portal before recording.
+
+Serving state (verified by direct inspection 2026-11-02):
+
+- Frontend https://bursyar.vercel.app serves the release tip:
+  production CSS bundle contains the #61 markers
+  (`overflow-x:visible`, `flex:1 1 40%`) plus #54/#55 markers.
+- Backend is current and compatible: `engine/` byte-identical from
+  `4e272a7` through `ab889f0` (no redeploy needed); `/health`
+  returns 200 `ok:true` with local assessment, source retrieval,
+  document storage, and configured Meta available.
+
+Fluent-review scope (exact, counted from source; all UNREVIEWED,
+review NOT complete): 389 Dari + 389 Pashto strings — 23 exported
+copy tables (344+344: i18n 34, journey 13, recovery 15, gap-actions
+6, pathfinder 4+4, research 34, journey-nav 7, analyzer 28+1+8+2,
+source-preview 17, documents 47+6, profile 34, academic-evidence 19,
+local-workflow 25, eligibility 25+5+8+1+1), workspace-overview
+inline copy (12+12), glossary terms (13+13), catalog country/level
+labels (6+6), research localized names (14+14). Record rule:
+TRANSLATION-REVIEW.json (still `PENDING_HUMAN_REVIEW`).
+
+## 8. Release checklist — genuinely outstanding only
+
+- [ ] Fluent Dari/Pashto + semantic review recorded over the §7
+      scope; public metadata in TRANSLATION-REVIEW.json.
 - [ ] Source ledger bound to dated captures (now all
       `needs_reverification`).
-- [ ] Live policy-window re-issue + fresh explicit inference approval
-      if any further live run is wanted (none is required for the
-      recorded milestones).
-- [ ] Serving-SHA proof reviewed in
-      [18-production-release-verification.md](checkpoints/18-production-release-verification.md)
-      (PR #62); confirm merged before filing.
-- [ ] Submission logistics confirmed with the owner (portal, rules,
-      assets, deadline); video recorded per VIDEO-SCRIPT.md rules.
-- [ ] Owner merges this PR, reruns CI on the integration head, and
-      files the submission through the official portal.
+- [ ] Submission asset formats confirmed inside the participant
+      portal; video recorded per VIDEO-SCRIPT.md (four-minute plan
+      or provisional three-minute cut once confirmed).
+- [ ] Owner merges this PR and files the submission through the
+      official portal before November 4, 9:00 PM ET (recheck the
+      official page for changes first).
