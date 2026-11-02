@@ -3,7 +3,7 @@ import {journeyCopy} from './journey-copy.js';
 import {mountSourcePreview} from './source-preview.js';
 import {CLIENT_ANALYSIS_TIMEOUT_MS} from '../engine/provider-config.js';
 import {signIn,signOut,getInferenceToken,onAuthChange} from './auth.js';
-import {findBarriers,barrierText} from './pathfinder.js';
+import {findBarriers,barrierText,barrierLabels} from './pathfinder.js';
 if(!globalThis.__bursyarAccountDismiss){globalThis.__bursyarAccountDismiss=true;
  document.addEventListener('click',event=>{const details=document.querySelector('details.account');if(details?.open&&!details.contains(event.target))details.open=false;});
  document.addEventListener('keydown',event=>{if(event.key!=='Escape')return;const details=document.querySelector('details.account');if(details?.open){details.open=false;details.querySelector('summary')?.focus();}});}
@@ -59,7 +59,7 @@ export function mountAnalyzer(form,language,esc,initial={}){
    }
    const fields=document.createElement('fieldset');const legend=document.createElement('legend');legend.textContent=t.barriers;fields.append(legend);
    const answers=form.barrierAnswers,guidance=document.createElement('div');guidance.setAttribute('aria-live','polite');guidance.id='barrier-guidance';
-   const update=()=>{guidance.replaceChildren();for(const r of findBarriers(a.criteria,answers)){const p=document.createElement('p'),content=barrierText(r,language);p.textContent=`${content.status} — ${content.action}`;p.dataset.criterion=r.criterionId;guidance.append(p);}};
+   const update=()=>{guidance.replaceChildren();const rows=findBarriers(a.criteria,answers);const labels=barrierLabels[language]||barrierLabels.en;const fmt=new Intl.NumberFormat(language);const mismatched=rows.filter(r=>r.status==='potential mismatch').length;const head=document.createElement('p');head.className='barrier-summary';head.textContent=`${fmt.format(mismatched)} × ${labels.mismatch} · ${fmt.format(rows.length-mismatched)} × ${labels.unknown}`;guidance.append(head);for(const r of rows){const p=document.createElement('p'),content=barrierText(r,language);p.textContent=`${content.status} — ${content.action}`;p.dataset.criterion=r.criterionId;p.dataset.status=r.status==='potential mismatch'?'mismatch':'unknown';guidance.append(p);}};
    for(const kind of ['transcripts','language_test','travel_document']){const label=document.createElement('label');label.textContent=t[kind];const select=document.createElement('select');select.name=kind;for(const [value,key]of [['unknown','skip'],['available','available'],['unavailable','unavailable']]){const option=document.createElement('option');option.value=value;option.textContent=t[key];select.append(option);}select.value=answers[kind]??'unknown';select.addEventListener('change',()=>{answers[kind]=select.value;update();});label.append(select);fields.append(label);}
    result.append(fields,guidance);update();
  }

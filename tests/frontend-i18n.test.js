@@ -82,6 +82,9 @@ test('main shell wires localized copy, counts and accessible close', () => {
   assert.match(main, /assistantCopy/);
   assert.match(main, /aria-label="\$\{esc\(t\.close\)\}"/);
   assert.match(main, /new Intl\.NumberFormat\(state\.language\)/);
+  assert.match(main, /noResults/);
+  assert.match(main, /class="empty-note"/);
+  assert.match(main, /class="count" role="status"/);
   assert.match(main, /document\.title=/);
   assert.match(main, /meta\[name="description"\]/);
 });
