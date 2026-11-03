@@ -71,7 +71,7 @@ test('scanned PDF pages use bounded local OCR in the selected language and alway
  }});
  try{
   const result=await extractDocumentText(pdf('synthetic'),{pdfLoader,ocrLoader,ocrLanguage:'pus'});
-  assert.deepEqual(result,{text:'Degree: master\\nGPA: 4.2/5',method:'local_pdf_text_or_ocr'});
+  assert.deepEqual(result,{text:'Degree: master\nGPA: 4.2/5',method:'local_pdf_text_or_ocr'});
   assert.equal(ocrLanguage,'pus');
   assert.ok(ocrInput);
   assert.equal(terminated,1);
