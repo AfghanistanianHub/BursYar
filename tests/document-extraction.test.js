@@ -81,6 +81,51 @@ test('scanned PDF pages use bounded local OCR in the selected language and alway
   if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;
  }
 });
+test('M20 OCR loader accepts the real tesseract ESM shape (default export)',async()=>{
+ // Mission 19 P0: tesseract.esm.min.js exports {default:{createWorker}},
+ // not {createWorker}. Mocks assuming the wrong shape masked the failure.
+ const realShapeLoader=async()=>({default:{createWorker:async()=>({recognize:async()=>({data:{text:'Degree: bachelor'}}),terminate:async()=>{}})  }});
+ const priorBitmap=globalThis.createImageBitmap,priorBlob=globalThis.Blob;
+ globalThis.createImageBitmap=async()=>({width:100,height:100,close(){}});
+ globalThis.Blob=class Blob{constructor(parts){this.parts=parts;}};
+ try{
+  assert.deepEqual(await extractDocumentText(png,{ocrLoader:realShapeLoader}),{text:'Degree: bachelor',method:'local_image_ocr'});
+  const legacyLoader=async()=>({createWorker:async()=>({recognize:async()=>({data:{text:'GPA: 3.4/4'}}),terminate:async()=>{}})});
+  assert.deepEqual(await extractDocumentText(png,{ocrLoader:legacyLoader}),{text:'GPA: 3.4/4',method:'local_image_ocr'});
+  await assert.rejects(()=>extractDocumentText(png,{ocrLoader:async()=>({})}),e=>e.code==='extractionUnavailable');
+ }finally{
+  if(priorBitmap===undefined)delete globalThis.createImageBitmap;else globalThis.createImageBitmap=priorBitmap;
+  if(priorBlob===undefined)delete globalThis.Blob;else globalThis.Blob=priorBlob;
+ }
+});
+test('M20 scanned-page render/OCR failures report unavailable, never invalid PDF',async()=>{
+ const priorDocument=globalThis.document;
+ globalThis.document={createElement:()=>({width:0,height:0,getContext:()=>({})})};
+ const failingRender=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({
+  numPages:1,
+  getPage:async()=>({getViewport:()=>({width:100,height:100}),getTextContent:async()=>({items:[]}),render:()=>({promise:Promise.reject(Error('render crash'))}),cleanup(){}}),
+  destroy:async()=>{}
+ })})});
+ const ocrLoader=async()=>({default:{createWorker:async()=>({recognize:async()=>({data:{text:'x'}}),terminate:async()=>{}})}});
+ try{
+  await assert.rejects(()=>extractDocumentText(pdf('x'),{pdfLoader:failingRender,ocrLoader}),e=>e.code==='extractionUnavailable');
+  const failingOcr=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({
+   numPages:1,
+   getPage:async()=>({getViewport:()=>({width:100,height:100}),getTextContent:async()=>({items:[]}),render:()=>({promise:Promise.resolve()}),cleanup(){}}),
+   destroy:async()=>{}
+  })})});
+  const badOcr=async()=>({default:{createWorker:async()=>({recognize:async()=>{throw Error('ocr down')},terminate:async()=>{}})}});
+  await assert.rejects(()=>extractDocumentText(pdf('x'),{pdfLoader:failingOcr,ocrLoader:badOcr}),e=>e.code==='extractionUnavailable');
+ }finally{
+  if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;
+ }
+});
+test('M20 vendor exceptions with numeric codes map to honest failures, never raw rethrow',async()=>{
+ // pdf.js PasswordException carries numeric code=1; rethrowing it raw
+ // showed a misleading generic error instead of invalidPdf.
+ const passwordLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.reject(Object.assign(Error('No password given'),{code:1,name:'PasswordException'}))})});
+ await assert.rejects(()=>extractDocumentText(pdf('x'),{pdfLoader:passwordLoader}),e=>e.code==='invalidPdf');
+});
 test('unsupported OCR locale and malformed binary fail without loading third-party code',async()=>{
  let imported=0;
  const pdfLoader=async()=>{imported++;throw Error('unexpected network call')};

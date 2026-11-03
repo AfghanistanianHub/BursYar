@@ -3,8 +3,8 @@
 // Pinned versions: updates require security review and browser regression checks.
 const MAX_TEXT_BYTES=12000, MAX_BINARY_BYTES=5*1024*1024, MAX_PAGES=5;
 const fail=code=>{const error=new Error(code);error.code=code;throw error;};
-const pdfModuleUrl='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/build/pdf.min.mjs';
-const pdfWorkerUrl='https://cdn.jsdelivr.net/npm/pdfjs-dist@6.4.299/build/pdf.worker.min.mjs';
+const pdfModuleUrl='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs';
+const pdfWorkerUrl='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
 const ocrModuleUrl='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js';
 const isPdf=bytes=>bytes.length>=5&&bytes[0]===37&&bytes[1]===80&&bytes[2]===68&&bytes[3]===70&&bytes[4]===45;
 const isPng=b=>b.length>=8&&[137,80,78,71,13,10,26,10].every((n,i)=>b[i]===n);
@@ -20,8 +20,9 @@ async function createOcrWorker(ocrLoader=()=>importPinned(ocrModuleUrl),language
  if(!['eng','fas','pus'].includes(language))fail('unsupportedOcrLanguage');
  let mod;
  try{mod=await ocrLoader();}catch{fail('extractionUnavailable');}
- if(typeof mod.createWorker!=='function')fail('extractionUnavailable');
- try{return await mod.createWorker(language);}catch{fail('extractionUnavailable');}
+ const ocrApi=mod.default??mod;
+ if(typeof ocrApi.createWorker!=='function')fail('extractionUnavailable');
+ try{return await ocrApi.createWorker(language);}catch{fail('extractionUnavailable');}
 }
 async function recognizeImage(bytes,mime,ocrLoader,language){
  if(typeof createImageBitmap!=='function'||typeof Blob==='undefined')fail('extractionUnavailable');
@@ -33,7 +34,7 @@ async function recognizeImage(bytes,mime,ocrLoader,language){
   worker=await createOcrWorker(ocrLoader,language);
   const result=await worker.recognize(blob);
   return result?.data?.text??'';
- }catch(error){if(error.code)throw error;fail('extractionUnavailable');}
+ }catch(error){if(typeof error?.code==='string')throw error;fail('extractionUnavailable');}
  finally{image?.close?.();await worker?.terminate?.().catch(()=>{});}
 }
 async function readPdf(bytes,pdfLoader,ocrLoader,language){
@@ -59,9 +60,11 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language){
     canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
     const context=canvas.getContext('2d');
     if(!context)fail('extractionUnavailable');
-    await page.render({canvasContext:context,viewport}).promise;
+    try{await page.render({canvasContext:context,viewport}).promise;}
+    catch{fail('extractionUnavailable');}
     worker??=await createOcrWorker(ocrLoader,language);
-    text=(await worker.recognize(canvas))?.data?.text??'';
+    try{text=(await worker.recognize(canvas))?.data?.text??'';}
+    catch{fail('extractionUnavailable');}
     canvas.width=canvas.height=0;
    }
    lines.push(text.trim());
@@ -70,7 +73,7 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language){
    page.cleanup?.();
   }
   return safeText(lines.join('\n'));
- }catch(error){if(error.code)throw error;fail('invalidPdf');}
+ }catch(error){if(typeof error?.code==='string')throw error;fail('invalidPdf');}
  finally{await worker?.terminate?.().catch(()=>{});await pdf?.destroy?.().catch(()=>{});}
 }
 export async function extractDocumentText(file,{pdfLoader=()=>importPinned(pdfModuleUrl),ocrLoader=()=>importPinned(ocrModuleUrl),ocrLanguage='eng'}={}){
