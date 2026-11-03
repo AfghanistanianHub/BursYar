@@ -1,10 +1,11 @@
-# BursYar — final owner decision (Mission 16, 2026-11-03)
+# BursYar — final owner decision (Mission 16, 2026-11-03; release pointers refreshed Mission 18)
 
 ## Current production release
 
-- Frontend: `https://bursyar.vercel.app` — `main 59fb81f` (PRs #83,
-  #85), bundles `index-C35aFzXy.js` / `index-yzGWkncG.css`
-  (`requestId` client marker verified in the served JS).
+- Frontend: `https://bursyar.vercel.app` — `main 340a5e5` (PRs #86,
+  #92, #93), bundles `index-cslf-rZ1.js` / `index-yzGWkncG.css`
+  (SHA fingerprinted live 2026-11-03; supersedes the `59fb81f` /
+  `index-C35aFzXy.js` record).
 - Backend: `https://bursyar-api.onrender.com` — `/health` 200 `ok:true`.
 - Verified final video:
   `submission/2026-meta-hackathon/final-assets/BursYar-Hackathon-Demo-Final.mp4`

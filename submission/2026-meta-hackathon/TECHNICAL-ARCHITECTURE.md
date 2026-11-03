@@ -1,6 +1,7 @@
 # BursYar — technical architecture (submission)
 
-Release `b60444b` (code `0960b24`). All claims verified in-repo; see
+Release `340a5e5` (re-verified Mission 18, 2026-11-03; supersedes the
+`b60444b` / `0960b24` pointer). All claims verified in-repo; see
 `docs/HACKATHON-SUBMISSION.md` for the full inventory.
 
 ```

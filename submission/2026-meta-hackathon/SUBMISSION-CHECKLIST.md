@@ -1,13 +1,18 @@
 # BursYar — submission checklist
 
-## Done (verified)
+## Done (verified, Mission 18 at `340a5e5`)
 
 - [x] Public repo with meaningful history from 2026-10-26
-- [x] Live demo serving the release tip (verified bundles + markers)
+- [x] Live demo serving the release tip (SHA fingerprinted live: bundle
+      `index-cslf-rZ1.js`, post-#92 flags, Firebase-configured build)
 - [x] Meta Muse Spark integration with two recorded validated runs
-- [x] Provisional 3-minute captioned demo cut (playback verified)
+- [x] Provisional 3-minute captioned demo cut (Chrome playback verified
+      179.9 s / 1080p; claims re-checked vs current production)
 - [x] Judge walkthrough, architecture, evidence, and script docs
-- [x] CI green on the release PR; submission docs synced to the tip
+- [x] CI green on the release PR (#93, run 41723547491); submission docs
+      synced to the tip
+- [x] Production QA 185/185 (en/fa/ps × 1440/768/390/320) + shipped-tree
+      authenticated document workflow green
 - [x] No invented users, partnerships, costs, or reviews anywhere
 
 ## Owner-only actions
