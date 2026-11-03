@@ -207,8 +207,8 @@ Serving state (verified by direct inspection 2026-11-02):
   document storage, and configured Meta available.
 
 Fluent-review scope (exact, counted from source; all UNREVIEWED,
-review NOT complete): 399 Dari + 399 Pashto strings — 23 exported
-copy tables (354+354: i18n 35 incl. #69 skipToContent, journey 22 incl. 9 new #PR homepage keys, recovery 15, gap-actions
+review NOT complete): 401 Dari + 401 Pashto strings — 23 exported
+copy tables (356+356: i18n 35 incl. #69 skipToContent, journey 24 incl. 9 new M14 homepage keys + 2 new M16 empty-state keys, recovery 15, gap-actions
 6, pathfinder 4+4, research 34, journey-nav 7, analyzer 28+1+8+2,
 source-preview 17, documents 47+6, profile 34, academic-evidence 19,
 local-workflow 25, eligibility 25+5+8+1+1), workspace-overview

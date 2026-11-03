@@ -74,8 +74,9 @@ authenticity, eligibility, or admission.
 - Live demo: https://bursyar.vercel.app
 - Repository (public): https://github.com/AfghanistanianHub/BursYar
 - Demo video: OWNER — upload
-  `verification/artifacts/m09/bursyar-demo-3min-provisional.mp4`
-  (2:59.87, 1920×1080 H.264, captioned, no voiceover; provisional
-  three-minute cut — confirm required length/format in the portal
-  first) and paste its link here.
+  `submission/2026-meta-hackathon/final-assets/BursYar-Hackathon-Demo-Final.mp4`
+  (2:59.90, 1920×1080 H.264, captioned, no voiceover; SHA-256
+  `731016d5ca3d948eac96b415860b3ae1e853117c05db5953eb4a25c276fac347`;
+  provisional three-minute cut — confirm required length/format in the
+  portal first) and paste its link here.
 - Team: OWNER — add every team member in the portal.
