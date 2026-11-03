@@ -130,8 +130,55 @@ test('upload retries are idempotent per owner and do not silently reuse a key fo
   const secondOwner=store.upload('bob',{...input,requestId});
   assert.notEqual(secondOwner.id,first.id);
   assert.equal(store.list('bob').length,1);
+  assert.throws(()=>store.upload('alice',{...input,requestId,extractionMethod:'manual_transcription_from_image'}),e=>e.status===409);
   assert.throws(()=>store.upload('alice',{...input,requestId:'invalid'}),e=>e.status===400);
   store.delete('alice',first.id);
   assert.equal(store.list('alice').length,0);
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
+
+test('Farsi/Pashto exact labeled degree and GPA lines are staged but never authenticated',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-dari-pashto-')),store=new DocumentStore(join(dir,'docs.db'));
+ try{
+  for(const [text,degree,gpa] of [
+   ['مدرک تحصیلی: لیسانس\nمعدل: ۳.۵/۴','bachelor',3.5],
+   ['تحصیلي کچه: ماسټري\nد نمرو اوسط: ٣.٧/٤','master',3.7]
+  ]){
+   const doc=store.upload('alice',{text,mime:'text/plain',consent:true,extractionMethod:'local_image_ocr'});
+   assert.equal(doc.authenticity,'not_verified');
+   assert.equal(doc.extractionMethod,'local_image_ocr');
+   assert.equal(doc.pending.find(c=>c.field==='degree')?.value,degree);
+   assert.equal(doc.pending.find(c=>c.field==='gpa')?.value.gpa,gpa);
+   assert.ok(doc.pending.every(c=>c.verificationStatus==='not_verified'));
+  }
+  assert.throws(()=>store.upload('alice',{text:'Degree: bachelor',mime:'text/plain',consent:true,extractionMethod:'issuer_verified'}),e=>e.status===400);
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
+test('manual-transcribed claims are user declared, not implicitly OCR-extracted',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-manual-provenance-')),store=new DocumentStore(join(dir,'docs.db'));
+ try{
+  for(const method of ['manual_transcription_from_image','manual_transcription_from_pdf']){
+   const doc=store.upload('alice',{text:'Degree: master',mime:'text/plain',consent:true,extractionMethod:method});
+   assert.equal(doc.authenticity,'not_verified');
+   const reviewed=store.review('alice',doc.id,Object.fromEntries(doc.pending.map(c=>[c.id,{action:'accept'}])));
+   assert.equal(reviewed.degree.origin,'user_declared');
+   assert.deepEqual(reviewed.degree.claimIds,[]);
+   assert.equal(reviewed.degree.sourceDocumentId,doc.id);
+   assert.equal(reviewed.degree.verificationStatus,'not_verified');
+  }
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
+
+test('legacy parser-labeled upload requests remain idempotent after schema evolution',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-legacy-retry-')),store=new DocumentStore(join(dir,'docs.db'));
+ try{
+  const requestId='7d7f10b4-5cb5-4a14-bacf-c9fcb9ce5e0f';
+  const first=store.upload('alice',{...input,requestId});
+  const legacy={...first,extractionMethod:'bounded_text_parser'};
+  store.db.prepare('UPDATE documents SET data=? WHERE id=? AND owner=?').run(JSON.stringify(legacy),first.id,store.owner('alice'));
+  const retry=store.upload('alice',{...input,requestId});
+  assert.equal(retry.id,first.id);
+  assert.equal(store.list('alice').length,1);
+  assert.throws(()=>store.upload('alice',{...input,requestId,extractionMethod:'manual_transcription_from_image'}),e=>e.status===409);
  }finally{store.close();rmSync(dir,{recursive:true,force:true});}
 });

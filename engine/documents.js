@@ -38,6 +38,10 @@ export class DocumentStore {
   this.assertWritable(uid);
   const owner=this.owner(uid);
   if(input?.consent!==true||input?.mime!=='text/plain'||typeof input.text!=='string'||!input.text.trim()||Buffer.byteLength(input.text)>12000||/[\x00-\x08\x0b\x0c\x0e-\x1f\ufffd]/u.test(input.text))throw new DocumentError(400);
+  // Extraction provenance is caller-reported, not an authenticity credential.
+  // Reject unknown methods instead of allowing an untrusted 'verified' status.
+  const extractionMethod=input.extractionMethod??'utf8_text';
+  if(!['utf8_text','local_pdf_text_or_ocr','local_image_ocr','manual_transcription_from_image','manual_transcription_from_pdf'].includes(extractionMethod))throw new DocumentError(400);
   // A client-generated request identifier makes lost-response retries safe.
   // Legacy callers may omit it; malformed identifiers cannot bypass validation.
   if(input.requestId!==undefined&&(typeof input.requestId!=='string'||!/^[a-f0-9-]{36}$/.test(input.requestId)))throw new DocumentError(400);
@@ -48,22 +52,35 @@ export class DocumentStore {
   for(const line of input.text.split(/\r?\n/)){
    let m=/^Degree: (secondary|bachelor|master|doctorate)$/.exec(line);
    if(m)claims.push({field:'degree',value:m[1],sourceExcerpt:line});
+   // Conservative exact-label translations for Afghan academic records.
+   // Never infer degree equivalency from layout or an LLM guess.
+   const localDegree=/^(?:مدرک تحصیلی|مقطع تحصیلی|درجه تحصیلی|تحصیلي کچه|تحصیلي درجه)\s*[:：]\s*(لیسانس|لېسانس|کارشناسی|ماستری|ماسټري|کارشناسی ارشد|دکترا|دوکتورا|دیپلم|دیپلوم|بکلوریا)$/u.exec(line.trim());
+   if(localDegree){
+    const degrees={'لیسانس':'bachelor','لېسانس':'bachelor','کارشناسی':'bachelor','ماستری':'master','ماسټري':'master','کارشناسی ارشد':'master','دکترا':'doctorate','دوکتورا':'doctorate','دیپلم':'secondary','دیپلوم':'secondary','بکلوریا':'secondary'};
+    claims.push({field:'degree',value:degrees[localDegree[1]],sourceExcerpt:line});
+   }
    m=/^IELTS Academic: overall=(\d(?:\.\d)?); listening=(\d(?:\.\d)?); reading=(\d(?:\.\d)?); writing=(\d(?:\.\d)?); speaking=(\d(?:\.\d)?)$/.exec(line);
    if(m&&m.slice(1).every(v=>Number(v)<=9&&Number.isInteger(Number(v)*2)))claims.push({field:'languageTest',value:{test:'IELTS Academic',overall:Number(m[1]),bands:Object.fromEntries(['listening','reading','writing','speaking'].map((n,i)=>[n,Number(m[i+2])]))},sourceExcerpt:line});
    m=/^GPA: (\d(?:\.\d{1,2})?)\/(4(?:\.0)?|5(?:\.0)?)$/.exec(line);
    if(m){const gpa=Number(m[1]),scale=Number(m[2]);if(gpa<=scale)claims.push({field:'gpa',value:{gpa,scale},sourceExcerpt:line});}
+   const digits=line.replace(/[۰-۹]/gu,ch=>String(ch.charCodeAt(0)-0x06f0)).replace(/[٠-٩]/gu,ch=>String(ch.charCodeAt(0)-0x0660));
+   const localGpa=/^(?:معدل|اوسط نمرات|د نمرو اوسط)\s*[:：]\s*(\d(?:\.\d{1,2})?)\s*\/\s*(4(?:\.0)?|5(?:\.0)?)$/u.exec(digits.trim());
+   if(localGpa){const gpa=Number(localGpa[1]),scale=Number(localGpa[2]);if(gpa<=scale)claims.push({field:'gpa',value:{gpa,scale},sourceExcerpt:line});}
    m=/^TOEFL iBT: overall=(\d{1,3}); listening=(\d{1,2}); reading=(\d{1,2}); writing=(\d{1,2}); speaking=(\d{1,2})$/.exec(line);
    if(m){const n=m.slice(1).map(Number);if(n[0]<=120&&n.slice(1).every(v=>v<=30))claims.push({field:'languageTest',value:{test:'TOEFL iBT',overall:n[0],sections:Object.fromEntries(['listening','reading','writing','speaking'].map((k,i)=>[k,n[i+1]]))},sourceExcerpt:line});}
   }
   const duplicate=claims.some((c,i)=>claims.findIndex(x=>x.field===c.field)!==i);
-  const record={id,text:input.text,requestId:input.requestId??null,sha256:createHash('sha256').update(input.text).digest('hex'),uploadedAt:new Date().toISOString(),consentVersion:1,extractionMethod:'bounded_text_parser',authenticity:'not_verified',translationStatus:'not_assessed',consistency:duplicate?'discrepancy_requires_review':'not_assessed',pending:duplicate?[]:prepareClaims(id,claims)};
+  const record={id,text:input.text,requestId:input.requestId??null,sha256:createHash('sha256').update(input.text).digest('hex'),uploadedAt:new Date().toISOString(),consentVersion:1,extractionMethod,claimParser:'bounded_text_parser',authenticity:'not_verified',translationStatus:'not_assessed',consistency:duplicate?'discrepancy_requires_review':'not_assessed',pending:duplicate?[]:prepareClaims(id,claims)};
   this.db.exec('BEGIN IMMEDIATE');
   try{this.assertWritable(uid);
    if(input.requestId){
     for(const row of this.db.prepare('SELECT data FROM documents WHERE owner=?').all(owner)){
      const existing=JSON.parse(row.data);
      if(existing.requestId!==input.requestId)continue;
-     if(existing.sha256!==record.sha256||existing.text!==record.text)throw new DocumentError(409);
+     // Old records labeled the bounded text parser as the extraction method.
+     // Preserve lost-response retry compatibility with the previously deployed API.
+     const existingMethod=existing.extractionMethod==='bounded_text_parser'?'utf8_text':existing.extractionMethod;
+     if(existing.sha256!==record.sha256||existing.text!==record.text||existingMethod!==record.extractionMethod)throw new DocumentError(409);
      this.db.exec('COMMIT');return existing;
     }
    }
@@ -104,6 +121,15 @@ export class DocumentStore {
    const record=this.get(uid,id);
    if(record.reviewedAt||record.consistency==='discrepancy_requires_review'||record.pending.length===0)throw new DocumentError(409);
    let updates;try{updates=reviewClaims(record.pending,decisions);}catch{throw new DocumentError(400);}
+   // Manually transcribed text is a user assertion, never OCR-extracted evidence.
+   // Retain sourceDocumentId for deletion, but do not assign document_extracted origin.
+   if(['manual_transcription_from_image','manual_transcription_from_pdf'].includes(record.extractionMethod)){
+    for(const fact of Object.values(updates)){
+     fact.origin='user_declared';
+     fact.claimIds=[];
+     fact.reviewStatus='corrected_by_user';
+    }
+   }
    if(Object.entries(updates).some(([key,f])=>!validProfileValue(key,f.value)))throw new DocumentError(400);
    const current=this.profile(uid),history=record.pending.map(c=>({claimId:c.id,decision:decisions[c.id],previousFact:current[c.field]??null}));
    let profile;try{profile=mergeProfile(current,updates);}catch{throw new DocumentError(409);}
