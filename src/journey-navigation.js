@@ -3,7 +3,7 @@
 export const journeyNavCopy={
  en:{label:'Demo steps',profile:'Review your profile',source:'Read a scholarship source',assessment:'Assess eligibility',next:'Review next steps',note:'The offline assessment uses reviewed rules; sample listings are not verified.',offline:'Start without AI'},
  fa:{label:'مراحل نسخه نمایشی',profile:'بررسی پروفایل',source:'بررسی منبع بورسیه',assessment:'ارزیابی شرایط',next:'بررسی گام‌های بعدی',note:'ارزیابی آفلاین بر پایه قواعد بازبینی‌شده است؛ فهرست نمونه‌ها تأیید رسمی نشده است.',offline:'شروع بدون هوش مصنوعی'},
- ps:{label:'د ازمایښتي نسخې پړاوونه',profile:'خپل پروفایل وګورئ',source:'د بورس سرچینه وګورئ',assessment:'د وړتیا ارزونه',next:'راتلونکي ګامونه',note:'آفلاین ارزونه د بیاکتل شوو قواعدو پر بنسټ ده؛ بېلګې رسمي نه دي تایید شوې.',offline:'له ځیرک ماډل پرته پیل'}
+ ps:{label:'د ازمایښتي نسخې پړاوونه',profile:'خپل پروفایل وګورئ',source:'د بورس سرچینه وګورئ',assessment:'د وړتوب ارزونه',next:'راتلونکي ګامونه',note:'آفلاین ارزونه د بیاکتل شوو قواعدو پر بنسټ ده؛ بېلګې رسمي نه دي تایید شوې.',offline:'له ځیرک ماډل پرته پیل'}
 };
 export function mountJourney(root,language='en'){
  if(!root)return;
