@@ -44,14 +44,14 @@ export function mountDocuments(root,language='en'){
  function show(doc){
   content.replaceChildren();const documentNotice=element('p',doc.consistency==='discrepancy_requires_review'?t.conflict:doc.reviewedAt?t.done:t.pending,content);
   const source=element('pre',doc.text,content);source.dir='auto';source.className='document-source';
-  const publicCheck=element('form','',content);publicCheck.className='document-public-check';
+  const publicCheck=element('section','',content);publicCheck.className='document-public-check';
   element('h3',t.publicCheckTitle,publicCheck);
   element('p',t.publicCheckNote,publicCheck);
   const sourceLabel=element('label',t.publicCheckLabel,publicCheck);
   const sourceUrl=element('input','',sourceLabel);sourceUrl.type='url';sourceUrl.placeholder='https://university.example/';sourceUrl.required=true;sourceUrl.maxLength=2048;
   const checkButton=element('button',t.publicCheckAction,publicCheck);checkButton.type='submit';
   const evidenceResult=element('p','',publicCheck);evidenceResult.setAttribute('role','status');
-  publicCheck.addEventListener('submit',event=>{event.preventDefault();if(!publicCheck.reportValidity())return;
+  checkButton.addEventListener('click',()=>{if(!sourceUrl.reportValidity())return;
    busy(async()=>{
     if(!issuerFromText(doc.text)){evidenceResult.textContent=t.publicCheckNoIssuer;return;}
     const page=await api('/api/source','POST',{url:sourceUrl.value});
