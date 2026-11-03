@@ -1,7 +1,7 @@
 # BursYar — demo video script (provisional 3-minute cut)
 
 File: `verification/artifacts/m09/bursyar-demo-3min-provisional.mp4`
-(2:59.87, 1920×1080 H.264, captioned, silent — no voiceover).
+(2:59.90, 1920×1080 H.264, captioned, silent — no voiceover).
 PROVISIONAL: required length/format are still portal-gated (see
 SUBMISSION-CHECKLIST.md). Rebuild: `python3 /tmp/m09cuts/assemble.py`
 after `node verification/record-submission-demo.mjs` and

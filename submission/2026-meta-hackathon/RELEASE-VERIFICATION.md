@@ -35,7 +35,8 @@ correct directionality).
 ## Video
 
 `verification/artifacts/m09/bursyar-demo-3min-provisional.mp4`:
-2:59.87, 1920×1080 H.264 yuv420p, 8.4 MB, full-decode clean,
+2:59.90, 1920×1080 H.264 yuv420p, 8.5 MB, full-decode clean,
 frames inspected. Sources: `m09/01–05,08` (production) and
-`m09/06–07` (local mocked rehearsal, bannered); title cards in
-`/tmp/m09cuts/cards/`; assembly `/tmp/m09cuts/assemble.py`.
+`m09/06–07` (local mocked rehearsal, bannered); committed pipeline in
+`verification/video-production/`; canonical output
+`final-assets/BursYar-Hackathon-Demo-Final.mp4`.
