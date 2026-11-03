@@ -16,25 +16,26 @@ const safeText=text=>{
  return text;
 };
 const importPinned=url=>import(/* @vite-ignore */ url);
-async function createOcrWorker(ocrLoader=()=>importPinned(ocrModuleUrl)){
+async function createOcrWorker(ocrLoader=()=>importPinned(ocrModuleUrl),language='eng'){
+ if(!['eng','fas','pus'].includes(language))fail('unsupportedOcrLanguage');
  let mod;
  try{mod=await ocrLoader();}catch{fail('extractionUnavailable');}
  if(typeof mod.createWorker!=='function')fail('extractionUnavailable');
- try{return await mod.createWorker('eng');}catch{fail('extractionUnavailable');}
+ try{return await mod.createWorker(language);}catch{fail('extractionUnavailable');}
 }
-async function recognizeImage(bytes,mime,ocrLoader){
+async function recognizeImage(bytes,mime,ocrLoader,language){
  if(typeof createImageBitmap!=='function'||typeof Blob==='undefined')fail('extractionUnavailable');
  let image,worker;
  try{
   image=await createImageBitmap(new Blob([bytes],{type:mime}));
   if(image.width<1||image.height<1||image.width>4500||image.height>4500||image.width*image.height>12000000)fail('imageDimensions');
-  worker=await createOcrWorker(ocrLoader);
+  worker=await createOcrWorker(ocrLoader,language);
   const result=await worker.recognize(image);
   return result?.data?.text??'';
  }catch(error){if(error.code)throw error;fail('extractionUnavailable');}
  finally{image?.close?.();await worker?.terminate?.().catch(()=>{});}
 }
-async function readPdf(bytes,pdfLoader,ocrLoader){
+async function readPdf(bytes,pdfLoader,ocrLoader,language){
  let pdf,worker;
  try{
   let lib;try{lib=await pdfLoader();}catch{fail('extractionUnavailable');}
@@ -58,7 +59,7 @@ async function readPdf(bytes,pdfLoader,ocrLoader){
     const context=canvas.getContext('2d');
     if(!context)fail('extractionUnavailable');
     await page.render({canvasContext:context,viewport}).promise;
-    worker??=await createOcrWorker(ocrLoader);
+    worker??=await createOcrWorker(ocrLoader,language);
     text=(await worker.recognize(canvas))?.data?.text??'';
     canvas.width=canvas.height=0;
    }
@@ -71,7 +72,8 @@ async function readPdf(bytes,pdfLoader,ocrLoader){
  }catch(error){if(error.code)throw error;fail('invalidPdf');}
  finally{await worker?.terminate?.().catch(()=>{});await pdf?.destroy?.().catch(()=>{});}
 }
-export async function extractDocumentText(file,{pdfLoader=()=>importPinned(pdfModuleUrl),ocrLoader=()=>importPinned(ocrModuleUrl)}={}){
+export async function extractDocumentText(file,{pdfLoader=()=>importPinned(pdfModuleUrl),ocrLoader=()=>importPinned(ocrModuleUrl),ocrLanguage='eng'}={}){
+ if(!['eng','fas','pus'].includes(ocrLanguage))fail('unsupportedOcrLanguage');
  if(!file)fail('missingFile');
  const name=(file.name??'').toLowerCase();
  const kind=name.endsWith('.txt')?'txt':name.endsWith('.pdf')?'pdf':/\.(png|jpe?g)$/.test(name)?'image':null;
@@ -85,9 +87,9 @@ export async function extractDocumentText(file,{pdfLoader=()=>importPinned(pdfMo
  }
  if(kind==='pdf'){
   if(!isPdf(bytes))fail('invalidPdf');
-  return {text:await readPdf(bytes,pdfLoader,ocrLoader),method:'local_pdf_text_or_ocr'};
+  return {text:await readPdf(bytes,pdfLoader,ocrLoader,ocrLanguage),method:'local_pdf_text_or_ocr'};
  }
  const mime=isPng(bytes)?'image/png':isJpeg(bytes)?'image/jpeg':null;
  if(!mime)fail('invalidImage');
- return {text:safeText(await recognizeImage(bytes,mime,ocrLoader)),method:'local_image_ocr'};
+ return {text:safeText(await recognizeImage(bytes,mime,ocrLoader,ocrLanguage)),method:'local_image_ocr'};
 }
