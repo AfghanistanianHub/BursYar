@@ -162,10 +162,11 @@ live login test, fluent fa/ps OCR accuracy evaluation.
 
 ## 10. New PRs, commits, merges (this mission)
 
-- `docs/mission-18-submission-refresh` → PR #TBD (docs-only):
-  submission + `docs/HACKATHON-SUBMISSION.md` refresh to `340a5e5`,
-  Mission 18 report (this file). [head SHA + run ID appended after
-  push/CI]
+- `docs/mission-18-submission-refresh` → PR #94 (docs-only,
+  this report's own PR): submission +
+  `docs/HACKATHON-SUBMISSION.md` refresh to `340a5e5`, Mission 18
+  report (this file). Final head SHA and CI run ID live in the PR
+  record; merge required all four jobs green on the exact head.
 - No runtime code changed; no other PRs. Prior art preserved:
   #86/#92/#93 merged, #91 closed, #88 open.
 
