@@ -1,7 +1,8 @@
 # BursYar — hackathon submission package
 
 Prepared 2026-11-02, serving state re-verified 2026-11-03 at main
-`59fb81f` (PRs #50–#66 and #68–#85 merged). This package
+`340a5e5` (Mission 18: PRs #50–#66 and #68–#86 merged, plus #92, #93;
+Issue #91 fixed, #88 TXT-gate intact). This package
 files nothing by itself; the owner
 files through the official portal (§7). Event identity, deadline,
 tracks, and judging criteria below are verified against authoritative
@@ -142,10 +143,17 @@ re-checked locally (exact quotations, digests, supported rule syntax,
 contradictions, provenance) before it can influence any assessment,
 and model prose is never presented as certification of authenticity,
 eligibility, or admission. The two recorded runs are sufficient
-evidence of integration: `engine/` is byte-identical from the
-verified backend commit `4e272a7` through release tip `7817a6a`, so
-nothing in the inference path changed after the hosted proof; no
-further inference run is needed for the submission.
+evidence of integration: all of `engine/` except `documents.js`
+is byte-identical from the verified backend commit `4e272a7`
+through release tip `340a5e5`, so nothing in the inference path
+changed after the hosted proof; no further inference run is needed
+for the submission. Only `engine/documents.js` evolved since
+(`+40/−2`: additive manual transcription provenance plus stricter
+idempotency 409s from PR #86) — document handling, which sits
+outside the `/api/analyze` inference chain. The Render backend's exact
+deployed SHA is not agent-visible (no version endpoint); owner may
+confirm it on the Render dashboard, but no inference-path drift is
+possible from the document-only delta.
 
 ## 6. Limitations and pending requirements
 
@@ -197,20 +205,25 @@ Verified 2026-11-02 against authoritative public sources:
   provisional three-minute cut. The owner must confirm formats inside
   the portal before recording.
 
-Serving state (verified by direct inspection 2026-11-02):
+Serving state (verified by direct inspection 2026-11-02,
+re-verified Mission 18 on 2026-11-03):
 
 - Frontend https://bursyar.vercel.app serves the release tip
-  `59fb81f` (verified 2026-11-03): production bundles
-  `index-C35aFzXy.js` / `index-yzGWkncG.css` contain the #69/#71
-  markers (`skip-link`, `hero-actions`, `empty-note`,
-  `summary::marker`), #72 markers (`glyph-doc`, `glyph-search`,
-  `eligibility-example`), M14 markers (`hero-visual`,
-  `how-it-works`, `chain-verdicts`), and M16 markers (`nextEmpty`,
-  `nextEmptyCta`).
-- Backend is current and compatible: `engine/` byte-identical from
-  `4e272a7` through `7817a6a` (no redeploy needed); `/health`
-  returns 200 `ok:true` with local assessment, source retrieval,
-  document storage, and configured Meta available.
+  `340a5e5`: production bundles `index-cslf-rZ1.js` /
+  `index-yzGWkncG.css` contain the post-#92 `enableScripting` flag,
+  pinned vendor markers, the TXT-only notice, and all earlier
+  markers (#69/#71 `skip-link`, `hero-actions`, `empty-note`,
+  `summary::marker`; #72 `glyph-doc`, `glyph-search`,
+  `eligibility-example`; M14 `hero-visual`, `how-it-works`,
+  `chain-verdicts`; M16 `nextEmpty`, `nextEmptyCta`). SHA proven by
+  Vercel success status on the merge commit plus a behavioral
+  fingerprint (signed-out boot fetches Firebase chunks only via the
+  #93 library auto-load path).
+- Backend is current and compatible: `engine/` unchanged except
+  `documents.js` (+40/−2 document handling) from `4e272a7` through
+  `340a5e5`; `/health` returns 200 `ok:true` with local assessment,
+  source retrieval, document storage, and configured Meta
+  available. Render deployed SHA is owner-visible only.
 
 Fluent-review scope (exact, counted from source; all UNREVIEWED,
 review NOT complete): 401 Dari + 401 Pashto strings — 23 exported
@@ -234,6 +247,7 @@ TRANSLATION-REVIEW.json (still `PENDING_HUMAN_REVIEW`).
       SHA-256 `731016d5…fac347`) — re-cut only if the portal
       mandates another length.
 - [ ] Owner files the submission through the official portal before
-      November 4, 9:00 PM ET (recheck the official page for changes
-      first). Code is merged through PR #85; no engineering PR is
-      pending (older numbered drafts predate the release line).
+      November 4, 9:00 PM ET (deadline reconfirmed on the public
+      event page 2026-11-03; judging Nov 4–8, finals Nov 9). Code is
+      merged through PR #93; no engineering PR is pending (older
+      numbered drafts predate the release line).

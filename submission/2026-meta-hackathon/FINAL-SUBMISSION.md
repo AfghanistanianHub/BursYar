@@ -1,12 +1,16 @@
 # BursYar — final submission (paste-ready)
 
 Source of truth for portal fields. Assembled 2026-11-02, re-verified
-2026-11-03 at `main` tip `59fb81f` (PRs #83, #85; video re-recorded from
-`dbfb054` and still current — the M16 empty-state section sits below
-the fold and appears in no footage). Owner: paste into
-https://cerebralvalley.ai/e/meta-ai-developer-hackathon before
-**November 4, 9:00 PM ET**. Confirm asset formats inside the portal
-first; fill the two OWNER placeholders (video link, team).
+2026-11-03 at `main` tip `340a5e5` (Mission 18: PRs #86, #92, #93;
+production bundle `index-cslf-rZ1.js` fingerprinted live; video
+footage sourced from `dbfb054` re-checked claim-accurate against
+current production — footage predates the TXT-only notice and
+library auto-load but asserts nothing they contradict). Owner: paste
+into https://cerebralvalley.ai/e/meta-ai-developer-hackathon before
+**November 4, 9:00 PM ET** (deadline confirmed on the public event
+page 2026-11-03; judging Nov 4–8, finals Nov 9). Confirm asset
+formats inside the portal first; fill the two OWNER placeholders
+(video link, team).
 
 - Track: **Indie developer** — judged on creativity, technical
   ambition, whether it works.
@@ -83,3 +87,18 @@ authenticity, eligibility, or admission.
   provisional three-minute cut — confirm required length/format in the
   portal first) and paste its link here.
 - Team: OWNER — add every team member in the portal.
+
+## Known limitations (paste if the portal has the field)
+
+Production document intake is TXT-only: the PDF/image OCR pipeline
+is implemented and covered by synthetic CI tests but stays disabled
+for real users until its runtime ships as audited self-hosted assets
+behind a sign-in-compatible CSP (Issue #88 open; authenticity is
+never auto-promoted). Google sign-in and hosted authenticated
+persistence were not agent-exercised (no test credentials used);
+signed-out flows and the full authenticated workflow against a local
+backend of the exact production tree are verified. Dari/Pashto UI
+copy is machine-drafted and awaits fluent human review. Meta
+evidence is two recorded runs (`requiresHumanReview=true`,
+`coverageComplete=false`) — integration proof, not a reliability or
+accuracy claim. Research leads carry needs-reverification labels.

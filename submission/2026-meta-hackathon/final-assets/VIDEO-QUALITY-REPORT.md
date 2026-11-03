@@ -40,3 +40,17 @@ release `dbfb054`; supersedes the Mission 09 render. SHA-256 in
 - No voiceover; judges watching with sound hear silence.
 - Rehearsal scenes show simulated services honestly labeled —
   they are UI-accurate but not live-backend proof.
+
+## Mission 18 re-verification (2026-11-03, vs production `340a5e5`)
+
+- SHA-256 re-matched to the manifest; Chrome playback re-verified
+  (179.9 s, 1920×1080, readyState 4, time advancing); frames at
+  0:25/1:10/2:25/2:45 re-inspected.
+- All feature claims re-checked against current production: the two
+  Muse Spark runs match recorded metadata, the simulated analysis UI
+  is explicitly labeled, no PDF/OCR-in-production is claimed, and the
+  translation/research-lead caveats hold.
+- Footage predates the production TXT-only notice and library
+  auto-load (#86/#93); neither is contradicted by anything shown.
+  A Mission 18 re-cut is in progress; this file stays the fallback
+  until a new cut is committed and verified.

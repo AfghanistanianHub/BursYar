@@ -1,6 +1,6 @@
 # BursYar — SUBMIT NOW (owner handoff)
 
-Everything below is verified against release `59fb81f` (PRs #83, #85) and production.
+Everything below is verified against release `340a5e5` (PRs #86, #92, #93) and production.
 Do these steps in order. Nothing else is required from engineering.
 
 ## Step 1 — Confirm formats (5 min, OWNER ACTION REQUIRED)

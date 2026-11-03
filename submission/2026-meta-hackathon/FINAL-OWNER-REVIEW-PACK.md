@@ -3,9 +3,11 @@
 Single approval document. Release is FROZEN unless a P0/P1 defect is
 reproduced. Submission status: **NOT SUBMITTED**.
 
-- Release: `main f9edf1e` (code `59fb81f`: PRs #67, #83, #85; docs #87).
-- Live URL: https://bursyar.vercel.app (`index-C35aFzXy.js`,
-  `index-yzGWkncG.css`; all markers verified in served bundles).
+- Release: `main 340a5e5` (PRs #86, #92, #93 incl. document PDF/OCR
+  code TXT-gated in production, library reload fix, production gate
+  tests; supersedes the `f9edf1e` / `59fb81f` freeze record).
+- Live URL: https://bursyar.vercel.app (`index-cslf-rZ1.js`,
+  `index-yzGWkncG.css`; SHA fingerprinted live 2026-11-03).
 - Backend: https://bursyar-api.onrender.com/health → 200 `ok:true`.
 - Repository: https://github.com/AfghanistanianHub/BursYar (public).
 - Video: `submission/2026-meta-hackathon/final-assets/BursYar-Hackathon-Demo-Final.mp4`
@@ -43,7 +45,7 @@ guaranteed retrieval, documents as access-controlled library).
 | Google auth | RECORDED HOSTED (PR #59) | Re-check needs your sign-in: `verification/OWNER-AUTHENTICATED-ACCEPTANCE.md` |
 | Profile persistence | RECORDED HOSTED + MOCKED | Same acceptance procedure |
 | TXT upload + claim review | RECORDED HOSTED (paste) + LOCAL (file input) | Hosted file-picker check in acceptance §C |
-| PDF/image upload | NOT SUPPORTED (rejected with clear message) | Open PR #86 is the post-freeze candidate — do not expect it |
+| PDF/image upload | DISABLED IN PRODUCTION (TXT-only notice + picker filter + extractor refusal, CI-gated) | Merged PR #86 ships the pipeline TXT-gated; enablement needs audited self-hosted assets (Issue #88 open) |
 | Issuer authenticity | NOT IMPLEMENTED (always `not_verified`) | UI + docs state this everywhere |
 | Retry idempotency | LOCAL VERIFIED (PR #83) | Served bundle carries it; hosted dedupe needs your check §D |
 | Source fetch + approval | HOSTED VERIFIED (signed-out gate) | Authenticated fetch needs your session |
@@ -72,9 +74,12 @@ judge-facing rows, all PENDING). Do not claim human approval.
 
 ## Risks
 
-- P0: none. P1: none open. P2: 5 (hosted-auth age, fa/ps review debt,
-  device/AT coverage, portal unknowns, hosted-dedupe check).
-- Open PR #86 (PDF/OCR) is intentionally NOT in the frozen release.
-- Deadline may shift at Meta's discretion — recheck the dates page.
+- P0: none. P1: none open. P2: 6 (hosted-auth age, fa/ps review debt,
+  device/AT coverage, portal unknowns, hosted-dedupe check, video
+  footage one release behind current production UI).
+- Merged PR #86 ships in the frozen release with production binary
+  intake DISABLED (TXT-only); #91 reload fix (#93) included.
+- Deadline may shift at Meta's discretion — recheck the dates page
+  (Nov 4, 9:00 PM ET confirmed on the public page 2026-11-03).
 
 ## Submission status: NOT SUBMITTED
