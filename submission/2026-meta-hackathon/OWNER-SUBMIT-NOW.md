@@ -28,7 +28,7 @@ deterministically from `verification/artifacts/m09/` sources
 - Portal: https://cerebralvalley.ai/e/meta-ai-developer-hackathon
 - Project name: BursYar — evidence-based scholarship guidance for Afghan students
 - Track: Indie developer · Theme: Build for Your World
-- Tagline: Paste a scholarship page, get verified requirements and a personal action plan — in English, Dari, and Pashto.
+- Tagline: Review scholarship evidence and build a practical action plan — in English, Dari, and Pashto.
 - Live demo: https://bursyar.vercel.app
 - Repository: https://github.com/AfghanistanianHub/BursYar
 - Demo video: (your upload link from Step 2)
@@ -38,9 +38,11 @@ Description (paste):
 
 > BursYar helps Afghan students — particularly women and girls facing
 > closed doors — turn a scholarship page into a personal action plan.
-> Paste an official requirements page: BursYar retrieves it, interprets
-> the requirements with Meta Muse Spark, and binds every machine claim
-> to an exact quotation from the source text. A consent-based profile
+> Provide an official scholarship URL for source retrieval and review,
+> or paste public source text when retrieval is blocked. With an
+> authorized analysis, Meta Muse Spark interprets that text and BursYar
+> checks supporting quotations against the supplied source — evidence
+> matching, not official verification. A consent-based profile
 > is compared against that evidence by a conservative evaluator
 > answering MET, NOT MET, or honestly UNKNOWN — never a guess. Missing
 > evidence becomes practical next steps in English, Dari, or Pashto
