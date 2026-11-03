@@ -77,7 +77,7 @@ export class DocumentStore {
     for(const row of this.db.prepare('SELECT data FROM documents WHERE owner=?').all(owner)){
      const existing=JSON.parse(row.data);
      if(existing.requestId!==input.requestId)continue;
-     if(existing.sha256!==record.sha256||existing.text!==record.text)throw new DocumentError(409);
+     if(existing.sha256!==record.sha256||existing.text!==record.text||existing.extractionMethod!==record.extractionMethod)throw new DocumentError(409);
      this.db.exec('COMMIT');return existing;
     }
    }
