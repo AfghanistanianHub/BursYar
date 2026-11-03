@@ -18,18 +18,18 @@ BursYar — evidence-based scholarship guidance for Afghan students
 
 ## Tagline
 
-Paste a scholarship page, get verified requirements and a personal
-action plan — in English, Dari, and Pashto.
+Review scholarship evidence and build a practical action plan —
+in English, Farsi, and Pashto.
 
 ## Description (paste)
 
 BursYar helps Afghan students — particularly women and girls facing
 closed doors — turn a scholarship page into a personal action plan.
-Paste an official requirements page: BursYar retrieves it, interprets
-the requirements with Meta Muse Spark, and binds every machine claim
-to an exact quotation from the source text. A consent-based profile
-(degrees, scores, language evidence, and private documents that never
-leave the student's control) is compared against that evidence by a
+Provide an official scholarship URL for source retrieval and review, or paste
+public source text when retrieval is blocked. With an authorized analysis,
+Meta Muse Spark interprets that text and BursYar checks supporting quotations
+against the supplied source. This is evidence matching, not official verification. A consent-based profile
+(degrees, scores, language evidence, and private documents kept in an access-controlled user library) is compared against that evidence by a
 conservative evaluator answering MET, NOT MET, or honestly UNKNOWN —
 never a guess. Missing evidence becomes practical next steps in the
 student's own language, with full right-to-left support, so a student
@@ -109,6 +109,18 @@ needed for any scene.
    PathFinder actions → one isolated hypothetical change.
 7. Trilingual close: Dari then Pashto switch with RTL and retained
    state; pending-review and coverage-honesty closing line.
+
+## Live Meta spending and policy gate
+
+The visible Meta account free-credit balance is not a verified invoice or an
+app-level spending approval. Keep the account budget bounded even when free
+credits remain. The hosted gateway separately requires
+`BURSYAR_SPENDING_CONFIRMED=1`, a positive
+`BURSYAR_SPEND_LIMIT_USD`, an approval timestamp and an unexpired trusted
+adult/region/consent policy record. Setting the app spend limit to `0`
+disables inference; removing the account cap can permit unexpected paid charges.
+Do not disable policy checks or make another paid request just for filming.
+Existing recorded successful Muse evidence is sufficient for the demo claims.
 
 ## Pre-filing checklist
 
