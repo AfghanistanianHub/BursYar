@@ -27,10 +27,11 @@ async function recognizeImage(bytes,mime,ocrLoader,language){
  if(typeof createImageBitmap!=='function'||typeof Blob==='undefined')fail('extractionUnavailable');
  let image,worker;
  try{
-  image=await createImageBitmap(new Blob([bytes],{type:mime}));
+  const blob=new Blob([bytes],{type:mime});
+  image=await createImageBitmap(blob);
   if(image.width<1||image.height<1||image.width>4500||image.height>4500||image.width*image.height>12000000)fail('imageDimensions');
   worker=await createOcrWorker(ocrLoader,language);
-  const result=await worker.recognize(image);
+  const result=await worker.recognize(blob);
   return result?.data?.text??'';
  }catch(error){if(error.code)throw error;fail('extractionUnavailable');}
  finally{image?.close?.();await worker?.terminate?.().catch(()=>{});}
