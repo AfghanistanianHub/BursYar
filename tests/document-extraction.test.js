@@ -17,11 +17,18 @@ test('TXT extraction preserves multilingual input and rejects forged file signat
 });
 test('PDF readable text remains bounded and does not require OCR or contact inference',async()=>{
  let destroyed=false,ocrCalls=0;
- const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({
-  numPages:1,
-  getPage:async()=>({getTextContent:async()=>({items:[{str:'Degree: bachelor',hasEOL:true},{str:'GPA: 3.7/4',hasEOL:false}]}),cleanup:()=>{}}),
-  destroy:async()=>{destroyed=true}
- })})});
+ const pdfLoader=async()=>({
+  GlobalWorkerOptions:{},
+  getDocument:options=>{
+   assert.equal(options.enableScripting,false);
+   assert.equal(options.isEvalSupported,false);
+   return {promise:Promise.resolve({
+    numPages:1,
+    getPage:async()=>({getTextContent:async()=>({items:[{str:'Degree: bachelor',hasEOL:true},{str:'GPA: 3.7/4',hasEOL:false}]}),cleanup:()=>{}}),
+    destroy:async()=>{destroyed=true}
+   })};
+  }
+ });
  const result=await extractDocumentText(pdf('fake fixture'),{pdfLoader,ocrLoader:async()=>{ocrCalls++;throw Error('OCR must not run')}});
  assert.equal(result.text,'Degree: bachelor\nGPA: 3.7/4');
  assert.equal(result.method,'local_pdf_text_or_ocr');
