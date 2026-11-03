@@ -132,4 +132,8 @@ export function mountDocuments(root,language='en'){
   clearPreview();await saveExtractedText(extracted.text,extracted.method);
  });});
  if(current)show(current);
+ // Issue #91: populate the library on mount so saved records survive reload
+ // without a manual refresh. Signed-out visitors skip silently; explicit
+ // Refresh remains the recovery path for uncertain states.
+ getInferenceToken().then(()=>{if(mountEpoch===identityEpoch)busy(refreshLibrary);},()=>{});
 }
