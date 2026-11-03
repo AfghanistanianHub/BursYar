@@ -85,9 +85,9 @@ live AI request is shown or claimed.
 - Repository (public): https://github.com/AfghanistanianHub/BursYar
 - Demo video: OWNER — upload
   `submission/2026-meta-hackathon/final-assets/BursYar-Meta-Hackathon-Demo.mp4`
-  (2:59.50, 1920×1080 H.264 + AAC, narrated with burned captions;
-  SHA-256
-  `84e204016e5e0087df322204258399a02696629c79a7ebf7b75534f356143147`;
+  (2:59.50, 1920×1080 H.264 + AAC, narrated with burned captions +
+  46-cue SRT; SHA-256
+  `e954bbb4769ae2afa9b937a5307f7ed9b42e43d637deb1576fc0d38be1328bc1`;
   confirm required length/format/hosting in the portal first —
   fallback cut `BursYar-Hackathon-Demo-Final.mp4` retained in the
   same folder) and paste its link here.

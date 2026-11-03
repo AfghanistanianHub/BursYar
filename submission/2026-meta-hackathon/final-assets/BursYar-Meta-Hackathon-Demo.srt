@@ -1,169 +1,208 @@
 1
-0:00:00,300 --> 0:00:10,620
+0:00:00,300 --> 0:00:05,460
 Across Afghanistan, talented students —
 especially women and girls facing closed
 
 2
+0:00:05,460 --> 0:00:10,620
+doors — must navigate foreign scholarship
+systems in a second or third language.
+
+3
 0:00:10,670 --> 0:00:13,360
 Requirements get lost in translation.
 
-3
+4
 0:00:13,410 --> 0:00:18,848
 BursYar turns a scholarship page into a
 personal, evidence-based action plan.
 
-4
+5
 0:00:20,300 --> 0:00:22,420
 This is BursYar, running live.
 
-5
+6
 0:00:22,470 --> 0:00:28,700
 A guided workspace takes you from
 possibility to a plan — discover, review, assess, act.
 
-6
+7
 0:00:28,750 --> 0:00:30,330
 Start with discovery.
 
-7
-0:00:30,380 --> 0:00:37,843
+8
+0:00:30,380 --> 0:00:35,591
 The research library searches and filters
 historical leads — every record honestly
 
-8
-0:00:40,300 --> 0:00:43,250
-Then, read the official source
-never a rumor.
-
 9
+0:00:35,591 --> 0:00:37,843
+labeled as needing re-verification.
+
+10
+0:00:40,300 --> 0:00:43,250
+Then, read the official source — never a
+rumor.
+
+11
 0:00:43,300 --> 0:00:46,190
 Signed-out visitors meet a clear sign-in
 gate.
 
-10
+12
 0:00:46,240 --> 0:00:48,180
 Nothing is fetched silently.
 
-11
-0:00:48,230 --> 0:00:55,360
+13
+0:00:48,230 --> 0:00:53,593
 With approval, BursYar fetches the official
 page and shows exactly what it retrieved —
 
-12
+14
+0:00:53,593 --> 0:00:55,360
+before anything is analyzed.
+
+15
 0:00:55,410 --> 0:00:57,270
 Documents stay private.
 
-13
-0:00:57,320 --> 0:01:04,458
+16
+0:00:57,320 --> 0:01:02,724
 You consent, review each extracted claim,
 reject what is wrong — a rejected degree
 
-14
+17
+0:01:02,724 --> 0:01:04,458
+never enters your profile.
+
+18
 0:01:10,300 --> 0:01:14,740
 This screen shows the analysis interface
 with a simulated response.
 
-15
+19
 0:01:14,790 --> 0:01:16,200
 AI interprets.
 
-16
+20
 0:01:16,250 --> 0:01:17,710
 Evidence decides.
 
-17
+21
 0:01:17,760 --> 0:01:23,280
 Meta Muse Spark 1.3 reads the approved text
 and selects candidate evidence.
 
-18
-0:01:23,330 --> 0:01:31,420
+22
+0:01:23,330 --> 0:01:28,986
 Two live runs are on record — four criteria
 and two funding excerpts validated locally,
 
-19
-0:01:31,470 --> 0:01:38,439
+23
+0:01:28,986 --> 0:01:31,420
+one and one on hosted infrastructure.
+
+24
+0:01:31,470 --> 0:01:36,936
 But the model is never trusted blindly:
 every quotation is re-checked against the
 
-20
+25
+0:01:36,936 --> 0:01:38,439
+source, byte for byte.
+
+26
 0:01:40,300 --> 0:01:43,960
 Every machine claim stays bound to its
 quotation.
 
-21
+27
 0:01:44,010 --> 0:01:44,680
 Met.
 
-22
+28
 0:01:44,730 --> 0:01:45,620
 Not met.
 
-23
+29
 0:01:45,670 --> 0:01:47,230
 Or honestly unknown.
 
-24
+30
 0:01:47,280 --> 0:01:52,220
 The conservative compiler compares your
 reviewed profile against the evidence.
 
-25
+31
 0:01:52,270 --> 0:01:57,250
-What it cannot prove, it calls unknown
-and unknown is never treated as eligible.
+What it cannot prove, it calls unknown — and
+unknown is never treated as eligible.
 
-26
-0:01:57,300 --> 0:02:06,534
+32
+0:01:57,300 --> 0:02:03,157
 When evidence is missing, PathFinder names
 the gap and shows the legitimate next step:
 
-27
+33
+0:02:03,157 --> 0:02:06,534
+verify the exact requirement with the
+institution.
+
+34
 0:02:10,300 --> 0:02:11,480
 Reviewed by you.
 
-28
+35
 0:02:11,530 --> 0:02:13,200
 Never verified for you.
 
-29
-0:02:13,250 --> 0:02:19,740
+36
+0:02:13,250 --> 0:02:18,340
 Every claim carries its exact source
 quotation — with an explicit warning until a
 
-30
+37
+0:02:18,340 --> 0:02:19,740
+human has reviewed it.
+
+38
 0:02:19,790 --> 0:02:21,250
 In your own language.
 
-31
+39
 0:02:21,300 --> 0:02:25,480
-English, Dari, and Pashto
-with full right-to-left support.
+English, Dari, and Pashto — with full
+right-to-left support.
 
-32
+40
 0:02:25,530 --> 0:02:29,506
 Translations are machine-drafted and still
 await human review.
 
-33
+41
 0:02:35,300 --> 0:02:42,550
 BursYar: evidence-first AI, conservative
 eligibility, actionable guidance, private by design.
 
-34
-0:02:42,600 --> 0:02:51,980
+42
+0:02:42,600 --> 0:02:47,934
 Built for the students who need clarity most
 — so they can understand what a scholarship
 
-35
+43
+0:02:47,934 --> 0:02:51,980
+demands, gather the right proof, and take
+the next step themselves.
+
+44
 0:02:52,030 --> 0:02:54,230
 From possibility to a plan.
 
-36
+45
 0:02:54,280 --> 0:02:55,200
 BursYar.
 
-37
+46
 0:02:55,250 --> 0:02:58,381
 Opportunity should not be lost in
 translation.
