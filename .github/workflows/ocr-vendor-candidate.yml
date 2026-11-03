@@ -1,6 +1,9 @@
 name: Prepare OCR first-party vendor candidate
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/ocr-vendor-candidate.yml']
 permissions:
   contents: read
 jobs:
