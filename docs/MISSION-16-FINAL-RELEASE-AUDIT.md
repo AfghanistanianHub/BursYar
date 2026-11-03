@@ -16,7 +16,7 @@ resolved below. Submission status: **NOT SUBMITTED** (unchanged).
 | Journey C/D analysis+eligibility (§5) | Active compilation path verified locally incl. M16 handlers | M16 active-path script; 60 eval checks (M15, engine untouched); CI browser cases | None | None |
 | Journey E failures (§5) | Covered by suites; idempotency gap stands (see below) | recovery/eval/emulator tests | P2 (see Security) | Documented |
 | Security/privacy (§6) | No hardcoded secrets; env-only Firebase config; gates/tests intact; no private data in artifacts | secrets grep (clean); gate/quota/consent tests; rehearsal fixtures synthetic | None new | None |
-| Upload idempotency (§6) | Still absent server-side; fix too risky pre-deadline | `engine/documents.js` (no dedupe); CURRENT-DEMO workaround | P2 | Recorded precisely in inventory; workaround stands |
+| Upload idempotency (§6) | Absent at audit time; RESOLVED 2026-11-03 by PR #83 (request-ID dedupe, no migration, CI green) | `engine/documents.js`; `tests/documents.test.js`; served bundle carries `requestId` | P2→closed | Fix verified locally + in CI; hosted dedupe check still needs owner sign-in |
 | Scholarship data (§7) | Conservative: 12/12 `needs_reverification`, 0 verified flags, UI labels intact | `src/research-data.js` audit; Journey A labels | None | None |
 | Trilingual (§8) | 0 missing keys, 0 untranslated in 6 core tables; fa/ps human review still pending (401+401) | M16 parity audit; TRANSLATION-REVIEW.json | P2 (review debt) | Counts updated in HACKATHON-SUBMISSION.md |
 | Visual/a11y (§9) | No new defects; 44px targets, zero motion, axe in CI; devices/AT not performed | CSS audit; CI axe; M15 screenshots | P2 (coverage) | Stated, not claimed |
@@ -31,7 +31,8 @@ resolved below. Submission status: **NOT SUBMITTED** (unchanged).
 - P0: 0 found.
 - P1: 2 found (stage-4 dead end; wrong video path in submission doc) —
   both fixed in the M16 PR.
-- P2: 6 (hosted-auth re-verification age; idempotency gap; fa/ps review
+- P2: 6 at audit time, 5 open after PR #83 closed the idempotency gap
+  (hosted-auth re-verification age; ~~idempotency gap~~; fa/ps review
   debt; device/AT coverage; stale release refs — fixed post-merge;
   portal rules unknown).
 

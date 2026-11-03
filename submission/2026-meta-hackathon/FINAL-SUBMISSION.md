@@ -1,7 +1,7 @@
 # BursYar — final submission (paste-ready)
 
 Source of truth for portal fields. Assembled 2026-11-02, re-verified
-2026-11-03 at `main` tip `35fa856` (PR #81; video re-recorded from
+2026-11-03 at `main` tip `59fb81f` (PRs #83, #85; video re-recorded from
 `dbfb054` and still current — the M16 empty-state section sits below
 the fold and appears in no footage). Owner: paste into
 https://cerebralvalley.ai/e/meta-ai-developer-hackathon before

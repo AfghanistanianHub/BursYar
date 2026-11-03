@@ -1,12 +1,12 @@
 # BursYar — release verification (submission)
 
 Verified 2026-11-02, re-verified 2026-11-03 at release `main` tip
-`35fa856` (PR #81).
+`59fb81f` (PRs #83, #85).
 
 ## Production
 
 - Frontend https://bursyar.vercel.app → 200, serves
-  `index-C3_hpZE2.js` / `index-yzGWkncG.css` with markers
+  `index-C35aFzXy.js` / `index-yzGWkncG.css` with markers
   `glyph-doc`, `glyph-search`, `eligibility-example`, `empty-note`,
   `summary::marker`, `skip-link`, `hero-actions`, `hero-visual`,
   `how-it-works`, `chain-verdicts`, `nextEmpty`, `nextEmptyCta` at
