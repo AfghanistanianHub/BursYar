@@ -140,8 +140,8 @@ test('Farsi/Pashto exact labeled degree and GPA lines are staged but never authe
  const dir=mkdtempSync(join(tmpdir(),'bursyar-dari-pashto-')),store=new DocumentStore(join(dir,'docs.db'));
  try{
   for(const [text,degree,gpa] of [
-   ['مدرک تحصیلی: لیسانس\\nمعدل: ۳.۵/۴','bachelor',3.5],
-   ['تحصیلي کچه: ماسټري\\nد نمرو اوسط: ٣.٧/٤','master',3.7]
+   ['مدرک تحصیلی: لیسانس\nمعدل: ۳.۵/۴','bachelor',3.5],
+   ['تحصیلي کچه: ماسټري\nد نمرو اوسط: ٣.٧/٤','master',3.7]
   ]){
    const doc=store.upload('alice',{text,mime:'text/plain',consent:true,extractionMethod:'local_image_ocr'});
    assert.equal(doc.authenticity,'not_verified');
