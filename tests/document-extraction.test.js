@@ -44,3 +44,49 @@ test('OCR is local-only, bounded, worker is terminated on success and failure',a
   await assert.rejects(()=>extractDocumentText(png,{ocrLoader}),e=>e.code==='imageDimensions');
  }finally{if(old===undefined)delete globalThis.createImageBitmap;else globalThis.createImageBitmap=old;}
 });
+
+test('scanned PDF pages use bounded local OCR in the selected language and always release resources',async()=>{
+ const priorDocument=globalThis.document;
+ let terminated=0,destroyed=0,ocrLanguage=null,ocrInput=null,cleanup=0;
+ globalThis.document={createElement:()=>({
+  width:0,height:0,
+  getContext:()=>({canvasMock:true})
+ })};
+ const pdfLoader=async()=>({
+  GlobalWorkerOptions:{},
+  getDocument:()=>({promise:Promise.resolve({
+   numPages:2,
+   getPage:async index=>({
+    getTextContent:async()=>({items:index===1?[{str:'Degree: master'}]:[]}),
+    getViewport:()=>({width:500,height:700}),
+    render:()=>({promise:Promise.resolve()}),
+    cleanup:()=>{cleanup++}
+   }),
+   destroy:async()=>{destroyed++}
+  })})
+ });
+ const ocrLoader=async()=>({createWorker:async language=>{
+  ocrLanguage=language;
+  return {recognize:async input=>{ocrInput=input;return {data:{text:'GPA: 4.2/5'}}},terminate:async()=>{terminated++}};
+ }});
+ try{
+  const result=await extractDocumentText(pdf('synthetic'),{pdfLoader,ocrLoader,ocrLanguage:'pus'});
+  assert.deepEqual(result,{text:'Degree: master\\nGPA: 4.2/5',method:'local_pdf_text_or_ocr'});
+  assert.equal(ocrLanguage,'pus');
+  assert.ok(ocrInput);
+  assert.equal(terminated,1);
+  assert.equal(destroyed,1);
+  assert.equal(cleanup,2);
+ }finally{
+  if(priorDocument===undefined)delete globalThis.document;else globalThis.document=priorDocument;
+ }
+});
+test('unsupported OCR locale and malformed binary fail without loading third-party code',async()=>{
+ let imported=0;
+ const pdfLoader=async()=>{imported++;throw Error('unexpected network call')};
+ const ocrLoader=async()=>{imported++;throw Error('unexpected network call')};
+ await assert.rejects(()=>extractDocumentText(pdf(),{pdfLoader,ocrLoader,ocrLanguage:'invalid'}),e=>e.code==='unsupportedOcrLanguage');
+ await assert.rejects(()=>extractDocumentText(txt('bad.pdf','not-pdf'),{pdfLoader,ocrLoader}),e=>e.code==='invalidPdf');
+ await assert.rejects(()=>extractDocumentText(txt('bad.jpg','not-jpeg'),{pdfLoader,ocrLoader}),e=>e.code==='invalidImage');
+ assert.equal(imported,0);
+});
