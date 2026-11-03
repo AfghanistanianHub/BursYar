@@ -5,7 +5,8 @@ Mission 14 answered the owner's failed visual acceptance test
 and workflow band, built on the real application. No redesign of approved
 components, no new framework, no contract changes.
 
-Branch: `feat/mission-14-visual-rescue` · PR: (pending) · Base: `main` @ `a16eca0`
+Branch: `feat/mission-14-visual-rescue` · PR #77, merged as `0617350` ·
+Production verified serving `index-CqvJyleI.js` with new hero + 4-stage band.
 
 ## Before / After
 
