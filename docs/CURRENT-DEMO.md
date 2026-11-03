@@ -5,13 +5,14 @@ This file supersedes historical release status in earlier handoffs. It records o
 ## Open and identify the release
 
 - App: https://bursyar.vercel.app
-- Last verified production code: `35fa856` (PR #81; serves bundles
-  `index-C3_hpZE2.js` / `index-yzGWkncG.css` containing the #69/#71
+- Last verified production code: `59fb81f` (PRs #83, #85; serves bundles
+  `index-C35aFzXy.js` / `index-yzGWkncG.css` containing the #69/#71
   markers (`skip-link`, `hero-actions`, `empty-note`,
   `summary::marker`), #72 markers (`glyph-doc`,
   `glyph-search`, `eligibility-example`), M14 markers
   (`hero-visual`, `how-it-works`, `chain-verdicts`), and M16 markers
-  (`nextEmpty`, `nextEmptyCta`). Previous: `c9eaa04` (PR #80).
+  (`nextEmpty`, `nextEmptyCta`), plus #83 marker (`requestId`).
+  Previous code release: `35fa856` (PR #81).
 - CI: PR #81 — verify, emulator, macos-helper, and browser jobs all
   green (browser pinned to ubuntu-24.04; see PR #79).
 - 343 Node tests, production build, full mocked browser journey,
@@ -51,7 +52,7 @@ One record with this public synthetic text was retained in the approved demo lib
 
 - Native file selection/upload was tested locally with synthetic TXT files; the separate live file test remains unverified because browser-managed fixture transfer timed out. Pasted-text verification does not establish file-upload verification.
 - TXT/UTF-8 text only, 12 KB; no PDF/image extraction or issuer authentication. Accepting a claim never establishes authenticity.
-- After a lost write response, inspect the library before resubmitting. Requests allow 45 seconds and never retry automatically. Server-side upload idempotency is not implemented.
+- After a lost write response, inspect the library before resubmitting. Requests allow 45 seconds and never retry automatically. Since PR #83, resubmitting identical text reuses the client request ID and the server returns the existing record instead of duplicating (409 on changed text); hosted dedupe behavior itself still awaits an authenticated production check.
 - Meta health/configuration is not new inference evidence. A new live request needs applicable authorization and a valid trusted policy record; do not manufacture or renew attestations. The previous one-request authorization was consumed. Keep Standard/Contributor, age and geography gates intact.
 - Fluent human fa/ps and semantic review, current official-source re-verification, and assistive-technology/real-device review remain pending. Automated axe checks are not a blanket accessibility-compliance claim.
 - No hackathon entry was submitted. Confirm official portal requirements and obtain explicit submission authorization before filing.

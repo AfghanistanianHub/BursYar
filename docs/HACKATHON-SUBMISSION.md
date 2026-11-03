@@ -1,7 +1,7 @@
 # BursYar — hackathon submission package
 
 Prepared 2026-11-02, serving state re-verified 2026-11-03 at main
-`35fa856` (PRs #50–#66 and #68–#81 merged). This package
+`59fb81f` (PRs #50–#66 and #68–#85 merged). This package
 files nothing by itself; the owner
 files through the official portal (§7). Event identity, deadline,
 tracks, and judging criteria below are verified against authoritative
@@ -200,8 +200,8 @@ Verified 2026-11-02 against authoritative public sources:
 Serving state (verified by direct inspection 2026-11-02):
 
 - Frontend https://bursyar.vercel.app serves the release tip
-  `35fa856` (verified 2026-11-03): production bundles
-  `index-C3_hpZE2.js` / `index-yzGWkncG.css` contain the #69/#71
+  `59fb81f` (verified 2026-11-03): production bundles
+  `index-C35aFzXy.js` / `index-yzGWkncG.css` contain the #69/#71
   markers (`skip-link`, `hero-actions`, `empty-note`,
   `summary::marker`), #72 markers (`glyph-doc`, `glyph-search`,
   `eligibility-example`), M14 markers (`hero-visual`,
@@ -235,5 +235,5 @@ TRANSLATION-REVIEW.json (still `PENDING_HUMAN_REVIEW`).
       mandates another length.
 - [ ] Owner files the submission through the official portal before
       November 4, 9:00 PM ET (recheck the official page for changes
-      first). Code is merged through PR #81; no engineering PR is
-      pending.
+      first). Code is merged through PR #85; no engineering PR is
+      pending (older numbered drafts predate the release line).

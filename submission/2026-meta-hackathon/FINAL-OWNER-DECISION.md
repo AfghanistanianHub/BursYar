@@ -2,9 +2,9 @@
 
 ## Current production release
 
-- Frontend: `https://bursyar.vercel.app` — `main 35fa856` (PR #81),
-  bundles `index-C3_hpZE2.js` / `index-yzGWkncG.css`, markers +
-  stage-4 fix verified live.
+- Frontend: `https://bursyar.vercel.app` — `main 59fb81f` (PRs #83,
+  #85), bundles `index-C35aFzXy.js` / `index-yzGWkncG.css`
+  (`requestId` client marker verified in the served JS).
 - Backend: `https://bursyar-api.onrender.com` — `/health` 200 `ok:true`.
 - Verified final video:
   `submission/2026-meta-hackathon/final-assets/BursYar-Hackathon-Demo-Final.mp4`
@@ -33,8 +33,9 @@ native file upload works locally, hosted file test outstanding.
 ## Remains unverified / pending
 
 Fluent fa/ps review (401+401); real-device + assistive-tech review;
-portal video/field rules (login-gated); server-side upload idempotency
-absent (workaround: inspect library before resubmitting).
+portal video/field rules (login-gated); hosted demo-account flows
+await owner sign-in; idempotency dedupe (PR #83, on main) awaits an
+authenticated hosted check.
 
 ## Remaining P0/P1 blockers: none
 

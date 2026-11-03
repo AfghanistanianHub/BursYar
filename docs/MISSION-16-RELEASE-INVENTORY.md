@@ -29,15 +29,18 @@ Status key: **Hosted** = verified against production/the hosted API.
 | 16 | Offline deterministic assessment (no-AI path) | Local + Hosted UI (page serves offline path) | browser fallback cases; local-workflow tests |
 | 17 | Trilingual UI (en/fa/ps + RTL, Persian numerals, local fonts) | Hosted (M15 visual QA 320–1440, zero overflow) | M15 screenshots; typography probe (0 external fonts); M16 key-parity audit (0 missing, 0 untranslated in 6 core tables); all fa/ps UNREVIEWED by humans |
 | 18 | Mobile nav + accessibility (keyboard, focus, axe, 44px targets, zero motion) | Local (axe in CI suites) + Hosted screenshots | `test:browser`/research/document axe runs; 44px CSS minimums; no animation/transition in CSS; real-device + AT review NOT performed |
-| 19 | Error handling + recovery (blocked pages, timeouts, malformed evidence, consent expiry) | Local | recovery tests; Journey E via suites; upload idempotency NOT implemented (known limitation, CURRENT-DEMO) |
+| 19 | Error handling + recovery (blocked pages, timeouts, malformed evidence, consent expiry) | Local | recovery tests; Journey E via suites; upload idempotency fixed by PR #83 (2026-11-03), hosted check outstanding |
 | 20 | Judge entry experience (hero, workflow band, sample-labeled demo, video) | Hosted | M14/M15 delivery docs; canonical MP4 `731016d5` re-recorded from `dbfb054`; M16 stage-4 fix removes the last dead-end action |
 
 ## Known limitations (preserved, not fixed in M16)
 
-- Server-side upload idempotency absent: after a lost write response the
-  user must inspect the library before resubmitting. A safe fix needs a
-  client idempotency key + server dedupe + migration; too risky
-  pre-deadline. Workaround documented in CURRENT-DEMO.
+- Update 2026-11-03 (PR #83, merged): owner-scoped request-ID dedupe
+  now returns the existing record on identical retry (409 on changed
+  text), no migration, covered by `tests/documents.test.js` and full
+  CI. Original M16 note kept for history: idempotency was absent and
+  the workaround (inspect the library before resubmitting) was the
+  protection. Hosted dedupe behavior still awaits an authenticated
+  production check.
 - Native file upload hosted-verification outstanding (pasted-text path
   is the hosted-verified one).
 - Hosted auth/profile flows last proven in PR #59; M16 re-verified them
