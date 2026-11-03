@@ -18,6 +18,12 @@ if (!existsSync(dist)) {
   console.error('FAIL PROD-DIST missing: run `npm run build` first');
   process.exit(1);
 }
+// Serve the same global response headers the deployment declares, so a
+// future CSP is exercised here instead of breaking production untested.
+const deployConfig = JSON.parse(readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
+const globalHeaders = Object.fromEntries(
+  (deployConfig.headers ?? []).filter(h => h.source === '/(.*)').flatMap(h => h.headers ?? []).map(h => [h.key.toLowerCase(), h.value])
+);
 const types = {'.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff': 'font/woff', '.woff2': 'font/woff2', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml'};
 const root = new URL('../dist/', import.meta.url);
 const staticServer = createHttpServer((req, res) => {
@@ -25,7 +31,7 @@ const staticServer = createHttpServer((req, res) => {
     const path = new URL(req.url, 'http://localhost').pathname;
     const file = new URL('.' + (path === '/' ? '/index.html' : path), root);
     const body = readFileSync(file);
-    res.writeHead(200, {'content-type': types[extname(file.pathname)] ?? 'application/octet-stream'});
+    res.writeHead(200, {'content-type': types[extname(file.pathname)] ?? 'application/octet-stream', ...globalHeaders});
     res.end(body);
   } catch {
     res.writeHead(200, {'content-type': 'text/html'});
@@ -58,6 +64,7 @@ try {
   const page = await (await browser.newContext({viewport: {width: 1280, height: 900}})).newPage();
   let writes = 0;
   const cdnRequests = [];
+  const cspViolations = [];
   let tokenStubbed = false;
   await page.route('**/assets/*.js', async route => {
     const response = await route.fetch();
@@ -89,6 +96,9 @@ try {
     const url = new URL(request.url());
     if (['cdn.jsdelivr.net', 'unpkg.com'].includes(url.hostname)) cdnRequests.push(request.method() + ' ' + url.pathname);
   });
+  page.on('console', msg => {
+    if (msg.type() === 'error' && /content security policy/i.test(msg.text())) cspViolations.push(msg.text());
+  });
   await page.goto(origin);
   check('PROD-IDENTITY-STUBBED', tokenStubbed, 'synthetic identity installed at bundle boundary');
   await page.locator('#workspace-overview a[href="#profile-mount"]').click();
@@ -111,6 +121,7 @@ try {
   await expect(page.locator('.document-source')).toContainText('SYNTHETIC PROD TXT ONLY', {timeout: 20000});
   check('PROD-TXT-OK', writes === 1 && documents.list(user).length === 1, `writes=${writes}`);
   check('PROD-NO-CDN-AFTER-TXT', cdnRequests.length === 0, cdnRequests.join(';') || 'TXT path loads no vendor code');
+  check('PROD-CSP-CLEAN', cspViolations.length === 0, cspViolations.join(';').slice(0, 200) || 'no boot CSP violations');
   await page.context().close();
 } finally {
   await browser?.close().catch(() => {});
