@@ -26,7 +26,7 @@ try{
   const page=await context.newPage();const user='ocr-test-'+language;
   await page.addInitScript(lang=>localStorage.setItem('bursyar-language',lang),language);
   await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{}};export async function getInferenceToken(){return "'+user+'";}'}));
-  await page.route('**/src/document-extraction.js',route=>route.fulfill({contentType:'text/javascript',body:"export async function extractDocumentText(){return {text:'Degree: bachelor',method:'local_image_ocr'}}"}));
+  await page.route('**/src/document-extraction.js',route=>route.fulfill({contentType:'text/javascript',body:"export async function extractDocumentText(file){if(file.name==='blank.png')throw Object.assign(new Error('No OCR characters'),{code:'emptyFile'});return {text:'Degree: bachelor',method:'local_image_ocr'}}"}));
   let writes=0;
   await page.route('**/api/**',async route=>{
    const request=route.request(),path=new URL(request.url()).pathname;
@@ -60,6 +60,24 @@ try{
   expect(writes).toBe(1);
   expect(documents.list(user)).toHaveLength(1);
   assertNoProof(documents.get(user,documents.list(user)[0].id));
+  // OCR with no characters must not invent a credential or store an empty record.
+  await file.setInputFiles({name:'blank.png',mimeType:'image/png',buffer:Buffer.from([137,80,78,71,13,10,26,10,0,0])});
+  await form.locator('button[type=submit]').click();
+  await expect(preview).toBeVisible();
+  await expect(preview.locator('textarea')).toHaveValue('');
+  const status=await page.locator('#documents > [role=status]').textContent();
+  if(!/manual transcription|رونویسی دستی|لاسي لیکنه/.test(status))throw Error('Manual fallback not labeled');
+  expect(writes).toBe(1);
+  await preview.locator('textarea').fill('Degree: doctorate');
+  await form.locator('input[type=checkbox]').uncheck();
+  await preview.locator('button').first().click();
+  expect(writes).toBe(1);
+  await form.locator('input[type=checkbox]').check();
+  await preview.locator('button').first().click();
+  await expect(page.locator('.document-source')).toContainText('Degree: doctorate');
+  expect(writes).toBe(2);
+  const last=documents.get(user,documents.list(user).at(-1).id);
+  if(last.extractionMethod!=='manual_transcription_from_image'||last.authenticity!=='not_verified')throw Error('Manual transcription misrepresented as OCR or verified');
   await context.close();
  }
  console.log('PDF/image preview consent gate passed across en/fa/ps');
