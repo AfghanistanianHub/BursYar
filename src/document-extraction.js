@@ -11,7 +11,7 @@ const isPng=b=>b.length>=8&&[137,80,78,71,13,10,26,10].every((n,i)=>b[i]===n);
 const isJpeg=b=>b.length>=4&&b[0]===255&&b[1]===216&&b[b.length-2]===255&&b[b.length-1]===217;
 const safeText=text=>{
  if(typeof text!=='string'||!text.trim())fail('emptyFile');
- if(/[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\ufffd]/u.test(text))fail('invalidEncoding');
+ if(/[\x00-\x08\x0b\x0c\x0e-\x1f\ufffd]/u.test(text))fail('invalidEncoding');
  if(new TextEncoder().encode(text).length>MAX_TEXT_BYTES)fail('extractedTextTooLarge');
  return text;
 };
@@ -47,7 +47,7 @@ async function readPdf(bytes,pdfLoader,ocrLoader){
   for(let i=1;i<=pdf.numPages;i++){
    const page=await pdf.getPage(i);
    const content=await page.getTextContent();
-   let text=content.items.map(x=>x.str??'').join(' ').trim();
+   let text=content.items.map(x=>(x.str??'')+(x.hasEOL?'\n':' ')).join('').trim();
    // Scanned PDFs have no text layer; OCR the page locally.
    if(!text){
     if(typeof document==='undefined')fail('extractionUnavailable');
@@ -64,17 +64,17 @@ async function readPdf(bytes,pdfLoader,ocrLoader){
    }
    lines.push(text.trim());
    // Prevent quadratic memory growth when a PDF contains huge text.
-   if(new TextEncoder().encode(lines.join('\\n')).length>MAX_TEXT_BYTES)fail('extractedTextTooLarge');
+   if(new TextEncoder().encode(lines.join('\n')).length>MAX_TEXT_BYTES)fail('extractedTextTooLarge');
    page.cleanup?.();
   }
-  return safeText(lines.join('\\n'));
+  return safeText(lines.join('\n'));
  }catch(error){if(error.code)throw error;fail('invalidPdf');}
  finally{await worker?.terminate?.().catch(()=>{});await pdf?.destroy?.().catch(()=>{});}
 }
 export async function extractDocumentText(file,{pdfLoader=()=>importPinned(pdfModuleUrl),ocrLoader=()=>importPinned(ocrModuleUrl)}={}){
  if(!file)fail('missingFile');
  const name=(file.name??'').toLowerCase();
- const kind=name.endsWith('.txt')?'txt':name.endsWith('.pdf')?'pdf':/\\.(png|jpe?g)$/.test(name)?'image':null;
+ const kind=name.endsWith('.txt')?'txt':name.endsWith('.pdf')?'pdf':/\.(png|jpe?g)$/.test(name)?'image':null;
  if(!kind)fail('unsupportedFile');
  if(file.size>(kind==='txt'?MAX_TEXT_BYTES:MAX_BINARY_BYTES))fail('fileTooLarge');
  const bytes=new Uint8Array(await file.arrayBuffer());
