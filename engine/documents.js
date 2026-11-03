@@ -118,6 +118,15 @@ export class DocumentStore {
    const record=this.get(uid,id);
    if(record.reviewedAt||record.consistency==='discrepancy_requires_review'||record.pending.length===0)throw new DocumentError(409);
    let updates;try{updates=reviewClaims(record.pending,decisions);}catch{throw new DocumentError(400);}
+   // Manually transcribed text is a user assertion, never OCR-extracted evidence.
+   // Retain sourceDocumentId for deletion, but do not assign document_extracted origin.
+   if(['manual_transcription_from_image','manual_transcription_from_pdf'].includes(record.extractionMethod)){
+    for(const fact of Object.values(updates)){
+     fact.origin='user_declared';
+     fact.claimIds=[];
+     fact.reviewStatus='corrected_by_user';
+    }
+   }
    if(Object.entries(updates).some(([key,f])=>!validProfileValue(key,f.value)))throw new DocumentError(400);
    const current=this.profile(uid),history=record.pending.map(c=>({claimId:c.id,decision:decisions[c.id],previousFact:current[c.field]??null}));
    let profile;try{profile=mergeProfile(current,updates);}catch{throw new DocumentError(409);}
