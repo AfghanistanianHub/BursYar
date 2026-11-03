@@ -153,3 +153,17 @@ test('Farsi/Pashto exact labeled degree and GPA lines are staged but never authe
   assert.throws(()=>store.upload('alice',{text:'Degree: bachelor',mime:'text/plain',consent:true,extractionMethod:'issuer_verified'}),e=>e.status===400);
  }finally{store.close();rmSync(dir,{recursive:true,force:true});}
 });
+test('manual-transcribed claims are user declared, not implicitly OCR-extracted',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-manual-provenance-')),store=new DocumentStore(join(dir,'docs.db'));
+ try{
+  for(const method of ['manual_transcription_from_image','manual_transcription_from_pdf']){
+   const doc=store.upload('alice',{text:'Degree: master',mime:'text/plain',consent:true,extractionMethod:method});
+   assert.equal(doc.authenticity,'not_verified');
+   const reviewed=store.review('alice',doc.id,Object.fromEntries(doc.pending.map(c=>[c.id,{action:'accept'}])));
+   assert.equal(reviewed.degree.origin,'user_declared');
+   assert.deepEqual(reviewed.degree.claimIds,[]);
+   assert.equal(reviewed.degree.sourceDocumentId,doc.id);
+   assert.equal(reviewed.degree.verificationStatus,'not_verified');
+  }
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
