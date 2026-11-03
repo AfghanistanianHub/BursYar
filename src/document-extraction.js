@@ -43,7 +43,7 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language){
   let lib;try{lib=await pdfLoader();}catch{fail('extractionUnavailable');}
   if(!lib?.getDocument||!lib?.GlobalWorkerOptions)fail('extractionUnavailable');
   lib.GlobalWorkerOptions.workerSrc=pdfWorkerUrl;
-  const task=lib.getDocument({data:bytes.slice(),isEvalSupported:false,useSystemFonts:false,stopAtErrors:true});
+  const task=lib.getDocument({data:bytes.slice(),isEvalSupported:false,enableScripting:false,useSystemFonts:false,stopAtErrors:true});
   pdf=await task.promise;
   if(pdf.numPages<1||pdf.numPages>MAX_PAGES)fail('pdfPageLimit');
   const lines=[];
