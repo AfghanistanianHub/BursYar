@@ -78,6 +78,8 @@ try{
   expect(writes).toBe(2);
   const last=documents.get(user,documents.list(user).at(-1).id);
   if(last.extractionMethod!=='manual_transcription_from_image'||last.authenticity!=='not_verified')throw Error('Manual transcription misrepresented as OCR or verified');
+  const approved=documents.review(user,last.id,Object.fromEntries(last.pending.map(c=>[c.id,{action:'accept'}])));
+  if(approved.degree.origin!=='user_declared'||approved.degree.verificationStatus!=='not_verified')throw Error('Manual transcription promoted to extracted evidence');
   await context.close();
  }
  console.log('PDF/image preview consent gate passed across en/fa/ps');
