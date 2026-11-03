@@ -31,6 +31,9 @@ export function mountDocuments(root,language='en'){
  async function api(path,method='GET',body){if(mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();if(epoch!==identityEpoch)throw Error();const data=await documentRequest(path,{token,method,body});if(epoch!==identityEpoch)throw Error();return data;}
  const publish=profile=>document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:profile}));
  let inFlight=false;
+ // Keep the same key for a potentially committed upload whose response was lost.
+ // A different payload receives a new key; no automatic network retry is made.
+ let lastUploadText=null,lastUploadRequestId=null;
  async function busy(action){if(inFlight)return;inFlight=true;section.setAttribute('aria-busy','true');status.textContent=t.busy;for(const button of section.querySelectorAll('button'))button.disabled=true;try{await action();}catch(error){status.textContent=t[error.code]??t.error;}finally{if(status.textContent===t.busy)status.textContent='';inFlight=false;section.removeAttribute('aria-busy');for(const button of section.querySelectorAll('button'))button.disabled=false;open.disabled=!chooser.value;}}
  async function refreshLibrary(){const items=await api('/api/documents');chooser.replaceChildren();for(const [i,item]of items.entries()){const date=new Intl.DateTimeFormat(language==='fa'?'fa-AF':language==='ps'?'ps-AF':'en',{dateStyle:'medium',timeStyle:'short'}).format(new Date(item.uploadedAt));const option=element('option',`${new Intl.NumberFormat(language).format(i+1)} · ${date} · ${item.reviewed?l.reviewed:l.pending}`,chooser);option.value=item.id;}if(!items.length){const option=element('option',l.empty,chooser);option.value='';}open.disabled=!chooser.value;}
  refresh.addEventListener('click',()=>busy(refreshLibrary));open.addEventListener('click',()=>busy(async()=>{if(!chooser.value)return;current=await api('/api/documents/'+chooser.value);show(current);}));open.disabled=true;
@@ -60,6 +63,6 @@ export function mountDocuments(root,language='en'){
   });});
   const remove=element('button',t.remove,content);remove.type='button';remove.addEventListener('click',()=>busy(async()=>{await api(`/api/documents/${doc.id}`,'DELETE');current=null;content.replaceChildren();publish(await api('/api/profile'));status.textContent=t.deleted;await refreshLibrary();}));
  }
- form.addEventListener('submit',event=>{event.preventDefault();busy(async()=>{if(!consent.checked)return;const selected=paste.open?new File([pasted.value],'pasted-education.txt',{type:'text/plain'}):file.files[0];const text=await readDocumentText(selected);current=await api('/api/documents','POST',{text,mime:'text/plain',consent:true});show(current);await refreshLibrary();});});
+ form.addEventListener('submit',event=>{event.preventDefault();busy(async()=>{if(!consent.checked)return;const selected=paste.open?new File([pasted.value],'pasted-education.txt',{type:'text/plain'}):file.files[0];const text=await readDocumentText(selected);if(text!==lastUploadText||!lastUploadRequestId){lastUploadText=text;lastUploadRequestId=crypto.randomUUID();}current=await api('/api/documents','POST',{text,mime:'text/plain',consent:true,requestId:lastUploadRequestId});lastUploadText=null;lastUploadRequestId=null;show(current);await refreshLibrary();});});
  if(current)show(current);
 }

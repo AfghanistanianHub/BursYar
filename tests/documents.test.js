@@ -117,3 +117,21 @@ test('profile history is bounded and issuer-verified facts cannot be overwritten
   assert.throws(()=>store.review('alice',doc.id,bad),e=>e.status===400);assert.equal(store.get('alice',doc.id).reviewedAt,undefined);
  }finally{store.close();rmSync(dir,{recursive:true,force:true});}
 });
+
+test('upload retries are idempotent per owner and do not silently reuse a key for changed text',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-idempotent-'));const store=new DocumentStore(join(dir,'docs.db'));
+ try{
+  const requestId='8f6aa502-7ff2-4aac-9a03-11e1aad1f202';
+  const first=store.upload('alice',{...input,requestId});
+  const again=store.upload('alice',{...input,requestId});
+  assert.equal(again.id,first.id);
+  assert.equal(store.list('alice').length,1);
+  assert.throws(()=>store.upload('alice',{...input,requestId,text:synthetic+'\\nDegree: master'}),e=>e.status===409);
+  const secondOwner=store.upload('bob',{...input,requestId});
+  assert.notEqual(secondOwner.id,first.id);
+  assert.equal(store.list('bob').length,1);
+  assert.throws(()=>store.upload('alice',{...input,requestId:'invalid'}),e=>e.status===400);
+  store.delete('alice',first.id);
+  assert.equal(store.list('alice').length,0);
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
