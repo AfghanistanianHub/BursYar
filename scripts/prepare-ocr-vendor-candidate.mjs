@@ -56,7 +56,7 @@ export function inspectCandidate(root,manifest){
 }
 function packExtract(name,version,destination){
  const pack=JSON.parse(execFileSync('npm',['pack',name+'@'+version,'--ignore-scripts','--json','--pack-destination',destination],{encoding:'utf8',maxBuffer:3*1024*1024}));
- if(!Array.isArray(pack)||pack.length!==1||!pack[0]?.filename)throw Error('unexpected npm pack output');
+ if(!Array.isArray(pack)||pack.length!==1||!pack[0]?.filename||typeof pack[0].integrity!=='string'||!/^sha512-[A-Za-z0-9+/=]+$/.test(pack[0].integrity))throw Error('missing npm tarball integrity metadata');
  const archive=join(destination,pack[0].filename);
  const listing=execFileSync('tar',['-tzf',archive],{encoding:'utf8',maxBuffer:3*1024*1024}).trim().split('\n');
  if(listing.some(p=>!p.startsWith('package/')||p.includes('..')||p.startsWith('/')))throw Error('unexpected package archive entry');
