@@ -41,7 +41,7 @@ export class DocumentStore {
   // Extraction provenance is caller-reported, not an authenticity credential.
   // Reject unknown methods instead of allowing an untrusted 'verified' status.
   const extractionMethod=input.extractionMethod??'utf8_text';
-  if(!['utf8_text','local_pdf_text_or_ocr','local_image_ocr'].includes(extractionMethod))throw new DocumentError(400);
+  if(!['utf8_text','local_pdf_text_or_ocr','local_image_ocr','manual_transcription_from_image','manual_transcription_from_pdf'].includes(extractionMethod))throw new DocumentError(400);
   // A client-generated request identifier makes lost-response retries safe.
   // Legacy callers may omit it; malformed identifiers cannot bypass validation.
   if(input.requestId!==undefined&&(typeof input.requestId!=='string'||!/^[a-f0-9-]{36}$/.test(input.requestId)))throw new DocumentError(400);
