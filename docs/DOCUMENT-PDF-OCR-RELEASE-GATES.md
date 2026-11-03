@@ -1,5 +1,11 @@
 # PDF/image document intake — release gates (2026-11-03)
 
+## Post-merge hardening (Issues #91, #88)
+- **#91 library reload:** the private document library now populates on mount, so saved records survive reload without a manual refresh (signed-out visitors skip silently). `verification/document-ocr-integration.mjs` case `20-library-lists` and the review suite wait deterministically for the asynchronous refresh instead of reading the selector in the same tick. New hermetic regression `verification/document-library-browser.mjs` (CI browser job) covers reload auto-load, list population, record selection by id, owner isolation (empty library + 404 on direct id), deletion with profile cleanup, and no off-origin writes.
+- **#88 production binary gate:** production builds accept TXT only (UI notice + input accept filter + extractor refusal). New `verification/document-production-gate-browser.mjs` (CI browser job, runs against `npm run build` output) proves PDF/PNG are rejected with zero writes, TXT still saves, and zero requests reach the pinned vendor CDN. `tests/document-extraction.test.js` pins the exact third-party code allowlist (pdfjs-dist 4.10.38, tesseract.js 5.1.1) and requires `enableScripting:false` + `isEvalSupported:false` on every PDF.js open.
+- **#88 production CSP (withheld):** a restrictive `vercel.json` CSP was drafted but reverted before merge: Codex/Vercel review correctly found it would block Firebase's Google popup sign-in (GAPI script + auth-domain iframe), locking users out of private documents. Enforcing a CSP requires allowlisted sign-in script/frame sources plus a live login test, neither available in this environment. The production gate browser test now serves whatever headers `vercel.json` declares and fails on boot-time CSP violations, so a future CSP is CI-enforced from day one. Self-hosted vendoring of PDF.js/Tesseract WASM and OCR language data likewise remains future work; until then production binary intake stays disabled and #88 stays open.
+- Safe production claim unchanged: TXT review only. PDF/image extraction remains local-demo/CI-synthetic until vendored, audited assets exist.
+
 ## Implemented in PR #86
 - TXT: UTF-8, 12 KB.
 - PDF: 5 MB, max 5 pages. Browser-only PDF.js text extraction; fallback to local Tesseract OCR for pages without a text layer.

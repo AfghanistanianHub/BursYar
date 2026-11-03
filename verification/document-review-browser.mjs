@@ -41,7 +41,7 @@ try{for(const language of ['en','fa','ps']){
  const choices=page.locator('.document-claim select');await choices.nth(0).selectOption('correct');await page.locator('.document-claim').nth(0).locator('input').fill('master');await choices.nth(1).selectOption('reject');await choices.nth(2).selectOption('accept');await review.locator('button').click();
  await expect(page.locator('.document-claim')).toHaveCount(0);
  const profile=documents.profile(uid);expect(profile.degree.value).toBe('master');expect(profile.degree.origin).toBe('user_declared');expect(profile.gpa).toBeUndefined();expect(profile.languageTest.value.test).toBe('TOEFL iBT');expect(profile.languageTest.verificationStatus).toBe('not_verified');
- await page.reload();await page.locator('#workspace-overview a[href="#profile-mount"]').click();await page.locator('#documents > fieldset > button').first().click();await page.locator('#documents > fieldset > button').nth(1).click();await expect(page.locator('.document-source')).toContainText('SYNTHETIC TEST ONLY');
+ await page.reload();await page.locator('#workspace-overview a[href="#profile-mount"]').click();await page.locator('#documents > fieldset > button').first().click();await expect.poll(async()=>page.locator('#documents > fieldset select option').count(),{timeout:20000}).toBeGreaterThanOrEqual(1);await page.locator('#documents > fieldset > button').nth(1).click();await expect(page.locator('.document-source')).toContainText('SYNTHETIC TEST ONLY');
  await page.locator('#documents > div > button').click();await expect(page.locator('.document-source')).toHaveCount(0);expect(documents.list(uid)).toHaveLength(0);expect(documents.profile(uid)).toEqual({});
  // A GPA correction must support changing BOTH the score and its scale.
  const secondForm=page.locator('#documents > form');await secondForm.locator('input[type=checkbox]').check();
@@ -62,7 +62,7 @@ try{for(const language of ['en','fa','ps']){
  await secondForm.locator('.document-paste summary').click();await secondForm.locator('textarea').fill('SYNTHETIC LOST RESPONSE TEST ONLY\nDegree: bachelor');await secondForm.locator('button').click();
  await expect(status).toContainText({en:'Your change may already be saved',fa:'ممکن است تغییر شما ذخیره شده باشد',ps:'ښايي بدلون خوندي شوی وي'}[language]);
  expect(documents.list(uid)).toHaveLength(1);expect(uploads).toBe(uploadsBeforeLoss+1);
- await page.locator('#documents > fieldset > button').first().click();await page.locator('#documents > fieldset > button').nth(1).click();await expect(page.locator('.document-source')).toContainText('SYNTHETIC LOST RESPONSE TEST ONLY');
+ await page.locator('#documents > fieldset > button').first().click();await expect.poll(async()=>page.locator('#documents > fieldset select option').count(),{timeout:20000}).toBeGreaterThanOrEqual(1);await page.locator('#documents > fieldset > button').nth(1).click();await expect(page.locator('.document-source')).toContainText('SYNTHETIC LOST RESPONSE TEST ONLY');
  expect(uploads).toBe(uploadsBeforeLoss+1);
  await page.locator('#documents > div > button').click();await expect(page.locator('.document-source')).toHaveCount(0);
  for(const code of [401,409,429,503]){statusOverride=code;await page.locator('#documents > fieldset > button').first().click();await expect(status).not.toBeEmpty();}
