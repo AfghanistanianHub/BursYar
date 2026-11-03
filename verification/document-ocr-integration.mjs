@@ -141,6 +141,15 @@ try {
     return [...new Uint8Array(await blob.arrayBuffer())];
   }, {lines, rtl, type});
   const previewText = () => preview.locator('textarea').inputValue();
+  const expectPreview = async (id, timeout = 180000) => {
+    try {
+      await expect(preview).toBeVisible({timeout});
+    } catch {
+      const s = await status.textContent();
+      check(id + '-preview', false, `preview hidden; status=${JSON.stringify((s || '').slice(0, 80))}`);
+      throw Error(`stop: ${id} preview did not open (status: ${(s || '').slice(0, 80)})`);
+    }
+  };
   const savePreview = async () => {
     await preview.locator('button').first().click();
     await expect(page.locator('.document-source')).not.toHaveCount(0, {timeout: 20000});
@@ -150,7 +159,7 @@ try {
   // 1. text PDF
   await setFile('text.pdf', 'application/pdf', textPdf([['SYNTHETIC OCR TEST ONLY', 'Degree: bachelor', 'GPA: 3.4/4']]));
   await submit();
-  await expect(preview).toBeVisible({timeout: 120000});
+  await expectPreview('01-text-pdf', 120000);
   const t1 = await previewText();
   check('01-text-pdf', t1.includes('Degree: bachelor') && t1.includes('GPA: 3.4/4'), JSON.stringify(t1.slice(0, 70)));
   await savePreview();
@@ -167,7 +176,7 @@ try {
     const img = await render(['SYNTHETIC OCR TEST ONLY', 'Degree: doctorate'], false, type);
     await setFile(name, mime, Buffer.from(img));
     await submit();
-    await expect(preview).toBeVisible({timeout: 180000});
+    await expectPreview('ocr-image');
     const t = await previewText();
     check(`${name}`, /SYNTHETIC OCR TEST ONLY/.test(t) && /Degree:\s*doctorate/.test(t), JSON.stringify(t.slice(0, 70)));
     await preview.locator('button').nth(1).click();
@@ -177,7 +186,7 @@ try {
   const faImg = await render(['مدرک تحصیلی: لیسانس', 'معدل: 17.5/20'], true);
   await setFile('fa.png', 'image/png', Buffer.from(faImg));
   await submit();
-  await expect(preview).toBeVisible({timeout: 180000});
+  await expectPreview('05-fa-ocr');
   const faText = await previewText();
   check('05-fa-ocr', faText.includes('لیسانس'), JSON.stringify(faText.slice(0, 60)));
   check('05-fa-rtl', await preview.locator('textarea').evaluate(el => getComputedStyle(el).direction === 'rtl'), 'dir=auto follows Persian text');
@@ -186,7 +195,7 @@ try {
   const psImg = await render(['تحصیلي کچه: لېسانس'], true);
   await setFile('ps.png', 'image/png', Buffer.from(psImg));
   await submit();
-  await expect(preview).toBeVisible({timeout: 180000});
+  await expectPreview('06-ps-ocr');
   const psText = await previewText();
   check('06-ps-ocr', psText.includes('لېسانس'), JSON.stringify(psText.slice(0, 60)));
   await preview.locator('button').nth(1).click();
@@ -197,7 +206,7 @@ try {
   const scan = imagePdf(Buffer.from(jpg), 900, 172);
   await setFile('scan.pdf', 'application/pdf', scan);
   await submit();
-  await expect(preview).toBeVisible({timeout: 180000});
+  await expectPreview('02-scanned-pdf');
   const scanText = await previewText();
   check('02-scanned-pdf', /SCANNED SYNTHETIC ONLY/.test(scanText), JSON.stringify(scanText.slice(0, 70)));
   await preview.locator('button').nth(1).click();
@@ -225,7 +234,7 @@ try {
   const repB = await render(['SECOND FILE WINS', 'GPA: 4.0/4'], false);
   await setFile('b.png', 'image/png', Buffer.from(repB));
   await submit();
-  await expect(preview).toBeVisible({timeout: 180000});
+  await expectPreview('19-replaced');
   check('19-replaced', (await previewText()).includes('SECOND FILE WINS'), 'latest file processed');
   await preview.locator('button').nth(1).click();
   check('19-cancel', writes === writesBeforeNeg, `writes=${writes}`);
@@ -234,7 +243,7 @@ try {
   const cw = await render(['CONSENT PROBE'], false);
   await setFile('cw.png', 'image/png', Buffer.from(cw));
   await submit();
-  await expect(preview).toBeVisible({timeout: 180000});
+  await expectPreview('15-no-consent');
   await form.locator('input[type=checkbox]').uncheck();
   await preview.locator('button').first().click();
   await page.waitForTimeout(800);
