@@ -1,0 +1,16 @@
+# M18 narration script (Reed US-English TTS; timings measured post-synthesis)
+# Wording reuses the verified M09 script; revisions only for sync/accuracy.
+# A1 00:00-00:20 PROBLEM
+Across Afghanistan, talented students — especially women and girls facing closed doors — must navigate foreign scholarship systems in a second or third language. Requirements get lost in translation. BursYar turns a scholarship page into a personal, evidence-based action plan.
+# A2 00:20-00:40 BURSYAR
+This is BursYar, running live. A guided workspace takes you from possibility to a plan — discover, review, assess, act. Start with discovery. The research library searches and filters historical leads — every record honestly labeled as needing re-verification.
+# A3 00:40-01:10 PROFILE AND DOCUMENTS
+Then, read the official source — never a rumor. Signed-out visitors meet a clear sign-in gate. Nothing is fetched silently. With approval, BursYar fetches the official page and shows exactly what it retrieved — before anything is analyzed. Documents stay private. You consent, review each extracted claim, reject what is wrong — a rejected degree never enters your profile.
+# A4 01:10-01:40 META AI AND EVIDENCE
+This screen shows the analysis interface with a simulated response. AI interprets. Evidence decides. Meta Muse Spark 1.3 reads the approved text and selects candidate evidence. Two live runs are on record — four criteria and two funding excerpts validated locally, one and one on hosted infrastructure. But the model is never trusted blindly: every quotation is re-checked against the source, byte for byte.
+# A5 01:40-02:10 PATHFINDER
+Every machine claim stays bound to its quotation. Met. Not met. Or honestly unknown. The conservative compiler compares your reviewed profile against the evidence. What it cannot prove, it calls unknown — and unknown is never treated as eligible. When evidence is missing, PathFinder names the gap and shows the legitimate next step: verify the exact requirement with the institution.
+# A6 02:10-02:35 ACCESSIBILITY AND TRUST
+Reviewed by you. Never verified for you. Every claim carries its exact source quotation — with an explicit warning until a human has reviewed it. In your own language. English, Dari, and Pashto — with full right-to-left support. Translations are machine-drafted and still await human review.
+# A7 02:35-03:00 FINAL OUTCOME
+BursYar: evidence-first AI, conservative eligibility, actionable guidance, private by design. Built for the students who need clarity most — so they can understand what a scholarship demands, gather the right proof, and take the next step themselves. From possibility to a plan. BursYar. Opportunity should not be lost in translation.
