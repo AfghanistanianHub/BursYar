@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Candidate-only, offline-at-runtime OCR vendor assembly. This tool uses the
 // npm registry at preparation time. Its output is NOT an approved release.
-import {mkdtempSync,mkdirSync,readFileSync,writeFileSync,copyFileSync,statSync,lstatSync,rmSync,readdirSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,readFileSync,writeFileSync,copyFileSync,statSync,lstatSync,rmSync,readdirSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join,resolve,dirname} from 'node:path';
 import {execFileSync} from 'node:child_process';
@@ -65,7 +65,7 @@ function packExtract(name,version,destination){
  return {path:join(expanded,'package'),npmIntegrity:pack[0].integrity||null};
 }
 export function prepareCandidate(output){
- if(!output||output==='/'||resolve(output)===process.cwd())throw Error('choose a distinct candidate output directory');
+ if(!output||output==='/'||resolve(output)===process.cwd()||existsSync(resolve(output)))throw Error('candidate output must be a new empty directory');
  const scratch=mkdtempSync(join(tmpdir(),'bursyar-ocr-vendor-'));
  const root=resolve(output,'assets');
  try{
