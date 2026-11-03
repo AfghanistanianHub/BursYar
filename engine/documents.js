@@ -77,7 +77,10 @@ export class DocumentStore {
     for(const row of this.db.prepare('SELECT data FROM documents WHERE owner=?').all(owner)){
      const existing=JSON.parse(row.data);
      if(existing.requestId!==input.requestId)continue;
-     if(existing.sha256!==record.sha256||existing.text!==record.text||existing.extractionMethod!==record.extractionMethod)throw new DocumentError(409);
+     // Old records labeled the bounded text parser as the extraction method.
+     // Preserve lost-response retry compatibility with the previously deployed API.
+     const existingMethod=existing.extractionMethod==='bounded_text_parser'?'utf8_text':existing.extractionMethod;
+     if(existing.sha256!==record.sha256||existing.text!==record.text||existingMethod!==record.extractionMethod)throw new DocumentError(409);
      this.db.exec('COMMIT');return existing;
     }
    }
