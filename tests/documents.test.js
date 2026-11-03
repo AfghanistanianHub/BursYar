@@ -135,3 +135,21 @@ test('upload retries are idempotent per owner and do not silently reuse a key fo
   assert.equal(store.list('alice').length,0);
  }finally{store.close();rmSync(dir,{recursive:true,force:true});}
 });
+
+test('Farsi/Pashto exact labeled degree and GPA lines are staged but never authenticated',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-dari-pashto-')),store=new DocumentStore(join(dir,'docs.db'));
+ try{
+  for(const [text,degree,gpa] of [
+   ['مدرک تحصیلی: لیسانس\\nمعدل: ۳.۵/۴','bachelor',3.5],
+   ['تحصیلي کچه: ماسټري\\nد نمرو اوسط: ٣.٧/٤','master',3.7]
+  ]){
+   const doc=store.upload('alice',{text,mime:'text/plain',consent:true,extractionMethod:'local_image_ocr'});
+   assert.equal(doc.authenticity,'not_verified');
+   assert.equal(doc.extractionMethod,'local_image_ocr');
+   assert.equal(doc.pending.find(c=>c.field==='degree')?.value,degree);
+   assert.equal(doc.pending.find(c=>c.field==='gpa')?.value.gpa,gpa);
+   assert.ok(doc.pending.every(c=>c.verificationStatus==='not_verified'));
+  }
+  assert.throws(()=>store.upload('alice',{text:'Degree: bachelor',mime:'text/plain',consent:true,extractionMethod:'issuer_verified'}),e=>e.status===400);
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
