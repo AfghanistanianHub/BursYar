@@ -76,7 +76,96 @@
 /* ---- Footer: two-part row on wide screens ---- */
 @media(min-width:701px){footer{justify-content:space-between;align-items:baseline}}
 section[id],div[id$='mount']{scroll-margin-top:90px}
-@media(min-width:1024px){#journey-nav-mount{grid-row:2/span 8}#workspace-overview{grid-column:2}.journey-nav{border:0;background:transparent;box-shadow:none;padding-inline:0}.journey-nav li{margin-block:4px}.journey-nav li:has(a:hover){background:var(--surface)}}
+@media(min-width:1024px){#journey-nav-mount{grid-row:3/span 8}#workspace-overview{grid-column:2}.journey-nav{border:0;background:transparent;box-shadow:none;padding-inline:0}.journey-nav li{margin-block:4px}.journey-nav li:has(a:hover){background:var(--surface)}}
 @media(max-width:700px){.workspace-overview-grid{grid-template-columns:1fr}.workspace-start-card{padding:18px}.workspace-start-card p{min-height:0}#workspace-overview{padding:18px}.workspace-shortcuts{gap:8px 20px}.scholarship{padding:16px}.scholarship::before{margin-block-start:-16px;margin-inline:-16px;margin-block-end:8px}}
 #research-explorer .research-filters{grid-template-columns:repeat(3,minmax(0,1fr))}#research-explorer .research-filters>label:first-child{grid-column:1/-1}
 @media(max-width:700px){#research-explorer .research-filters{grid-template-columns:minmax(0,1fr)}}
+/* ================= Mission 14 visual rescue =================
+ * The owner judged Missions 07–08 "mostly text and infrastructure".
+ * This layer adds a genuinely designed first impression: an asymmetric
+ * hero with an evidence-chain product composition, a visual 4-stage
+ * workflow band, iconography, differentiated verdict cards, and a
+ * graphical PathFinder — while preserving every component contract.
+ * Flat shapes only: no gradients, no glow, no glass, no motion. */
+:root{--glyph-quote:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-width='1.7'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4%205h16v10H9l-5%204z'/%3E%3Cpath%20d='M8%209h8M8%2012h5'/%3E%3C/svg%3E");--glyph-shield:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-width='1.7'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%203l7%203v6c0%205-3.5%208-7%209-3.5-1-7-4-7-9V6z'/%3E%3Cpath%20d='m9%2012%202%202%204-4'/%3E%3C/svg%3E");--glyph-chart:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-width='1.7'%20stroke-linecap='round'%3E%3Cpath%20d='M4%2020h16'/%3E%3Cpath%20d='M7%2020v-6M12%2020V6M17%2020v-9'/%3E%3C/svg%3E");--glyph-route:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-width='1.7'%20stroke-linecap='round'%3E%3Ccircle%20cx='6'%20cy='18'%20r='2.5'/%3E%3Ccircle%20cx='18'%20cy='6'%20r='2.5'/%3E%3Cpath%20d='M8%2018h6a4%204%200%200%200%204-4V9'/%3E%3C/svg%3E");--glyph-profile:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-width='1.7'%20stroke-linecap='round'%3E%3Ccircle%20cx='12'%20cy='8'%20r='3.5'/%3E%3Cpath%20d='M5%2020a7%207%200%200%201%2014%200'/%3E%3C/svg%3E");--glyph-check:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%231f6b41'%20stroke-width='1.8'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='12'%20cy='12'%20r='9'/%3E%3Cpath%20d='m8%2012%203%203%206-6'/%3E%3C/svg%3E")}
+/* ---- Hero: asymmetric composition with product visual ---- */
+.hero{display:grid;gap:28px;margin-block:32px 8px;align-items:center;max-width:none}
+.hero-kicker{font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--brand);font-weight:800;margin:0 0 12px}
+[dir=rtl] .hero-kicker{letter-spacing:0}
+.hero-copy h1{font-size:clamp(2rem,4.2vw,3rem);line-height:1.14;letter-spacing:-.025em;color:var(--ink);margin:0 0 14px;max-width:19ch}
+[dir=rtl] .hero-copy h1{letter-spacing:0}
+.hero-copy .lead{font-size:1.03rem;line-height:1.65;color:var(--muted);max-width:52ch;margin:0 0 22px}
+@media(min-width:1024px){.hero{grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:44px;margin-block:40px 12px}}
+/* Evidence-chain product composition (illustrative, sample-tagged) */
+.evidence-preview{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--brand);border-radius:16px;box-shadow:var(--shadow-sm);padding:18px 20px 20px}
+.preview-tag{display:inline-block;font-size:.72rem;font-weight:700;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);padding:4px 12px;border-radius:999px;margin:0 0 6px}
+.chain{list-style:none;margin:0;padding:0}
+.chain li{display:flex;gap:14px;align-items:flex-start;padding:14px 2px}
+.chain li+li{border-top:1px solid var(--line-soft)}
+.chain-icon{width:42px;height:42px;flex:none;border-radius:12px;background:var(--brand-ghost) no-repeat center;background-size:25px}
+.chain-icon[data-icon=quote]{background-image:var(--glyph-quote)}
+.chain-icon[data-icon=shield]{background-image:var(--glyph-shield)}
+.chain-icon[data-icon=chart]{background-image:var(--glyph-chart)}
+.chain strong{display:block;font-size:.93rem}
+.chain q,.chain-sub{display:block;font-size:.8rem;color:var(--muted);margin-top:3px;overflow-wrap:anywhere}
+.chain-mark{margin-inline-start:auto;align-self:center;width:26px;height:26px;flex:none;border-radius:50%;background:var(--glyph-check) no-repeat center/contain}
+.chain-verdicts{display:flex;flex-wrap:wrap;gap:8px;margin-top:9px}
+.chain-verdicts span{font-size:.74rem;font-weight:700;padding:4px 11px;border-radius:999px;border:1px solid}
+.chain-verdicts [data-status=met]{color:var(--ok);background:var(--ok-bg);border-color:var(--ok)}
+.chain-verdicts [data-status=not_met]{color:var(--bad);background:var(--bad-bg);border-color:var(--bad)}
+.chain-verdicts [data-status=unknown]{color:var(--warn);background:var(--warn-bg);border-color:var(--warn)}
+/* ---- Workflow band: the journey as a visual ---- */
+.how-it-works{margin-block:10px 4px}
+@media(min-width:1024px){.how-it-works{grid-column:1/-1}}
+.how-it-works h2{font-size:1.3rem;letter-spacing:-.02em;margin:0 0 16px}
+[dir=rtl] .how-it-works h2{letter-spacing:0}
+.how-it-works ol{list-style:none;margin:0;padding:0;display:grid;gap:14px;position:relative}
+@media(min-width:700px){.how-it-works ol{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:700px){.how-it-works ol::before{content:"";position:absolute;top:35px;inset-inline:56px;height:2px;background:var(--line);z-index:0}}
+.how-it-works li{position:relative;z-index:1}
+.how-it-works li a{display:block;height:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 16px 16px;text-decoration:none;color:inherit}
+.how-it-works li a:hover{border-color:var(--brand)}
+.step-num{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;font-size:.9rem;margin-bottom:12px}
+.how-it-works strong{display:block;font-size:.93rem;margin-bottom:6px}
+.how-it-works li a>span:last-child{font-size:.81rem;color:var(--muted);line-height:1.55}
+/* ---- Journey icons (decorative, numerals kept) ---- */
+.journey-nav li{position:relative}
+.journey-nav li::after{content:"";position:absolute;inset-inline-end:12px;top:50%;translate:0 -50%;width:26px;height:26px;opacity:.5;pointer-events:none}
+.journey-nav li:nth-child(1)::after{background:var(--glyph-profile) no-repeat center/contain}
+.journey-nav li:nth-child(2)::after{background:var(--glyph-quote) no-repeat center/contain}
+.journey-nav li:nth-child(3)::after{background:var(--glyph-chart) no-repeat center/contain}
+.journey-nav li:nth-child(4)::after{background:var(--glyph-route) no-repeat center/contain}
+.journey-nav li a{padding-inline-end:44px}
+/* ---- Section header icons ---- */
+.assistant>h2,#eligibility-demo h2,#next-steps h2{display:flex;align-items:center;gap:10px}
+.assistant>h2::before,#eligibility-demo h2::before,#next-steps h2::before{content:"";width:30px;height:30px;flex:none;border-radius:9px;background:var(--brand-ghost) no-repeat center;background-size:19px}
+.assistant>h2::before{background-image:var(--glyph-quote)}
+#eligibility-demo h2::before{background-image:var(--glyph-chart)}
+#next-steps h2::before{background-image:var(--glyph-route)}
+/* ---- Verdict cards: status you can see ---- */
+#eligibility-demo output[data-status]{display:flex;align-items:center;gap:10px;font-weight:700}
+#eligibility-demo output[data-status]::before{content:"";width:24px;height:24px;flex:none;border-radius:50%;background:no-repeat center/contain}
+#eligibility-demo output[data-status=met]::before{background-image:var(--glyph-check)}
+#eligibility-demo output[data-status=not_met]::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%238f2f24'%20stroke-width='1.8'%20stroke-linecap='round'%3E%3Ccircle%20cx='12'%20cy='12'%20r='9'/%3E%3Cpath%20d='m9%209%206%206M15%209l-6%206'/%3E%3C/svg%3E")}
+#eligibility-demo output[data-status=unknown]::before{background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%237a5a1e'%20stroke-width='1.8'%20stroke-linecap='round'%3E%3Ccircle%20cx='12'%20cy='12'%20r='9'/%3E%3Cpath%20d='M12%208a2.6%202.6%200%200%201%202.6%202.6c0%201.7-2.6%201.7-2.6%203.4'/%3E%3Cpath%20d='M12%2017v.5'/%3E%3C/svg%3E")}
+#eligibility-details li[data-status]{border-inline-start:3px solid var(--line)}
+#eligibility-details li[data-status=met]{border-color:var(--ok)}
+#eligibility-details li[data-status=not_met]{border-color:var(--bad)}
+#eligibility-details li[data-status=unknown]{border-color:var(--warn)}
+#eligibility-details li[data-status]>p:first-child{font-weight:700}
+#eligibility-details li[data-status=met]>p:first-child{color:var(--ok)}
+#eligibility-details li[data-status=not_met]>p:first-child{color:var(--bad)}
+#eligibility-details li[data-status=unknown]>p:first-child{color:var(--warn)}
+/* ---- Source surface: a designed input stage ---- */
+#source-entry{background:var(--surface-2);border:1px solid var(--line-soft);border-radius:12px;padding:16px 18px}
+#source-url{background-color:#fff;background-image:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='18'%20height='18'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23718198'%20stroke-width='1.7'%3E%3Ccircle%20cx='12'%20cy='12'%20r='9'/%3E%3Cpath%20d='M3%2012h18M12%203c5%205%205%2013%200%2018-5-5-5-13%200-18'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:12px center;padding-inline-start:40px}
+[dir=rtl] #source-url{background-position:right 12px center}
+/* ---- PathFinder: numbered graphical journey ---- */
+#next-actions{counter-reset:by-step}
+#next-actions>*{position:relative;padding-inline-end:44px}
+#next-actions>*:not(fieldset)::before{counter-increment:by-step;content:counter(by-step);position:absolute;inset-inline-end:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--brand-soft);color:var(--brand-dark);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+#barrier-guidance{counter-reset:by-barrier}
+#barrier-guidance p:not(.barrier-summary){counter-increment:by-barrier;padding-inline-end:40px}
+#barrier-guidance p:not(.barrier-summary)::after{content:counter(by-barrier);position:absolute;inset-inline-end:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-size:.75rem;font-weight:700;display:grid;place-items:center}
+/* ---- Mission 14 responsive ---- */
+@media(max-width:700px){.hero{margin-block:22px 4px}.evidence-preview{padding:16px}.chain-icon{width:36px;height:36px}.how-it-works h2{font-size:1.15rem}.journey-nav li::after{display:none}.journey-nav li a{padding-inline-end:12px}}
