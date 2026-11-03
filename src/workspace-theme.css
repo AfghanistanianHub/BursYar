@@ -164,7 +164,7 @@ section[id],div[id$='mount']{scroll-margin-top:90px}
 /* ---- PathFinder: numbered graphical journey ---- */
 #next-actions{counter-reset:by-step}
 #next-actions>*{position:relative;padding-inline-end:44px}
-#next-actions>*:not(fieldset)::before{counter-increment:by-step;content:counter(by-step);position:absolute;inset-inline-end:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--brand-soft);color:var(--brand-dark);font-size:.8rem;font-weight:700;display:grid;place-items:center}
+#next-actions>*:not(fieldset):not(.empty-note)::before{counter-increment:by-step;content:counter(by-step);position:absolute;inset-inline-end:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--brand-soft);color:var(--brand-dark);font-size:.8rem;font-weight:700;display:grid;place-items:center}
 #barrier-guidance{counter-reset:by-barrier}
 #barrier-guidance p:not(.barrier-summary){counter-increment:by-barrier;padding-inline-end:40px}
 #barrier-guidance p:not(.barrier-summary)::after{content:counter(by-barrier);position:absolute;inset-inline-end:0;top:0;width:26px;height:26px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);font-size:.75rem;font-weight:700;display:grid;place-items:center}
