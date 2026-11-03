@@ -4,12 +4,16 @@
 const normalize=value=>String(value??'').normalize('NFKC').toLocaleLowerCase('en').replace(/[\u200c\u200d]/gu,' ').replace(/[^\p{L}\p{N}]+/gu,' ').trim().replace(/\s+/gu,' ');
 export function issuerFromText(text){
  if(typeof text!=='string')return null;
- const entries=text.split(/\r?\n/u);
+ const entries=text.split(/\r?\n/u),issuers=new Map();
  for(const line of entries){
-  const match=/^(?:issuer|university|institution|issuing institution):\s*(.{3,120})$/iu.exec(line.trim());
-  if(match&&/[\p{L}]/u.test(match[1]))return match[1].trim();
+  const match=/^(?:issuer|university|institution|issuing institution|دانشگاه|پوهنتون|مؤسسه صادرکننده|موسسه صادرکننده|صادرکننده|د سند صادرونکی)\s*[:：]\s*(.{3,120})$/iu.exec(line.trim());
+  if(match&&/[\p{L}]/u.test(match[1])){
+   const label=match[1].trim(),key=normalize(label);
+   if(key.length>=3)issuers.set(key,label);
+  }
  }
- return null;
+ // Conflicting claimed issuers cannot be safely resolved automatically.
+ return issuers.size===1?[...issuers.values()][0]:null;
 }
 export function publicDocumentReferenceAudit(documentText,source){
  const issuer=issuerFromText(documentText);
