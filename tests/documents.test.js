@@ -130,6 +130,7 @@ test('upload retries are idempotent per owner and do not silently reuse a key fo
   const secondOwner=store.upload('bob',{...input,requestId});
   assert.notEqual(secondOwner.id,first.id);
   assert.equal(store.list('bob').length,1);
+  assert.throws(()=>store.upload('alice',{...input,requestId,extractionMethod:'manual_transcription_from_image'}),e=>e.status===409);
   assert.throws(()=>store.upload('alice',{...input,requestId:'invalid'}),e=>e.status===400);
   store.delete('alice',first.id);
   assert.equal(store.list('alice').length,0);
