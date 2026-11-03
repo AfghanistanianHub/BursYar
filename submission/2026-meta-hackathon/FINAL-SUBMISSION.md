@@ -1,8 +1,9 @@
 # BursYar — final submission (paste-ready)
 
-Source of truth for portal fields. Assembled 2026-11-02 from verified
-in-repo evidence at `main` tip `b60444b` (code tip `0960b24`, PR #72;
-docs PR #73). Owner: paste into
+Source of truth for portal fields. Assembled 2026-11-02, re-verified
+2026-11-03 at `main` tip `35fa856` (PR #81; video re-recorded from
+`dbfb054` and still current — the M16 empty-state section sits below
+the fold and appears in no footage). Owner: paste into
 https://cerebralvalley.ai/e/meta-ai-developer-hackathon before
 **November 4, 9:00 PM ET**. Confirm asset formats inside the portal
 first; fill the two OWNER placeholders (video link, team).

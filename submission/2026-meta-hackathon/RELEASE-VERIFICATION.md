@@ -1,15 +1,16 @@
 # BursYar — release verification (submission)
 
-Verified 2026-11-02, release `main` tip `b60444b`
-(code tip `0960b24`, PR #72; docs PR #73).
+Verified 2026-11-02, re-verified 2026-11-03 at release `main` tip
+`35fa856` (PR #81).
 
 ## Production
 
 - Frontend https://bursyar.vercel.app → 200, serves
-  `index-Czy_aVBG.js` / `index-C9znp_fj.css` (CSS hash matches the
-  release build) with markers `glyph-doc`, `glyph-search`,
-  `eligibility-example`, `empty-note`, `summary::marker`,
-  `skip-link`, `hero-actions` at verified counts.
+  `index-C3_hpZE2.js` / `index-yzGWkncG.css` with markers
+  `glyph-doc`, `glyph-search`, `eligibility-example`, `empty-note`,
+  `summary::marker`, `skip-link`, `hero-actions`, `hero-visual`,
+  `how-it-works`, `chain-verdicts`, `nextEmpty`, `nextEmptyCta` at
+  verified counts; stage-4 empty state verified live.
 - Backend https://bursyar-api.onrender.com/health → 200
   `ok:true`; local assessment, source retrieval, document storage
   available; Meta `configured` behind per-request policy gates.
