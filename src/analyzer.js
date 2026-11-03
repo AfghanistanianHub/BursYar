@@ -21,7 +21,7 @@ export const analyzerInventoryLabels={
 export const analyzerOxfordNotice={
  en:{policy:'Scholarship eligibility and course admission are separate. Confirm the course deadline and its actual English-test policy; do not book a test solely from this scholarship analysis.',link:'Official Oxford English-language guidance'},
  fa:{policy:'شرایط بورسیه و پذیرش دوره جدا هستند. مهلت دوره و سیاست واقعی آزمون زبان را بررسی کنید؛ فقط بر اساس این تحلیل آزمون رزرو نکنید.',link:'لارښود رسمی زبان آکسفورد'},
- ps:{policy:'د بورس وړتیا او د دورې منل جلا دي. د دورې مهلت او د ژبې واقعي تګلاره وګورئ؛ یوازې له دې تحلیل څخه ازموینه مه رزروئ.',link:'د اکسفورډ رسمي ژبنی لارښود'}};
+ ps:{policy:'د بورس وړتوب او د دورې منل جلا دي. د دورې مهلت او د ژبې واقعي تګلاره وګورئ؛ یوازې له دې تحلیل څخه ازموینه مه رزروئ.',link:'د اکسفورډ رسمي ژبنی لارښود'}};
 export function mountAnalyzer(form,language,esc,initial={}){
  const coverage=analyzerCoverage[language];
  const t=analyzerCopy[language]||analyzerCopy.en,result=form.querySelector('#analysis-result'),submit=form.querySelector('button[type="submit"]');

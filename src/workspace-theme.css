@@ -120,8 +120,9 @@ section[id],div[id$='mount']{scroll-margin-top:90px}
 .how-it-works h2{font-size:1.3rem;letter-spacing:-.02em;margin:0 0 16px}
 [dir=rtl] .how-it-works h2{letter-spacing:0}
 .how-it-works ol{list-style:none;margin:0;padding:0;display:grid;gap:14px;position:relative}
-@media(min-width:700px){.how-it-works ol{grid-template-columns:repeat(4,1fr)}}
-@media(min-width:700px){.how-it-works ol::before{content:"";position:absolute;top:35px;inset-inline:56px;height:2px;background:var(--line);z-index:0}}
+@media(min-width:700px) and (max-width:1023px){.how-it-works ol{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1024px){.how-it-works ol{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:1024px){.how-it-works ol::before{content:"";position:absolute;top:35px;inset-inline:56px;height:2px;background:var(--line);z-index:0}}
 .how-it-works li{position:relative;z-index:1}
 .how-it-works li a{display:block;height:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 16px 16px;text-decoration:none;color:inherit}
 .how-it-works li a:hover{border-color:var(--brand)}
