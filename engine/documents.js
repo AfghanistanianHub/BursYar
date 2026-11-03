@@ -38,6 +38,9 @@ export class DocumentStore {
   this.assertWritable(uid);
   const owner=this.owner(uid);
   if(input?.consent!==true||input?.mime!=='text/plain'||typeof input.text!=='string'||!input.text.trim()||Buffer.byteLength(input.text)>12000||/[\x00-\x08\x0b\x0c\x0e-\x1f\ufffd]/u.test(input.text))throw new DocumentError(400);
+  // A client-generated request identifier makes lost-response retries safe.
+  // Legacy callers may omit it; malformed identifiers cannot bypass validation.
+  if(input.requestId!==undefined&&(typeof input.requestId!=='string'||!/^[a-f0-9-]{36}$/.test(input.requestId)))throw new DocumentError(400);
   const id=randomUUID(),claims=[];
   // Deliberately narrow extraction; preserve full original and exact line evidence.
   // A document must use these explicit field labels: Degree, IELTS Academic,
@@ -53,9 +56,18 @@ export class DocumentStore {
    if(m){const n=m.slice(1).map(Number);if(n[0]<=120&&n.slice(1).every(v=>v<=30))claims.push({field:'languageTest',value:{test:'TOEFL iBT',overall:n[0],sections:Object.fromEntries(['listening','reading','writing','speaking'].map((k,i)=>[k,n[i+1]]))},sourceExcerpt:line});}
   }
   const duplicate=claims.some((c,i)=>claims.findIndex(x=>x.field===c.field)!==i);
-  const record={id,text:input.text,sha256:createHash('sha256').update(input.text).digest('hex'),uploadedAt:new Date().toISOString(),consentVersion:1,extractionMethod:'bounded_text_parser',authenticity:'not_verified',translationStatus:'not_assessed',consistency:duplicate?'discrepancy_requires_review':'not_assessed',pending:duplicate?[]:prepareClaims(id,claims)};
+  const record={id,text:input.text,requestId:input.requestId??null,sha256:createHash('sha256').update(input.text).digest('hex'),uploadedAt:new Date().toISOString(),consentVersion:1,extractionMethod:'bounded_text_parser',authenticity:'not_verified',translationStatus:'not_assessed',consistency:duplicate?'discrepancy_requires_review':'not_assessed',pending:duplicate?[]:prepareClaims(id,claims)};
   this.db.exec('BEGIN IMMEDIATE');
-  try{this.assertWritable(uid);if(this.db.prepare('SELECT count(*) AS n FROM documents WHERE owner=?').get(owner).n>=10)throw new DocumentError(429);this.db.prepare('INSERT INTO documents VALUES(?,?,?)').run(id,owner,JSON.stringify(record));this.db.exec('COMMIT');}catch(e){this.db.exec('ROLLBACK');throw e;}
+  try{this.assertWritable(uid);
+   if(input.requestId){
+    for(const row of this.db.prepare('SELECT data FROM documents WHERE owner=?').all(owner)){
+     const existing=JSON.parse(row.data);
+     if(existing.requestId!==input.requestId)continue;
+     if(existing.sha256!==record.sha256||existing.text!==record.text)throw new DocumentError(409);
+     this.db.exec('COMMIT');return existing;
+    }
+   }
+   if(this.db.prepare('SELECT count(*) AS n FROM documents WHERE owner=?').get(owner).n>=10)throw new DocumentError(429);this.db.prepare('INSERT INTO documents VALUES(?,?,?)').run(id,owner,JSON.stringify(record));this.db.exec('COMMIT');}catch(e){this.db.exec('ROLLBACK');throw e;}
   return record;
  }
  get(uid,id){
