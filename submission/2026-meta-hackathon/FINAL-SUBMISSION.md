@@ -1,12 +1,12 @@
 # BursYar — final submission (paste-ready)
 
-Source of truth for portal fields. Assembled 2026-11-02, re-verified
-2026-11-03 at `main` tip `340a5e5` (Mission 18: PRs #86, #92, #93;
-production bundle `index-cslf-rZ1.js` fingerprinted live; video
-footage sourced from `dbfb054` re-checked claim-accurate against
-current production — footage predates the TXT-only notice and
-library auto-load but asserts nothing they contradict). Owner: paste
-into https://cerebralvalley.ai/e/meta-ai-developer-hackathon before
+Source of truth for portal fields. Assembled 2026-11-02, locked
+2026-11-03 (Mission 19) at release `340a5e5` + docs `12ea353`
+(Missions 18–19: PRs #86, #92, #93, #94; production bundle
+`index-cslf-rZ1.js` fingerprinted live; final video is the narrated
+Mission 18 re-cut recorded against current production — see
+FINAL-VIDEO-REPORT.md). Owner: paste into
+https://cerebralvalley.ai/e/meta-ai-developer-hackathon before
 **November 4, 9:00 PM ET** (deadline confirmed on the public event
 page 2026-11-03; judging Nov 4–8, finals Nov 9). Confirm asset
 formats inside the portal first; fill the two OWNER placeholders
@@ -74,18 +74,23 @@ recorded runs with downstream validation (`d1bb0e0f` local,
 output is re-checked locally (exact quotations, digests, supported
 rule syntax, contradictions, provenance) before influencing any
 assessment, and model prose is never presented as certification of
-authenticity, eligibility, or admission.
+authenticity, eligibility, or admission. The demo film's analysis
+UI is explicitly labeled simulated in narration and captions; the two
+recorded runs above are the only live-inference evidence — no other
+live AI request is shown or claimed.
 
 ## Links (paste)
 
 - Live demo: https://bursyar.vercel.app
 - Repository (public): https://github.com/AfghanistanianHub/BursYar
 - Demo video: OWNER — upload
-  `submission/2026-meta-hackathon/final-assets/BursYar-Hackathon-Demo-Final.mp4`
-  (2:59.90, 1920×1080 H.264, captioned, no voiceover; SHA-256
-  `731016d5ca3d948eac96b415860b3ae1e853117c05db5953eb4a25c276fac347`;
-  provisional three-minute cut — confirm required length/format in the
-  portal first) and paste its link here.
+  `submission/2026-meta-hackathon/final-assets/BursYar-Meta-Hackathon-Demo.mp4`
+  (2:59.50, 1920×1080 H.264 + AAC, narrated with burned captions;
+  SHA-256
+  `84e204016e5e0087df322204258399a02696629c79a7ebf7b75534f356143147`;
+  confirm required length/format/hosting in the portal first —
+  fallback cut `BursYar-Hackathon-Demo-Final.mp4` retained in the
+  same folder) and paste its link here.
 - Team: OWNER — add every team member in the portal.
 
 ## Known limitations (paste if the portal has the field)
@@ -102,3 +107,5 @@ copy is machine-drafted and awaits fluent human review. Meta
 evidence is two recorded runs (`requiresHumanReview=true`,
 `coverageComplete=false`) — integration proof, not a reliability or
 accuracy claim. Research leads carry needs-reverification labels.
+Demo narration is system TTS; owner ear-check of proper-noun
+pronunciation is pending but does not affect product claims.
