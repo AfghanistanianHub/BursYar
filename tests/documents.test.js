@@ -168,3 +168,17 @@ test('manual-transcribed claims are user declared, not implicitly OCR-extracted'
   }
  }finally{store.close();rmSync(dir,{recursive:true,force:true});}
 });
+
+test('legacy parser-labeled upload requests remain idempotent after schema evolution',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-legacy-retry-')),store=new DocumentStore(join(dir,'docs.db'));
+ try{
+  const requestId='7d7f10b4-5cb5-4a14-bacf-c9fcb9ce5e0f';
+  const first=store.upload('alice',{...input,requestId});
+  const legacy={...first,extractionMethod:'bounded_text_parser'};
+  store.db.prepare('UPDATE documents SET data=? WHERE id=? AND owner=?').run(JSON.stringify(legacy),first.id,store.owner('alice'));
+  const retry=store.upload('alice',{...input,requestId});
+  assert.equal(retry.id,first.id);
+  assert.equal(store.list('alice').length,1);
+  assert.throws(()=>store.upload('alice',{...input,requestId,extractionMethod:'manual_transcription_from_image'}),e=>e.status===409);
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
