@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import {extractDocumentText} from '../src/document-extraction.js';
 const file=(name,bytes,advertisedSize)=>({name,size:advertisedSize??bytes.length,arrayBuffer:async()=>Uint8Array.from(bytes).buffer});
 const txt=(name,text)=>file(name,new TextEncoder().encode(text));
@@ -141,4 +142,17 @@ test('unsupported OCR locale and malformed binary fail without loading third-par
  await assert.rejects(()=>extractDocumentText(txt('bad.pdf','not-pdf'),{pdfLoader,ocrLoader}),e=>e.code==='invalidPdf');
  await assert.rejects(()=>extractDocumentText(txt('bad.jpg','not-jpeg'),{pdfLoader,ocrLoader}),e=>e.code==='invalidImage');
  assert.equal(imported,0);
+});
+test('document extraction loads code only from pinned reviewed origins (Issue #88)',()=>{
+ // Change detector: any new or re-pinned third-party code URL requires an
+ // explicit security review that updates this allowlist alongside the gate
+ // tests. Production never imports these (TXT-only gate); local and CI
+ // synthetic runs may, from these exact pinned files only.
+ const source=readFileSync(new URL('../src/document-extraction.js',import.meta.url),'utf8');
+ const urls=[...new Set([...source.matchAll(/https:\/\/[^\s'")]+/g)].map(m=>m[0]))].sort();
+ assert.deepEqual(urls,[
+  'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs',
+  'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs',
+  'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js'
+ ]);
 });
