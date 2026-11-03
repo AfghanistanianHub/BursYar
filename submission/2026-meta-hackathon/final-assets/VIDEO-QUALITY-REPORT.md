@@ -1,17 +1,20 @@
 # BursYar — video quality report
 
-File: `BursYar-Hackathon-Demo-Final.mp4` (copied byte-identical from
-the Mission 09 verified render; SHA-256 in
+File: `BursYar-Hackathon-Demo-Final.mp4` (Mission 15 re-record from
+release `dbfb054`; supersedes the Mission 09 render. SHA-256 in
 `BursYar-Video-Manifest.json`).
 
 ## Verification performed
 
-- Probe: 2:59.87, 1920×1080, H.264 High yuv420p, 30 fps, 8.4 MB.
+- Probe: 2:59.90, 1920×1080, H.264 High yuv420p, 30 fps, 8.5 MB.
 - Full decode: clean, zero errors.
-- Frames inspected at 0:05, 0:25, 0:47, 1:10, 1:30, 1:34, 1:52,
-  2:05, 2:25, 2:45: cards legible, captions readable, LIVE vs
+- Frames inspected at 0:25 (new hero + LIVE tag + caption in sync),
+  1:10 (Meta evidence card), 2:25 (Farsi RTL with corrected copy),
+  2:45 (impact card): cards legible, captions readable, LIVE vs
   REHEARSAL tags present on every app segment, rehearsal banner
   visible in rehearsal footage, fades clean at both ends.
+- Assembly hardened: `vid` segments are now trimmed/freeze-padded to
+  exact planned durations so captions stay in sync across re-records.
 - Caption fixes applied and re-verified in v2 (Meta-card overlap
   resolved; impact-card duplication removed).
 - Script accuracy: every caption matches its footage; Bristol URL

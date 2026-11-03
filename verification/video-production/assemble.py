@@ -111,7 +111,10 @@ def main(out_name):
             path, ss, t = src.split('|')
             run('-ss', ss, '-t', t, '-i', path, '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-r', '30', out)
         else:
-            run('-i', src, '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-r', '30', out)
+            # 'vid': exact planned duration — trim long footage, freeze-pad short
+            # footage so captions (timed on planned durations) stay in sync.
+            run('-i', src, '-vf', f'tpad=stop_mode=clone:stop_duration={dur}', '-t', str(dur),
+                '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-r', '30', out)
         parts.append(out)
     (TMP / 'list.txt').write_text(''.join(f"file '{p}'\n" for p in parts))
     run('-f', 'concat', '-safe', '0', '-i', str(TMP / 'list.txt'), '-c', 'copy', str(TMP / 'master.mp4'))

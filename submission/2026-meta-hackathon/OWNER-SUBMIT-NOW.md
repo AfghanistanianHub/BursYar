@@ -12,7 +12,7 @@ only you can see them inside the participant portal.
 
 ## Step 2 — Upload the video (10 min)
 
-File (verified 2:59.87, 1080p H.264, captioned, silent):
+File (verified 2:59.90, 1080p H.264, captioned, silent):
 
 ```sh
 open "/Users/sayadalimousaviazad/Documents/BursYar/submission/2026-meta-hackathon/final-assets"
