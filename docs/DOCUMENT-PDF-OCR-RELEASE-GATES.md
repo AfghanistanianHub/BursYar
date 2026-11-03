@@ -6,6 +6,7 @@
 - PNG/JPEG: 5 MB; magic bytes and decoded image limits; browser-only Tesseract OCR.
 - English/Farsi/Pashto OCR language selection (eng/fas/pus).
 - Only extracted text (12 KB cap) enters existing authenticated, consent-gated document API; raw PDF/image bytes are not stored in the remote database and are not sent to Meta.
+- For PDF/image, extraction now opens an editable, locally staged text preview. No binary-derived text is uploaded until the user explicitly clicks **Save reviewed extracted text**. Cancel discards the preview; changing file or OCR language invalidates it. Dedicated browser regression `verification/document-preview-browser.mjs` covers cancel/confirm/storage and en/fa/ps (mocked extractor, not a claim of real OCR accuracy).
 - Explicit English/Farsi/Pashto degree and GPA labels are staged for human review; they never get issuer-verified status.
 - Public source comparison uses the existing SSRF-protected /api/source to fetch **only a URL**; issuer-name mention does not verify a student's certificate. Text is compared locally within the browser. URL query/credentials are blocked in the UI.
 - Upload request IDs from PR #83 remain supported after main integration.
