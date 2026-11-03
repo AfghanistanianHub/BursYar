@@ -5,14 +5,19 @@ This file supersedes historical release status in earlier handoffs. It records o
 ## Open and identify the release
 
 - App: https://bursyar.vercel.app
-- Last verified production code: `0960b24` (PR #72; serves bundles
-  `index-Czy_aVBG.js` / `index-C9znp_fj.css` containing the #69/#71
+- Last verified production code: `35fa856` (PR #81; serves bundles
+  `index-C3_hpZE2.js` / `index-yzGWkncG.css` containing the #69/#71
   markers (`skip-link`, `hero-actions`, `empty-note`,
-  `summary::marker`) plus #72 markers (`glyph-doc`,
-  `glyph-search`, `eligibility-example`). Previous: `7a74f8f`
-  (PR #71).
-- CI: https://github.com/AfghanistanianHub/BursYar/actions/runs/41526557068 — all four jobs succeeded on PR #72.
-- 331 Node tests, production build, full mocked browser journey, research/document browser checks, emulator and macOS-helper checks passed. Network failure injection is local, not a production interruption.
+  `summary::marker`), #72 markers (`glyph-doc`,
+  `glyph-search`, `eligibility-example`), M14 markers
+  (`hero-visual`, `how-it-works`, `chain-verdicts`), and M16 markers
+  (`nextEmpty`, `nextEmptyCta`). Previous: `c9eaa04` (PR #80).
+- CI: PR #81 — verify, emulator, macos-helper, and browser jobs all
+  green (browser pinned to ubuntu-24.04; see PR #79).
+- 343 Node tests, production build, full mocked browser journey,
+  research/document browser checks, emulator and macOS-helper checks
+  passed. Network failure injection is local, not a production
+  interruption.
 - Render backend remains `4e272a74e65df5ccf2318f3adac312196f5db443`; later changes have not changed its engine/database code. No backend redeploy was needed for these UI changes.
 
 ## Short demonstration without new paid inference

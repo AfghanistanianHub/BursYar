@@ -2,8 +2,9 @@
 
 ## Current production release
 
-- Frontend: `https://bursyar.vercel.app` — M16 merge SHA + bundle to be
-  filled post-merge (pre-merge: `c9eaa04`, `index-Cz7AMs0T.js`).
+- Frontend: `https://bursyar.vercel.app` — `main 35fa856` (PR #81),
+  bundles `index-C3_hpZE2.js` / `index-yzGWkncG.css`, markers +
+  stage-4 fix verified live.
 - Backend: `https://bursyar-api.onrender.com` — `/health` 200 `ok:true`.
 - Verified final video:
   `submission/2026-meta-hackathon/final-assets/BursYar-Hackathon-Demo-Final.mp4`

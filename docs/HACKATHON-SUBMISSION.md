@@ -1,7 +1,7 @@
 # BursYar — hackathon submission package
 
-Prepared 2026-11-02 from verified in-repo evidence at main `0960b24`
-(PRs #50–#66 and #68–#72 merged; #67 open docs PR). This package
+Prepared 2026-11-02, serving state re-verified 2026-11-03 at main
+`35fa856` (PRs #50–#66 and #68–#81 merged). This package
 files nothing by itself; the owner
 files through the official portal (§7). Event identity, deadline,
 tracks, and judging criteria below are verified against authoritative
@@ -196,11 +196,14 @@ Verified 2026-11-02 against authoritative public sources:
 
 Serving state (verified by direct inspection 2026-11-02):
 
-- Frontend https://bursyar.vercel.app serves the release tip:
-  production bundles `index-Czy_aVBG.js` / `index-C9znp_fj.css`
-  contain the #69/#71 markers (`skip-link`, `hero-actions`,
-  `empty-note`, `summary::marker`) plus #72 markers
-  (`glyph-doc`, `glyph-search`, `eligibility-example`).
+- Frontend https://bursyar.vercel.app serves the release tip
+  `35fa856` (verified 2026-11-03): production bundles
+  `index-C3_hpZE2.js` / `index-yzGWkncG.css` contain the #69/#71
+  markers (`skip-link`, `hero-actions`, `empty-note`,
+  `summary::marker`), #72 markers (`glyph-doc`, `glyph-search`,
+  `eligibility-example`), M14 markers (`hero-visual`,
+  `how-it-works`, `chain-verdicts`), and M16 markers (`nextEmpty`,
+  `nextEmptyCta`).
 - Backend is current and compatible: `engine/` byte-identical from
   `4e272a7` through `7817a6a` (no redeploy needed); `/health`
   returns 200 `ok:true` with local assessment, source retrieval,
@@ -223,8 +226,11 @@ TRANSLATION-REVIEW.json (still `PENDING_HUMAN_REVIEW`).
 - [ ] Source ledger bound to dated captures (now all
       `needs_reverification`).
 - [ ] Submission asset formats confirmed inside the participant
-      portal; video recorded per VIDEO-SCRIPT.md (four-minute plan
-      or provisional three-minute cut once confirmed).
-- [ ] Owner merges this PR and files the submission through the
-      official portal before November 4, 9:00 PM ET (recheck the
-      official page for changes first).
+      portal; canonical video is
+      `final-assets/BursYar-Hackathon-Demo-Final.mp4` (2:59.90,
+      SHA-256 `731016d5…fac347`) — re-cut only if the portal
+      mandates another length.
+- [ ] Owner files the submission through the official portal before
+      November 4, 9:00 PM ET (recheck the official page for changes
+      first). Code is merged through PR #81; no engineering PR is
+      pending.
