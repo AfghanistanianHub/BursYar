@@ -12,18 +12,20 @@ first; fill the two OWNER placeholders (video link, team).
   ambition, whether it works.
 - Theme: **Build for Your World**.
 - Title: **BursYar — evidence-based scholarship guidance for Afghan students**
-- Tagline: Paste a scholarship page, get verified requirements and a
-  personal action plan — in English, Dari, and Pashto.
+- Tagline: Review scholarship evidence and build a practical action
+  plan — in English, Dari, and Pashto.
 
 ## Description (paste)
 
 BursYar helps Afghan students — particularly women and girls facing
 closed doors — turn a scholarship page into a personal action plan.
-Paste an official requirements page: BursYar retrieves it, interprets
-the requirements with Meta Muse Spark, and binds every machine claim
-to an exact quotation from the source text. A consent-based profile
-(degrees, scores, language evidence, and private documents that never
-leave the student's control) is compared against that evidence by a
+Provide an official scholarship URL for source retrieval and review,
+or paste public source text when retrieval is blocked. With an
+authorized analysis, Meta Muse Spark interprets that text and BursYar
+checks supporting quotations against the supplied source. This is
+evidence matching, not official verification. A consent-based profile
+(degrees, scores, language evidence, and private documents kept in an
+access-controlled user library) is compared against that evidence by a
 conservative evaluator answering MET, NOT MET, or honestly UNKNOWN —
 never a guess. Missing evidence becomes practical next steps in the
 student's own language, with full right-to-left support, so a student

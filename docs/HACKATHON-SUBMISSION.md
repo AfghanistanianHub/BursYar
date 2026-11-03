@@ -13,11 +13,14 @@ Production serving state is verified in §7.
 
 BursYar helps Afghan students — particularly women and girls facing
 closed doors — turn a scholarship page into a personal action plan.
-Paste an official requirements page: BursYar retrieves it, interprets
-the requirements with Meta Muse, and binds every machine claim to an
-exact quotation from the source. A consent-based profile (degrees,
-scores, language evidence, private documents that never leave the
-student's control) is compared against that evidence by a conservative
+Provide an official scholarship URL for source retrieval and review,
+or paste public source text when retrieval is blocked. With an
+authorized analysis, Meta Muse interprets that text and BursYar checks
+supporting quotations against the supplied source — evidence matching,
+not official verification. A consent-based profile (degrees,
+scores, language evidence, private documents kept in an
+access-controlled user library) is compared against that evidence by a
+conservative
 evaluator that answers MET, NOT MET, or honestly UNKNOWN — never a
 guess. Missing evidence becomes practical next steps in the student's
 own language: English, Dari, or Pashto, with full right-to-left
