@@ -99,7 +99,7 @@ export function mountDocuments(root,language='en'){
   if(!consent.checked)throw Object.assign(Error('Consent required'),{code:'error'});
   if(!text.trim())throw Object.assign(Error('Empty extraction'),{code:'emptyFile'});
   if(new TextEncoder().encode(text).length>12000)throw Object.assign(Error('Too large'),{code:'extractedTextTooLarge'});
-  if(/[\\x00-\\x08\\x0b\\x0c\\x0e-\\x1f\\ufffd]/u.test(text))throw Object.assign(Error('Invalid text'),{code:'invalidEncoding'});
+  if(/[\x00-\x08\x0b\x0c\x0e-\x1f\ufffd]/u.test(text))throw Object.assign(Error('Invalid text'),{code:'invalidEncoding'});
   if(text!==lastUploadText||!lastUploadRequestId){lastUploadText=text;lastUploadRequestId=crypto.randomUUID();}
   current=await api('/api/documents','POST',{text,mime:'text/plain',consent:true,extractionMethod:method,requestId:lastUploadRequestId});
   lastUploadText=null;lastUploadRequestId=null;clearPreview();show(current);await refreshLibrary();
