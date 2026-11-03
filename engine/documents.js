@@ -52,10 +52,20 @@ export class DocumentStore {
   for(const line of input.text.split(/\r?\n/)){
    let m=/^Degree: (secondary|bachelor|master|doctorate)$/.exec(line);
    if(m)claims.push({field:'degree',value:m[1],sourceExcerpt:line});
+   // Conservative exact-label translations for Afghan academic records.
+   // Never infer degree equivalency from layout or an LLM guess.
+   const localDegree=/^(?:مدرک تحصیلی|مقطع تحصیلی|درجه تحصیلی|تحصیلي کچه|تحصیلي درجه)\\s*[:：]\\s*(لیسانس|لېسانس|کارشناسی|ماستری|ماسټري|کارشناسی ارشد|دکترا|دوکتورا|دیپلم|دیپلوم|بکلوریا)$/u.exec(line.trim());
+   if(localDegree){
+    const degrees={'لیسانس':'bachelor','لېسانس':'bachelor','کارشناسی':'bachelor','ماستری':'master','ماسټري':'master','کارشناسی ارشد':'master','دکترا':'doctorate','دوکتورا':'doctorate','دیپلم':'secondary','دیپلوم':'secondary','بکلوریا':'secondary'};
+    claims.push({field:'degree',value:degrees[localDegree[1]],sourceExcerpt:line});
+   }
    m=/^IELTS Academic: overall=(\d(?:\.\d)?); listening=(\d(?:\.\d)?); reading=(\d(?:\.\d)?); writing=(\d(?:\.\d)?); speaking=(\d(?:\.\d)?)$/.exec(line);
    if(m&&m.slice(1).every(v=>Number(v)<=9&&Number.isInteger(Number(v)*2)))claims.push({field:'languageTest',value:{test:'IELTS Academic',overall:Number(m[1]),bands:Object.fromEntries(['listening','reading','writing','speaking'].map((n,i)=>[n,Number(m[i+2])]))},sourceExcerpt:line});
    m=/^GPA: (\d(?:\.\d{1,2})?)\/(4(?:\.0)?|5(?:\.0)?)$/.exec(line);
    if(m){const gpa=Number(m[1]),scale=Number(m[2]);if(gpa<=scale)claims.push({field:'gpa',value:{gpa,scale},sourceExcerpt:line});}
+   const digits=line.replace(/[۰-۹]/gu,ch=>String(ch.charCodeAt(0)-0x06f0)).replace(/[٠-٩]/gu,ch=>String(ch.charCodeAt(0)-0x0660));
+   const localGpa=/^(?:معدل|اوسط نمرات|د نمرو اوسط)\\s*[:：]\\s*(\\d(?:\\.\\d{1,2})?)\\s*\\/\\s*(4(?:\\.0)?|5(?:\\.0)?)$/u.exec(digits.trim());
+   if(localGpa){const gpa=Number(localGpa[1]),scale=Number(localGpa[2]);if(gpa<=scale)claims.push({field:'gpa',value:{gpa,scale},sourceExcerpt:line});}
    m=/^TOEFL iBT: overall=(\d{1,3}); listening=(\d{1,2}); reading=(\d{1,2}); writing=(\d{1,2}); speaking=(\d{1,2})$/.exec(line);
    if(m){const n=m.slice(1).map(Number);if(n[0]<=120&&n.slice(1).every(v=>v<=30))claims.push({field:'languageTest',value:{test:'TOEFL iBT',overall:n[0],sections:Object.fromEntries(['listening','reading','writing','speaking'].map((k,i)=>[k,n[i+1]]))},sourceExcerpt:line});}
   }
