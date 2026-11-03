@@ -6,7 +6,7 @@ The production PDF/image gate stays **OFF**. Real students can use the consent-g
 
 ## What was automated
 
-- A one-shot, **manual** GitHub Actions workflow (.github/workflows/ocr-vendor-candidate.yml) creates a review artifact on a read-only runner. It is never triggered by pull requests or by a site visit.
+- A read-only GitHub Actions workflow (.github/workflows/ocr-vendor-candidate.yml) creates a review artifact when that workflow first lands on main, or upon explicit workflow_dispatch. It does not trigger from pull requests, ordinary source changes or site visits.
 - scripts/prepare-ocr-vendor-candidate.mjs fetches six exact-version npm package tarballs through npm pack --ignore-scripts: pdfjs-dist@4.10.38, tesseract.js@5.1.1, tesseract.js-core@5.1.1, and @tesseract.js-data/{eng,fas,pus}@1.0.0.
 - The complete candidate matrix is 15 files: PDF.js module + module worker, Tesseract ESM + worker, four core combinations each with a JS loader and WASM module, and three 4.0.0_best_int gzipped language models.
 - A JSON manifest records the npm package identity, npm tarball integrity, path, byte length and SHA-256 for each copied file. inspectCandidate() checks exact file completeness, uniqueness, SHA-256, sizes, symlinks and unexpected files. The generator refuses pre-existing destinations.
@@ -14,7 +14,7 @@ The production PDF/image gate stays **OFF**. Real students can use the consent-g
 
 ## Run
 
-When merged to default branch, in GitHub Actions choose **Prepare OCR first-party vendor candidate → Run workflow**. Alternatively in a networked clean environment run:
+The first merge of the workflow file into main triggers candidate preparation exactly once by path filter. To repeat later, in GitHub Actions choose **Prepare OCR first-party vendor candidate → Run workflow**. Alternatively in a networked clean environment run:
 
     node scripts/prepare-ocr-vendor-candidate.mjs /tmp/bursyar-ocr-candidate-unique
 
