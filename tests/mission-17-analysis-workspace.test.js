@@ -64,3 +64,9 @@ test('M17 trace selection preserves text opacity for WCAG contrast',()=>{
  assert.match(css,/\.aw-flow\[data-selected\] \[data-req\]\{opacity:1\}/);
  assert.match(css,/\.aw-req:focus-visible/);
 });
+
+test('M17 workspace contains overflow during 200% layout zoom',()=>{
+ assert.match(css,/#analysis-workspace\{[^}]*min-width:0/);
+ assert.match(css,/\.aw-flow\{min-width:0;max-width:100%;overflow-x:auto/);
+ assert.doesNotMatch(css,/overflow-x:visible/);
+});
