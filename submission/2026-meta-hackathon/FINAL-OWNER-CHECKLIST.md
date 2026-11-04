@@ -5,8 +5,9 @@ are owner-only in portal order.
 
 ## Verified by agents (do not redo)
 
-- [x] Production serves release `340a5e5` (+ docs `12ea353`):
-      https://bursyar.vercel.app — fingerprinted live.
+- [x] Production serves release `342d7db` (PRs #109, #111):
+      https://bursyar.vercel.app — fingerprinted live 2026-11-04
+      (supersedes the `340a5e5` record).
 - [x] Live QA 185/185 (en/fa/ps × 1440/768/390/320), axe clean,
       zero console errors, links intact (Mission 18 + §C recheck).
 - [x] Production TXT-only document gate enforced and CI-proven;
@@ -19,8 +20,8 @@ are owner-only in portal order.
       1080p, narrated + captioned, SHA-256 in FINAL-VIDEO-REPORT.md);
       fallback cut retained in the same folder.
 - [x] Submission text locked: `FINAL-SUBMISSION.md` (+ limitations).
-- [x] CI green on all release PRs (#86, #92, #93, #94) and main.
-- [x] Deadline reconfirmed on the public portal page: Nov 4, 9:00 PM ET.
+- [x] CI green on all release PRs (#109, #111) and main; no PRs open.
+- [x] Deadline reconfirmed on the public portal page 2026-11-04: Nov 4, 9:00 PM ET.
 
 ## Owner-only (in order, before Nov 4, 9:00 PM ET)
 

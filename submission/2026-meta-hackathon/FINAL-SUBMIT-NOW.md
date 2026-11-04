@@ -5,7 +5,7 @@ portal login and human judgment. Estimated owner time: 30–45 minutes.
 
 ## 0. Setup (2 min)
 
-- Workstation with the repo at `main` ≥ `12ea353` and these files:
+- Workstation with the repo at `main` ≥ `342d7db` and these files:
   `submission/2026-meta-hackathon/FINAL-SUBMISSION.md` (paste text),
   `final-assets/BursYar-Meta-Hackathon-Demo.mp4` (video),
   `final-assets/BursYar-Meta-Hackathon-Demo.srt` (captions).

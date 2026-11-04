@@ -1,14 +1,16 @@
 # BursYar — final submission (paste-ready)
 
 Source of truth for portal fields. Assembled 2026-11-02, locked
-2026-11-03 (Mission 19) at release `340a5e5` + docs `12ea353`
-(Missions 18–19: PRs #86, #92, #93, #94; production bundle
-`index-cslf-rZ1.js` fingerprinted live; final video is the narrated
-Mission 18 re-cut recorded against current production — see
+2026-11-03 (Mission 19), release pointers refreshed 2026-11-04
+(rescue mission) at `342d7db` (PRs #109, #111 merged after green CI;
+production bundle `index-CyL0ZQ5P.js` fingerprinted live; zero
+`engine/` drift since `340a5e5`; final video is the narrated
+Mission 18 re-cut — real product footage, recorded against an
+earlier production UI, hash re-verified — see
 FINAL-VIDEO-REPORT.md). Owner: paste into
 https://cerebralvalley.ai/e/meta-ai-developer-hackathon before
 **November 4, 9:00 PM ET** (deadline confirmed on the public event
-page 2026-11-03; judging Nov 4–8, finals Nov 9). Confirm asset
+page 2026-11-04; judging Nov 4–8, finals Nov 9). Confirm asset
 formats inside the portal first; fill the two OWNER placeholders
 (video link, team).
 

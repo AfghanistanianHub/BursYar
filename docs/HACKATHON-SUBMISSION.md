@@ -1,8 +1,10 @@
 # BursYar — hackathon submission package
 
-Prepared 2026-11-02, serving state re-verified 2026-11-03 at main
-`340a5e5` (Mission 18: PRs #50–#66 and #68–#86 merged, plus #92, #93;
-Issue #91 fixed, #88 TXT-gate intact). This package
+Prepared 2026-11-02, serving state re-verified 2026-11-04 at main
+`342d7db` (rescue mission: PR #109 provenance/eligibility explainer
+and PR #111 production TXT-only document labels merged after green
+CI; Issues #91 fixed, #88 TXT-gate intact, zero `engine/` drift
+since `340a5e5`). This package
 files nothing by itself; the owner
 files through the official portal (§7). Event identity, deadline,
 tracks, and judging criteria below are verified against authoritative
@@ -145,7 +147,8 @@ and model prose is never presented as certification of authenticity,
 eligibility, or admission. The two recorded runs are sufficient
 evidence of integration: all of `engine/` except `documents.js`
 is byte-identical from the verified backend commit `4e272a7`
-through release tip `340a5e5`, so nothing in the inference path
+through release tip `342d7db` (`git diff 340a5e5 342d7db -- engine/`
+is empty), so nothing in the inference path
 changed after the hosted proof; no further inference run is needed
 for the submission. Only `engine/documents.js` evolved since
 (`+40/−2`: additive manual transcription provenance plus stricter
@@ -206,34 +209,40 @@ Verified 2026-11-02 against authoritative public sources:
   the portal before recording.
 
 Serving state (verified by direct inspection 2026-11-02,
-re-verified Mission 18 on 2026-11-03):
+re-verified Mission 18 on 2026-11-03, re-verified rescue mission
+on 2026-11-04):
 
 - Frontend https://bursyar.vercel.app serves the release tip
-  `340a5e5`: production bundles `index-cslf-rZ1.js` /
-  `index-yzGWkncG.css` contain the post-#92 `enableScripting` flag,
+  `342d7db`: production bundles `index-CyL0ZQ5P.js` /
+  `index-5BE0k3Lv.css` contain the #111 markers (`noteProduction`,
+  `fileProduction` — unique to `342d7db`), the #109
+  `trust-explainer` marker, the post-#92 `enableScripting` flag,
   pinned vendor markers, the TXT-only notice, and all earlier
   markers (#69/#71 `skip-link`, `hero-actions`, `empty-note`,
   `summary::marker`; #72 `glyph-doc`, `glyph-search`,
   `eligibility-example`; M14 `hero-visual`, `how-it-works`,
   `chain-verdicts`; M16 `nextEmpty`, `nextEmptyCta`). SHA proven by
-  Vercel success status on the merge commit plus a behavioral
-  fingerprint (signed-out boot fetches Firebase chunks only via the
-  #93 library auto-load path).
+  Vercel success status on the merge commit plus marker fingerprint
+  (`git log -S noteProduction` resolves to `342d7db` only).
+  Post-merge smoke: 21/21 live production journeys (1 auth step
+  untested), TXT-only document labels confirmed live in en/fa/ps.
 - Backend is current and compatible: `engine/` unchanged except
   `documents.js` (+40/−2 document handling) from `4e272a7` through
-  `340a5e5`; `/health` returns 200 `ok:true` with local assessment,
+  `342d7db` (zero drift since `340a5e5`); `/health` returns 200
+  `ok:true` with local assessment,
   source retrieval, document storage, and configured Meta
   available. Render deployed SHA is owner-visible only.
 
-Fluent-review scope (exact, counted from source; all UNREVIEWED,
-review NOT complete): 401 Dari + 401 Pashto strings — 23 exported
-copy tables (356+356: i18n 35 incl. #69 skipToContent, journey 24 incl. 9 new M14 homepage keys + 2 new M16 empty-state keys, recovery 15, gap-actions
-6, pathfinder 4+4, research 34, journey-nav 7, analyzer 28+1+8+2,
-source-preview 17, documents 47+6, profile 34, academic-evidence 19,
-local-workflow 25, eligibility 25+5+8+1+1), workspace-overview
-inline copy (12+12), glossary terms (13+13), catalog country/level
-labels (6+6), research localized names (14+14). Record rule:
-TRANSLATION-REVIEW.json (still `PENDING_HUMAN_REVIEW`).
+Fluent-review scope (recounted from source 2026-11-04; all
+UNREVIEWED, review NOT complete): 380 Dari + 380 Pashto
+Arabic-script strings in the exported copy tables alone (method:
+leaf-string count over the copy modules covered by
+tests/frontend-i18n.test.js plus catalog/glossary/research-data),
+including the 2 new production TXT-only document strings per
+language from PR #111 — plus inline main-shell, workspace-overview,
+glossary, catalog-label, and research-name strings (the older
+401+401 figure predates PRs #86/#103/#109/#111 additions). Record
+rule: TRANSLATION-REVIEW.json (still `PENDING_HUMAN_REVIEW`).
 
 ## 8. Release checklist — genuinely outstanding only
 
@@ -243,11 +252,14 @@ TRANSLATION-REVIEW.json (still `PENDING_HUMAN_REVIEW`).
       `needs_reverification`).
 - [ ] Submission asset formats confirmed inside the participant
       portal; canonical video is
-      `final-assets/BursYar-Hackathon-Demo-Final.mp4` (2:59.90,
-      SHA-256 `731016d5…fac347`) — re-cut only if the portal
-      mandates another length.
+      `submission/2026-meta-hackathon/final-assets/BursYar-Meta-Hackathon-Demo.mp4`
+      (2:59.50, narrated, burned captions + 46-cue SRT,
+      SHA-256 `e954bbb4…28bc1`, hash re-verified 2026-11-04; shows
+      real product footage with LIVE/REHEARSAL/synthetic banners,
+      recorded against an earlier production UI) — re-cut only if
+      the portal mandates another length.
 - [ ] Owner files the submission through the official portal before
       November 4, 9:00 PM ET (deadline reconfirmed on the public
-      event page 2026-11-03; judging Nov 4–8, finals Nov 9). Code is
-      merged through PR #93; no engineering PR is pending (older
-      numbered drafts predate the release line).
+      event page 2026-11-04; judging Nov 4–8, finals Nov 9). Code is
+      merged through PR #111 (main `342d7db`, serving live); no
+      engineering PR is pending.
