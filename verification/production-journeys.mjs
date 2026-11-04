@@ -73,6 +73,7 @@ record('B', 'synthetic upload handled honestly', claims > 0 || /sign|401|approve
 await shot(page, 'B-documents');
 
 // ---------- Journey D — PathFinder alternatives (offline local workflow) ----------
+await page.locator('#journey-nav-mount').evaluate(el => { el.closest('details')?.setAttribute('open', ''); });
 await page.locator('.journey-offline').click();
 await expect(page.locator('.local-workflow')).toHaveAttribute('open', '');
 await expect(page.locator('#local-assessment')).toBeVisible();
