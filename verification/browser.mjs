@@ -70,6 +70,8 @@ try {
   // Editorial regression gate: all top-level landing sections must follow
   // the preceding section, not overlap the legacy sidebar grid.
   await expect(page.locator('.editorial-opportunity')).toHaveCount(3);
+  await expect(page.locator('.editorial-opportunity a').first()).toHaveAttribute('href',/^https:\/\//);
+  await expect(page.locator('.editorial-opportunity a').first()).toHaveAttribute('rel','noopener noreferrer');
   await expect(page.locator('.editorial-nav a')).toHaveCount(4);
   await expect.poll(()=>page.locator('.editorial-hero-illustration').evaluate(image=>image.complete&&image.naturalWidth>0),{timeout:10000}).toBe(true);
   const editorialGeometry=await page.evaluate(()=>{
