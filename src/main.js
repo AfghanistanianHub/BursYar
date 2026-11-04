@@ -21,7 +21,7 @@ import './guided-entry.css';
 import {sampleScholarships,filterScholarships,localizedCountry,localizedLevel} from './catalog.js';
 import {journeyCopy} from './journey-copy.js';
 import {translations} from './i18n.js';
-import {researchScholarships,researchLabel} from './research-catalog.js';
+import {researchScholarships,researchLabel,researchSourceUrl} from './research-catalog.js';
 const app=document.querySelector('#app');
 const state={language:localStorage.getItem('bursyar-language')||'en',q:'',country:'all',level:'all',selected:null};
 if(!translations[state.language])state.language='en';
@@ -74,7 +74,7 @@ ${ed.pillars.map((p,i)=>`<article class="editorial-pillar"><div class="editorial
       <p class="editorial-opportunity-provider" dir="auto">${esc(row.provider)}</p>
       <span class="editorial-opportunity-status">${esc(state.language==='fa'?'بررسی منبع رسمی':state.language==='ps'?'رسمي سرچینه وګورئ':'Check official details')}</span>
     </div>
-    <a href="#research-explorer" data-open=".resources" aria-label="${esc(row.title)} — ${esc(ed.view)}"><span aria-hidden="true">↗</span></a>
+    <a href="${esc(researchSourceUrl(row.sourceUrl)??'#research-explorer')}" ${researchSourceUrl(row.sourceUrl)?'target="_blank" rel="noopener noreferrer"':'data-open=".resources"'} aria-label="${esc(row.title)} — ${esc(state.language==='fa'?'بازکردن منبع برنامه':state.language==='ps'?'د پروګرام سرچینه پرانیزئ':'Open program source')}"><span aria-hidden="true">↗</span></a>
   </article>`).join('')}
  <a class="editorial-browse-all" href="#research-explorer" data-open=".resources">${esc(ed.view)} <span aria-hidden="true">↗</span></a>
  </div>
