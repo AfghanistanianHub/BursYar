@@ -1,0 +1,60 @@
+/* Editorial landing structural parity with user-provided ZIP.
+   This stylesheet changes presentation only. Existing modules still mount. */
+:root{--editorial-serif:Georgia,"Times New Roman",serif}
+.site .header{display:flex;align-items:center;gap:clamp(10px,2.5vw,36px);max-width:none}
+.site .header .logo{flex-shrink:0}
+.editorial-nav{display:flex;gap:clamp(13px,2.4vw,37px);margin-inline:auto;align-items:center}
+.editorial-nav a{font-size:10px;line-height:1.5;text-transform:uppercase;letter-spacing:.1em;text-decoration:none;color:#4D4B49;font-weight:550;white-space:nowrap}
+.editorial-nav a:hover{color:var(--brand);text-decoration:underline;text-underline-offset:6px}
+.site .hero{min-height:clamp(500px,49vw,670px);grid-template-columns:minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid #D8D0C8}
+.site .hero-copy{justify-content:center;padding:clamp(30px,5vw,82px) clamp(24px,5vw,85px);gap:0}
+.site .hero-kicker{display:none}
+.site .hero h1{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-size:clamp(55px,6.2vw,90px);font-weight:300;line-height:1.04;max-width:660px;margin:0 0 29px;letter-spacing:-.055em}
+.site .editorial-divider{width:100%;height:1px;background:#D8D0C8;margin:0 0 25px}
+.site .hero .lead{font-size:clamp(13px,1vw,15px);line-height:1.85;max-width:540px;color:#66615A}
+.site .hero-actions{margin-top:22px}
+.site .hero-actions .primary-link{font-size:12px;font-weight:550;padding:13px 19px}
+.site .hero-visual{background:#FAF8F4;border-inline-start:1px solid #D8D0C8}
+.site .hero-visual::before{opacity:.18}
+.site .hero-visual::after{content:"BURS YAR / DOCUMENT FIRST"}
+.site .evidence-preview{max-width:410px;border:1px solid #D8D0C8;padding:30px;background:#FEFDFB;box-shadow:16px 16px 0 -15px #BFB8AF}
+.site .evidence-preview .preview-tag{letter-spacing:.16em;font-size:10px}
+.editorial-pillars{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-block-end:1px solid #D8D0C8;background:#FEFDFB}
+.editorial-pillar{min-height:225px;padding:clamp(24px,3.5vw,54px) clamp(22px,3.5vw,58px);border-inline-end:1px solid #D8D0C8}
+.editorial-pillar:last-child{border-inline-end:0}
+.editorial-pillar-icon{font-family:Georgia,serif;color:#1E3A5F;font-size:29px;margin-bottom:15px;line-height:1}
+.editorial-pillar h2{font-family:"Newsreader",Georgia,serif;font-weight:400;letter-spacing:-.04em;font-size:clamp(23px,2.1vw,31px);line-height:1.2;margin:0 0 11px}
+.editorial-pillar p{color:#66615A;font-size:13px;line-height:1.85;max-width:320px;margin:0}
+.editorial-selected{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;padding:clamp(38px,5vw,80px) clamp(24px,5vw,80px);border-bottom:1px solid #D8D0C8;background:#FAF8F4}
+.editorial-selected .editorial-label{font-size:10px;text-transform:uppercase;letter-spacing:.14em;margin:0 0 20px;color:#66615A}
+.editorial-selected h2{font-family:"Newsreader",Georgia,serif;font-weight:300;font-size:clamp(38px,4vw,60px);letter-spacing:-.05em;line-height:1.08;max-width:650px;margin:0}
+.editorial-selected-action{border-top:1px solid #D8D0C8;padding-top:24px}
+.editorial-selected-action p{margin:0 0 26px;font-size:13px;line-height:1.85;max-width:430px;color:#66615A}
+.editorial-selected-link{display:inline-flex;justify-content:space-between;gap:50px;align-items:center;border-bottom:1px solid #1E3A5F;color:#1E3A5F;padding-block:12px;font-size:12px;text-decoration:none;font-weight:550}
+.site .how-it-works{border-bottom:1px solid #D8D0C8}
+html[dir=rtl] .editorial-selected-link{flex-direction:row}
+html[lang=fa] .editorial-selected h2,html[lang=ps] .editorial-selected h2,html[lang=fa] .editorial-pillar h2,html[lang=ps] .editorial-pillar h2{font-family:var(--font-fa);font-size:clamp(27px,3vw,42px);letter-spacing:0;line-height:1.6}
+html[lang=fa] .hero h1,html[lang=ps] .hero h1{font-family:var(--font-fa);letter-spacing:0;line-height:1.52;font-size:clamp(36px,4.4vw,66px);font-weight:500}
+@media(max-width:980px){
+ .editorial-nav{gap:14px}.editorial-nav a{font-size:9px}
+ .site .header{gap:12px}
+ .site .hero{min-height:460px}
+ .site .hero-copy{padding:42px 29px}
+ .site .hero h1{font-size:clamp(45px,6vw,65px)}
+}
+@media(max-width:760px){
+ .editorial-nav{order:5;width:100%;justify-content:space-around;margin:0;border-top:1px solid #D8D0C8;padding:10px 0}
+ .site .header{flex-wrap:wrap;padding-top:10px;padding-bottom:0;gap:8px}
+ .site .header .logo{margin-inline-end:auto}
+ .site .hero{grid-template-columns:1fr;min-height:0}
+ .site .hero-copy{padding:48px 22px 43px}
+ .site .hero h1{font-size:clamp(49px,10vw,72px)}
+ .site .hero-visual{border-inline-start:0;border-top:1px solid #D8D0C8;min-height:325px}
+ .editorial-pillars{grid-template-columns:1fr}
+ .editorial-pillar{min-height:0;padding:26px 24px;border-inline-end:0;border-bottom:1px solid #D8D0C8}
+ .editorial-pillar:last-child{border-bottom:0}
+ .editorial-pillar-icon{margin-bottom:10px}
+ .editorial-selected{grid-template-columns:1fr;padding:45px 24px;gap:24px}
+}
+@media(max-width:390px){.editorial-nav a{font-size:8px;letter-spacing:.06em}.site .hero h1{font-size:46px}.site .header .logo{font-size:21px}}
+@media(prefers-reduced-motion:reduce){.editorial-nav a,.editorial-selected-link{transition:none}}
