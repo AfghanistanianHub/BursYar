@@ -132,3 +132,12 @@ html[lang=fa] .pathfinder-intro h2,html[lang=ps] .pathfinder-intro h2,html[lang=
  .pathfinder-timeline a{grid-template-columns:44px minmax(0,1fr) 22px}
  .pathfinder-step-copy strong{font-size:23px}
 }
+
+/* Editorial branding and primary entry to functional profile workflow */
+.site .header .logo-mark{display:inline-flex;align-items:center;justify-content:center;border:0;min-width:38px;min-height:38px;color:#474D4D;background:none}
+.site .header .logo-mark svg{max-width:38px;max-height:38px}
+.site .header .logo{margin-inline-end:0;gap:8px}
+.site .header .header-start{background:var(--brand);color:white;display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 18px;border:1px solid var(--brand);font-size:11px;font-weight:600;text-decoration:none;white-space:nowrap;border-radius:2px}
+.site .header .header-start:hover{background:var(--brand-dark)}
+@media(max-width:760px){.site .header .header-start{padding:8px 11px;font-size:10px;min-height:34px}.site .header .logo-mark svg{width:30px;height:30px}}
+@media(max-width:390px){.site .header .logo-mark{min-width:29px}.site .header .logo{gap:3px}.site .header .header-start{padding:6px 9px}}
