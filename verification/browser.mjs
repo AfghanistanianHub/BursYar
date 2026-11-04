@@ -75,7 +75,7 @@ try {
   const editorialGeometry=await page.evaluate(()=>{
     const rect=selector=>{const b=document.querySelector(selector).getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,right:b.right,width:b.width}};
     const hero=rect('.hero'),pillars=rect('.editorial-pillars'),selected=rect('.editorial-selected'),how=rect('.how-it-works');
-    const nav=rect('#journey-nav-mount');
+    const nav=rect('.journey-more');
     const image=document.querySelector('.editorial-hero-illustration');
     return {hero,pillars,selected,how,nav,imageLoaded:image.complete&&image.naturalWidth>0};
   });
@@ -86,7 +86,10 @@ try {
   expect(editorialGeometry.nav.top).toBeGreaterThanOrEqual(editorialGeometry.how.bottom-2);
   expect(editorialGeometry.selected.width).toBeGreaterThan(width*0.8);
 
-  // Mission 04: localized navigation across all RTL/LTR viewport variants.
+  // Mission 04: secondary help is opt-in, but remains accessible.
+  await expect(page.locator('.journey-more')).not.toHaveAttribute('open','');
+  await page.locator('.journey-more > summary').click();
+  await expect(page.locator('.journey-more')).toHaveAttribute('open','');
   const steps=page.locator('.journey-nav ol a');
   await expect(steps).toHaveCount(4);
   await page.locator('.journey-offline').click();
