@@ -21,7 +21,8 @@ producer's frozen tree is the Mission 19 caption fix in
 ## Re-run (regenerates the final MP4 + SRT)
 
 Prerequisites: Node 24 + repo deps, Chromium (`npx playwright
-install chromium`), imageio-ffmpeg (`pip install imageio-ffmpeg`;
+install chromium`), imageio-ffmpeg (`pip install imageio-ffmpeg` —
+auto-detected for the installing Python, or system ffmpeg on PATH;
 override with `$FFMPEG`), macOS `say` with the Reed voice (only if
 re-synthesizing narration — the committed AIFFs are reused as-is).
 

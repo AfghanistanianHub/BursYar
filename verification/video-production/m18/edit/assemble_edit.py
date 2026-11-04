@@ -4,7 +4,19 @@
 # Requires: imageio-ffmpeg binary (FFMPEG env or default path below).
 import json, os, subprocess, sys, textwrap
 PROD = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FF = os.environ.get('FFMPEG', '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/imageio_ffmpeg/binaries/ffmpeg-macos-x86_64-v9.0.2')
+def _ffmpeg():
+    # $FFMPEG wins; else the imageio-ffmpeg install for THIS python
+    # (portable across machines/venvs); else PATH; else the proven path.
+    if os.environ.get('FFMPEG'):
+        return os.environ['FFMPEG']
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        pass
+    import shutil
+    return shutil.which('ffmpeg') or '/Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages/imageio_ffmpeg/binaries/ffmpeg-macos-x86_64-v9.0.2'
+FF = _ffmpeg()
 OUT = sys.argv[sys.argv.index('--out')+1] if '--out' in sys.argv else os.path.join(PROD, 'edit', 'draft-m18.mp4')
 FILM = 179.5
 tl = json.load(open(os.path.join(PROD, 'audio', 'timeline.json')))
