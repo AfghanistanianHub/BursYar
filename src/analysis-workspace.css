@@ -3,8 +3,8 @@
  * RTL; horizontal flow on desktop, stacked timeline on mobile. Motion is
  * limited to opacity/highlight transitions guarded by
  * prefers-reduced-motion. */
-#analysis-workspace{grid-column:1/-1;scroll-margin-top:90px}
-.aw-shell{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:clamp(18px,3vw,32px)}
+#analysis-workspace{grid-column:1/-1;scroll-margin-top:90px;min-width:0;max-width:100%}
+.aw-shell{min-width:0;max-width:100%;overflow-wrap:anywhere;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-sm);padding:clamp(18px,3vw,32px)}
 .aw-head{max-width:78ch}
 .aw-synthetic{display:inline-block;font-size:.75rem;font-weight:700;color:var(--warn);background:var(--warn-bg);border:1px solid currentColor;border-radius:var(--r-sm);padding:4px 10px;margin:0 0 12px}
 .aw-head h2{font-size:clamp(1.4rem,2.6vw,1.9rem);letter-spacing:-.02em;margin:0 0 6px}
@@ -22,15 +22,22 @@
 /* ---- Flow stages ---- */
 .aw-flow{display:grid;gap:14px;grid-template-columns:1fr;align-items:start}
 @media(min-width:760px){.aw-flow{grid-template-columns:repeat(5,minmax(208px,1fr));overflow-x:auto;padding-bottom:6px;scroll-snap-type:x proximity}.aw-stage{scroll-snap-align:start}}
-@media(min-width:1200px){.aw-flow{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(min-width:1200px){.aw-flow{grid-template-columns:repeat(5,minmax(0,1fr));overflow-x:auto}}
 @media(min-width:1024px){#analysis-workspace{grid-column:2}}
 .aw-stage{position:relative;background:var(--surface-2);border:1px solid var(--line-soft);border-radius:var(--r-md);padding:16px;min-width:0}
 .aw-stage-title{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--brand);font-weight:800;margin:0 0 12px}
 [dir=rtl] .aw-stage-title{letter-spacing:0}
 .aw-hint{font-size:.8125rem;color:var(--muted);margin:0 0 10px}
-/* Trace highlight: the selected requirement's chain is emphasized; nothing
- * is dimmed, so every label keeps full text contrast (axe-clean). */
-.aw-flow [data-req].aw-active:not(.aw-req):not(mark){outline:2px solid var(--accent);outline-offset:2px}
+/* Trace highlight: the selected requirement's chain is emphasized with a
+ * contrast-preserving outline; nothing is dimmed, so every label keeps
+ * full text contrast (axe-clean). */
+.aw-flow[data-selected] [data-req]{transition:opacity .18s ease}
+.aw-flow[data-selected] [data-req]{opacity:1}
+.aw-flow[data-selected=degree] [data-req=degree]:not(mark),
+.aw-flow[data-selected=english] [data-req=english]:not(mark),
+.aw-flow[data-selected=gpa] [data-req=gpa]:not(mark),
+.aw-flow[data-selected=continuity] [data-req=continuity]:not(mark){outline:2px solid var(--brand);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.aw-flow[data-selected] [data-req]{transition:none}}
 /* ---- Source stage ---- */
 .aw-source-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}
 .aw-issuer{font-weight:800}
@@ -101,3 +108,13 @@
  .aw-stage::before{content:"";position:absolute;inset-inline-start:-8px;top:6px;width:13px;height:13px;border-radius:50%;background:var(--surface);border:3px solid var(--brand)}
  .aw-stage:last-child{padding-bottom:0}
 }
+
+/* High-contrast labels for 12px notes, evidence and status chips. */
+#analysis-workspace{--faint:#4a596b;--ok:#245c3d;--bad:#8a3030;--warn:#76500a}
+.aw-excerpt mark{color:#26364a}
+.aw-excerpt mark:hover,.aw-flow[data-selected] .aw-excerpt mark{color:#26364a}
+.aw-req:focus-visible,.aw-mini:focus-visible,.aw-reset:focus-visible{outline:3px solid var(--brand-dark);outline-offset:3px}
+
+/* Keep layout zoom/reflow within the stage region instead of overflowing body. */
+.aw-flow{min-width:0;max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain}
+.aw-stage,.aw-doc,.aw-next,.aw-reason{min-width:0;overflow-wrap:anywhere}
