@@ -5,21 +5,27 @@ This file supersedes historical release status in earlier handoffs. It records o
 ## Open and identify the release
 
 - App: https://bursyar.vercel.app
-- Last verified production code: `59fb81f` (PRs #83, #85; serves bundles
-  `index-C35aFzXy.js` / `index-yzGWkncG.css` containing the #69/#71
-  markers (`skip-link`, `hero-actions`, `empty-note`,
-  `summary::marker`), #72 markers (`glyph-doc`,
-  `glyph-search`, `eligibility-example`), M14 markers
-  (`hero-visual`, `how-it-works`, `chain-verdicts`), and M16 markers
-  (`nextEmpty`, `nextEmptyCta`), plus #83 marker (`requestId`).
-  Previous code release: `35fa856` (PR #81).
-- CI: PR #81 — verify, emulator, macos-helper, and browser jobs all
-  green (browser pinned to ubuntu-24.04; see PR #79).
-- 343 Node tests, production build, full mocked browser journey,
-  research/document browser checks, emulator and macOS-helper checks
-  passed. Network failure injection is local, not a production
-  interruption.
-- Render backend remains `4e272a74e65df5ccf2318f3adac312196f5db443`; later changes have not changed its engine/database code. No backend redeploy was needed for these UI changes.
+- Last verified production code: `342d7db` (PR #111; parent
+  `323308a` = PR #109; verified live 2026-11-04). Serves bundles
+  `index-CyL0ZQ5P.js` / `index-5BE0k3Lv.css` containing the #111
+  markers (`noteProduction`, `fileProduction` — unique to `342d7db`),
+  #109 marker (`trust-explainer`), #69/#71 markers (`skip-link`,
+  `hero-actions`, `empty-note`, `summary::marker`), #72 markers
+  (`glyph-doc`, `glyph-search`, `eligibility-example`), M14 markers
+  (`hero-visual`, `how-it-works`, `chain-verdicts`), M16 markers
+  (`nextEmpty`, `nextEmptyCta`), and #83 marker (`requestId`).
+  Previous code release: `323308a` (PR #109).
+- CI: PR #111 run 41913126191 — verify, emulator, macos-helper,
+  browser, Vercel, Vercel Agent Review, Vercel Preview Comments all
+  green. PR #109 merged earlier with all checks green; no PRs open.
+- 382 Node tests, production build, 15/15 mocked browser cases,
+  21/21 live production journeys (1 auth step untested: no test
+  credentials used), and a 105/105 live responsive/keyboard/console
+  probe (320/390/768/1024/1440 px × en/fa/ps) passed. Network
+  failure injection is local, not a production interruption.
+- Render backend remains `4e272a74e65df5ccf2318f3adac312196f5db443`;
+  `git diff 340a5e5 342d7db -- engine/` is empty, so no inference-path
+  code changed and no backend redeploy was needed for these UI changes.
 
 ## Short demonstration without new paid inference
 

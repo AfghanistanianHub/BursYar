@@ -1,10 +1,11 @@
 # BursYar — submission checklist
 
-## Done (verified, Mission 18 at `340a5e5`)
+## Done (verified, rescue mission 2026-11-04 at `342d7db`)
 
 - [x] Public repo with meaningful history from 2026-10-26
 - [x] Live demo serving the release tip (SHA fingerprinted live: bundle
-      `index-cslf-rZ1.js`, post-#92 flags, Firebase-configured build)
+      `index-CyL0ZQ5P.js` with #111 markers, post-#92 flags,
+      Firebase-configured build)
 - [x] Meta Muse Spark integration with two recorded validated runs
 - [x] Provisional 3-minute captioned demo cut (Chrome playback verified
       179.9 s / 1080p; claims re-checked vs current production)
