@@ -39,6 +39,7 @@ try {
   // the preceding section, not overlap the legacy sidebar grid.
   await expect(page.locator('.editorial-opportunity')).toHaveCount(3);
   await expect(page.locator('.editorial-nav a')).toHaveCount(4);
+  await expect.poll(()=>page.locator('.editorial-hero-illustration').evaluate(image=>image.complete&&image.naturalWidth>0),{timeout:10000}).toBe(true);
   const editorialGeometry=await page.evaluate(()=>{
     const rect=selector=>{const b=document.querySelector(selector).getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,right:b.right,width:b.width}};
     const hero=rect('.hero'),pillars=rect('.editorial-pillars'),selected=rect('.editorial-selected'),how=rect('.how-it-works');
