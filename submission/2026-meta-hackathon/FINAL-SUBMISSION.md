@@ -2,9 +2,9 @@
 
 Source of truth for portal fields. Assembled 2026-11-02, locked
 2026-11-03 (Mission 19), release pointers refreshed 2026-11-04
-(rescue mission) at `342d7db` (PRs #109, #111 merged after green CI;
-production bundle `index-CyL0ZQ5P.js` fingerprinted live; zero
-`engine/` drift since `340a5e5`; final video is the narrated
+(rescue mission) at `cb9eff1` (PRs #109, #110, #111, #112 merged
+after green CI; production bundle `index-zQcavhRk.js` fingerprinted
+live; zero `engine/` drift since `340a5e5`; final video is the narrated
 Mission 18 re-cut — real product footage, recorded against an
 earlier production UI, hash re-verified — see
 FINAL-VIDEO-REPORT.md). Owner: paste into

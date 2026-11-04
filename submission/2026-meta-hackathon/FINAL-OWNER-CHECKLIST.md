@@ -5,7 +5,7 @@ are owner-only in portal order.
 
 ## Verified by agents (do not redo)
 
-- [x] Production serves release `342d7db` (PRs #109, #111):
+- [x] Production serves release `cb9eff1` (PRs #109–#112):
       https://bursyar.vercel.app — fingerprinted live 2026-11-04
       (supersedes the `340a5e5` record).
 - [x] Live QA 185/185 (en/fa/ps × 1440/768/390/320), axe clean,
@@ -20,7 +20,7 @@ are owner-only in portal order.
       1080p, narrated + captioned, SHA-256 in FINAL-VIDEO-REPORT.md);
       fallback cut retained in the same folder.
 - [x] Submission text locked: `FINAL-SUBMISSION.md` (+ limitations).
-- [x] CI green on all release PRs (#109, #111) and main; no PRs open.
+- [x] CI green on all release PRs (#109, #110, #111, #112) and main; no PRs open.
 - [x] Deadline reconfirmed on the public portal page 2026-11-04: Nov 4, 9:00 PM ET.
 
 ## Owner-only (in order, before Nov 4, 9:00 PM ET)

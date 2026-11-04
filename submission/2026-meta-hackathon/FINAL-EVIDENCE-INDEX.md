@@ -6,17 +6,18 @@ Paths are repo-relative unless noted; SHAs are SHA-256.
 ## Release & deployment
 
 - Production app: https://bursyar.vercel.app — release `main`
-  `342d7db` (PRs #109/#111; supersedes the `340a5e5` /
-  `index-cslf-rZ1.js` record); bundles `index-CyL0ZQ5P.js` /
-  `index-5BE0k3Lv.css` (JS carries `noteProduction` /
-  `fileProduction` markers unique to `342d7db`; CSS name identical
-  to the local build). Fingerprint proof:
+  `cb9eff1` (PRs #109/#110/#111/#112; supersedes the `340a5e5` /
+  `index-cslf-rZ1.js` record); bundles `index-zQcavhRk.js` /
+  `index-B5HKycc2.css` (JS carries #110 `story-board` /
+  `story-index` / `heroCaption` markers from `22724b1` plus #111
+  `noteProduction` / `fileProduction` markers). Fingerprint proof:
   `submission/2026-meta-hackathon/RELEASE-RESCUE-2026-11-04.md`;
   prior proof `docs/MISSION-18-RELEASE-VERIFICATION.md` §1.
 - Backend health: https://bursyar.vercel.app/health (`ok:true`,
   rechecked 2026-11-04).
-- CI: PR #111 run 41913126191 (7/7 green); PR #109 merged with all
-  checks green; no PRs open.
+- CI: PRs #110/#111/#112 all 7/7 green (#111 run 41913126191, #112
+  run 41915465486); PR #109 merged with all checks green; no PRs
+  open.
 - Release verification records:
   `submission/2026-meta-hackathon/RELEASE-VERIFICATION.md` (M18)
   and `RELEASE-RESCUE-2026-11-04.md` (rescue mission).
@@ -44,8 +45,8 @@ Paths are repo-relative unless noted; SHAs are SHA-256.
 - Hosted run `5a58bff8-0885-42c3-a707-60ce1fe4a8e9` (1 Nov):
   `docs/HOSTED-META.md` + `docs/checkpoints/18-*.md`.
 - Inference-path stability: all of `engine/` except `documents.js`
-  byte-identical from backend `4e272a7` to `342d7db`
-  (`git diff 4e272a7 342d7db -- engine/`; zero drift since `340a5e5`).
+  byte-identical from backend `4e272a7` to `cb9eff1`
+  (`git diff 4e272a7 cb9eff1 -- engine/`; zero drift since `340a5e5`).
 - No-prompts-retained policy + per-request gates:
   `docs/HOSTED-META.md`, `docs/INFERENCE-RUNBOOK.md`.
 
