@@ -35,6 +35,30 @@ try {
   let responseEvidence=evidence;let responseStatus=200;let sawRequest=false;let calls=0;
   await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?{...normalizeEvidence(JSON.stringify({criteria:responseEvidence.criteria.map(({kind,required,excerpt,en,fa,ps})=>({kind,required,excerpt,en,fa,ps})),deadline:responseEvidence.deadline,funding:responseEvidence.funding}),{text:body.text,sourceUrl:body.sourceUrl}),sourceProvenance:body.receipt??{kind:'user_pasted_text'}}:{error:'test-error'})});});
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
+  if(language==='en'&&width===1280){
+    const analysisFlow=page.locator('#analysis-workspace .aw-flow');
+    await expect(analysisFlow).toBeVisible();
+    const flowGeometry=await analysisFlow.evaluate(el=>({
+      width:el.clientWidth,scroll:el.scrollWidth,
+      grid:getComputedStyle(el).gridTemplateColumns,
+      stages:el.querySelectorAll('.aw-stage').length
+    }));
+    expect(flowGeometry.stages).toBe(5);
+    expect(flowGeometry.scroll).toBeLessThanOrEqual(flowGeometry.width+2);
+    await page.emulateMedia({media:'print'});
+    const printFacts=await page.evaluate(()=>({
+      skip:getComputedStyle(document.querySelector('.skip-link')).display,
+      workflowOverflow:(()=>{const e=document.querySelector('.aw-flow');return e.scrollWidth>e.clientWidth+2;})(),
+      pathfinderStrip:!!document.querySelector('.editorial-pathfinder-image'),
+      stageCount:document.querySelectorAll('.aw-stage').length
+    }));
+    expect(printFacts.skip).toBe('none');
+    expect(printFacts.workflowOverflow).toBe(false);
+    expect(printFacts.pathfinderStrip).toBe(false);
+    expect(printFacts.stageCount).toBe(5);
+    await page.pdf({path:'verification/artifacts/editorial-print-en.pdf',format:'A4',printBackground:true});
+    await page.emulateMedia({media:'screen'});
+  }
   // Editorial regression gate: all top-level landing sections must follow
   // the preceding section, not overlap the legacy sidebar grid.
   await expect(page.locator('.editorial-opportunity')).toHaveCount(3);
