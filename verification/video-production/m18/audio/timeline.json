@@ -1,0 +1,298 @@
+[
+ {
+  "act": "A1",
+  "file": "A1-00.aiff",
+  "text": "Across Afghanistan, talented students \u2014 especially women and girls facing closed doors \u2014 must navigate foreign scholarship systems in a second or third language.",
+  "start": 0.3,
+  "dur": 10.123,
+  "trim0": 0
+ },
+ {
+  "act": "A1",
+  "file": "A1-01.aiff",
+  "text": "Requirements get lost in translation.",
+  "start": 10.67,
+  "dur": 2.489,
+  "trim0": 0
+ },
+ {
+  "act": "A1",
+  "file": "A1-02.aiff",
+  "text": "BursYar turns a scholarship page into a personal, evidence-based action plan.",
+  "start": 13.41,
+  "dur": 5.198,
+  "trim0": 0
+ },
+ {
+  "act": "A2",
+  "file": "A2-00.aiff",
+  "text": "This is BursYar, running live.",
+  "start": 20.3,
+  "dur": 1.918,
+  "trim0": 0
+ },
+ {
+  "act": "A2",
+  "file": "A2-01.aiff",
+  "text": "A guided workspace takes you from possibility to a plan \u2014 discover, review, assess, act.",
+  "start": 22.47,
+  "dur": 6.027,
+  "trim0": 0
+ },
+ {
+  "act": "A2",
+  "file": "A2-02.aiff",
+  "text": "Start with discovery.",
+  "start": 28.75,
+  "dur": 1.385,
+  "trim0": 0
+ },
+ {
+  "act": "A2",
+  "file": "A2-03.aiff",
+  "text": "The research library searches and filters historical leads \u2014 every record honestly labeled as needing re-verification.",
+  "start": 30.38,
+  "dur": 7.223,
+  "trim0": 0
+ },
+ {
+  "act": "A3",
+  "file": "A3-00.aiff",
+  "text": "Then, read the official source \u2014 never a rumor.",
+  "start": 40.3,
+  "dur": 2.749,
+  "trim0": 0
+ },
+ {
+  "act": "A3",
+  "file": "A3-01.aiff",
+  "text": "Signed-out visitors meet a clear sign-in gate.",
+  "start": 43.3,
+  "dur": 2.695,
+  "trim0": 0
+ },
+ {
+  "act": "A3",
+  "file": "A3-02.aiff",
+  "text": "Nothing is fetched silently.",
+  "start": 46.24,
+  "dur": 1.732,
+  "trim0": 0
+ },
+ {
+  "act": "A3",
+  "file": "A3-03.aiff",
+  "text": "With approval, BursYar fetches the official page and shows exactly what it retrieved \u2014 before anything is analyzed.",
+  "start": 48.23,
+  "dur": 6.931,
+  "trim0": 0
+ },
+ {
+  "act": "A3",
+  "file": "A3-04.aiff",
+  "text": "Documents stay private.",
+  "start": 55.41,
+  "dur": 1.667,
+  "trim0": 0
+ },
+ {
+  "act": "A3",
+  "file": "A3-05.aiff",
+  "text": "You consent, review each extracted claim, reject what is wrong \u2014 a rejected degree never enters your profile.",
+  "start": 57.32,
+  "dur": 6.898,
+  "trim0": 0
+ },
+ {
+  "act": "A4",
+  "file": "A4-00.aiff",
+  "text": "This screen shows the analysis interface with a simulated response.",
+  "start": 70.3,
+  "dur": 4.241,
+  "trim0": 0
+ },
+ {
+  "act": "A4",
+  "file": "A4-01.aiff",
+  "text": "AI interprets.",
+  "start": 74.79,
+  "dur": 1.207,
+  "trim0": 0
+ },
+ {
+  "act": "A4",
+  "file": "A4-02.aiff",
+  "text": "Evidence decides.",
+  "start": 76.25,
+  "dur": 1.263,
+  "trim0": 0
+ },
+ {
+  "act": "A4",
+  "file": "A4-03.aiff",
+  "text": "Meta Muse Spark 1.3 reads the approved text and selects candidate evidence.",
+  "start": 77.76,
+  "dur": 5.318,
+  "trim0": 0
+ },
+ {
+  "act": "A4",
+  "file": "A4-04.aiff",
+  "text": "Two live runs are on record \u2014 four criteria and two funding excerpts validated locally, one and one on hosted infrastructure.",
+  "start": 83.33,
+  "dur": 7.894,
+  "trim0": 0
+ },
+ {
+  "act": "A4",
+  "file": "A4-05.aiff",
+  "text": "But the model is never trusted blindly: every quotation is re-checked against the source, byte for byte.",
+  "start": 91.47,
+  "dur": 6.729,
+  "trim0": 0
+ },
+ {
+  "act": "A5",
+  "file": "A5-00.aiff",
+  "text": "Every machine claim stays bound to its quotation.",
+  "start": 100.3,
+  "dur": 3.462,
+  "trim0": 0
+ },
+ {
+  "act": "A5",
+  "file": "A5-01.aiff",
+  "text": "Met.",
+  "start": 104.01,
+  "dur": 0.465,
+  "trim0": 0
+ },
+ {
+  "act": "A5",
+  "file": "A5-02.aiff",
+  "text": "Not met.",
+  "start": 104.73,
+  "dur": 0.693,
+  "trim0": 0
+ },
+ {
+  "act": "A5",
+  "file": "A5-03.aiff",
+  "text": "Or honestly unknown.",
+  "start": 105.67,
+  "dur": 1.358,
+  "trim0": 0
+ },
+ {
+  "act": "A5",
+  "file": "A5-04.aiff",
+  "text": "The conservative compiler compares your reviewed profile against the evidence.",
+  "start": 107.28,
+  "dur": 4.74,
+  "trim0": 0
+ },
+ {
+  "act": "A5",
+  "file": "A5-05.aiff",
+  "text": "What it cannot prove, it calls unknown \u2014 and unknown is never treated as eligible.",
+  "start": 112.27,
+  "dur": 4.785,
+  "trim0": 0
+ },
+ {
+  "act": "A5",
+  "file": "A5-06.aiff",
+  "text": "When evidence is missing, PathFinder names the gap and shows the legitimate next step: verify the exact requirement with the institution.",
+  "start": 117.3,
+  "dur": 8.994,
+  "trim0": 0
+ },
+ {
+  "act": "A6",
+  "file": "A6-00.aiff",
+  "text": "Reviewed by you.",
+  "start": 130.3,
+  "dur": 0.976,
+  "trim0": 0
+ },
+ {
+  "act": "A6",
+  "file": "A6-01.aiff",
+  "text": "Never verified for you.",
+  "start": 131.53,
+  "dur": 1.472,
+  "trim0": 0
+ },
+ {
+  "act": "A6",
+  "file": "A6-02.aiff",
+  "text": "Every claim carries its exact source quotation \u2014 with an explicit warning until a human has reviewed it.",
+  "start": 133.25,
+  "dur": 6.297,
+  "trim0": 0
+ },
+ {
+  "act": "A6",
+  "file": "A6-03.aiff",
+  "text": "In your own language.",
+  "start": 139.79,
+  "dur": 1.257,
+  "trim0": 0
+ },
+ {
+  "act": "A6",
+  "file": "A6-04.aiff",
+  "text": "English, Dari, and Pashto \u2014 with full right-to-left support.",
+  "start": 141.3,
+  "dur": 3.982,
+  "trim0": 0
+ },
+ {
+  "act": "A6",
+  "file": "A6-05.aiff",
+  "text": "Translations are machine-drafted and still await human review.",
+  "start": 145.53,
+  "dur": 3.736,
+  "trim0": 0
+ },
+ {
+  "act": "A7",
+  "file": "A7-00.aiff",
+  "text": "BursYar: evidence-first AI, conservative eligibility, actionable guidance, private by design.",
+  "start": 155.3,
+  "dur": 7.053,
+  "trim0": 0
+ },
+ {
+  "act": "A7",
+  "file": "A7-01.aiff",
+  "text": "Built for the students who need clarity most \u2014 so they can understand what a scholarship demands, gather the right proof, and take the next step themselves.",
+  "start": 162.6,
+  "dur": 9.181,
+  "trim0": 0
+ },
+ {
+  "act": "A7",
+  "file": "A7-02.aiff",
+  "text": "From possibility to a plan.",
+  "start": 172.03,
+  "dur": 1.997,
+  "trim0": 0
+ },
+ {
+  "act": "A7",
+  "file": "A7-03.aiff",
+  "text": "BursYar.",
+  "start": 174.28,
+  "dur": 0.717,
+  "trim0": 0
+ },
+ {
+  "act": "A7",
+  "file": "A7-04.aiff",
+  "text": "Opportunity should not be lost in translation.",
+  "start": 175.25,
+  "dur": 2.891,
+  "trim0": 0
+ }
+]

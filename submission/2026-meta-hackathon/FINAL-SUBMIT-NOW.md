@@ -66,5 +66,8 @@ portal login and human judgment. Estimated owner time: 30–45 minutes.
   redesign.
 - Site looks down: check https://bursyar.vercel.app/health first
   (cold starts can take ~60 s on the free backend, then 200).
+- Format-forced re-cut: the full pipeline is committed at
+  `verification/video-production/m18/` (README: one re-render
+  command); the agent chat can run it — same-day turnaround.
 - Deadline panic: the fallback video + this sheet are sufficient to
   file in 15 minutes. File SOMETHING true before 9:00 PM ET.

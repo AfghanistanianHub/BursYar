@@ -46,9 +46,11 @@ Paths are repo-relative unless noted; SHAs are SHA-256.
 
 ## Video
 
-- FINAL: `submission/2026-meta-hackathon/final-assets/BursYar-Meta-Hackathon-Demo.mp4`
-  (26,998,566 bytes, SHA-256 `84e20401…6147` — full value in
-  FINAL-VIDEO-REPORT.md) + `.srt` + `M18-RECUT-*.md`.
+- Final: `submission/2026-meta-hackathon/final-assets/BursYar-Meta-Hackathon-Demo.mp4`
+  (26,984,833 bytes, SHA-256 `e954bbb4…28bc` — full value in
+  FINAL-VIDEO-REPORT.md) + 46-cue `.srt` + `M18-RECUT-*.md`.
+  Reproducible pipeline (footage, audio, labels, scripts):
+  `verification/video-production/m18/` (README inside).
 - FALLBACK (retained, verified): `.../final-assets/BursYar-Hackathon-Demo-Final.mp4`
   (8,878,877 bytes, SHA-256 `731016d5…c347`) + narration script +
   `VIDEO-QUALITY-REPORT.md` + `BursYar-Video-Manifest.json`.
