@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,300;6..72,400;6..72,500&display=swap');
+/* Offline-safe font stack: Georgia fallback until Newsreader can be self-hosted. */
 /* Editorial landing structural parity with user-provided ZIP.
    This stylesheet changes presentation only. Existing modules still mount. */
 :root{--editorial-serif:Georgia,"Times New Roman",serif}
