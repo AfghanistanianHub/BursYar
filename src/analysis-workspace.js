@@ -139,6 +139,7 @@ export function mountAnalysisWorkspace(root,language='en'){
    const pick=()=>{state.selected=rule.id;rerender();};
    m.addEventListener('click',pick);
    m.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick();}});
+   excerpt.append(document.createTextNode(' '));
   }else el('span',sentence+' ',null,excerpt);
  });
  // Stage 2: requirements.
@@ -215,6 +216,7 @@ export function mountAnalysisWorkspace(root,language='en'){
  }
  const reset=el('button',t.reset,'aw-reset',shell);
  reset.addEventListener('click',()=>{state.selected='degree';state.reviews={};rerender();});
+ flow.querySelectorAll('[data-req]').forEach(node=>node.classList.toggle('aw-active',node.dataset.req===state.selected));
  // Async source digest (real SHA-256 of the fixture text).
  if(!state.digest&&window.crypto?.subtle){
   crypto.subtle.digest('SHA-256',new TextEncoder().encode(SOURCE_TEXT)).then(buf=>{
