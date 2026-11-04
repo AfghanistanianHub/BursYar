@@ -193,7 +193,12 @@ html[dir=rtl] #top>.editorial-study-band>img{
  #top>.pathfinder-dashboard .pathfinder-timeline a{padding:3mm 0!important}
  #top>.pathfinder-dashboard .pathfinder-step-copy strong{font-size:18px!important}
  #top>.pathfinder-dashboard .pathfinder-note{font-size:10px!important}
+ #top > details:not([open]),#top > .workspace:not([open]),#top > .resources:not([open]),#top > .local-workflow:not([open]){display:none!important}
  details:not([open]){display:none!important}
+ #top>.editorial-study-band>img{display:none!important}
+ #top>.editorial-study-band .editorial-study-copy{min-height:0!important;width:100%!important;padding:6mm!important}
+ #top>.editorial-study-band{min-height:0!important;max-height:none!important;break-inside:avoid!important}
+ #top>.editorial-study-band .editorial-study-copy h2{max-width:100%!important}
  .editorial-opportunity,.workspace-start-card,.document-stage-list,.pathfinder-timeline li{break-inside:avoid}
  *{scroll-behavior:auto!important;scroll-snap-type:none!important}
 }
