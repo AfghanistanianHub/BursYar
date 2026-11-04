@@ -58,3 +58,9 @@ test('M17 workspace is mounted in the main render',()=>{
  assert.match(main,/<section id="analysis-workspace"/);
  assert.match(main,/import '\.\/analysis-workspace\.css';/);
 });
+
+test('M17 trace selection preserves text opacity for WCAG contrast',()=>{
+ assert.doesNotMatch(css,/\[data-req\]:not\([^}]*opacity:\s*\.(?:[0-9]+)/s);
+ assert.match(css,/\.aw-flow\[data-selected\] \[data-req\]\{opacity:1\}/);
+ assert.match(css,/\.aw-req:focus-visible/);
+});
