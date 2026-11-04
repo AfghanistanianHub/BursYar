@@ -79,7 +79,8 @@ test('main shell wires localized copy, counts and accessible close', () => {
   const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
   assert.match(main, /localizedCountry\(/);
   assert.match(main, /localizedLevel\(/);
-  assert.match(main, /assistantCopy/);
+  assert.match(main, /welcome\.understandNote/);
+  assert.match(main, /const welcome=\{/);
   assert.match(main, /aria-label="\$\{esc\(t\.close\)\}"/);
   assert.match(main, /new Intl\.NumberFormat\(state\.language\)/);
   assert.match(main, /noResults/);
