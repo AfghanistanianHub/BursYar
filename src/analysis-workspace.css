@@ -28,10 +28,13 @@
 .aw-hint{font-size:.8125rem;color:var(--muted);margin:0 0 10px}
 /* Trace highlight: when a requirement is selected, unrelated items dim. */
 .aw-flow[data-selected] [data-req]{transition:opacity .18s ease}
-.aw-flow[data-selected=degree] [data-req]:not([data-req=degree]),
-.aw-flow[data-selected=english] [data-req]:not([data-req=english]),
-.aw-flow[data-selected=gpa] [data-req]:not([data-req=gpa]),
-.aw-flow[data-selected=continuity] [data-req]:not([data-req=continuity]){opacity:.42}
+/* Do not reduce the opacity of text/buttons: axe flags this as unreadable.
+   Preserve contrast in every trace state; highlight the chosen evidence instead. */
+.aw-flow[data-selected] [data-req]{opacity:1}
+.aw-flow[data-selected=degree] [data-req=degree],
+.aw-flow[data-selected=english] [data-req=english],
+.aw-flow[data-selected=gpa] [data-req=gpa],
+.aw-flow[data-selected=continuity] [data-req=continuity]{outline:2px solid var(--brand);outline-offset:2px}
 @media(prefers-reduced-motion:reduce){.aw-flow[data-selected] [data-req]{transition:none}}
 /* ---- Source stage ---- */
 .aw-source-meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:8px}
@@ -106,3 +109,9 @@
  .aw-stage::before{content:"";position:absolute;inset-inline-start:-8px;top:6px;width:13px;height:13px;border-radius:50%;background:var(--surface);border:3px solid var(--brand)}
  .aw-stage:last-child{padding-bottom:0}
 }
+
+/* High-contrast labels for 12px notes, evidence and status chips. */
+#analysis-workspace{--faint:#4a596b;--ok:#245c3d;--bad:#8a3030;--warn:#76500a}
+.aw-excerpt mark{color:#26364a}
+.aw-excerpt mark:hover,.aw-flow[data-selected] .aw-excerpt mark{color:#26364a}
+.aw-req:focus-visible,.aw-mini:focus-visible,.aw-reset:focus-visible{outline:3px solid var(--brand-dark);outline-offset:3px}
