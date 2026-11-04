@@ -1,0 +1,25 @@
+/* Quiet, opt-in explanation of provenance and eligibility states.
+ * Inspired by user-supplied demo clips, but no fabricated evidence or
+ * animated/human imagery is inserted into the product. */
+#top .trust-explainer{margin:16px 0 0;border-top:1px solid var(--line);background:transparent}
+#top .trust-explainer>summary{cursor:pointer;display:list-item;list-style:revert;padding:15px 4px;font-size:13px;color:var(--brand);font-weight:650;text-underline-offset:3px}
+#top .trust-explainer>summary:hover{text-decoration:underline}
+#top .trust-explainer>summary:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+.trust-body{padding:6px 0 17px;max-width:1100px}
+.trust-intro{color:#4D4B48;max-width:85ch;font-size:13px;line-height:1.75;margin:0 0 19px}
+.trust-columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin-bottom:16px}
+.trust-cell{min-width:0;padding:15px 16px;border:1px solid #D8D0C8;background:#FEFDFB;border-radius:3px}
+.trust-cell p{font-size:12px;line-height:1.75;color:#514F4C;margin:12px 0 0}
+.trust-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid #AEB8BE;border-radius:2px;color:#273F54;background:#F2F5F7;padding:5px 9px;font-size:11px;font-weight:650}
+.trust-pill[data-kind="interpretation"]{color:#67502A;border-color:#CFBB92;background:#F7F2E8}
+.trust-pill[data-kind="human"]{color:#305746;border-color:#A7C1B3;background:#F0F6F2}
+.trust-states{display:grid;gap:0;border-top:1px solid #D8D0C8;border-bottom:1px solid #D8D0C8}
+.trust-state{display:grid;grid-template-columns:minmax(90px,130px) minmax(0,1fr);gap:20px;align-items:center;padding:12px 3px;border-bottom:1px solid #E8E2DC;font-size:12px;line-height:1.65;color:#514F4C}
+.trust-state:last-child{border-bottom:none}
+.trust-verdict{justify-self:start;font-size:11px;border:1px solid transparent;border-radius:2px;padding:4px 8px;font-weight:650}
+.trust-verdict[data-status="met"]{color:#255A40;background:#EBF4EE;border-color:#B7CEBF}
+.trust-verdict[data-status="not_met"]{color:#843536;background:#F9EDEC;border-color:#D8B1B0}
+.trust-verdict[data-status="unknown"]{color:#73521A;background:#F9F1DF;border-color:#E0C996}
+.trust-offline{font-size:12px;color:#4D4B48;line-height:1.7;margin:15px 0 0}
+@media(max-width:760px){.trust-columns{grid-template-columns:1fr}.trust-cell{padding:12px 14px}.trust-cell p{margin-top:6px}.trust-state{grid-template-columns:minmax(80px,110px) minmax(0,1fr);gap:9px}}
+@media print{#top .trust-explainer:not([open]){display:none!important}#top .trust-explainer[open]{break-inside:avoid}#top .trust-columns{grid-template-columns:repeat(3,minmax(0,1fr))}}
