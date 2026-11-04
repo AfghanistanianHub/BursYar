@@ -1,0 +1,70 @@
+/* BursYar documents layer (Mission 02: Documents & Intelligent Dropzone).
+ * Editorial storyboard language for the document workflow: warm paper,
+ * navy linework, dotted grids, numbered stages, framed evidence plates.
+ * Presentation only: no workflow, auth, eligibility, consent, quota or
+ * API changes. The TXT-only production gate is untouched; the dropzone
+ * accepts exactly what the underlying file input accepts.
+ * Imported LAST; reuses --sb-* tokens from storyboard.css. */
+#documents{background-color:var(--sb-paper);background-image:var(--sb-dots);background-size:22px 22px}
+/* ---- Quiet header: title, honest note, restrained framed plate ---- */
+#documents>h2{position:relative;z-index:1}
+#documents>h2+p{position:relative;z-index:1}
+.document-figure{position:relative;z-index:1;float:inline-end;max-width:238px;margin:6px 0 18px 22px;background:var(--sb-card);border:1px solid var(--sb-rule);border-radius:var(--sb-radius);padding:8px 8px 6px;box-shadow:7px 7px 0 -5px var(--sb-rule)}
+html[dir=rtl] .document-figure{margin:6px 22px 18px 0}
+.document-figure-art{display:block;width:100%;height:auto;max-height:190px;object-fit:cover;object-position:top center;background:var(--sb-paper-2)}
+.document-figure figcaption{font-size:11px;color:var(--sb-muted);padding:7px 4px 3px;line-height:1.55}
+/* ---- Four-stage workflow rail with navy numerals ---- */
+.document-stage-list{position:relative;z-index:1;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--sb-card);border:1px solid var(--sb-rule);border-radius:var(--sb-radius)}
+.document-stage-list li{position:relative;color:var(--sb-muted)}
+.document-stage-list li:not(:last-child)::after{content:"";position:absolute;inset-inline-end:-9px;top:50%;width:16px;border-top:2px dotted var(--sb-dot);transform:translateY(-50%)}
+html[dir=rtl] .document-stage-list li:not(:last-child)::after{transform:translateY(-50%) scaleX(-1)}
+.document-stage-list li>span:first-child{display:grid;place-items:center;min-width:30px;height:30px;border:1.5px solid var(--sb-navy);border-radius:50%;color:var(--sb-navy);font-size:12px;font-weight:700;background:var(--sb-card);font-family:inherit;letter-spacing:0}
+.document-stage-list li[aria-current=step]{color:var(--sb-navy-deep);box-shadow:inset 0 -3px var(--sb-navy)}
+.document-stage-list li[aria-current=step]>span:first-child{background:var(--sb-navy);color:#fff}
+/* ---- Intelligent dropzone: the real control, made obvious ---- */
+#documents>form{position:relative;z-index:1;border:1.5px dashed var(--sb-navy);background:var(--sb-card);border-radius:var(--sb-radius)}
+#documents>form.drop-active{border-style:solid;border-width:2px;background:#F2EEE3;box-shadow:inset 0 0 0 3px var(--sb-card),inset 0 0 0 5px var(--sb-navy)}
+.document-dropzone{display:grid;gap:10px;justify-items:stretch}
+.document-drop-hint{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;color:var(--sb-navy);line-height:1.6}
+.document-drop-hint::before{content:"";flex:none;width:26px;height:26px;border:1.5px solid var(--sb-navy);border-radius:50%;background:var(--sb-card) radial-gradient(circle at 50% 42%,var(--sb-navy) 2px,transparent 2.6px)}
+#documents>form.drop-active .document-drop-hint{color:var(--sb-navy-deep)}
+#documents input[type=file]{border:1.5px solid var(--sb-navy);border-radius:var(--sb-radius)}
+#documents input[type=file]:focus-visible{outline:3px solid var(--sb-navy);outline-offset:2px}
+#documents input[type=file]:disabled{opacity:.55}
+/* ---- Evidence plates: claims, source, preview, library ---- */
+#documents :where(.document-claim,.document-extraction-preview,.document-public-check){background:var(--sb-card);border:1px solid var(--sb-rule);border-radius:var(--sb-radius);box-shadow:7px 7px 0 -5px var(--sb-rule)}
+.document-claim{border-inline-start:4px solid var(--sb-navy)}
+.document-claim legend{color:var(--sb-navy-deep)}
+.document-provenance{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sb-muted)}
+.document-claim blockquote{margin:8px 0;border-inline-start:3px solid var(--sb-dot);padding:6px 12px;background:var(--sb-paper);font-size:13px;line-height:1.7}
+.document-method{display:inline-block;font-size:11px;font-weight:600;color:var(--sb-navy);border:1px solid var(--sb-navy);border-radius:999px;padding:3px 12px;margin:4px 0 0;line-height:1.6;background:var(--sb-card)}
+.document-source{background:var(--sb-card);border:1px solid var(--sb-rule);border-radius:var(--sb-radius);box-shadow:7px 7px 0 -5px var(--sb-rule)}
+#documents .document-paste{background:var(--sb-card)}
+#documents .document-format{position:relative;z-index:1}
+#documents fieldset legend{font-weight:700}
+#documents [role=status]{font-size:12px;color:var(--sb-muted);line-height:1.7}
+/* ---- Responsive ---- */
+@media(max-width:1024px){
+ .document-figure{max-width:210px}
+ .document-stage-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .document-stage-list li{border-top:1px solid var(--sb-rule-soft)}
+ .document-stage-list li:nth-child(-n+2){border-top:0}
+ .document-stage-list li:not(:last-child)::after{display:none}
+}
+@media(max-width:520px){
+ .document-figure{float:none;max-width:100%;margin:14px 0}
+ .document-figure-art{max-height:170px}
+ .document-stage-list{grid-template-columns:1fr 1fr}
+ .document-stage-list li{flex-direction:row;align-items:center;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ #documents>form,.document-drop-hint,.document-stage-list li{transition:none}
+}
+@media print{
+ #documents{background-image:none}
+ .document-figure{max-width:150px;box-shadow:none}
+ .document-figure-art{max-height:90px}
+ #documents>form,.document-claim,.document-extraction-preview,.document-public-check,.document-source{box-shadow:none;break-inside:avoid}
+ #documents input[type=file],#documents button[type=submit],.document-drop-hint{display:none}
+ .document-stage-list{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
