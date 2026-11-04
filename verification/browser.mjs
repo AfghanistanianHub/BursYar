@@ -35,7 +35,13 @@ try {
   let responseEvidence=evidence;let responseStatus=200;let sawRequest=false;let calls=0;
   await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?{...normalizeEvidence(JSON.stringify({criteria:responseEvidence.criteria.map(({kind,required,excerpt,en,fa,ps})=>({kind,required,excerpt,en,fa,ps})),deadline:responseEvidence.deadline,funding:responseEvidence.funding}),{text:body.text,sourceUrl:body.sourceUrl}),sourceProvenance:body.receipt??{kind:'user_pasted_text'}}:{error:'test-error'})});});
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
+  await expect(page.locator('.guided-option')).toHaveCount(3);
+  await expect(page.locator('.guided-option[href="#research-explorer"]')).toHaveAttribute('data-open','.resources');
+  await expect(page.locator('.guided-option[href="#profile-mount"]')).toHaveAttribute('data-open','.workspace');
+  await expect(page.locator('#guided-demo')).not.toHaveAttribute('open','');
   if(language==='en'&&width===1280){
+    await page.locator('#guided-demo > summary').click();
+    await expect(page.locator('#guided-demo')).toHaveAttribute('open','');
     const analysisFlow=page.locator('#analysis-workspace .aw-flow');
     await expect(analysisFlow).toBeVisible();
     const flowGeometry=await analysisFlow.evaluate(el=>({
@@ -58,6 +64,8 @@ try {
     expect(printFacts.stageCount).toBe(5);
     await page.pdf({path:'verification/artifacts/editorial-print-en.pdf',format:'A4',printBackground:true});
     await page.emulateMedia({media:'screen'});
+    await page.locator('#guided-demo > summary').click();
+    await expect(page.locator('#guided-demo')).not.toHaveAttribute('open','');
   }
   // Editorial regression gate: all top-level landing sections must follow
   // the preceding section, not overlap the legacy sidebar grid.
