@@ -49,3 +49,16 @@ html[lang=fa] .guided-entry-head h2,html[lang=ps] .guided-entry-head h2{font-fam
  #top>.guided-demo[open] #analysis-workspace .aw-flow{display:block!important}
  #top>.guided-demo[open] #analysis-workspace .aw-stage{break-inside:avoid!important;margin:0 0 4mm!important}
 }
+
+/* Second journey navigation previously repeated the same four steps; leave
+ * the real controls available but optional for curious visitors. */
+#top>.journey-more{display:block;margin:14px clamp(18px,4vw,64px) 8px;border:1px solid var(--line);background:#FCFAF7;border-radius:3px}
+#top>.journey-more>summary{padding:13px 20px;cursor:pointer;color:var(--brand);font-size:12px;font-weight:600;line-height:1.5}
+#top>.journey-more>summary:hover{background:#F5F2ED}
+#top>.journey-more>summary:focus-visible{outline:3px solid var(--brand);outline-offset:-3px}
+#top>.journey-more #journey-nav-mount{margin:0;padding:8px 18px 16px;position:static;max-height:none}
+#top>.journey-more .journey-nav{padding:14px;border:0;background:transparent;box-shadow:none}
+#top>.journey-more .journey-nav ol{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media(max-width:850px){#top>.journey-more .journey-nav ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:400px){#top>.journey-more .journey-nav ol{grid-template-columns:1fr}}
+@media print{#top>.journey-more{display:none!important}}
