@@ -77,7 +77,7 @@ try {
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
   await page.screenshot({path:`verification/artifacts/${language}-text200-${width}.png`,fullPage:true});
   await zoomStyle.evaluate(el=>el.remove());
-  if(width===1280){const zoom=await page.addStyleTag({content:'body{zoom:2}'});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);await page.screenshot({path:`verification/artifacts/${language}-layout200-1280.png`,fullPage:true});await zoom.evaluate(el=>el.remove());}
+  if(width===1280){/* Simulate actual browser page zoom by halving the layout viewport, rather than CSS body zoom which does not update media queries. */ await page.setViewportSize({width:640,height:900});expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);await page.screenshot({path:`verification/artifacts/${language}-layout200-1280.png`,fullPage:true});await page.setViewportSize({width,height:900});}
   await page.locator('#source-url').focus();await page.keyboard.press('Tab');await expect(page.locator('#fetch-source')).toBeFocused();
   await page.locator('#source-url').fill('https://university.example/blocked');await page.locator('#fetch-source').click();
   await expect(page.locator('#source-status')).toContainText({en:'does not let BursYar',fa:'اجازهٔ خواندن',ps:'لوستلو اجازه'}[language]);
