@@ -14,6 +14,7 @@ import './journey-navigation.css';
 import './workspace-theme.css';
 import './analysis-workspace.css';
 import './editorial-design.css';
+import './editorial-landing.css';
 import {sampleScholarships,filterScholarships,localizedCountry,localizedLevel} from './catalog.js';
 import {journeyCopy} from './journey-copy.js';
 import {translations} from './i18n.js';
