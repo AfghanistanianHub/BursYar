@@ -1,0 +1,199 @@
+/* BursYar composition & print repair — PDF evidence 2026-11-04
+   Visually integrates line drawings instead of treating them as standalone
+   banners, restores readable analysis columns and prevents print clipping.
+   No data, auth, evaluation or document handling changes. */
+
+/* Accessible skip link is an on-focus utility, never a permanent overlay. */
+.skip-link:not(:focus-visible){transform:translateY(-200vh);pointer-events:none}
+.skip-link:focus-visible{transform:none}
+.site{overflow-x:clip}
+#top{overflow-x:clip}
+
+/* Intentional first impression: a faint illustration in the hero rather
+   than a boxed sketch next to the copy. Soft mask keeps it subordinate. */
+#top>.hero{grid-template-columns:minmax(0,1fr) minmax(0,.9fr);min-height:clamp(440px,42vw,615px);background:#fefdfb}
+#top>.hero .hero-copy{position:relative;z-index:1}
+#top>.hero .hero-visual{
+  position:relative;min-height:0;overflow:hidden;
+  background:#fefdfb;border:0;
+}
+#top>.hero .editorial-hero-illustration{
+ width:100%;height:100%;max-height:580px;object-fit:cover;
+ object-position:52% 58%;opacity:.73;filter:grayscale(1) contrast(.91);
+ -webkit-mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.8) 20%,#000 65%),linear-gradient(0deg,transparent 0%,#000 18%);
+ mask-image:linear-gradient(90deg,transparent 0%,rgba(0,0,0,.8) 20%,#000 65%),linear-gradient(0deg,transparent 0%,#000 18%);
+ -webkit-mask-composite:source-in;mask-composite:intersect;
+}
+html[dir=rtl] #top>.hero .editorial-hero-illustration{
+ -webkit-mask-image:linear-gradient(270deg,transparent 0%,rgba(0,0,0,.8) 20%,#000 65%),linear-gradient(0deg,transparent 0%,#000 18%);
+ mask-image:linear-gradient(270deg,transparent 0%,rgba(0,0,0,.8) 20%,#000 65%),linear-gradient(0deg,transparent 0%,#000 18%);
+}
+#top>.hero .hero-copy{padding-block:65px;max-width:100%}
+#top>.hero .hero-actions{align-items:center}
+#top>.hero .lead{max-width:42ch}
+
+/* The document illustration becomes a quiet integrated edge of the workflow
+   narrative, not an independent dragged-in image card. */
+#top>.editorial-study-band{
+ position:relative;isolation:isolate;overflow:hidden;display:block;
+ min-height:330px;background:#f9f7f2;border-block:1px solid var(--line);
+}
+#top>.editorial-study-band .editorial-study-copy{
+ position:relative;z-index:2;min-height:330px;
+ padding-inline:clamp(22px,5vw,84px);width:min(61%,780px);
+}
+#top>.editorial-study-band>img{
+ position:absolute;z-index:0;inset-block:0;inset-inline-end:0;
+ width:57%;height:100%;max-height:none;
+ object-fit:cover;object-position:50% 50%;border:0;
+ opacity:.43;filter:grayscale(1) contrast(.9);
+ -webkit-mask-image:linear-gradient(to right,transparent 0%,#000 65%);
+ mask-image:linear-gradient(to right,transparent 0%,#000 65%);
+}
+html[dir=rtl] #top>.editorial-study-band>img{
+ -webkit-mask-image:linear-gradient(to left,transparent 0%,#000 65%);
+ mask-image:linear-gradient(to left,transparent 0%,#000 65%);
+}
+
+/* PathFinder sketch is a low-contrast illustration within the existing
+   real guidance pane; no second full-width image strip is rendered. */
+#top>.pathfinder-dashboard{margin-block-start:36px}
+#top>.pathfinder-dashboard .pathfinder-live{position:relative;isolation:isolate}
+#top>.pathfinder-dashboard .pathfinder-live::before{
+ content:"";position:absolute;z-index:-1;inset:0;
+ background:url("/editorial/collaboration-students.webp") no-repeat 50% 100%;
+ background-size:90% auto;opacity:.09;filter:grayscale(1);
+ pointer-events:none;
+}
+#top>.pathfinder-dashboard .pathfinder-live>*{position:relative;z-index:1}
+
+/* The same workflow appears in the editorial four-step introduction and
+   again in journey nav. Keep the latter functional but visually compact. */
+#top>.how-it-works{padding:34px clamp(20px,4vw,60px)}
+#top>.how-it-works>h2{font-size:clamp(24px,2.2vw,35px);margin:0 0 18px}
+#top>.how-it-works ol{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:stretch;gap:0;margin:0;border:1px solid var(--line)}
+#top>.how-it-works ol li{min-width:0;margin:0;padding:15px;border-inline-end:1px solid var(--line)}
+#top>.how-it-works ol li:last-child{border-inline-end:0}
+#top>.how-it-works ol a{display:grid;gap:8px;min-width:0;overflow-wrap:anywhere}
+#top>.how-it-works ol :where(strong,span){max-width:100%;overflow-wrap:anywhere}
+#top>.how-it-works .step-num{font-size:20px}
+#top>.how-it-works ol li strong{font-size:13px;line-height:1.4}
+#top>.how-it-works ol li span:last-child{font-size:12px;line-height:1.65}
+#top>#journey-nav-mount{margin-block:16px 18px}
+#top>#journey-nav-mount .journey-nav{border-color:var(--line-soft);padding:12px;background:var(--surface-2)}
+#top>#journey-nav-mount .journey-nav ol{gap:7px}
+#top>#journey-nav-mount .journey-nav li{border-color:var(--line-soft);padding:8px 10px;background:var(--bg)}
+
+/* The PDF exposed an unusable five-column workbench and a cropped fifth stage.
+   Preserve every interactive stage in a two-column grid without sideways
+   scrolling at desktop and tablet widths. */
+#top #analysis-workspace .aw-shell{min-width:0;width:100%;max-width:100%;overflow:visible}
+#top #analysis-workspace .aw-flow{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:16px;overflow:visible;max-width:100%;scroll-snap-type:none;
+}
+#top #analysis-workspace .aw-stage{
+ min-width:0;width:100%;max-width:100%;padding:clamp(14px,2vw,22px);
+ scroll-snap-align:none;
+}
+#top #analysis-workspace .aw-stage:last-child:nth-child(odd){grid-column:1/-1}
+#top #analysis-workspace :where(.aw-stage,.aw-doc,.aw-excerpt,.aw-req,.aw-reason,.aw-next){overflow-wrap:anywhere;word-break:normal}
+#top #analysis-workspace :where(pre,code){white-space:pre-wrap;overflow-wrap:anywhere}
+#top #analysis-workspace .aw-stage :where(button,input){max-width:100%}
+#top #analysis-workspace .aw-spine{flex-wrap:wrap;gap:7px}
+#top #analysis-workspace .aw-node{flex:0 1 auto;max-width:100%;overflow-wrap:anywhere}
+#top #analysis-workspace .aw-excerpt{line-height:1.7}
+#top #analysis-workspace .aw-stage-title{line-height:1.5}
+
+/* Stable scholarships layout at every page size. */
+#top>.editorial-selected{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:30px;align-items:start}
+#top>.editorial-selected .editorial-selected-heading{position:static;min-width:0}
+#top>.editorial-selected .editorial-opportunities{min-width:0}
+#top>.editorial-selected .editorial-opportunity{min-width:0;break-inside:avoid}
+
+@media(max-width:950px){
+ #top>.editorial-selected{grid-template-columns:1fr}
+ #top>.hero{grid-template-columns:1fr 1fr}
+ #top>.how-it-works ol{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #top>.how-it-works ol li:nth-child(2){border-inline-end:0}
+ #top>.how-it-works ol li:nth-child(-n+2){border-bottom:1px solid var(--line)}
+}
+@media(max-width:700px){
+ #top>.hero{grid-template-columns:1fr}
+ #top>.hero .hero-copy{padding:42px 22px 22px}
+ #top>.hero .hero-visual{min-height:230px;max-height:270px}
+ #top>.hero .editorial-hero-illustration{object-fit:contain;max-height:270px;opacity:.58;
+  -webkit-mask-image:linear-gradient(to bottom,#000 45%,transparent);
+  mask-image:linear-gradient(to bottom,#000 45%,transparent)}
+ #top>.editorial-study-band{min-height:0}
+ #top>.editorial-study-band .editorial-study-copy{width:100%;min-height:310px;padding:35px 22px}
+ #top>.editorial-study-band>img{width:100%;height:100%;opacity:.13;object-position:right center;
+  -webkit-mask-image:linear-gradient(to right,transparent,#000);
+  mask-image:linear-gradient(to right,transparent,#000)}
+ #top #analysis-workspace .aw-flow{grid-template-columns:minmax(0,1fr);gap:0}
+ #top #analysis-workspace .aw-stage:last-child:nth-child(odd){grid-column:auto}
+ #top #analysis-workspace .aw-shell{padding:14px}
+ #top>.how-it-works{padding:24px 16px}
+ #top>.how-it-works ol{grid-template-columns:1fr 1fr}
+ #top>.editorial-selected{gap:12px}
+}
+@media(max-width:410px){
+ #top>.how-it-works ol{grid-template-columns:1fr}
+ #top>.how-it-works ol li{border-inline-end:0;border-bottom:1px solid var(--line)}
+ #top>.how-it-works ol li:last-child{border-bottom:0}
+}
+
+/* Print/PDF is a document, not a horizontally scrollable browser viewport.
+   This was the cause of truncated headings, clipped stages and repeated
+   accessibility overlays in the submitted nine-page PDF. */
+@page{size:A4;margin:15mm 13mm}
+@media print{
+ html,body,.site,#top{background:#fff!important;color:#111!important;overflow:visible!important;max-width:100%!important}
+ html{font-size:12px!important}
+ body{font-size:11px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .skip-link,.site>.skip-link,.header .language,.header .account,.header .header-start,
+ #top>#journey-nav-mount,.editorial-nav,.hero-actions,.aw-reset,
+ button:not(.aw-req),.research-actions{display:none!important}
+ .site .header{position:static!important;min-height:0!important;margin:0!important;padding:6px 0 10px!important}
+ .site footer{padding:12px 0!important}
+ #top{display:block!important}
+ #top>*{display:block!important;grid-row:auto!important;grid-column:auto!important;position:static!important;max-width:100%!important;min-width:0!important;margin:0 0 12mm!important}
+ #top>.hero{display:grid!important;grid-template-columns:1.3fr .7fr!important;min-height:0!important;margin-bottom:8mm!important;break-inside:avoid}
+ #top>.hero .hero-copy{padding:10mm 4mm 9mm 0!important}
+ #top>.hero h1{font-size:34px!important}
+ #top>.hero .hero-visual{min-height:0!important;height:auto!important}
+ #top>.hero .editorial-hero-illustration{max-height:77mm!important;height:100%!important;object-fit:contain!important;opacity:.8!important}
+ #top>.editorial-pillars{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;break-inside:avoid}
+ #top>.editorial-pillars .editorial-pillar{min-height:0!important;padding:5mm 3mm!important}
+ #top>.editorial-selected{display:block!important;break-before:page!important}
+ #top>.editorial-selected h2{font-size:27px!important}
+ #top>.editorial-selected .editorial-opportunities{margin-top:7mm}
+ #top>.how-it-works{break-inside:avoid;padding:6mm 0!important}
+ #top>.how-it-works ol{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ #top>.how-it-works ol li{break-inside:avoid!important}
+ #top>.editorial-study-band{min-height:0!important;display:block!important;break-inside:avoid}
+ #top>.editorial-study-band .editorial-study-copy{min-height:65mm!important;padding:7mm 6mm!important;width:65%!important}
+ #top>.editorial-study-band>img{width:50%!important;opacity:.26!important}
+ #top>#workspace-overview,#top>#analysis-workspace,
+ #top>.assistant,#top>.workspace,#top>.resources,#top>#eligibility-mount,
+ #top>#local-workflow-mount{margin:7mm 0!important;padding:5mm!important;break-inside:auto!important}
+ #top>#workspace-overview{break-before:page}
+ #top #analysis-workspace{break-before:page}
+ #top #analysis-workspace .aw-shell{overflow:visible!important;padding:4mm!important}
+ #top #analysis-workspace .aw-flow{display:block!important;overflow:visible!important}
+ #top #analysis-workspace .aw-stage{display:block!important;min-height:0!important;max-height:none!important;width:100%!important;break-inside:avoid!important;margin:0 0 4mm!important;padding:4mm!important}
+ #top #analysis-workspace .aw-stage:last-child:nth-child(odd){grid-column:auto!important}
+ #top #analysis-workspace .aw-excerpt{max-height:none!important;overflow:visible!important}
+ #top #analysis-workspace .aw-spine{display:flex!important;flex-wrap:wrap!important}
+ #top>.pathfinder-dashboard{display:grid!important;grid-template-columns:1fr 1fr!important;break-before:page}
+ #top>.pathfinder-dashboard .pathfinder-intro,
+ #top>.pathfinder-dashboard .pathfinder-live{padding:5mm!important}
+ #top>.pathfinder-dashboard .pathfinder-intro h2{font-size:30px!important}
+ #top>.pathfinder-dashboard .pathfinder-live::before{display:none!important}
+ #top>.pathfinder-dashboard .pathfinder-timeline a{padding:3mm 0!important}
+ #top>.pathfinder-dashboard .pathfinder-step-copy strong{font-size:18px!important}
+ #top>.pathfinder-dashboard .pathfinder-note{font-size:10px!important}
+ details:not([open]){display:none!important}
+ .editorial-opportunity,.workspace-start-card,.document-stage-list,.pathfinder-timeline li{break-inside:avoid}
+ *{scroll-behavior:auto!important;scroll-snap-type:none!important}
+}
