@@ -36,6 +36,14 @@ try {
   await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?{...normalizeEvidence(JSON.stringify({criteria:responseEvidence.criteria.map(({kind,required,excerpt,en,fa,ps})=>({kind,required,excerpt,en,fa,ps})),deadline:responseEvidence.deadline,funding:responseEvidence.funding}),{text:body.text,sourceUrl:body.sourceUrl}),sourceProvenance:body.receipt??{kind:'user_pasted_text'}}:{error:'test-error'})});});
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
   await expect(page.locator('.guided-option')).toHaveCount(3);
+  await expect(page.locator('#trust-explainer')).not.toHaveAttribute('open','');
+  await page.locator('#trust-explainer > summary').click();
+  await expect(page.locator('#trust-explainer')).toHaveAttribute('open','');
+  await expect(page.locator('.trust-pill')).toHaveCount(3);
+  await expect(page.locator('.trust-verdict')).toHaveCount(3);
+  await expect(page.locator('.trust-verdict[data-status=unknown]')).toBeVisible();
+  await page.locator('#trust-explainer > summary').click();
+  await expect(page.locator('#trust-explainer')).not.toHaveAttribute('open','');
   await expect(page.locator('.guided-option[href="#research-explorer"]')).toHaveAttribute('data-open','.resources');
   await expect(page.locator('.guided-option[href="#profile-mount"]')).toHaveAttribute('data-open','.workspace');
   await expect(page.locator('#guided-demo')).not.toHaveAttribute('open','');
