@@ -1,10 +1,10 @@
 # BursYar — hackathon submission package
 
 Prepared 2026-11-02, serving state re-verified 2026-11-04 at main
-`342d7db` (rescue mission: PR #109 provenance/eligibility explainer
-and PR #111 production TXT-only document labels merged after green
-CI; Issues #91 fixed, #88 TXT-gate intact, zero `engine/` drift
-since `340a5e5`). This package
+`cb9eff1` (rescue mission: PR #109 provenance/eligibility explainer,
+PR #110 storyboard hero, PR #111 production TXT-only document
+labels, and docs #112 merged after green CI; Issues #91 fixed, #88
+TXT-gate intact, zero `engine/` drift since `340a5e5`). This package
 files nothing by itself; the owner
 files through the official portal (§7). Event identity, deadline,
 tracks, and judging criteria below are verified against authoritative
@@ -147,7 +147,7 @@ and model prose is never presented as certification of authenticity,
 eligibility, or admission. The two recorded runs are sufficient
 evidence of integration: all of `engine/` except `documents.js`
 is byte-identical from the verified backend commit `4e272a7`
-through release tip `342d7db` (`git diff 340a5e5 342d7db -- engine/`
+through release tip `cb9eff1` (`git diff 340a5e5 cb9eff1 -- engine/`
 is empty), so nothing in the inference path
 changed after the hosted proof; no further inference run is needed
 for the submission. Only `engine/documents.js` evolved since
@@ -213,36 +213,38 @@ re-verified Mission 18 on 2026-11-03, re-verified rescue mission
 on 2026-11-04):
 
 - Frontend https://bursyar.vercel.app serves the release tip
-  `342d7db`: production bundles `index-CyL0ZQ5P.js` /
-  `index-5BE0k3Lv.css` contain the #111 markers (`noteProduction`,
-  `fileProduction` — unique to `342d7db`), the #109
-  `trust-explainer` marker, the post-#92 `enableScripting` flag,
+  `cb9eff1`: production bundles `index-zQcavhRk.js` /
+  `index-B5HKycc2.css` contain the #110 markers (`story-board`,
+  `story-index`, `heroCaption` — from `22724b1`), the #111 markers
+  (`noteProduction`, `fileProduction` — unique to `342d7db`), the
+  #109 `trust-explainer` marker, the post-#92 `enableScripting` flag,
   pinned vendor markers, the TXT-only notice, and all earlier
   markers (#69/#71 `skip-link`, `hero-actions`, `empty-note`,
   `summary::marker`; #72 `glyph-doc`, `glyph-search`,
   `eligibility-example`; M14 `hero-visual`, `how-it-works`,
   `chain-verdicts`; M16 `nextEmpty`, `nextEmptyCta`). SHA proven by
-  Vercel success status on the merge commit plus marker fingerprint
-  (`git log -S noteProduction` resolves to `342d7db` only).
+  Vercel success status on the merge commit plus marker fingerprint.
   Post-merge smoke: 21/21 live production journeys (1 auth step
-  untested), TXT-only document labels confirmed live in en/fa/ps.
+  untested), 105/105 responsive probe, 38/38 anchors, TXT-only
+  document labels confirmed live in en/fa/ps.
 - Backend is current and compatible: `engine/` unchanged except
   `documents.js` (+40/−2 document handling) from `4e272a7` through
-  `342d7db` (zero drift since `340a5e5`); `/health` returns 200
+  `cb9eff1` (zero drift since `340a5e5`); `/health` returns 200
   `ok:true` with local assessment,
   source retrieval, document storage, and configured Meta
   available. Render deployed SHA is owner-visible only.
 
 Fluent-review scope (recounted from source 2026-11-04; all
-UNREVIEWED, review NOT complete): 380 Dari + 380 Pashto
+UNREVIEWED, review NOT complete): 387 Dari + 387 Pashto
 Arabic-script strings in the exported copy tables alone (method:
 leaf-string count over the copy modules covered by
 tests/frontend-i18n.test.js plus catalog/glossary/research-data),
 including the 2 new production TXT-only document strings per
-language from PR #111 — plus inline main-shell, workspace-overview,
+language from PR #111 and 7 storyboard strings per language from
+PR #110 — plus inline main-shell, workspace-overview,
 glossary, catalog-label, and research-name strings (the older
-401+401 figure predates PRs #86/#103/#109/#111 additions). Record
-rule: TRANSLATION-REVIEW.json (still `PENDING_HUMAN_REVIEW`).
+401+401 figure predates PRs #86/#103/#109/#110/#111 additions).
+Record rule: TRANSLATION-REVIEW.json (still `PENDING_HUMAN_REVIEW`).
 
 ## 8. Release checklist — genuinely outstanding only
 
@@ -261,5 +263,5 @@ rule: TRANSLATION-REVIEW.json (still `PENDING_HUMAN_REVIEW`).
 - [ ] Owner files the submission through the official portal before
       November 4, 9:00 PM ET (deadline reconfirmed on the public
       event page 2026-11-04; judging Nov 4–8, finals Nov 9). Code is
-      merged through PR #111 (main `342d7db`, serving live); no
+      merged through PR #112 (main `cb9eff1`, serving live); no
       engineering PR is pending.

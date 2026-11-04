@@ -5,26 +5,30 @@ This file supersedes historical release status in earlier handoffs. It records o
 ## Open and identify the release
 
 - App: https://bursyar.vercel.app
-- Last verified production code: `342d7db` (PR #111; parent
-  `323308a` = PR #109; verified live 2026-11-04). Serves bundles
-  `index-CyL0ZQ5P.js` / `index-5BE0k3Lv.css` containing the #111
-  markers (`noteProduction`, `fileProduction` — unique to `342d7db`),
+- Last verified production code: `cb9eff1` (docs #112 on code
+  `22724b1` = PR #110 storyboard hero; PRs #109/#111 below;
+  verified live 2026-11-04). Serves bundles `index-zQcavhRk.js` /
+  `index-B5HKycc2.css` containing the #110 markers (`story-board`,
+  `story-index`, `heroCaption` — from `22724b1`), #111 markers
+  (`noteProduction`, `fileProduction` — unique to `342d7db`),
   #109 marker (`trust-explainer`), #69/#71 markers (`skip-link`,
   `hero-actions`, `empty-note`, `summary::marker`), #72 markers
   (`glyph-doc`, `glyph-search`, `eligibility-example`), M14 markers
   (`hero-visual`, `how-it-works`, `chain-verdicts`), M16 markers
   (`nextEmpty`, `nextEmptyCta`), and #83 marker (`requestId`).
-  Previous code release: `323308a` (PR #109).
-- CI: PR #111 run 41913126191 — verify, emulator, macos-helper,
+  Previous code release: `342d7db` (PR #111).
+- CI: PRs #110/#111/#112 — verify, emulator, macos-helper,
   browser, Vercel, Vercel Agent Review, Vercel Preview Comments all
-  green. PR #109 merged earlier with all checks green; no PRs open.
+  green on each (#111 run 41913126191, #112 run 41915465486).
+  No PRs open.
 - 382 Node tests, production build, 15/15 mocked browser cases,
   21/21 live production journeys (1 auth step untested: no test
-  credentials used), and a 105/105 live responsive/keyboard/console
-  probe (320/390/768/1024/1440 px × en/fa/ps) passed. Network
+  credentials used), a 105/105 live responsive/keyboard/console
+  probe (320/390/768/1024/1440 px × en/fa/ps), and a 38/38 anchor
+  sweep (incl. the 5 new story-index links) passed. Network
   failure injection is local, not a production interruption.
 - Render backend remains `4e272a74e65df5ccf2318f3adac312196f5db443`;
-  `git diff 340a5e5 342d7db -- engine/` is empty, so no inference-path
+  `git diff 340a5e5 cb9eff1 -- engine/` is empty, so no inference-path
   code changed and no backend redeploy was needed for these UI changes.
 
 ## Short demonstration without new paid inference
