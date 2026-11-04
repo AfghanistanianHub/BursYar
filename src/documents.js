@@ -22,6 +22,16 @@ export function mountDocuments(root,language='en'){
  root.replaceChildren();const section=document.createElement('section');section.className='section';section.id='documents';root.append(section);
  const element=(tag,text,parent=section)=>{const el=document.createElement(tag);if(text)el.textContent=text;parent.append(el);return el;};
  element('h2',t.title);element('p',t.note);
+ // No official verification is implied by the stages.
+ const stepCopy={
+  en:['Upload','Extract or enter text','Review before use'],
+  fa:['بارگذاری','استخراج یا ورود متن','بازبینی پیش از استفاده'],
+  ps:['پورته کول','متن راایستل یا لیکل','له کارولو مخکې بیاکتنه']
+ }[language]??['Upload','Extract or enter text','Review before use'];
+ const stageList=element('ol','',section);stageList.className='document-stage-list';stageList.setAttribute('aria-label',t.title);
+ stepCopy.forEach((name,index)=>{const item=element('li','',stageList);item.dataset.stage=['upload','extract','review'][index];const number=element('span',new Intl.NumberFormat(language).format(index+1),item);number.setAttribute('aria-hidden','true');element('span',name,item);});
+ const setDocumentStage=name=>{section.dataset.documentStage=name;for(const item of stageList.children){if(item.dataset.stage===name)item.setAttribute('aria-current','step');else item.removeAttribute('aria-current');}};
+ setDocumentStage('upload');
  const help=element('details');help.className='document-format';element('summary',t.formatTitle,help);element('p',t.formatNote,help);
  const example=element('pre','Degree: bachelor\nGPA: 3.4/4\nTOEFL iBT: overall=100; listening=25; reading=25; writing=25; speaking=25',help);example.dir='ltr';example.lang='en';
  const form=element('form'),label=element('label',t.file,form),file=element('input','',label);file.type='file';file.accept=binaryDocumentsEnabled?'.txt,.pdf,.png,.jpg,.jpeg,text/plain,application/pdf,image/png,image/jpeg':'.txt,text/plain';file.required=true;
@@ -43,7 +53,7 @@ export function mountDocuments(root,language='en'){
  const previewConfirm=element('button',t.previewConfirm,preview);previewConfirm.type='button';
  const previewCancel=element('button',t.previewCancel,preview);previewCancel.type='button';
  let pendingMethod=null;
- const clearPreview=()=>{pendingMethod=null;previewText.value='';preview.hidden=true;};
+ const clearPreview=()=>{pendingMethod=null;previewText.value='';preview.hidden=true;setDocumentStage('upload');};
  previewCancel.addEventListener('click',clearPreview);
  file.addEventListener('change',clearPreview);
  paste.addEventListener('toggle',clearPreview);
@@ -60,7 +70,7 @@ export function mountDocuments(root,language='en'){
  async function refreshLibrary(){const items=await api('/api/documents');chooser.replaceChildren();for(const [i,item]of items.entries()){const date=new Intl.DateTimeFormat(language==='fa'?'fa-AF':language==='ps'?'ps-AF':'en',{dateStyle:'medium',timeStyle:'short'}).format(new Date(item.uploadedAt));const option=element('option',`${new Intl.NumberFormat(language).format(i+1)} · ${date} · ${item.reviewed?l.reviewed:l.pending}`,chooser);option.value=item.id;}if(!items.length){const option=element('option',l.empty,chooser);option.value='';}open.disabled=!chooser.value;}
  refresh.addEventListener('click',()=>busy(refreshLibrary));open.addEventListener('click',()=>busy(async()=>{if(!chooser.value)return;current=await api('/api/documents/'+chooser.value);show(current);}));open.disabled=true;
  load.addEventListener('click',()=>busy(async()=>{publish(await api('/api/profile'));status.textContent=t.done;}));
- function show(doc){
+ function show(doc){setDocumentStage('review');
   content.replaceChildren();const documentNotice=element('p',doc.consistency==='discrepancy_requires_review'?t.conflict:doc.reviewedAt?t.done:t.pending,content);
   const source=element('pre',doc.text,content);source.dir='auto';source.className='document-source';
   const publicCheck=element('section','',content);publicCheck.className='document-public-check';
@@ -122,12 +132,12 @@ export function mountDocuments(root,language='en'){
    // Offer explicit manual transcription instead of inventing content.
    if(error?.code==='emptyFile'&&!paste.open&&/\.(pdf|png|jpe?g)$/i.test(selected?.name??'')){
     pendingMethod=/\.pdf$/i.test(selected.name)?'manual_transcription_from_pdf':'manual_transcription_from_image';
-    previewText.value='';preview.hidden=false;previewText.focus();status.textContent=t.manualFallback;return;
+    previewText.value='';preview.hidden=false;setDocumentStage('extract');previewText.focus();status.textContent=t.manualFallback;return;
    }
    throw error;
   }
   if(extracted.method!=='utf8_text'){
-   pendingMethod=extracted.method;previewText.value=extracted.text;preview.hidden=false;previewText.focus();status.textContent=t.previewNote;return;
+   pendingMethod=extracted.method;previewText.value=extracted.text;preview.hidden=false;setDocumentStage('extract');previewText.focus();status.textContent=t.previewNote;return;
   }
   clearPreview();await saveExtractedText(extracted.text,extracted.method);
  });});
