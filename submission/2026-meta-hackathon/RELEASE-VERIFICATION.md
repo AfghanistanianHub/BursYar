@@ -1,8 +1,62 @@
 # BursYar — release verification (submission)
 
-Mission 18 re-verification, 2026-11-03, at release `main` tip
-`340a5e5` (PRs #86, #92, #93; supersedes the `59fb81f` record below
-where they differ — historical section kept for audit).
+Final delivery re-verification, 2026-11-04 ~01:30 America/Vancouver,
+at release `main` tip `f270905` (PR #103; includes #104 `409ce8e`
+and editorial `7709619`; supersedes the `340a5e5` record below where
+they differ — historical sections kept for audit).
+
+## Production (final delivery, live)
+
+- Frontend https://bursyar.vercel.app → 200. Serves production bundle
+  `index-O1olO3S9.js` / `index-ChYumL3r.css`. Deployment of `f270905`
+  proven by content markers: JS contains `heroQuote` (×2) and the
+  Pashto hero quote (new in #103); CSS contains the editorial
+  composition classes (new in #104). Live title `BursYar |
+  Education should be understandable.`; 1440px screenshot
+  pixel-checked (editorial nav, hero + illustration, both CTAs,
+  Document-first / Three-valued / PathFinder pillars).
+- Backend https://bursyar-api.onrender.com/health → 200 `ok:true`
+  (after one Render free-plan cold-start retry); local assessment,
+  source retrieval, document storage available; Meta `configured`
+  behind per-request policy gates, `inferenceVerified:false`.
+- Unauthenticated POST `/api/analyze` (production Origin) → 401
+  `Sign in with an approved account` (auth gate enforced, $0 spent).
+- Responsive proof against the release tree: 15/15 combos clean in
+  real Chromium (320/390/768/1024/1440 × en/fa/ps, RTL verified,
+  zero overflow, zero console errors); fa/ps screenshots
+  pixel-checked. Re-runnable: `npm run build` then
+  `node verification/responsive-probe.mjs`.
+- Reproducible production demo re-recorded 2026-11-04:
+  `verification/artifacts/m09/01-landing` … `05-languages` `.webm`
+  (public read-only flows, no sign-in, no inference); scene 01
+  validated vp8 1920×1080 9.52 s.
+- Google sign-in interaction: UNVERIFIED (no authorized test
+  interaction performed; configuration retained untouched).
+- Authenticated hosted persistence: UNVERIFIED (same reason).
+- Live Meta inference output: NOT PERFORMED — requires an
+  owner-authenticated session (approved Firebase UID with
+  `bursyarDemo` claim + a fresh ≤24 h trusted policy record;
+  on-disk records are dated 2026-10-31 and therefore stale).
+  Promotional balance/expiry/applicability are not queryable from
+  this context; $0.00 consumed, no caps changed, no out-of-pocket
+  charge possible from the actions taken. Local Keychain
+  metadata-only diagnose: credential present, USD 5 attested and
+  confirmed. See `docs/FINAL-MISSION-COST-LEDGER.md`.
+
+## CI (PR #103, run 41796219805, head 78c6354)
+
+verify (381/381 incl. 9 new synthetic-applicant tests), browser,
+emulator, macos-helper: all success. Vercel deployment completed
+(markers above). Main push run 41797676729 for `f270905`:
+verify/emulator/macos-helper success; browser concluded
+separately (see PR checks on merge commit).
+
+## Test totals (final delivery, local)
+
+381 Node tests, 60 offline evaluation checks (no live Meta),
+responsive probe 15/15, production demo scenes re-recorded.
+
+## Mission 18 record (2026-11-03, release 340a5e5)
 
 ## Production (Mission 18, live)
 
