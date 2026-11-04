@@ -5,7 +5,7 @@ const theme = readFileSync(new URL('../src/workspace-theme.css', import.meta.url
 const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 
 test('M08-1: source panel carries a visible heading reusing its label', () => {
-  assert.match(main, /<section class="assistant" id="assistant" aria-labelledby="assistant-heading"><h2 id="assistant-heading">\$\{esc\(t\.assistant\)\}<\/h2>/);
+  assert.match(main, /<section class="assistant" id="assistant" aria-labelledby="assistant-heading"><h2 id="assistant-heading">\$\{esc\(welcome\.understand\)\}<\/h2>/);
   assert.match(theme, /\.assistant>h2\{margin:0 0 4px\}/);
 });
 

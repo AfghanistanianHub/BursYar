@@ -1,0 +1,64 @@
+/* Calm, task-first onboarding. The controls are ordinary links to the
+ * real production surfaces; no wizard state, personal data or fake progress. */
+#top>.guided-entry{display:block;margin:0;padding:clamp(34px,4.5vw,64px) clamp(20px,5vw,78px);background:#F6F4F0;border-bottom:1px solid var(--line);scroll-margin-top:110px}
+.guided-entry-head{max-width:780px;margin-bottom:27px}
+.guided-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:#595653;font-weight:600;margin:0 0 12px}
+.guided-entry-head h2{font-family:var(--editorial-serif);font-weight:400;letter-spacing:-.04em;font-size:clamp(30px,3vw,46px);line-height:1.15;margin:0 0 13px}
+.guided-entry-head>p:last-child{color:#585450;line-height:1.75;font-size:14px;margin:0;max-width:65ch}
+.guided-entry-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.guided-option{position:relative;display:flex;flex-direction:column;align-items:flex-start;min-width:0;min-height:185px;padding:22px 22px 46px;border:1px solid #CDC6BE;background:#FEFDFB;color:var(--ink);text-decoration:none;border-radius:3px;box-shadow:none;transition:border-color .15s ease,background-color .15s ease}
+.guided-option:hover{background:white;border-color:var(--brand)}
+.guided-option:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
+.guided-option-icon{display:grid;place-items:center;width:34px;height:34px;border:1px solid #C5CED8;color:var(--brand);font-size:22px;line-height:1;margin-bottom:14px;border-radius:2px}
+.guided-option strong{font-size:clamp(15px,1.4vw,19px);font-weight:650;letter-spacing:-.02em;line-height:1.35;margin-bottom:8px}
+.guided-option>span:nth-last-child(2){font-size:12px;color:#595653;line-height:1.7;max-width:44ch}
+.guided-option .guided-arrow{position:absolute;right:22px;bottom:17px;color:var(--brand);font-size:18px}
+html[dir=rtl] .guided-option .guided-arrow{right:auto;left:22px;transform:scaleX(-1)}
+.guided-reassurance{font-size:12px;line-height:1.7;color:#4E554F;margin:20px 0 0;display:flex;align-items:center;gap:9px}
+.guided-reassurance span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#E3ECE7;color:#285B41;font-weight:700;flex-shrink:0}
+/* Treat synthetic technical details as opt-in learning, not the first thing
+ * new visitors must face before using the real public source analyzer. */
+#top>.guided-demo{display:block;margin:20px clamp(18px,4vw,64px) 0;border:1px solid var(--line);background:#FEFDFB;border-radius:3px;min-width:0}
+#top>.guided-demo:not([open]){padding:0}
+.guided-demo>summary{cursor:pointer;list-style:revert;font-weight:600;padding:18px 24px;font-size:13px;color:#243D5A;line-height:1.5}
+.guided-demo>summary:hover{background:#F8F6F3}
+.guided-demo>summary:focus-visible{outline:3px solid var(--brand);outline-offset:-3px}
+.guided-demo-note{margin:0 24px 15px;color:#5E5A55;font-size:12px;line-height:1.7}
+#top>.guided-demo #analysis-workspace{margin:0 20px 22px;max-width:calc(100% - 40px);min-width:0}
+#top>.guided-demo #analysis-workspace .aw-flow{grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible}
+#top>.guided-demo #analysis-workspace .aw-stage{min-width:0}
+#top>.guided-demo #analysis-workspace .aw-stage:last-child:nth-child(odd){grid-column:1/-1}
+#top>.guided-demo #analysis-workspace .aw-shell{max-width:100%;overflow:visible}
+html[lang=fa] .guided-entry-head h2,html[lang=ps] .guided-entry-head h2{font-family:var(--font-fa);letter-spacing:0;line-height:1.6}
+@media(max-width:850px){.guided-entry-options{grid-template-columns:1fr}.guided-option{min-height:0;padding:18px 54px 18px 18px}html[dir=rtl] .guided-option{padding:18px 18px 18px 54px}.guided-option-icon{margin-bottom:9px}.guided-option .guided-arrow{top:25px;bottom:auto}.guided-entry-head h2{font-size:clamp(29px,6vw,42px)}}
+@media(max-width:700px){
+ #top>.guided-entry{padding:33px 20px}
+ #top>.guided-demo{margin:16px}
+ #top>.guided-demo #analysis-workspace{margin:0 12px 16px;max-width:calc(100% - 24px)}
+ #top>.guided-demo #analysis-workspace .aw-flow{grid-template-columns:1fr}
+ #top>.guided-demo #analysis-workspace .aw-stage:last-child:nth-child(odd){grid-column:auto}
+}
+@media(prefers-reduced-motion:reduce){.guided-option{transition:none}}
+@media print{
+ #top>.guided-entry{break-inside:avoid!important;padding:8mm 4mm!important;margin:0 0 8mm!important}
+ #top>.guided-entry .guided-entry-options{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ #top>.guided-entry .guided-option{min-height:0!important;padding:3mm!important}
+ #top>.guided-entry .guided-option .guided-arrow{display:none!important}
+ #top>.guided-demo:not([open]){display:none!important}
+ #top>.guided-demo[open]{break-before:page!important}
+ #top>.guided-demo[open] #analysis-workspace .aw-flow{display:block!important}
+ #top>.guided-demo[open] #analysis-workspace .aw-stage{break-inside:avoid!important;margin:0 0 4mm!important}
+}
+
+/* Second journey navigation previously repeated the same four steps; leave
+ * the real controls available but optional for curious visitors. */
+#top>.journey-more{display:block;margin:14px clamp(18px,4vw,64px) 8px;border:1px solid var(--line);background:#FCFAF7;border-radius:3px}
+#top>.journey-more>summary{padding:13px 20px;cursor:pointer;color:var(--brand);font-size:12px;font-weight:600;line-height:1.5}
+#top>.journey-more>summary:hover{background:#F5F2ED}
+#top>.journey-more>summary:focus-visible{outline:3px solid var(--brand);outline-offset:-3px}
+#top>.journey-more #journey-nav-mount{margin:0;padding:8px 18px 16px;position:static;max-height:none}
+#top>.journey-more .journey-nav{padding:14px;border:0;background:transparent;box-shadow:none}
+#top>.journey-more .journey-nav ol{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+@media(max-width:850px){#top>.journey-more .journey-nav ol{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:400px){#top>.journey-more .journey-nav ol{grid-template-columns:1fr}}
+@media print{#top>.journey-more{display:none!important}}
