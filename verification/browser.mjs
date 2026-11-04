@@ -35,6 +35,24 @@ try {
   let responseEvidence=evidence;let responseStatus=200;let sawRequest=false;let calls=0;
   await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?{...normalizeEvidence(JSON.stringify({criteria:responseEvidence.criteria.map(({kind,required,excerpt,en,fa,ps})=>({kind,required,excerpt,en,fa,ps})),deadline:responseEvidence.deadline,funding:responseEvidence.funding}),{text:body.text,sourceUrl:body.sourceUrl}),sourceProvenance:body.receipt??{kind:'user_pasted_text'}}:{error:'test-error'})});});
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
+  // Editorial regression gate: all top-level landing sections must follow
+  // the preceding section, not overlap the legacy sidebar grid.
+  await expect(page.locator('.editorial-opportunity')).toHaveCount(3);
+  await expect(page.locator('.editorial-nav a')).toHaveCount(4);
+  const editorialGeometry=await page.evaluate(()=>{
+    const rect=selector=>{const b=document.querySelector(selector).getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,right:b.right,width:b.width}};
+    const hero=rect('.hero'),pillars=rect('.editorial-pillars'),selected=rect('.editorial-selected'),how=rect('.how-it-works');
+    const nav=rect('#journey-nav-mount');
+    const image=document.querySelector('.editorial-hero-illustration');
+    return {hero,pillars,selected,how,nav,imageLoaded:image.complete&&image.naturalWidth>0};
+  });
+  expect(editorialGeometry.imageLoaded).toBe(true);
+  expect(editorialGeometry.pillars.top).toBeGreaterThanOrEqual(editorialGeometry.hero.bottom-2);
+  expect(editorialGeometry.selected.top).toBeGreaterThanOrEqual(editorialGeometry.pillars.bottom-2);
+  expect(editorialGeometry.how.top).toBeGreaterThanOrEqual(editorialGeometry.selected.bottom-2);
+  expect(editorialGeometry.nav.top).toBeGreaterThanOrEqual(editorialGeometry.how.bottom-2);
+  expect(editorialGeometry.selected.width).toBeGreaterThan(width*0.8);
+
   // Mission 04: localized navigation across all RTL/LTR viewport variants.
   const steps=page.locator('.journey-nav ol a');
   await expect(steps).toHaveCount(4);
