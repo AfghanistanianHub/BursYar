@@ -17,7 +17,7 @@ export function createScholarshipCatalog(programs,{now=Date.now}={}){
   for(const r of p.rules){if(!/^[a-zA-Z0-9_-]{1,80}$/.test(r.id)||ids.has(r.id)||typeof r.sourceExcerpt!=='string'||!r.sourceExcerpt.trim()||!p.sourceText.includes(r.sourceExcerpt))throw Error('Invalid reviewed rule');ids.add(r.id);}
   entries.set(p.id,p);
  }
- return Object.freeze({list:()=>[...entries.values()].filter(p=>Date.parse(p.review.expiresAt)>now()).map(p=>({id:p.id,sourceUrl:p.sourceUrl,review:structuredClone(p.review)})),get:id=>{
+ return Object.freeze({list:()=>[...entries.values()].filter(p=>Date.parse(p.review.expiresAt)>now()&&Date.parse(p.review.reviewedAt)<=now()).map(p=>({id:p.id,sourceUrl:p.sourceUrl,review:structuredClone(p.review)})),get:id=>{
   const p=entries.get(id);if(!p||Date.parse(p.review.expiresAt)<=now()||Date.parse(p.review.reviewedAt)>now())throw Error('Scholarship unavailable');return structuredClone(p);
  }});
 }
@@ -51,7 +51,7 @@ function evaluate(r,profile,depth=0){
  return 'unknown';
 }
 export function evaluateReviewedScholarship(program,profile){
- const results=program.rules.map(r=>{const rule={...r,sourceUrl:program.sourceUrl};return {requirementId:r.id,status:evaluate(rule,profile),source:{url:program.sourceUrl,excerpt:r.sourceExcerpt,digest:program.sourceDigest},reason:r.ambiguous||r.conflicting?'conflicting_or_ambiguous':'reviewed_rule_comparison',issuerAuthenticated:false};});
+ const results=program.rules.map(r=>{const rule={...r,sourceUrl:program.sourceUrl};const ambiguous=r.ambiguous||r.conflicting;const detailed=!ambiguous&&['minimum_degree','ielts_academic','boolean_exclusion','minimum_gpa','toefl_ibt'].includes(r.type)?assessRequirement({...rule,ambiguous:false},profile):null;return {requirementId:r.id,status:detailed?.status??evaluate(rule,profile),source:{url:program.sourceUrl,excerpt:r.sourceExcerpt,digest:program.sourceDigest},reason:ambiguous?'conflicting_or_ambiguous':detailed?.reason??'reviewed_rule_comparison',issuerAuthenticated:false};});
  const summary=results.some(r=>r.status==='not_met')?'not_met':results.length&&results.every(r=>r.status==='met')?'met':'unknown';
  return {summary:summary==='met'&&program.coverageComplete!==true?'unknown':summary,enumeratedSummary:summary,results,externalInference:false,awardGuaranteed:false,coverage:'reviewed_enumerated_requirements_only',requiresHumanReview:true,sourceReview:program.review};
 }
