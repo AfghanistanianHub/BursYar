@@ -8,9 +8,12 @@ test('M14 hero keeps pinned actions and adds the product composition', () => {
   assert.match(main, /<div class="hero-actions">/);
   assert.match(main, /<p class="hero-kicker">\$\{esc\(j\.heroKicker\)\}<\/p>/);
   assert.match(main, /<aside class="hero-visual" aria-label="\$\{esc\(j\.evidence\)\}">/);
-  assert.match(main, /<ol class="chain">/);
-  assert.match(main, /data-icon="(quote|shield|chart)"/);
-  assert.match(main, /chain-verdicts/);
+  // M21R supersedes the static chain cards with the animated storyboard flow.
+  assert.match(main, /<ol class="story-flow">/);
+  assert.match(main, /flow-node">01<\/span>/);
+  assert.match(main, /flow-node">06<\/span>/);
+  assert.match(main, /class="story-verdicts"/);
+  assert.match(main, /class="story-caption"/);
   assert.match(theme, /\.hero-copy h1\{font-size:clamp\(2rem,4\.2vw,3rem\)/);
   assert.match(theme, /\.hero\{[^}]*max-width:none/);
 });
