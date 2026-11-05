@@ -178,3 +178,68 @@ test('scanned PDF OCR failure clears canvas memory and cleans the page',async()=
   assert.equal(canvas.width,0);assert.equal(canvas.height,0);assert.equal(cleaned,1);
  }finally{if(prior===undefined)delete globalThis.document;else globalThis.document=prior;}
 });
+
+const pending=()=>new Promise(()=>{});
+async function extractionOutcome(operation){
+ let timer;
+ try{return await Promise.race([operation.then(()=> 'unexpected_success',e=>e.code),new Promise(resolve=>{timer=setTimeout(()=>resolve('unbounded'),250);})]);}
+ finally{clearTimeout(timer);}
+}
+test('local PDF module loading has a bounded deadline',async()=>{
+ assert.equal(await extractionOutcome(extractDocumentText(pdf(),{pdfLoader:pending,timeoutMs:10})),'extractionUnavailable');
+});
+test('a stalled PDF load is destroyed on deadline',async()=>{
+ let destroyed=0;
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:pending(),destroy:async()=>{destroyed++;}})});
+ assert.equal(await extractionOutcome(extractDocumentText(pdf(),{pdfLoader,timeoutMs:10})),'extractionUnavailable');
+ assert.equal(destroyed,1);
+});
+test('stalled image OCR terminates its worker and closes the bitmap',async()=>{
+ const prior=globalThis.createImageBitmap;let closed=0,terminated=0;
+ globalThis.createImageBitmap=async()=>({width:100,height:100,close(){closed++;}});
+ try{
+  const ocrLoader=async()=>({createWorker:async()=>({recognize:pending,terminate:async()=>{terminated++;}})});
+  assert.equal(await extractionOutcome(extractDocumentText(png,{ocrLoader,timeoutMs:10})),'extractionUnavailable');
+  assert.equal(closed,1);assert.equal(terminated,1);
+ }finally{if(prior===undefined)delete globalThis.createImageBitmap;else globalThis.createImageBitmap=prior;}
+});
+test('OCR worker arriving after deadline is terminated without recognition',async()=>{
+ const prior=globalThis.createImageBitmap;let resolveWorker,terminated=0,recognized=0;
+ globalThis.createImageBitmap=async()=>({width:100,height:100,close(){}});
+ const workerPromise=new Promise(resolve=>{resolveWorker=resolve;});
+ try{
+  const result=await extractionOutcome(extractDocumentText(png,{ocrLoader:async()=>({createWorker:()=>workerPromise}),timeoutMs:10}));
+  resolveWorker({recognize:async()=>{recognized++;return {data:{text:'Degree: master'}};},terminate:async()=>{terminated++;}});
+  await new Promise(resolve=>setTimeout(resolve,0));
+  assert.equal(result,'extractionUnavailable');assert.equal(terminated,1);assert.equal(recognized,0);
+ }finally{if(prior===undefined)delete globalThis.createImageBitmap;else globalThis.createImageBitmap=prior;}
+});
+test('scanned PDFs reject excessively narrow/tall pages before allocating a canvas',async()=>{
+ const prior=globalThis.document;let allocated=0;
+ globalThis.document={createElement:()=>{allocated++;throw Error('must not allocate');}};
+ try{
+  const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:1,getPage:async()=>({getTextContent:async()=>({items:[]}),getViewport:()=>({width:1,height:100000}),cleanup(){}}),destroy:async()=>{}})})});
+  await assert.rejects(()=>extractDocumentText(pdf(),{pdfLoader}),e=>e.code==='imageDimensions');
+  assert.equal(allocated,0);
+ }finally{if(prior===undefined)delete globalThis.document;else globalThis.document=prior;}
+});
+
+test('successful PDF stages share one cumulative extraction budget',async()=>{
+ let destroyed=0;
+ const pdfLoader=async()=>{
+  await new Promise(resolve=>setTimeout(resolve,60));
+  return {GlobalWorkerOptions:{},getDocument:()=>({promise:new Promise(resolve=>setTimeout(()=>resolve({numPages:1,getPage:async()=>({getTextContent:async()=>({items:[{str:'Degree: master'}]}),cleanup(){}}),destroy:async()=>{destroyed++;}}),60)),destroy:async()=>{destroyed++;}})};
+ };
+ assert.equal(await extractionOutcome(extractDocumentText(pdf(),{pdfLoader,timeoutMs:100})),'extractionUnavailable');
+ assert.equal(destroyed,1);
+});
+test('bitmap arriving after deadline is closed and never passed to OCR',async()=>{
+ const prior=globalThis.createImageBitmap;let resolveBitmap,closed=0,ocrCalls=0;
+ globalThis.createImageBitmap=()=>new Promise(resolve=>{resolveBitmap=resolve;});
+ try{
+  const result=await extractionOutcome(extractDocumentText(png,{ocrLoader:async()=>{ocrCalls++;},timeoutMs:10}));
+  resolveBitmap({width:100,height:100,close(){closed++;}});
+  await new Promise(resolve=>setTimeout(resolve,0));
+  assert.equal(result,'extractionUnavailable');assert.equal(closed,1);assert.equal(ocrCalls,0);
+ }finally{if(prior===undefined)delete globalThis.createImageBitmap;else globalThis.createImageBitmap=prior;}
+});
