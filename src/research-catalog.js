@@ -43,10 +43,12 @@ export function researchDeadlineState(row,now=new Date()) {
  if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==value)return 'unknown';
  return value<now.toISOString().slice(0,10)?'past':'unconfirmed';
 }
+// Normalize search only; keep displayed titles and evidence unchanged.
+const searchText=value=>value.normalize('NFKC').toLocaleLowerCase().replace(/[يى]/gu,'ی').replace(/ك/gu,'ک').replace(/[\u064b-\u065f\u0670\u0640]/gu,'').replace(/[\u200c\u200d]/gu,' ');
 // Pure discovery filters; no student data, eligibility score, or exclusion for
 // missing credentials. "No IELTS" never means no English requirement.
 export function filterResearch(rows,{q='',country='all',degree='all',funding='all',noFee=false,noIelts=false,hidePast=false}={},now=new Date()) {
- const words=q.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+ const words=searchText(q).trim().split(/\s+/).filter(Boolean);
  return rows.filter(row=>{
   if(country!=='all'&&!researchDestinations(row).includes(country))return false;
   if(funding!=='all'&&(row.funding??'unknown')!==funding)return false;
@@ -54,7 +56,7 @@ export function filterResearch(rows,{q='',country='all',degree='all',funding='al
   if(noFee&&!(row.feeVerified===true&&row.applicationFee===0))return false;
   if(noIelts&&!(row.englishVerified===true&&row.ieltsRequired===false))return false;
   if(hidePast&&researchDeadlineState(row,now)==='past')return false;
-  const haystack=[row.id,row.title,row.provider,row.country,...row.degrees,...['fa','ps'].flatMap(lang=>[researchLabel(row.country,lang),...row.degrees.map(d=>researchLabel(d,lang))])].join(' ').toLocaleLowerCase();
+  const haystack=searchText([row.id,row.title,row.provider,row.country,...row.degrees,...['fa','ps'].flatMap(lang=>[researchLabel(row.country,lang),...row.degrees.map(d=>researchLabel(d,lang))])].join(' '));
   return words.every(word=>haystack.includes(word));
  });
 }
