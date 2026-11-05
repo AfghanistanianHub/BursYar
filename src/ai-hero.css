@@ -1,0 +1,49 @@
+/* AI-first hero: intentionally loaded after prior editorial layers. */
+#top>.hero{grid-template-columns:minmax(0,.87fr) minmax(0,1.13fr);min-height:540px;background:#f8fcfa}
+#top>.hero .hero-copy{padding:clamp(38px,5vw,72px) clamp(26px,4.5vw,70px);align-self:center}
+#top>.hero .hero-copy h1{font-size:clamp(34px,3.65vw,60px);line-height:1.13;letter-spacing:-.035em}
+html[lang=fa] #top>.hero .hero-copy h1,html[lang=ps] #top>.hero .hero-copy h1{letter-spacing:normal;line-height:1.5}
+#top>.hero .hero-visual.ai-hero-visual{height:auto;min-width:0;min-height:0;max-height:none;overflow:visible;background:#eaf4f2;border:0}
+#top>.hero .ai-hero{margin:0;display:flex;flex-direction:column;justify-content:space-between;min-height:100%;padding:clamp(16px,2.5vw,32px);background:linear-gradient(145deg,#e8f5f1 0%,#f3f9f6 54%,#e0eff0 100%);isolation:isolate}
+.ai-hero-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11px;color:#477079;font-weight:650}
+.ai-live{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid #b5d8d4;border-radius:100px;padding:7px 12px;letter-spacing:.04em;color:#18546a;font-weight:800}
+.ai-live-dot{width:7px;height:7px;border-radius:50%;background:#18a79c;box-shadow:0 0 0 4px #d8f4ed}
+.ai-hero-label{font-weight:650}
+.ai-hero-stage{min-width:0;padding-block:6px;position:relative}
+.ai-hero-stage:before{content:"";position:absolute;inset:9% 0;background-image:radial-gradient(#9bc9c4 1px,transparent 1.5px);background-size:20px 20px;opacity:.27;pointer-events:none}
+.ai-network{display:block;width:100%;height:auto;max-width:680px;margin:auto;overflow:visible;filter:drop-shadow(0 12px 26px rgba(25,70,85,.07))}
+.ai-core-ring{transform-origin:300px 188px;animation:ai-orbit 22s linear infinite}
+.ai-hero-bottom{border:1px solid #b8d5d1;background:rgba(255,255,255,.92);border-radius:14px;padding:15px 18px;box-shadow:0 15px 35px rgba(24,76,78,.06)}
+.ai-hero-bottom strong{display:block;font-size:13px;color:#1f4e63;line-height:1.6}
+.ai-hero-bottom strong span{padding-inline:5px;color:#0e938e}
+.ai-hero-bottom p{font-size:11px;line-height:1.6;color:#566c6e;margin:6px 0 10px}
+.ai-hero-verdict{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ai-hero-verdict span:not(.ai-hero-languages){font-size:10px;font-weight:800;border:1px solid;border-radius:5px;padding:4px 7px}
+.ai-hero-verdict [data-status=met]{color:#1f6b41;background:#e0f1e5;border-color:#8abc98!important}
+.ai-hero-verdict [data-status=not_met]{color:#8f2f24;background:#fbe4de;border-color:#dfada2!important}
+.ai-hero-verdict [data-status=unknown]{color:#7a5a1e;background:#faf0d2;border-color:#d7c38a!important}
+.ai-hero-languages{margin-inline-start:auto;font-size:11px;font-weight:800;color:#28526b}
+@keyframes ai-orbit{to{transform:rotate(360deg)}}
+@media(max-width:950px){#top>.hero{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)}#top>.hero .hero-copy{padding:36px 24px}#top>.hero .hero-copy h1{font-size:clamp(29px,4vw,43px)}}
+@media(max-width:700px){
+ #top>.hero{grid-template-columns:minmax(0,1fr);min-height:0}
+ #top>.hero .hero-copy{padding:32px 22px 22px}
+ #top>.hero .hero-visual.ai-hero-visual{height:auto;max-height:none;min-height:0;overflow:visible}
+ #top>.hero .ai-hero{height:auto;min-height:0;padding:14px 14px 18px}
+ .ai-network{max-width:540px}
+ .ai-hero-bottom{padding:13px}
+ .ai-hero-label{font-size:10px}
+}
+@media(max-width:360px){.ai-hero-label{display:none}.ai-hero-bottom strong{font-size:12px}}
+@media(prefers-reduced-motion:reduce){
+ #top>.hero .ai-core-ring{animation:none!important}
+ #top>.hero .ai-pulses{display:none}
+ #top>.hero .ai-hero *,#top>.hero .ai-hero *::before,#top>.hero .ai-hero *::after{animation:none!important;transition:none!important}
+}
+@media print{
+ #top>.hero .hero-visual.ai-hero-visual{max-height:none!important;overflow:visible!important}
+ #top>.hero .ai-hero{padding:8mm!important;min-height:0!important}
+ #top>.hero .ai-network{max-height:75mm!important}
+ #top>.hero .ai-pulses{display:none!important}
+ #top>.hero .ai-core-ring{animation:none!important}
+}
