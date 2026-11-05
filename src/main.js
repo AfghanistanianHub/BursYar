@@ -20,6 +20,7 @@ import './editorial-composition.css';
 import './guided-entry.css';
 import './trust-explainer.css';
 import './storyboard.css';
+import './documents-storyboard.css';
 import {sampleScholarships,filterScholarships,localizedCountry,localizedLevel} from './catalog.js';
 import {journeyCopy} from './journey-copy.js';
 import {translations} from './i18n.js';

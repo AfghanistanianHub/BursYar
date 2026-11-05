@@ -81,7 +81,7 @@ export async function extractDocumentText(file,{pdfLoader=()=>importPinned(pdfMo
  if(!file)fail('missingFile');
  const name=(file.name??'').toLowerCase();
  const kind=name.endsWith('.txt')?'txt':name.endsWith('.pdf')?'pdf':/\.(png|jpe?g)$/.test(name)?'image':null;
- if(!kind||((import.meta.env?.PROD??false)&&kind!=='txt'))fail('unsupportedFile');
+ if(!kind||((import.meta.env?.PROD??false)&&kind!=='txt'))fail((import.meta.env?.PROD??false)?'unsupportedFileProduction':'unsupportedFile');
  if(file.size>(kind==='txt'?MAX_TEXT_BYTES:MAX_BINARY_BYTES))fail('fileTooLarge');
  const bytes=new Uint8Array(await file.arrayBuffer());
  if(bytes.length>(kind==='txt'?MAX_TEXT_BYTES:MAX_BINARY_BYTES))fail('fileTooLarge');
