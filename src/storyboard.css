@@ -27,7 +27,7 @@
 .story-flow>li:not(:last-child)::after{content:"";position:absolute;top:13px;inset-inline-start:calc(50% + 18px);inset-inline-end:calc(-50% + 18px);height:4px;background-image:radial-gradient(circle,var(--sb-navy) 1.4px,transparent 1.7px);background-size:11px 4px;background-repeat:repeat-x;opacity:.75;animation:sb-march 1.4s linear infinite}
 .flow-node{display:grid;place-items:center;min-width:28px;height:28px;border:1.5px solid var(--sb-navy);border-radius:50%;color:var(--sb-navy);font-size:11px;font-weight:700;background:var(--sb-card);font-variant-numeric:tabular-nums}
 .story-flow>li:last-child .flow-node{background:var(--sb-navy);color:#fff}
-@keyframes sb-rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sb-rise{from{transform:translateY(10px)}to{transform:none}}
 @keyframes sb-march{from{background-position-x:0}to{background-position-x:11px}}
 .story-verdicts{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 0}
 .story-verdicts span{font-size:11px;font-weight:700;border:1px solid;border-radius:2px;padding:3px 9px}
