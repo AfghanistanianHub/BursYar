@@ -38,17 +38,18 @@ async function recognizeImage(bytes,mime,ocrLoader,language){
  finally{image?.close?.();await worker?.terminate?.().catch(()=>{});}
 }
 async function readPdf(bytes,pdfLoader,ocrLoader,language){
- let pdf,worker;
+ let pdf,worker,task;
  try{
   let lib;try{lib=await pdfLoader();}catch{fail('extractionUnavailable');}
   if(!lib?.getDocument||!lib?.GlobalWorkerOptions)fail('extractionUnavailable');
   lib.GlobalWorkerOptions.workerSrc=pdfWorkerUrl;
-  const task=lib.getDocument({data:bytes.slice(),isEvalSupported:false,enableScripting:false,useSystemFonts:false,stopAtErrors:true});
+  task=lib.getDocument({data:bytes.slice(),isEvalSupported:false,enableScripting:false,useSystemFonts:false,stopAtErrors:true});
   pdf=await task.promise;
   if(pdf.numPages<1||pdf.numPages>MAX_PAGES)fail('pdfPageLimit');
   const lines=[];
   for(let i=1;i<=pdf.numPages;i++){
    const page=await pdf.getPage(i);
+   try{
    const content=await page.getTextContent();
    let text=content.items.map(x=>(x.str??'')+(x.hasEOL?'\n':' ')).join('').trim();
    // Scanned PDFs have no text layer; OCR the page locally.
@@ -58,6 +59,7 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language){
     if(viewport.width*viewport.height>12000000)fail('imageDimensions');
     const canvas=document.createElement('canvas');
     canvas.width=Math.ceil(viewport.width);canvas.height=Math.ceil(viewport.height);
+    try{
     const context=canvas.getContext('2d');
     if(!context)fail('extractionUnavailable');
     try{await page.render({canvasContext:context,viewport}).promise;}
@@ -65,16 +67,16 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language){
     worker??=await createOcrWorker(ocrLoader,language);
     try{text=(await worker.recognize(canvas))?.data?.text??'';}
     catch{fail('extractionUnavailable');}
-    canvas.width=canvas.height=0;
+    }finally{canvas.width=canvas.height=0;}
    }
    lines.push(text.trim());
    // Prevent quadratic memory growth when a PDF contains huge text.
    if(new TextEncoder().encode(lines.join('\n')).length>MAX_TEXT_BYTES)fail('extractedTextTooLarge');
-   page.cleanup?.();
+   }finally{page.cleanup?.();}
   }
   return safeText(lines.join('\n'));
  }catch(error){if(typeof error?.code==='string')throw error;fail('invalidPdf');}
- finally{await worker?.terminate?.().catch(()=>{});await pdf?.destroy?.().catch(()=>{});}
+ finally{await worker?.terminate?.().catch(()=>{});if(pdf)await pdf.destroy?.().catch(()=>{});else await task?.destroy?.().catch(()=>{});}
 }
 export async function extractDocumentText(file,{pdfLoader=()=>importPinned(pdfModuleUrl),ocrLoader=()=>importPinned(ocrModuleUrl),ocrLanguage='eng'}={}){
  if(!['eng','fas','pus'].includes(ocrLanguage))fail('unsupportedOcrLanguage');

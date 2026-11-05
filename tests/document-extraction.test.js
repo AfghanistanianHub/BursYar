@@ -156,3 +156,25 @@ test('document extraction loads code only from pinned reviewed origins (Issue #8
   'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js'
  ]);
 });
+
+test('failed PDF loading destroys the loading task',async()=>{
+ let destroyed=0;
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({
+  promise:Promise.reject(Error('malformed PDF')),destroy:async()=>{destroyed++;}
+ })});
+ await assert.rejects(()=>extractDocumentText(pdf(),{pdfLoader}),e=>e.code==='invalidPdf');
+ assert.equal(destroyed,1);
+});
+
+test('scanned PDF OCR failure clears canvas memory and cleans the page',async()=>{
+ const prior=globalThis.document;
+ const canvas={width:0,height:0,getContext:()=>({})};let cleaned=0;
+ globalThis.document={createElement:()=>canvas};
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({
+  numPages:1,getPage:async()=>({getTextContent:async()=>({items:[]}),getViewport:()=>({width:500,height:700}),render:()=>({promise:Promise.resolve()}),cleanup:()=>{cleaned++;}}),destroy:async()=>{}
+ })})});
+ try{
+  await assert.rejects(()=>extractDocumentText(pdf(),{pdfLoader,ocrLoader:async()=>({createWorker:async()=>({recognize:async()=>{throw Error('OCR failure')},terminate:async()=>{}})})}),e=>e.code==='extractionUnavailable');
+  assert.equal(canvas.width,0);assert.equal(canvas.height,0);assert.equal(cleaned,1);
+ }finally{if(prior===undefined)delete globalThis.document;else globalThis.document=prior;}
+});
