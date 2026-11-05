@@ -29,3 +29,29 @@ test('unreviewed, altered, expired or unsupported source criteria never become d
  const unsupported={...program,rules:[{id:'ambiguous',type:'unsupported',sourceExcerpt:excerpts[0]}]};
  assert.equal(evaluateReviewedScholarship(createScholarshipCatalog([unsupported],{now:()=>Date.parse('2026-10-30')}).get(program.id),profile).summary,'unknown');
 });
+
+test('future-dated reviews stay out of discovery until evaluation is available',()=>{
+ let now=Date.parse('2026-10-28');
+ const catalog=createScholarshipCatalog([program],{now:()=>now});
+ assert.deepEqual(catalog.list(),[]);
+ assert.throws(()=>catalog.get(program.id),/unavailable/);
+ now=Date.parse('2026-10-29');
+ assert.equal(catalog.list()[0].id,program.id);
+ assert.equal(catalog.get(program.id).id,program.id);
+});
+
+test('reviewed assessment preserves reasons needed by real PathFinder guidance',async()=>{
+ const {planGaps}=await import('../src/gap-actions.js');
+ const reviewed={...program,rules:[
+  program.rules[0],
+  {id:'english',type:'ielts_academic',test:'IELTS Academic',overallMin:7,eachBandMin:6.5,sourceExcerpt:excerpts[5]}
+ ]};
+ const assessed=evaluateReviewedScholarship(reviewed,{degree:f('secondary')});
+ assert.equal(assessed.results[0].reason,'degree_comparison');
+ assert.equal(assessed.results[1].reason,'missing_language_test');
+ assert.deepEqual(planGaps(assessed).map(g=>g.action),['check_degree_route','confirm_accepted_tests']);
+ // Conflicting rules must never receive a definite evidence comparison reason.
+ const uncertain=evaluateReviewedScholarship({...reviewed,rules:[{...reviewed.rules[1],conflicting:true}]},{});
+ assert.equal(uncertain.results[0].status,'unknown');
+ assert.equal(uncertain.results[0].reason,'conflicting_or_ambiguous');
+});
