@@ -81,13 +81,13 @@ try {
   await expect(page.locator('.editorial-opportunity a').first()).toHaveAttribute('href',/^https:\/\//);
   await expect(page.locator('.editorial-opportunity a').first()).toHaveAttribute('rel','noopener noreferrer');
   await expect(page.locator('.editorial-nav a')).toHaveCount(4);
-  await expect.poll(()=>page.locator('.editorial-hero-illustration').evaluate(image=>image.complete&&image.naturalWidth>0),{timeout:10000}).toBe(true);
+  await expect(page.locator('.ai-hero .ai-network')).toBeVisible();
   const editorialGeometry=await page.evaluate(()=>{
     const rect=selector=>{const b=document.querySelector(selector).getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,right:b.right,width:b.width}};
     const hero=rect('.hero'),pillars=rect('.editorial-pillars'),selected=rect('.editorial-selected'),how=rect('.how-it-works');
     const nav=rect('.journey-more');
-    const image=document.querySelector('.editorial-hero-illustration');
-    return {hero,pillars,selected,how,nav,imageLoaded:image.complete&&image.naturalWidth>0};
+    const network=document.querySelector('.ai-hero .ai-network');
+    return {hero,pillars,selected,how,nav,imageLoaded:!!network&&network.getBoundingClientRect().width>0};
   });
   expect(editorialGeometry.imageLoaded).toBe(true);
   expect(editorialGeometry.pillars.top).toBeGreaterThanOrEqual(editorialGeometry.hero.bottom-2);
