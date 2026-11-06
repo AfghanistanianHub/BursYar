@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-11-06T16:24:50.774029+00:00",
+  "base": "a333309da7858589bd5188f7312712b3d56cf91c",
+  "mission30Ancestor": "c0b63d3f05f27b9e76ca010fc88eba3900a2b297",
+  "implementationCommit": "48e65e2f9190f69db57405c3d79dd328367ebea7",
+  "scope": "cloud-local, synthetic-only, no inference or remote CI",
+  "node": {
+    "passed": 454,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0
+  },
+  "offlineEvaluation": {
+    "passed": 60,
+    "failed": 0
+  },
+  "realOcr": {
+    "passed": 34,
+    "failed": 0,
+    "farsiSyntheticCER": 0,
+    "pashtoSyntheticCER": 0,
+    "humanReviewed": false
+  },
+  "workerLifecycle": {
+    "passed": 6,
+    "failed": 0,
+    "workersRemaining": 0,
+    "includesCancellationDuringModelInitialization": true
+  },
+  "newExclusionBrowserJourneys": {
+    "passed": 6,
+    "failed": 0,
+    "languages": [
+      "en",
+      "fa",
+      "ps"
+    ],
+    "widths": [
+      320,
+      768
+    ],
+    "includesTargetChangeLanguageRemount": true
+  },
+  "consentTokenRace": {
+    "passed": 3,
+    "failed": 0,
+    "languages": [
+      "en",
+      "fa",
+      "ps"
+    ],
+    "unexpectedDocumentPosts": 0
+  },
+  "discoveryBrowserJourneys": {
+    "passed": 12,
+    "failed": 0
+  },
+  "academicBrowserJourneys": {
+    "passed": 12,
+    "failed": 0
+  },
+  "builtOcr": {
+    "passed": true,
+    "workersRemaining": 0,
+    "externalRequests": 0
+  },
+  "productionBinaryGate": {
+    "passed": true,
+    "namedAssertions": 9,
+    "pdfImageWrites": 0,
+    "vendorRequests": 0,
+    "identity": "synthetic"
+  },
+  "build": {
+    "passed": true,
+    "hostingBuild": false
+  },
+  "dependencyAudit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "productionApproved": false,
+  "deployed": false,
+  "remoteCiTriggered": false,
+  "memoryLimitScope": "256 MiB per capped WASM; application PDF text bounded while streaming. No browser/JS/PDF/GPU process ceiling.",
+  "implementationTree": "3bf9dfba611d3fae37e14ced9eb175ac3fccd088"
+}
