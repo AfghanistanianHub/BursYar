@@ -151,8 +151,6 @@ test('document extraction loads code only from pinned reviewed origins (Issue #8
  const source=readFileSync(new URL('../src/document-extraction.js',import.meta.url),'utf8');
  const urls=[...new Set([...source.matchAll(/https:\/\/[^\s'")]+/g)].map(m=>m[0]))].sort();
  assert.deepEqual(urls,[
-  'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs',
-  'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs',
   'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js'
  ]);
 });

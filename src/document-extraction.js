@@ -3,8 +3,6 @@
 // Pinned versions: updates require security review and browser regression checks.
 const MAX_TEXT_BYTES=12000, MAX_BINARY_BYTES=5*1024*1024, MAX_PAGES=5;
 const fail=code=>{const error=new Error(code);error.code=code;throw error;};
-const pdfModuleUrl='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs';
-const pdfWorkerUrl='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs';
 const ocrModuleUrl='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js';
 const isPdf=bytes=>bytes.length>=5&&bytes[0]===37&&bytes[1]===80&&bytes[2]===68&&bytes[3]===70&&bytes[4]===45;
 const isPng=b=>b.length>=8&&[137,80,78,71,13,10,26,10].every((n,i)=>b[i]===n);
@@ -66,7 +64,6 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language,wait){
  try{
   let lib;try{lib=await wait(()=>pdfLoader());}catch{fail('extractionUnavailable');}
   if(!lib?.getDocument||!lib?.GlobalWorkerOptions)fail('extractionUnavailable');
-  lib.GlobalWorkerOptions.workerSrc=pdfWorkerUrl;
   task=lib.getDocument({data:bytes.slice(),isEvalSupported:false,enableScripting:false,useSystemFonts:false,stopAtErrors:true});
   pdf=await wait(()=>task.promise,latePdf=>release(latePdf,'destroy'));
   if(!Number.isInteger(pdf.numPages)||pdf.numPages<1||pdf.numPages>MAX_PAGES)fail('pdfPageLimit');
@@ -102,7 +99,7 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language,wait){
  }catch(error){if(typeof error?.code==='string')throw error;fail('invalidPdf');}
  finally{await release(worker,'terminate');await release(pdf??task,'destroy');}
 }
-export async function extractDocumentText(file,{pdfLoader=()=>importPinned(pdfModuleUrl),ocrLoader=()=>importPinned(ocrModuleUrl),ocrLanguage='eng',timeoutMs=30000}={}){
+export async function extractDocumentText(file,{pdfLoader=()=>import('./pdf-runtime.js').then(module=>module.pdfRuntime()),ocrLoader=()=>importPinned(ocrModuleUrl),ocrLanguage='eng',timeoutMs=30000}={}){
  if(!['eng','fas','pus'].includes(ocrLanguage))fail('unsupportedOcrLanguage');
  if(!file)fail('missingFile');
  const name=(file.name??'').toLowerCase();
