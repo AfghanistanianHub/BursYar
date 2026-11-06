@@ -35,3 +35,12 @@ test('JPEG rejects changed dimensions after a scan, multiple frames and concaten
  for(const extra of [segment(0xdc,[0x20,0x00]),frame(100,100),segment(0xde,[0,0])])rejects(Uint8Array.from([255,216,...frame(100,100),...scan(),...extra,255,217]),'image/jpeg','invalidImage');
  rejects(Uint8Array.from([...jpeg(100,100),...jpeg(5000,1)]),'image/jpeg','invalidImage');
 });
+
+test('compressed ancillary metadata is refused before native decompression',()=>{
+ for(const kind of ['iCCP','zTXt','iTXt'])rejects(png(100,100,chunk(kind,[0,0,0,0,120,156,3,0,0,0,0,1])),'image/png','invalidImage');
+});
+test('PNG bit depth and decoded scanline budget are bounded',()=>{
+ const bad=png(100,100);bad[24]=16;bad[25]=3;rejects(bad,'image/png','invalidImage');
+ const deep=png(4000,3000);deep[24]=16;rejects(deep,'image/png','imageDimensions');
+ const small=png(100,100);small[24]=16;assert.deepEqual(inspectImageDimensions(small,'image/png'),{width:100,height:100});
+});

@@ -5,7 +5,7 @@
 import {chromium, expect} from '@playwright/test';
 import {createServer} from 'vite';
 import {prepareLocalOcr} from '../scripts/prepare-local-ocr.mjs';
-import {mkdtempSync, rmSync, readFileSync} from 'node:fs';
+import {mkdtempSync, rmSync, readFileSync, mkdirSync, writeFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {DocumentStore} from '../engine/documents.js';
@@ -84,6 +84,13 @@ const api = createInferenceServer({
 await new Promise(resolve => api.listen(0, '127.0.0.1', resolve));
 const apiBase = 'http://127.0.0.1:' + api.address().port;
 const browser = await chromium.launch({headless: true});
+const quality=[];
+function qualitySample(language,expected,observed){
+ const normalize=s=>s.normalize('NFC').replace(/\s+/gu,' ').trim();
+ const a=[...normalize(expected)],b=[...normalize(observed)];let row=Array.from({length:b.length+1},(_,i)=>i);
+ for(let i=1;i<=a.length;i++){const next=[i];for(let j=1;j<=b.length;j++)next[j]=Math.min(next[j-1]+1,row[j]+1,row[j-1]+(a[i-1]===b[j-1]?0:1));row=next;}
+ quality.push({language,expected:normalize(expected),observed:normalize(observed),characterErrorRate:row[b.length]/a.length,humanReviewed:false,scope:'one synthetic native-script fixture, not general OCR accuracy'});
+}
 const observed = [];
 const externalRequests=[];
 let failures = 0;
@@ -192,7 +199,7 @@ try {
   await setFile('fa.png', 'image/png', Buffer.from(faImg));
   await submit();
   await expectPreview('05-fa-ocr');
-  const faText = await previewText();
+  const faText = await previewText();qualitySample('fas','مدرک تحصیلی: لیسانس\nمعدل: 17.5/20',faText);
   check('05-fa-ocr', faText.includes('لیسانس'), JSON.stringify(faText.slice(0, 60)));
   check('05-fa-rtl', await preview.locator('textarea').evaluate(el => getComputedStyle(el).direction === 'rtl'), 'dir=auto follows Persian text');
   await preview.locator('button').nth(1).click();
@@ -201,7 +208,7 @@ try {
   await setFile('ps.png', 'image/png', Buffer.from(psImg));
   await submit();
   await expectPreview('06-ps-ocr');
-  const psText = await previewText();
+  const psText = await previewText();qualitySample('pus','تحصیلي کچه: لېسانس',psText);
   const psManual = !psText.trim();
   if(psManual){
     // Tesseract's Pashto pack may return no characters for synthetic font glyphs.
@@ -363,4 +370,5 @@ try {
   rmSync(dir, {recursive: true, force: true});
 }
 if (failures) { console.error(`OCR INTEGRATION FAILURES: ${failures}`); process.exit(1); }
+mkdirSync('verification/artifacts',{recursive:true});writeFileSync('verification/artifacts/native-ocr-quality.json',JSON.stringify({quality,syntheticOnly:true,humanReviewed:false},null,2)+'\n');console.log('QUALITY '+JSON.stringify(quality));
 console.log(`OCR REAL-INTEGRATION PASSED: ${observed.length} checks, 0 failures`);

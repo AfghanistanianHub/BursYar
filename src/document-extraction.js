@@ -110,6 +110,7 @@ export async function extractDocumentText(file,{pdfLoader=()=>import('./pdf-runt
  if(!kind||((import.meta.env?.PROD??false)&&kind!=='txt'))fail((import.meta.env?.PROD??false)?'unsupportedFileProduction':'unsupportedFile');
  if(file.size>(kind==='txt'?MAX_TEXT_BYTES:MAX_BINARY_BYTES))fail('fileTooLarge');
  const wait=extractionDeadline(timeoutMs);
+ const parse=async()=>{
  const bytes=new Uint8Array(await wait(()=>file.arrayBuffer()));
  if(bytes.length>(kind==='txt'?MAX_TEXT_BYTES:MAX_BINARY_BYTES))fail('fileTooLarge');
  if(kind==='txt'){
@@ -123,4 +124,14 @@ export async function extractDocumentText(file,{pdfLoader=()=>import('./pdf-runt
  const mime=isPng(bytes)?'image/png':isJpeg(bytes)?'image/jpeg':null;
  if(!mime)fail('invalidImage');
  return {text:safeText(await recognizeImage(bytes,mime,ocrLoader,ocrLanguage,wait)),method:'local_image_ocr'};
+ };
+ // Browser-wide coordination bounds concurrent binary work across tabs in
+ // this origin/storage partition. Node fixture loaders remain independently testable.
+ if(kind==='txt'||typeof window==='undefined')return parse();
+ const locks=globalThis.navigator?.locks;
+ if(typeof locks?.request!=='function')fail('extractionUnavailable');
+ return wait(()=>locks.request('bursyar.binary-document',{mode:'exclusive',ifAvailable:true},lock=>{
+  if(!lock)fail('extractionBusy');
+  return parse();
+ }));
 }

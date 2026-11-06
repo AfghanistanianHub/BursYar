@@ -11,13 +11,18 @@ const u32=(b,i)=>b[i]*0x1000000+b[i+1]*65536+b[i+2]*256+b[i+3];
 function png(b){
  if(b.length<33||[137,80,78,71,13,10,26,10].some((n,i)=>b[i]!==n)||u32(b,8)!==13||String.fromCharCode(...b.subarray(12,16))!=='IHDR')fail('invalidImage');
  const size=dimensions(u32(b,16),u32(b,20));
+ const depth=b[24],color=b[25],channels={0:1,2:3,3:1,4:2,6:4}[color];
+ const depths=color===0?[1,2,4,8,16]:color===3?[1,2,4,8]:[8,16];
+ if(!channels||!depths.includes(depth)||b[26]!==0||b[27]!==0||![0,1].includes(b[28]))fail('invalidImage');
+ // Bound inflated samples plus conservative Adam7 filter/alignment overhead.
+ if(Math.ceil(size.width*size.height*channels*depth/8)+14*size.height>48*1024*1024)fail('imageDimensions');
  let offset=8,count=0,idat=false;
  while(offset+12<=b.length){
   if(++count>10000)fail('invalidImage');
   const length=u32(b,offset),end=offset+12+length;
   if(end>b.length)fail('invalidImage');
   const kind=String.fromCharCode(...b.subarray(offset+4,offset+8));
-  if(!/^[A-Za-z]{4}$/.test(kind)||['acTL','fcTL','fdAT'].includes(kind)||(kind==='IHDR'&&offset!==8))fail('invalidImage');
+  if(!/^[A-Za-z]{4}$/.test(kind)||['acTL','fcTL','fdAT','iCCP','zTXt','iTXt'].includes(kind)||(kind==='IHDR'&&offset!==8))fail('invalidImage');
   if(kind==='IDAT')idat=true;
   if(kind==='IEND'){
    if(length!==0||end!==b.length||!idat)fail('invalidImage');

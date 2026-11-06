@@ -19,7 +19,7 @@ test('local assets reject missing files, changed bytes and unexpected package ve
   const names=new Map(ocrManifest.packages.map(p=>[p.key,p.name]));
   for(const p of ocrManifest.packages){const dir=join(modules,p.name);mkdirSync(dir,{recursive:true});writeFileSync(join(dir,'package.json'),JSON.stringify({name:p.name,version:p.version}));}
   for(const f of ocrManifest.files){const dest=join(modules,names.get(f.package),f.source);mkdirSync(dirname(dest),{recursive:true});writeFileSync(dest,readFileSync(new URL('../node_modules/'+names.get(f.package)+'/'+f.source,import.meta.url)));}
-  assert.equal(verifyOcrAssets({modules}).length,23);
+  assert.equal(verifyOcrAssets({modules}).length,ocrManifest.files.length);
   const first=ocrManifest.files[0],target=join(modules,names.get(first.package),first.source),original=readFileSync(target);
   const changed=Buffer.from(original);changed[0]^=1;writeFileSync(target,changed);
   assert.throws(()=>verifyOcrAssets({modules}),/integrity mismatch/);
@@ -53,4 +53,15 @@ test('model provenance binds all three pinned NPM models to the recorded upstrea
  const changed=structuredClone(provenance);changed.models[0].compressedSha256='0'.repeat(64);
  assert.throws(()=>api.verifyModelProvenance(changed,license),/provenance/);
  assert.throws(()=>api.verifyModelProvenance(provenance,Buffer.from('wrong license')),/license/);
+});
+
+test('model distribution selects the authoritative upstream grant and excludes wrapper license labels',()=>{
+ const p=JSON.parse(readFileSync(new URL('../data/ocr-model-provenance.json',import.meta.url)));
+ assert.equal(p.selectedDistributionLicense,'Apache-2.0');
+ assert.ok(p.licenseEvidence.maintainerStatementUrl.includes('issuecomment-1686457658'));
+ assert.equal(ocrManifest.files.some(f=>/^licenses\/(eng|fas|pus)-(package\.json|README\.md)$/.test(f.path)),false);
+ const inventory=JSON.parse(readFileSync(new URL('../data/ocr-license-inventory.json',import.meta.url)));
+ assert.deepEqual(inventory.assets.map(a=>a.path).sort(),ocrManifest.files.map(f=>f.path).sort());
+ assert.equal(inventory.productionApproved,false);
+ for(const a of inventory.assets.filter(a=>a.kind==='model'))assert.equal(a.selectedLicense,'Apache-2.0');
 });

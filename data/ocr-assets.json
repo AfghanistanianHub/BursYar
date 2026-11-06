@@ -137,20 +137,6 @@
       "uncompressedSha256": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747"
     },
     {
-      "package": "eng",
-      "source": "package.json",
-      "path": "licenses/eng-package.json",
-      "bytes": 530,
-      "sha256": "b603509212196b5d09e10519bf252c1e344b79704d065e0d62886846f8554c80"
-    },
-    {
-      "package": "eng",
-      "source": "README.md",
-      "path": "licenses/eng-README.md",
-      "bytes": 381,
-      "sha256": "adcb325473fe124291951a0a3d29fcb54b341828881570e45c42dc2a3a61a45d"
-    },
-    {
       "package": "fas",
       "source": "4.0.0_best_int/fas.traineddata.gz",
       "path": "lang/fas.traineddata.gz",
@@ -160,20 +146,6 @@
       "uncompressedSha256": "ff6a6743a643ebd93717346ae6526aed110aad4e08ca10240279787fc567522c"
     },
     {
-      "package": "fas",
-      "source": "package.json",
-      "path": "licenses/fas-package.json",
-      "bytes": 530,
-      "sha256": "5078b77280064cf1205386d080042c1f1dfe315057de2be0201cc0f6bd0995ff"
-    },
-    {
-      "package": "fas",
-      "source": "README.md",
-      "path": "licenses/fas-README.md",
-      "bytes": 381,
-      "sha256": "02b101ac43af8b0dba551cadf58c867d1dc863f7527e667defde8900e9f304e2"
-    },
-    {
       "package": "pus",
       "source": "4.0.0_best_int/pus.traineddata.gz",
       "path": "lang/pus.traineddata.gz",
@@ -181,20 +153,6 @@
       "sha256": "689b369c109107c4df1cd133446b9de0b10b79706a070d4c35dc885a52764105",
       "uncompressedBytes": 1772127,
       "uncompressedSha256": "b827e17bd6900c76b16ff63b449fc30d5fa6c79c1b1f97e77bc1615963dcc1bb"
-    },
-    {
-      "package": "pus",
-      "source": "package.json",
-      "path": "licenses/pus-package.json",
-      "bytes": 530,
-      "sha256": "083f41be35fc6c7df9295de9964c57a95d4edc610888cbc2cd72f9e74b31dff5"
-    },
-    {
-      "package": "pus",
-      "source": "README.md",
-      "path": "licenses/pus-README.md",
-      "bytes": 381,
-      "sha256": "d400ea16fc40cb9f87625346985d9704ff58b8b6b292243bdfd6f58f92ac7a1f"
     }
   ]
 }

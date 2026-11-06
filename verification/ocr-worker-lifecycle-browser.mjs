@@ -1,5 +1,5 @@
 // Real pinned runtime, synthetic pixels, stalled/failed nested assets; no models/inference online.
-import {chromium} from '@playwright/test';
+import {chromium,expect} from '@playwright/test';
 import {createServer} from 'vite';
 import {prepareLocalOcr} from '../scripts/prepare-local-ocr.mjs';
 import assert from 'node:assert/strict';
@@ -27,9 +27,9 @@ try{
    const extract=async()=>{try{await extractDocumentText(new File([blob],'synthetic.png'),{timeoutMs:1000});return 'unexpected_success';}catch(e){return e.code;}};
    return mode==='concurrent'?Promise.all([extract(),extract()]):extract();
   },mode);
-  if(mode==='concurrent')assert.deepEqual(outcome,['extractionUnavailable','extractionUnavailable']);else assert.equal(outcome,'extractionUnavailable');
+  if(mode==='concurrent')assert.deepEqual([...outcome].sort(),['extractionBusy','extractionUnavailable'].sort());else assert.equal(outcome,'extractionUnavailable');
   // A successful cleanup must close the runtime host AND any native OCR child.
-  await page.waitForTimeout(150);
+  await expect.poll(()=>page.workers().length,{timeout:2000}).toBe(0);
   assert.equal(page.workers().length,0,`${mode}: workers still alive (${page.workers().map(w=>w.url()).join(',')})`);
   assert.ok(spawned.length>0,'must exercise real workers');
   if(mode==='concurrent')assert.equal(spawned.filter(w=>w.url().includes('ocr-host.worker')).length,1,'only one OCR host may exist');assert.deepEqual(outside,[]);

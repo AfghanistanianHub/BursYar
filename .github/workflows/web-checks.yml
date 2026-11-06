@@ -50,6 +50,7 @@ jobs:
       - run: node verification/document-library-browser.mjs
       - run: node verification/local-pdf-browser.mjs
       - run: node verification/image-preflight-browser.mjs
+      - run: node verification/document-concurrency-browser.mjs
       - run: node verification/document-ocr-integration.mjs
       - run: node verification/ocr-worker-lifecycle-browser.mjs
       - run: node verification/document-preview-browser.mjs

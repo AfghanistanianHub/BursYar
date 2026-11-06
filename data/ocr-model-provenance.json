@@ -7,7 +7,7 @@
   "licenseUrl": "https://github.com/naptha/tessdata/blob/806cd9adc8c6e8abc11c782db1818c990576bebc/LICENSE",
   "licenseSha256": "c95bae1d1ce0235ecccd3560b772ec1efb97f348a79f0fbe0a634f0c2ccefe2c",
   "npmWrapperLicenseDeclaration": "MIT",
-  "licenseNote": "Upstream source assets are distributed with Apache-2.0. NPM wrapper metadata declares MIT and contains no full license text. Preserve both records; do not relabel assets or mark the metadata discrepancy resolved.",
+  "licenseNote": "Model assets use the independent Apache-2.0 grant from the byte-matched upstream distribution. npm packaging metadata remains MIT; no upstream metadata correction or human legal sign-off is claimed.",
   "models": [
     {
       "language": "eng",
@@ -34,5 +34,15 @@
       "decompressedMatchesNpm": true
     }
   ],
-  "productionApproved": false
+  "productionApproved": false,
+  "selectedDistributionLicense": "Apache-2.0",
+  "licenseEvidence": {
+    "maintainerStatementUrl": "https://github.com/naptha/tessdata/issues/4#issuecomment-1686457658",
+    "maintainer": "Balearica",
+    "association": "MEMBER",
+    "statement": "I added a license file.",
+    "packageGeneratorUrl": "https://github.com/naptha/tessdata/blob/806cd9adc8c6e8abc11c782db1818c990576bebc/scripts/gen-pkg.js",
+    "packageGeneratorBlob": "ff59b66eaecebd7560f30f5ac04fb519dd2ea941",
+    "explanation": "The upstream package generator hard-codes MIT metadata. The repository maintainer added the Apache-2.0 license for its distributed files. BursYar selects that independent upstream grant for the byte-matched model assets; it does not change the npm metadata."
+  }
 }
