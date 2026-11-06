@@ -29,3 +29,28 @@ test('local assets reject missing files, changed bytes and unexpected package ve
   assert.throws(()=>verifyOcrAssets({modules}),/version mismatch/);
  }finally{rmSync(modules,{recursive:true,force:true});}
 });
+
+test('prepared core assets have an enforced 256 MiB engine maximum in standalone and embedded WASM',()=>{
+ const files=verifyOcrAssets();
+ for(const file of files.filter(f=>/\.wasm$/.test(f.path))){
+  const module=new WebAssembly.Module(file.bytes),imports={};
+  for(const i of WebAssembly.Module.imports(module)){assert.equal(i.kind,'function');(imports[i.module]??={})[i.name]=()=>0;}
+  const instance=new WebAssembly.Instance(module,imports);
+  const memory=Object.values(instance.exports).find(v=>v instanceof WebAssembly.Memory);
+  assert.ok(memory);assert.throws(()=>memory.grow(4096),RangeError,file.path);
+  const js=files.find(f=>f.path===file.path+'.js');
+  const match=/data:application\/octet-stream;base64,([A-Za-z0-9+/=]+)/.exec(Buffer.from(js.bytes).toString());
+  assert.ok(match);assert.deepEqual(Buffer.from(match[1],'base64'),Buffer.from(file.bytes));
+ }
+});
+
+test('model provenance binds all three pinned NPM models to the recorded upstream revision',async()=>{
+ const api=await import('../scripts/prepare-local-ocr.mjs');
+ assert.equal(typeof api.verifyModelProvenance,'function','missing provenance gate');
+ const provenance=JSON.parse(readFileSync(new URL('../data/ocr-model-provenance.json',import.meta.url)));
+ const license=readFileSync(new URL('../public/licenses/tessdata-LICENSE.txt',import.meta.url));
+ assert.equal(api.verifyModelProvenance(provenance,license),true);
+ const changed=structuredClone(provenance);changed.models[0].compressedSha256='0'.repeat(64);
+ assert.throws(()=>api.verifyModelProvenance(changed,license),/provenance/);
+ assert.throws(()=>api.verifyModelProvenance(provenance,Buffer.from('wrong license')),/license/);
+});

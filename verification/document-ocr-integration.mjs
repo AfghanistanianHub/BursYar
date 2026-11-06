@@ -5,24 +5,24 @@
 import {chromium, expect} from '@playwright/test';
 import {createServer} from 'vite';
 import {prepareLocalOcr} from '../scripts/prepare-local-ocr.mjs';
-import {mkdtempSync, rmSync} from 'node:fs';
+import {mkdtempSync, rmSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {DocumentStore} from '../engine/documents.js';
 import {createInferenceServer} from '../engine/http.js';
 
 // ---- synthetic PDF builders (no dependency) ----
-function textPdf(linesPerPage) {
+function textPdf(linesPerPage, openAction = false, dense = false) {
   const offsets = [];
   let body = '%PDF-1.4\n';
   const push = (s) => { offsets.push(body.length); body += s; };
   const n = linesPerPage.length;
   const fontId = 3 + n * 2;
-  push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+  push('1 0 obj\n<< /Type /Catalog /Pages 2 0 R '+(openAction?'/OpenAction << /S /JavaScript /JS (globalThis.__bursyarPdfAction = 1;) >> ':'')+'>>\nendobj\n');
   push('2 0 obj\n<< /Type /Pages /Kids [' + linesPerPage.map((_, i) => `${3 + i * 2} 0 R`).join(' ') + `] /Count ${n} >>\nendobj\n`);
   const esc = s => s.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
   for (let i = 0; i < n; i++) {
-    const content = linesPerPage[i].map((t, j) => `BT /F1 14 Tf 72 ${720 - j * 24} Td (${esc(t)}) Tj ET`).join('\n');
+    const content = linesPerPage[i].map((t, j) => `BT /F1 14 Tf 72 ${720 - (dense ? j % 20 : j) * 24} Td (${esc(t)}) Tj ET`).join('\n');
     push(`${3 + i * 2} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${4 + i * 2} 0 R >>\nendobj\n`);
     push(`${4 + i * 2} 0 obj\n<< /Length ${content.length} >>\nstream\n${content}\nendstream\nendobj\n`);
   }
@@ -236,11 +236,22 @@ try {
   const full = textPdf([['x']]);
   await neg('08-corrupt', 'c.pdf', 'application/pdf', full.subarray(0, Math.floor(full.length / 2)), 'Invalid or unsupported PDF');
   await neg('09-encrypted', 'enc.pdf', 'application/pdf', encryptedPdf(), 'Invalid or unsupported PDF');
+  const realEncrypted=JSON.parse(readFileSync(new URL('./fixtures/encrypted-synthetic.json',import.meta.url)));
+  await neg('09-real-encrypted', 'valid-encrypted.pdf', 'application/pdf', Buffer.from(realEncrypted.base64,'base64'), 'Invalid or unsupported PDF');
   await neg('10-oversize', 'big.pdf', 'application/pdf', Buffer.concat([Buffer.from('%PDF-'), Buffer.alloc(6 * 1024 * 1024, 65)]), '5 MB');
   await neg('11-six-pages', 'six.pdf', 'application/pdf', textPdf([['1'], ['2'], ['3'], ['4'], ['5'], ['6']]), '1 to 5 pages');
   await neg('12-bad-sig', 'fake.png', 'image/png', Buffer.from('not-an-image-bytes!!'), 'Invalid image');
   await neg('13-bad-ext', 'run.exe', 'application/octet-stream', Buffer.from('MZ fake'), 'TXT, PDF, PNG, or JPEG');
+  await neg('14-large-text', 'large-text.pdf', 'application/pdf', textPdf([Array.from({length:600},(_,i)=>'SYNTHETIC EXCESS TEXT '+i)],false,true), '12 KB');
+  await neg('14-concatenated-png', 'two.png', 'image/png', Buffer.concat([Buffer.from(faImg),Buffer.from(faImg)]), 'Invalid image');
+  await neg('14-truncated-png', 'short.png', 'image/png', Buffer.from(faImg).subarray(0,45), 'Invalid image');
+  await neg('14-jpeg-dnl', 'dnl.jpg', 'image/jpeg', Buffer.concat([Buffer.from(jpg).subarray(0,-2),Buffer.from([255,220,0,4,0x20,0,255,217])]), 'Invalid image');
   check('neg-writes', writes === writesBeforeNeg && !(await preview.isVisible()), `writes=${writes}`);
+
+  await setFile('action.pdf','application/pdf',textPdf([['SYNTHETIC SAFE TEXT']],true));
+  await submit();await expectPreview('14-script-pdf');
+  check('14-script-disabled',(await previewText()).includes('SYNTHETIC SAFE TEXT')&&await page.evaluate(()=>globalThis.__bursyarPdfAction===undefined),'OpenAction not executed; safe text extracted');
+  await preview.locator('button').nth(1).click();
 
   // 19. replacement + cancel
   const repA = await render(['FIRST FILE REMAINS UNREAD'], false);

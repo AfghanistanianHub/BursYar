@@ -230,7 +230,10 @@ test('successful PDF stages share one cumulative extraction budget',async()=>{
  assert.equal(await extractionOutcome(extractDocumentText(pdf(),{pdfLoader,timeoutMs:100})),'extractionUnavailable');
  assert.equal(destroyed,1);
 });
-test('bitmap arriving after deadline is closed and never passed to OCR',async()=>{
+test('bitmap arriving after deadline is closed and never passed to OCR',async(t)=>{
+ // Freeze only Date during microtask setup; the real deadline timer still fires.
+ // CPU preemption while other test files compile WASM must not skip decoding.
+ const started=Date.now();t.mock.method(Date,'now',()=>started);
  const prior=globalThis.createImageBitmap;let resolveBitmap,closed=0,ocrCalls=0;
  globalThis.createImageBitmap=()=>new Promise(resolve=>{resolveBitmap=resolve;});
  try{

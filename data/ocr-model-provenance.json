@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-11-06T06:48:39.010233+00:00",
+  "repository": "https://github.com/naptha/tessdata",
+  "revision": "806cd9adc8c6e8abc11c782db1818c990576bebc",
+  "upstreamLicense": "Apache-2.0",
+  "licenseUrl": "https://github.com/naptha/tessdata/blob/806cd9adc8c6e8abc11c782db1818c990576bebc/LICENSE",
+  "licenseSha256": "c95bae1d1ce0235ecccd3560b772ec1efb97f348a79f0fbe0a634f0c2ccefe2c",
+  "npmWrapperLicenseDeclaration": "MIT",
+  "licenseNote": "Upstream source assets are distributed with Apache-2.0. NPM wrapper metadata declares MIT and contains no full license text. Preserve both records; do not relabel assets or mark the metadata discrepancy resolved.",
+  "models": [
+    {
+      "language": "eng",
+      "url": "https://raw.githubusercontent.com/naptha/tessdata/806cd9adc8c6e8abc11c782db1818c990576bebc/4.0.0_best_int/eng.traineddata.gz",
+      "compressedSha256": "45b4cb346724ac1774f1c36f42f182b887bcdb28ebe63e6fff90ac41f3fcff91",
+      "decompressedSha256": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747",
+      "compressedMatchesNpm": true,
+      "decompressedMatchesNpm": true
+    },
+    {
+      "language": "fas",
+      "url": "https://raw.githubusercontent.com/naptha/tessdata/806cd9adc8c6e8abc11c782db1818c990576bebc/4.0.0_best_int/fas.traineddata.gz",
+      "compressedSha256": "b5847360e25f646c55449f1fe93eee57d53e406a265ead2374e7320bf0b82025",
+      "decompressedSha256": "ff6a6743a643ebd93717346ae6526aed110aad4e08ca10240279787fc567522c",
+      "compressedMatchesNpm": true,
+      "decompressedMatchesNpm": true
+    },
+    {
+      "language": "pus",
+      "url": "https://raw.githubusercontent.com/naptha/tessdata/806cd9adc8c6e8abc11c782db1818c990576bebc/4.0.0_best_int/pus.traineddata.gz",
+      "compressedSha256": "689b369c109107c4df1cd133446b9de0b10b79706a070d4c35dc885a52764105",
+      "decompressedSha256": "b827e17bd6900c76b16ff63b449fc30d5fa6c79c1b1f97e77bc1615963dcc1bb",
+      "compressedMatchesNpm": true,
+      "decompressedMatchesNpm": true
+    }
+  ],
+  "productionApproved": false
+}
