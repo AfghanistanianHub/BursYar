@@ -277,10 +277,8 @@ try {
   await submit();
   await expectPreview('15-no-consent');
   await form.locator('input[type=checkbox]').uncheck();
-  await preview.locator('button').first().click();
-  await page.waitForTimeout(800);
-  check('15-no-consent', writes === writesBeforeNeg, `writes=${writes}`);
-  await preview.locator('button').nth(1).click();
+  await expect(preview).toBeHidden();
+  check('15-no-consent', writes === writesBeforeNeg && (await preview.locator('textarea').inputValue()) === '', `writes=${writes}; preview erased`);
   await form.locator('input[type=checkbox]').check();
 
   // 16/17. lost response then idempotent retry

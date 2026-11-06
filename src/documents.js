@@ -20,10 +20,11 @@ export const documentSteps={
 };
 export const documentStageKeys=['upload','extract','review','save'];
 export const libraryCopy={en:{title:'Private document library',refresh:'Refresh list',open:'Open selected document',empty:'No documents saved',reviewed:'Reviewed — not verified',pending:'Pending review'},fa:{title:'کتابخانهٔ اسناد خصوصی',refresh:'تازه‌سازی فهرست',open:'باز کردن سند انتخاب‌شده',empty:'سندی ذخیره نشده است',reviewed:'بازبینی‌شده؛ تأیید نشده',pending:'در انتظار بازبینی'},ps:{title:'د شخصي اسنادو زېرمتون',refresh:'لړ تازه کول',open:'ټاکل شوی سند پرانیستل',empty:'هېڅ سند نه دی ساتل شوی',reviewed:'بیاکتل شوی؛ نه دی تایید شوی',pending:'د بیاکتنې په تمه'}};
-let current=null,identityEpoch=0;
-document.addEventListener('bursyar:identity',()=>{current=null;identityEpoch++;const root=document.querySelector('#documents-mount');if(root)mountDocuments(root,document.documentElement.lang);});
+let current=null,identityEpoch=0,extractionController=null;
+document.addEventListener('bursyar:identity',()=>{extractionController?.abort();current=null;identityEpoch++;const root=document.querySelector('#documents-mount');if(root)mountDocuments(root,document.documentElement.lang);});
 export function mountDocuments(root,language='en'){
  if(!root)return;
+ extractionController?.abort();
  const mountEpoch=identityEpoch;
  const t=documentsCopy[language]??documentsCopy.en;
  root.replaceChildren();const section=document.createElement('section');section.className='section';section.id='documents';root.append(section);
@@ -68,8 +69,9 @@ export function mountDocuments(root,language='en'){
  const previewConfirm=element('button',t.previewConfirm,preview);previewConfirm.type='button';
  const previewCancel=element('button',t.previewCancel,preview);previewCancel.type='button';
  let pendingMethod=null;
- const clearPreview=()=>{pendingMethod=null;previewText.value='';preview.hidden=true;setDocumentStage('upload');};
+ const clearPreview=()=>{extractionController?.abort();pendingMethod=null;previewText.value='';preview.hidden=true;setDocumentStage('upload');};
  previewCancel.addEventListener('click',clearPreview);
+ consent.addEventListener('change',()=>{if(!consent.checked)clearPreview();});
  file.addEventListener('change',clearPreview);
  paste.addEventListener('toggle',clearPreview);
  ocrSelect.addEventListener('change',clearPreview);
@@ -144,7 +146,11 @@ export function mountDocuments(root,language='en'){
   const selected=paste.open?new File([pasted.value],'pasted-education.txt',{type:'text/plain'}):file.files[0];
   let extracted;
   if(!binaryDocumentsEnabled&&!paste.open&&!/\.txt$/i.test(selected?.name??''))throw Object.assign(Error('Binary document upload unavailable in production'),{code:'unsupportedFileProduction'});
-  try{extracted=await extractDocumentText(selected,{ocrLanguage:ocrSelect.value});}
+  try{const controller=new AbortController();extractionController=controller;
+   try{extracted=await extractDocumentText(selected,{ocrLanguage:ocrSelect.value,signal:controller.signal});}
+   finally{if(extractionController===controller)extractionController=null;}
+   if(controller.signal.aborted)throw Object.assign(Error('Extraction cancelled'),{code:'extractionUnavailable'});
+  }
   catch(error){
    // An OCR model may return no characters, particularly on Pashto records.
    // Offer explicit manual transcription instead of inventing content.

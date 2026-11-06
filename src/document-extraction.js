@@ -22,19 +22,21 @@ async function release(resource,method){
  try{await Promise.race([Promise.resolve().then(()=>resource?.[method]?.()).catch(()=>{}),new Promise(resolve=>{timer=setTimeout(resolve,1000);})]);}
  finally{clearTimeout(timer);}
 }
-function extractionDeadline(timeoutMs){
+function extractionDeadline(timeoutMs,signal){
  if(!Number.isInteger(timeoutMs)||timeoutMs<1||timeoutMs>30000)fail('extractionUnavailable');
  const expires=Date.now()+timeoutMs;
  return (operation,onLate)=>{
   const remaining=expires-Date.now();
-  if(remaining<=0)return Promise.reject(Object.assign(new Error('extractionUnavailable'),{code:'extractionUnavailable'}));
+  if(signal?.aborted||remaining<=0)return Promise.reject(Object.assign(new Error('extractionUnavailable'),{code:'extractionUnavailable'}));
   return new Promise((resolve,reject)=>{
    let expired=false;
-   const timer=setTimeout(()=>{expired=true;reject(Object.assign(new Error('extractionUnavailable'),{code:'extractionUnavailable'}));},remaining);
-   Promise.resolve().then(operation).then(value=>{
+   const stop=()=>{expired=true;clearTimeout(timer);signal?.removeEventListener('abort',stop);reject(Object.assign(new Error('extractionUnavailable'),{code:'extractionUnavailable'}));};
+   const timer=setTimeout(stop,remaining);
+   signal?.addEventListener('abort',stop,{once:true});
+   Promise.resolve().then(()=>{if(signal?.aborted)fail('extractionUnavailable');return operation();}).then(value=>{
     if(expired){Promise.resolve().then(()=>onLate?.(value)).catch(()=>{});return;}
-    clearTimeout(timer);resolve(value);
-   },error=>{clearTimeout(timer);if(!expired)reject(error);});
+    clearTimeout(timer);signal?.removeEventListener('abort',stop);resolve(value);
+   },error=>{clearTimeout(timer);signal?.removeEventListener('abort',stop);if(!expired)reject(error);});
   });
  };
 }
@@ -61,6 +63,31 @@ async function recognizeImage(bytes,mime,ocrLoader,language,wait){
  }catch(error){if(typeof error?.code==='string')throw error;fail('extractionUnavailable');}
  finally{await release(image,'close');await release(worker,'terminate');}
 }
+// Bound text as it arrives from PDF.js, before concatenation/encoding. Streaming
+// limits application-side retention; it is not a parser/process memory ceiling.
+async function boundedPageText(page,remaining,wait){
+ const parts=[];let used=0,reader;
+ const append=items=>{
+  if(!Array.isArray(items))fail('invalidPdf');
+  for(const item of items){
+   const text=item.str??'';
+   if(typeof text!=='string')fail('invalidPdf');
+   // UTF-8 uses at least one byte per UTF-16 code unit. Check length first
+   // so an oversized item never causes an equally oversized encoding buffer.
+   if(text.length>remaining-used)fail('extractedTextTooLarge');
+   const size=new TextEncoder().encode(text).length+1;
+   if(size>remaining-used)fail('extractedTextTooLarge');
+   used+=size;parts.push(text,item.hasEOL?'\n':' ');
+  }
+ };
+ try{
+  if(typeof page.streamTextContent==='function'){
+   reader=page.streamTextContent().getReader();
+   for(;;){const chunk=await wait(()=>reader.read());if(chunk.done)break;append(chunk.value.items);}
+  }else append((await wait(()=>page.getTextContent())).items);
+  return parts.join('').trim();
+ }finally{if(reader){await release(reader,'cancel');try{reader.releaseLock();}catch{}}}
+}
 async function readPdf(bytes,pdfLoader,ocrLoader,language,wait){
  let pdf,worker,task;
  try{
@@ -69,12 +96,11 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language,wait){
   task=lib.getDocument({data:bytes.slice(),isEvalSupported:false,enableScripting:false,useSystemFonts:false,stopAtErrors:true,maxImageSize:12000000,canvasMaxAreaInBytes:48000000});
   pdf=await wait(()=>task.promise,latePdf=>release(latePdf,'destroy'));
   if(!Number.isInteger(pdf.numPages)||pdf.numPages<1||pdf.numPages>MAX_PAGES)fail('pdfPageLimit');
-  const lines=[];
+  const lines=[];let textBytes=0;
   for(let i=1;i<=pdf.numPages;i++){
    const page=await wait(()=>pdf.getPage(i),latePage=>release(latePage,'cleanup'));
    try{
-   const content=await wait(()=>page.getTextContent());
-   let text=content.items.map(x=>(x.str??'')+(x.hasEOL?'\n':' ')).join('').trim();
+   let text=await boundedPageText(page,MAX_TEXT_BYTES-textBytes-(lines.length?1:0),wait);
    // Scanned PDFs have no text layer; OCR the page locally.
    if(!text){
     if(typeof document==='undefined')fail('extractionUnavailable');
@@ -93,23 +119,25 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language,wait){
     catch{fail('extractionUnavailable');}
     }finally{canvas.width=canvas.height=0;}
    }
-   lines.push(text.trim());
-   // Prevent quadratic memory growth when a PDF contains huge text.
-   if(new TextEncoder().encode(lines.join('\n')).length>MAX_TEXT_BYTES)fail('extractedTextTooLarge');
+   text=text.trim();
+   if(text.length>MAX_TEXT_BYTES-textBytes)fail('extractedTextTooLarge');
+   textBytes+=new TextEncoder().encode(text).length+(lines.length?1:0);
+   if(textBytes>MAX_TEXT_BYTES)fail('extractedTextTooLarge');
+   lines.push(text);
    }finally{await release(page,'cleanup');}
   }
   return safeText(lines.join('\n'));
  }catch(error){if(typeof error?.code==='string')throw error;fail('invalidPdf');}
  finally{await release(worker,'terminate');await release(pdf??task,'destroy');}
 }
-export async function extractDocumentText(file,{pdfLoader=()=>import('./pdf-runtime.js').then(module=>module.pdfRuntime()),ocrLoader=()=>import('./ocr-runtime.js'),ocrLanguage='eng',timeoutMs=30000}={}){
+export async function extractDocumentText(file,{pdfLoader=()=>import('./pdf-runtime.js').then(module=>module.pdfRuntime()),ocrLoader=()=>import('./ocr-runtime.js'),ocrLanguage='eng',timeoutMs=30000,signal}={}){
  if(!['eng','fas','pus'].includes(ocrLanguage))fail('unsupportedOcrLanguage');
  if(!file)fail('missingFile');
  const name=(file.name??'').toLowerCase();
  const kind=name.endsWith('.txt')?'txt':name.endsWith('.pdf')?'pdf':/\.(png|jpe?g)$/.test(name)?'image':null;
  if(!kind||((import.meta.env?.PROD??false)&&kind!=='txt'))fail((import.meta.env?.PROD??false)?'unsupportedFileProduction':'unsupportedFile');
  if(file.size>(kind==='txt'?MAX_TEXT_BYTES:MAX_BINARY_BYTES))fail('fileTooLarge');
- const wait=extractionDeadline(timeoutMs);
+ const wait=extractionDeadline(timeoutMs,signal);
  const parse=async()=>{
  const bytes=new Uint8Array(await wait(()=>file.arrayBuffer()));
  if(bytes.length>(kind==='txt'?MAX_TEXT_BYTES:MAX_BINARY_BYTES))fail('fileTooLarge');

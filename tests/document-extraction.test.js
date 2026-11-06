@@ -288,3 +288,45 @@ test('a stalled scanned-page render is cancelled before canvas cleanup',async()=
   assert.equal(options.maxImageSize,12000000);assert.equal(options.canvasMaxAreaInBytes,48000000);
  }finally{globalThis.document=prior;}
 });
+
+test('PDF text budget stops before traversing later malicious items',async()=>{
+ let readLater=false,destroyed=false;
+ const items=[{str:'x'.repeat(12001)},{get str(){readLater=true;throw Error('must not read beyond budget');}}];
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:1,getPage:async()=>({getTextContent:async()=>({items}),cleanup(){}}),destroy(){destroyed=true;}})})});
+ await assert.rejects(()=>extractDocumentText(pdf(),{pdfLoader}),e=>e.code==='extractedTextTooLarge');
+ assert.equal(readLater,false);assert.equal(destroyed,true);
+});
+test('PDF text budget counts UTF-8 bytes before joining and includes earlier pages',async()=>{
+ let calls=0;
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:2,getPage:async()=>({getTextContent:async()=>({items:[{str:'ش'.repeat(3100)}]}),cleanup(){calls++;}}),destroy(){}})})});
+ await assert.rejects(()=>extractDocumentText(pdf(),{pdfLoader}),e=>e.code==='extractedTextTooLarge');
+ assert.equal(calls,2);
+});
+
+test('PDF streaming cancels its reader at the budget without requesting later chunks',async()=>{
+ let reads=0,cancelled=0,released=0;
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:1,getPage:async()=>({streamTextContent:()=>({getReader:()=>({read:async()=>{reads++;return {done:false,value:{items:[{str:'x'.repeat(12001)}]}};},cancel(){cancelled++;},releaseLock(){released++;}})}),cleanup(){}}),destroy(){}})})});
+ await assert.rejects(()=>extractDocumentText(pdf(),{pdfLoader}),e=>e.code==='extractedTextTooLarge');
+ assert.equal(reads,1);assert.equal(cancelled,1);assert.equal(released,1);
+});
+test('PDF streaming accepts real multilingual chunks without getTextContent buffering',async()=>{
+ let i=0,cancelled=0;
+ const chunks=[{done:false,value:{items:[{str:'فارسی',hasEOL:true}]}},{done:false,value:{items:[{str:'پښتو'}]}},{done:true}];
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:1,getPage:async()=>({streamTextContent:()=>({getReader:()=>({read:async()=>chunks[i++],cancel(){cancelled++;},releaseLock(){}})}),getTextContent(){throw Error('unbounded path');},cleanup(){}}),destroy(){}})})});
+ assert.equal((await extractDocumentText(pdf(),{pdfLoader})).text,'فارسی\nپښتو');assert.equal(cancelled,1);
+});
+
+test('aborted document extraction never reads bytes or initializes a parser',async()=>{
+ const controller=new AbortController();controller.abort();let reads=0;
+ await assert.rejects(()=>extractDocumentText({name:'test.txt',size:1,arrayBuffer:async()=>{reads++;return new Uint8Array([65]).buffer;}},{signal:controller.signal}),e=>e.code==='extractionUnavailable');
+ assert.equal(reads,0);
+});
+test('cancelling stalled PDF streaming releases reader and parser without waiting for deadline',async()=>{
+ const controller=new AbortController();let ready,cancelled=0,destroyed=0;
+ const reading=new Promise(resolve=>{ready=resolve;});
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:1,getPage:async()=>({streamTextContent:()=>({getReader:()=>({read:()=>{ready();return new Promise(()=>{});},cancel(){cancelled++;},releaseLock(){}})}),cleanup(){}}),destroy(){destroyed++;}})})});
+ const extraction=extractDocumentText(pdf(),{pdfLoader,signal:controller.signal,timeoutMs:2000});
+ await reading;const cancelledAt=Date.now();controller.abort();
+ await assert.rejects(()=>extraction,e=>e.code==='extractionUnavailable');
+ assert.equal(cancelled,1);assert.equal(destroyed,1);assert.ok(Date.now()-cancelledAt<1000);
+});
