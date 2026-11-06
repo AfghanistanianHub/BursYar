@@ -23,5 +23,6 @@ export function manualProfileUpdates(values){
   if(!validProfileValue(key,value))throw Error('Invalid profile value');
   updates[key]={value:structuredClone(value),origin:'user_declared',verificationStatus:'not_verified',reviewStatus:'confirmed_by_user',claimIds:[]};
  }
+ if(updates.enrolledInTurkiyeAtTargetLevel&&updates.targetDegree)updates.enrolledInTurkiyeAtTargetLevel.context={targetDegree:updates.targetDegree.value};
  return updates;
 }

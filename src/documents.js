@@ -68,17 +68,17 @@ export function mountDocuments(root,language='en'){
  previewText.rows=10;previewText.maxLength=12000;previewText.dir='auto';previewText.autocomplete='off';
  const previewConfirm=element('button',t.previewConfirm,preview);previewConfirm.type='button';
  const previewCancel=element('button',t.previewCancel,preview);previewCancel.type='button';
- let pendingMethod=null;
+ let pendingMethod=null,consentVersion=0;
  const clearPreview=()=>{extractionController?.abort();pendingMethod=null;previewText.value='';preview.hidden=true;setDocumentStage('upload');};
  previewCancel.addEventListener('click',clearPreview);
- consent.addEventListener('change',()=>{if(!consent.checked)clearPreview();});
+ consent.addEventListener('change',()=>{consentVersion++;if(!consent.checked)clearPreview();});
  file.addEventListener('change',clearPreview);
  paste.addEventListener('toggle',clearPreview);
  ocrSelect.addEventListener('change',clearPreview);
  const load=element('button',t.load);load.type='button';
  const l=libraryCopy[language]??libraryCopy.en;const library=element('fieldset');element('legend',l.title,library);const chooser=element('select','',library);chooser.setAttribute('aria-label',l.title);const refresh=element('button',l.refresh,library);refresh.type='button';const open=element('button',l.open,library);open.type='button';
  const status=element('p');status.setAttribute('role','status');const content=element('div');
- async function api(path,method='GET',body){if(mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();if(epoch!==identityEpoch)throw Error();const data=await documentRequest(path,{token,method,body});if(epoch!==identityEpoch)throw Error();return data;}
+ async function api(path,method='GET',body,beforeSend){if(mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();if(epoch!==identityEpoch)throw Error();beforeSend?.();const data=await documentRequest(path,{token,method,body});if(epoch!==identityEpoch)throw Error();return data;}
  const publish=profile=>document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:profile}));
  let inFlight=false;
  // Preserve the request key across uncertain responses without automatic retries.
@@ -132,12 +132,13 @@ export function mountDocuments(root,language='en'){
   const remove=element('button',t.remove,content);remove.type='button';remove.addEventListener('click',()=>busy(async()=>{await api(`/api/documents/${doc.id}`,'DELETE');current=null;content.replaceChildren();publish(await api('/api/profile'));status.textContent=t.deleted;await refreshLibrary();}));
  }
  async function saveExtractedText(text,method){
+  const approvedVersion=consentVersion;
   if(!consent.checked)throw Object.assign(Error('Consent required'),{code:'error'});
   if(!text.trim())throw Object.assign(Error('Empty extraction'),{code:'emptyFile'});
   if(new TextEncoder().encode(text).length>12000)throw Object.assign(Error('Too large'),{code:'extractedTextTooLarge'});
   if(/[\x00-\x08\x0b\x0c\x0e-\x1f\ufffd]/u.test(text))throw Object.assign(Error('Invalid text'),{code:'invalidEncoding'});
   if(text!==lastUploadText||!lastUploadRequestId){lastUploadText=text;lastUploadRequestId=crypto.randomUUID();}
-  current=await api('/api/documents','POST',{text,mime:'text/plain',consent:true,extractionMethod:method,requestId:lastUploadRequestId});
+  current=await api('/api/documents','POST',{text,mime:'text/plain',consent:true,extractionMethod:method,requestId:lastUploadRequestId},()=>{if(!consent.checked||consentVersion!==approvedVersion)throw Object.assign(Error('Consent changed'),{code:'error'});});
   lastUploadText=null;lastUploadRequestId=null;clearPreview();show(current);await refreshLibrary();
  }
  previewConfirm.addEventListener('click',()=>{if(!pendingMethod)return;busy(async()=>{await saveExtractedText(previewText.value,pendingMethod);});});

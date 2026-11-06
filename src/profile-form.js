@@ -42,6 +42,7 @@ export function mountProfile(root,language='en'){
  if(hasSaved(oxfordFields))oxford.open=true;
  for(const key of oxfordFields)makeField(key,oxford);
  const turkiye=el('details','',form);turkiye.id='profile-turkiye';el('summary',t.turkiyeTitle,turkiye);el('p',t.turkiyeNote,turkiye);turkiye.open=hasSaved(turkiyeFields);for(const key of turkiyeFields)makeField(key,turkiye);
+ controls.targetDegree.addEventListener('change',()=>{controls.enrolledInTurkiyeAtTargetLevel.value='';});
  const consentLabel=el('label',t.consent,form),consent=el('input','',consentLabel);consent.type='checkbox';consent.required=true;consent.name='consent';
  const save=el('button',t.save,form);save.type='submit';
  const load=el('button',t.load);load.type='button';const remove=el('button',t.remove);remove.type='button';el('p',t.note);

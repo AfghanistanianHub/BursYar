@@ -24,7 +24,7 @@ try{
   const copy=await page.evaluate(async lang=>({profile:(await import('/src/profile-form.js')).profileCopy[lang],local:(await import('/src/local-workflow.js')).localWorkflowCopy[lang]}),language);
   await page.locator('#profile-turkiye').evaluate(el=>el.open=true);
   await expect(field).toHaveValue('');
-  const save=async(a,b)=>{await page.locator('#profile-turkiye').evaluate(el=>el.open=true);await page.locator('#profile-turkishCitizenshipHistory').selectOption(a);await page.locator('#profile-enrolledInTurkiyeAtTargetLevel').selectOption(b);await page.locator('#profile-form input[name=consent]').check();await page.locator('#profile-form button[type=submit]').click();await expect(page.locator('#profile [role=status]')).toHaveText(copy.profile.saved);};
+  const save=async(a,b)=>{await page.locator('#profile-targetDegree').selectOption('master');await page.locator('#profile-turkiye').evaluate(el=>el.open=true);await page.locator('#profile-turkishCitizenshipHistory').selectOption(a);await page.locator('#profile-enrolledInTurkiyeAtTargetLevel').selectOption(b);await page.locator('#profile-form input[name=consent]').check();await page.locator('#profile-form button[type=submit]').click();await expect(page.locator('#profile [role=status]')).toHaveText(copy.profile.saved);};
   await save('true','false');expect(documents.profile(uid).turkishCitizenshipHistory.value).toBe(true);
   await page.locator('.local-workflow').evaluate(el=>el.open=true);await page.locator('#local-assessment button').nth(1).click();await page.locator('#local-program').selectOption('turkiye-general-exclusions');
   await page.locator('#local-assessment button[type=submit]').click();await expect(page.locator('#local-status')).toHaveText(copy.local.not_met);

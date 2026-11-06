@@ -105,6 +105,7 @@ export class DocumentStore {
     if(current[key]?.origin==='issuer_verified')throw new DocumentError(409);
     if(value===null)delete next[key];else next[key]=value;
    }
+   if(updates.enrolledInTurkiyeAtTargetLevel)next.enrolledInTurkiyeAtTargetLevel.context={targetDegree:next.targetDegree?.value??null};
    this.db.prepare('INSERT INTO profile_history VALUES(?,?)').run(owner,JSON.stringify({updatedAt:new Date().toISOString(),previous:current,fields:Object.keys(updates)}));
    // Bound sensitive edit history independently of document count.
    this.db.prepare('DELETE FROM profile_history WHERE owner=? AND rowid NOT IN (SELECT rowid FROM profile_history WHERE owner=? ORDER BY rowid DESC LIMIT 20)').run(owner,owner);

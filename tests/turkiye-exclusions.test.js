@@ -9,7 +9,7 @@ function program(){const entry=defaultCatalog.find(p=>p.id===id);assert.ok(entry
 test('Türkiye explicit current/former citizenship and same-level enrolment exclusions are independent',()=>{
  const p=program();
  for(const [a,b,statuses,summary]of [[false,false,['met','met'],'unknown'],[true,false,['not_met','met'],'not_met'],[false,true,['met','not_met'],'not_met']]){
-  const r=evaluateReviewedScholarship(p,manualProfileUpdates({turkishCitizenshipHistory:a,enrolledInTurkiyeAtTargetLevel:b}));
+  const r=evaluateReviewedScholarship(p,manualProfileUpdates({targetDegree:'master',turkishCitizenshipHistory:a,enrolledInTurkiyeAtTargetLevel:b}));
   assert.deepEqual(r.results.map(r=>r.status),statuses);assert.equal(r.summary,summary);assert.equal(r.awardGuaranteed,false);
  }
 });
@@ -28,4 +28,26 @@ test('exclusion profile fields accept explicit booleans only and PathFinder pres
  const gaps=planGaps(r);assert.equal(gaps[0].action,'review_exclusion');
  assert.equal(gaps[1].action,'confirm_application_status');
  assert.ok(gaps.every(g=>g.source.url==='https://www.turkiyeburslari.gov.tr/scholarshipsprograms'));
+});
+
+test('same-level declaration is unknown after intended degree changes',()=>{
+ const p=program(),profile=manualProfileUpdates({targetDegree:'bachelor',enrolledInTurkiyeAtTargetLevel:true});
+ assert.equal(evaluateReviewedScholarship(p,profile).results[1].status,'not_met');
+ profile.targetDegree={value:'master',origin:'user_declared'};
+ assert.equal(evaluateReviewedScholarship(p,profile).results[1].status,'unknown');
+});
+
+test('private profile storage binds new enrolment declarations to the current target only',async()=>{
+ const {DocumentStore}=await import('../engine/documents.js');
+ const {mkdtempSync,rmSync}=await import('node:fs');const {tmpdir}=await import('node:os');const {join}=await import('node:path');
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-target-context-')),store=new DocumentStore(join(dir,'synthetic.db'));
+ try{
+  store.updateProfile('synthetic',{consent:true,values:{targetDegree:'bachelor'}});
+  let profile=store.updateProfile('synthetic',{consent:true,values:{enrolledInTurkiyeAtTargetLevel:true}});
+  assert.equal(evaluateReviewedScholarship(program(),profile).results[1].status,'not_met');
+  profile=store.updateProfile('synthetic',{consent:true,values:{targetDegree:'master'}});
+  assert.equal(evaluateReviewedScholarship(program(),profile).results[1].status,'unknown');
+  profile=store.updateProfile('synthetic',{consent:true,values:{enrolledInTurkiyeAtTargetLevel:false}});
+  assert.equal(evaluateReviewedScholarship(program(),profile).results[1].status,'met');
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
 });
