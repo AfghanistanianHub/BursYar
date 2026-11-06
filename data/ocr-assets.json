@@ -1,0 +1,200 @@
+{
+  "schema": 1,
+  "productionApproved": false,
+  "packages": [
+    {
+      "key": "tesseract",
+      "name": "tesseract.js",
+      "version": "5.1.1"
+    },
+    {
+      "key": "core",
+      "name": "tesseract.js-core",
+      "version": "5.1.1"
+    },
+    {
+      "key": "eng",
+      "name": "@tesseract.js-data/eng",
+      "version": "1.0.0"
+    },
+    {
+      "key": "fas",
+      "name": "@tesseract.js-data/fas",
+      "version": "1.0.0"
+    },
+    {
+      "key": "pus",
+      "name": "@tesseract.js-data/pus",
+      "version": "1.0.0"
+    }
+  ],
+  "files": [
+    {
+      "package": "tesseract",
+      "source": "dist/tesseract.esm.min.js",
+      "path": "tesseract/tesseract.esm.min.js",
+      "bytes": 67175,
+      "sha256": "2537be686335e4b2637e933cdc85a52dd80267a592689c1bd63235c8591540ae"
+    },
+    {
+      "package": "tesseract",
+      "source": "dist/worker.min.js",
+      "path": "tesseract/worker.min.js",
+      "bytes": 123724,
+      "sha256": "aca1229639fc9907d86f96e825955a2b7c5716d17f3bc3acd71f9c7ab66181fc"
+    },
+    {
+      "package": "tesseract",
+      "source": "LICENSE.md",
+      "path": "licenses/tesseract-LICENSE.md",
+      "bytes": 11357,
+      "sha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1"
+    },
+    {
+      "package": "tesseract",
+      "source": "dist/worker.min.js.LICENSE.txt",
+      "path": "licenses/worker-NOTICES.txt",
+      "bytes": 466,
+      "sha256": "45f54171aeaa1d10c0c1a66f374b7bba1f02472b1487fbe892eec04f840002ac"
+    },
+    {
+      "package": "tesseract",
+      "source": "dist/tesseract.min.js.LICENSE.txt",
+      "path": "licenses/tesseract-NOTICES.txt",
+      "bytes": 149,
+      "sha256": "cdf963ced7d25a0f98901a547647b4d6e2dbe0197fd78c87a059a87b0e542fe2"
+    },
+    {
+      "package": "core",
+      "source": "LICENSE",
+      "path": "licenses/core-LICENSE",
+      "bytes": 11358,
+      "sha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08"
+    },
+    {
+      "package": "core",
+      "source": "tesseract-core.wasm.js",
+      "path": "core/tesseract-core.wasm.js",
+      "bytes": 4734777,
+      "sha256": "2b8c8c92b8788807061fb4bb16c5acdf000c149e100255f879f78d2c58ca9969"
+    },
+    {
+      "package": "core",
+      "source": "tesseract-core.wasm",
+      "path": "core/tesseract-core.wasm",
+      "bytes": 3457035,
+      "sha256": "b47a852b19181ae0999f9d970c368cd351135a320ea978b35bd38602d8bcc0bc"
+    },
+    {
+      "package": "core",
+      "source": "tesseract-core-simd.wasm.js",
+      "path": "core/tesseract-core-simd.wasm.js",
+      "bytes": 4735153,
+      "sha256": "63f232c4f7a97b04e52eb940202700b2c6239783a75d0ff0553274fac530cd5c"
+    },
+    {
+      "package": "core",
+      "source": "tesseract-core-simd.wasm",
+      "path": "core/tesseract-core-simd.wasm",
+      "bytes": 3457317,
+      "sha256": "baa2f54ef5af43ada4605fd7ae999bde3c6ecc96bfe0d0410b0b4f4a5f9c8b91"
+    },
+    {
+      "package": "core",
+      "source": "tesseract-core-lstm.wasm.js",
+      "path": "core/tesseract-core-lstm.wasm.js",
+      "bytes": 3938277,
+      "sha256": "8f04aa0cc81e7bde33f80e92fa01a7a665f0b4884d098acf5de9c7104a11dfaa"
+    },
+    {
+      "package": "core",
+      "source": "tesseract-core-lstm.wasm",
+      "path": "core/tesseract-core-lstm.wasm",
+      "bytes": 2859424,
+      "sha256": "5db58ea4d1bd4256be81e8ae3b4fa226c4625dfba1850b1b3308dbf3700e9929"
+    },
+    {
+      "package": "core",
+      "source": "tesseract-core-simd-lstm.wasm.js",
+      "path": "core/tesseract-core-simd-lstm.wasm.js",
+      "bytes": 3938657,
+      "sha256": "ce20eda9533cbed1e6c2b4276fbae1e0adc61b6754b5513084be601787b457cf"
+    },
+    {
+      "package": "core",
+      "source": "tesseract-core-simd-lstm.wasm",
+      "path": "core/tesseract-core-simd-lstm.wasm",
+      "bytes": 2859709,
+      "sha256": "66b601224a0c4a8977bc9d92dd39841189f9ca22cc4122fcd7208cdb0961eeef"
+    },
+    {
+      "package": "eng",
+      "source": "4.0.0_best_int/eng.traineddata.gz",
+      "path": "lang/eng.traineddata.gz",
+      "bytes": 2952873,
+      "sha256": "45b4cb346724ac1774f1c36f42f182b887bcdb28ebe63e6fff90ac41f3fcff91",
+      "uncompressedBytes": 5199098,
+      "uncompressedSha256": "5dc5d8d640a212c9d6184921ba103b186f50e0fed9ee716c53e6b312b400d747"
+    },
+    {
+      "package": "eng",
+      "source": "package.json",
+      "path": "licenses/eng-package.json",
+      "bytes": 530,
+      "sha256": "b603509212196b5d09e10519bf252c1e344b79704d065e0d62886846f8554c80"
+    },
+    {
+      "package": "eng",
+      "source": "README.md",
+      "path": "licenses/eng-README.md",
+      "bytes": 381,
+      "sha256": "adcb325473fe124291951a0a3d29fcb54b341828881570e45c42dc2a3a61a45d"
+    },
+    {
+      "package": "fas",
+      "source": "4.0.0_best_int/fas.traineddata.gz",
+      "path": "lang/fas.traineddata.gz",
+      "bytes": 424507,
+      "sha256": "b5847360e25f646c55449f1fe93eee57d53e406a265ead2374e7320bf0b82025",
+      "uncompressedBytes": 561300,
+      "uncompressedSha256": "ff6a6743a643ebd93717346ae6526aed110aad4e08ca10240279787fc567522c"
+    },
+    {
+      "package": "fas",
+      "source": "package.json",
+      "path": "licenses/fas-package.json",
+      "bytes": 530,
+      "sha256": "5078b77280064cf1205386d080042c1f1dfe315057de2be0201cc0f6bd0995ff"
+    },
+    {
+      "package": "fas",
+      "source": "README.md",
+      "path": "licenses/fas-README.md",
+      "bytes": 381,
+      "sha256": "02b101ac43af8b0dba551cadf58c867d1dc863f7527e667defde8900e9f304e2"
+    },
+    {
+      "package": "pus",
+      "source": "4.0.0_best_int/pus.traineddata.gz",
+      "path": "lang/pus.traineddata.gz",
+      "bytes": 1420364,
+      "sha256": "689b369c109107c4df1cd133446b9de0b10b79706a070d4c35dc885a52764105",
+      "uncompressedBytes": 1772127,
+      "uncompressedSha256": "b827e17bd6900c76b16ff63b449fc30d5fa6c79c1b1f97e77bc1615963dcc1bb"
+    },
+    {
+      "package": "pus",
+      "source": "package.json",
+      "path": "licenses/pus-package.json",
+      "bytes": 530,
+      "sha256": "083f41be35fc6c7df9295de9964c57a95d4edc610888cbc2cd72f9e74b31dff5"
+    },
+    {
+      "package": "pus",
+      "source": "README.md",
+      "path": "licenses/pus-README.md",
+      "bytes": 381,
+      "sha256": "d400ea16fc40cb9f87625346985d9704ff58b8b6b292243bdfd6f58f92ac7a1f"
+    }
+  ]
+}

@@ -151,9 +151,7 @@ test('document extraction loads code only from pinned reviewed origins (Issue #8
  // synthetic runs may, from these exact pinned files only.
  const source=readFileSync(new URL('../src/document-extraction.js',import.meta.url),'utf8');
  const urls=[...new Set([...source.matchAll(/https:\/\/[^\s'")]+/g)].map(m=>m[0]))].sort();
- assert.deepEqual(urls,[
-  'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js'
- ]);
+ assert.deepEqual(urls,[]);
 });
 
 test('failed PDF loading destroys the loading task',async()=>{
@@ -252,4 +250,38 @@ test('oversized PNG and JPEG declarations never reach native decoding or OCR',as
   for(const [name,bytes] of [['huge.png',pngBytes],['huge.jpg',jpegBytes]])await assert.rejects(()=>extractDocumentText(file(name,bytes),{ocrLoader:async()=>{ocr++;throw Error('must not load')}}),e=>e.code==='imageDimensions');
   assert.equal(decoded,0);assert.equal(ocr,0);
  }finally{if(prior===undefined)delete globalThis.createImageBitmap;else globalThis.createImageBitmap=prior;}
+});
+
+
+test('OCR worker receives only explicit local asset paths and no persistent cache',async()=>{
+ const native=globalThis.createImageBitmap;
+ globalThis.createImageBitmap=async()=>({width:100,height:100,close(){}});
+ let received;
+ try{
+  await extractDocumentText(png,{ocrLanguage:'fas',ocrLoader:async()=>({createWorker:async(...args)=>{
+   received=args;return {recognize:async()=>({data:{text:'مدرک تحصیلی'}}),terminate:async()=>{}};
+  }})});
+  assert.equal(received[0],'fas');
+  assert.equal(received[1],1);
+  assert.deepEqual(received[2],{workerPath:'/vendor/ocr-v1/tesseract/worker.min.js',corePath:'/vendor/ocr-v1/core',langPath:'/vendor/ocr-v1/lang',workerBlobURL:false,cacheMethod:'none',gzip:true});
+ }finally{globalThis.createImageBitmap=native;}
+});
+
+test('OCR requests only text output instead of duplicate layout exports',async()=>{
+ const native=globalThis.createImageBitmap;globalThis.createImageBitmap=async()=>({width:100,height:100,close(){}});
+ let output;
+ try{
+  await extractDocumentText(png,{ocrLoader:async()=>({createWorker:async()=>({recognize:async(_image,_options,formats)=>{output=formats;return {data:{text:'SYNTHETIC'}};},terminate(){}})})});
+  assert.deepEqual(output,{text:true,blocks:false,hocr:false,tsv:false,box:false,unlv:false,osd:false,pdf:false,imageColor:false,imageGrey:false,imageBinary:false,layoutBlocks:false,debug:false});
+ }finally{globalThis.createImageBitmap=native;}
+});
+test('a stalled scanned-page render is cancelled before canvas cleanup',async()=>{
+ const prior=globalThis.document;const canvas={width:0,height:0,getContext:()=>({})};let cancelled=0,options;
+ globalThis.document={createElement:()=>canvas};
+ try{
+  const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:opts=>{options=opts;return {promise:Promise.resolve({numPages:1,getPage:async()=>({getTextContent:async()=>({items:[]}),getViewport:()=>({width:200,height:200}),render:()=>({promise:pending(),cancel(){cancelled++;}}),cleanup(){}}),destroy(){}})};}});
+  assert.equal(await extractionOutcome(extractDocumentText(pdf(),{pdfLoader,timeoutMs:15})),'extractionUnavailable');
+  assert.equal(cancelled,1);assert.equal(canvas.width,0);assert.equal(canvas.height,0);
+  assert.equal(options.maxImageSize,12000000);assert.equal(options.canvasMaxAreaInBytes,48000000);
+ }finally{globalThis.document=prior;}
 });

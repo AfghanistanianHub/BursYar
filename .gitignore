@@ -9,3 +9,6 @@ dist/
 *.db-*
 *-debug.log*
 verification/artifacts/
+
+# Reproducible checksum-verified assets from pinned npm dependencies
+public/vendor/

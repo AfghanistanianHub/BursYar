@@ -1,10 +1,11 @@
 import {inspectImageDimensions} from './image-preflight.js';
 // Local-only document-to-text extraction. Original PDF/image bytes are NOT sent
-// to BursYar's API or an AI provider. Code/model assets may be fetched on demand.
+// to BursYar's API or an AI provider. Pinned code/models load from this origin.
 // Pinned versions: updates require security review and browser regression checks.
 const MAX_TEXT_BYTES=12000, MAX_BINARY_BYTES=5*1024*1024, MAX_PAGES=5;
 const fail=code=>{const error=new Error(code);error.code=code;throw error;};
-const ocrModuleUrl='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js';
+const ocrOptions=Object.freeze({workerPath:'/vendor/ocr-v1/tesseract/worker.min.js',corePath:'/vendor/ocr-v1/core',langPath:'/vendor/ocr-v1/lang',workerBlobURL:false,cacheMethod:'none',gzip:true});
+const ocrOutput=Object.freeze({text:true,blocks:false,hocr:false,tsv:false,box:false,unlv:false,osd:false,pdf:false,imageColor:false,imageGrey:false,imageBinary:false,layoutBlocks:false,debug:false});
 const isPdf=bytes=>bytes.length>=5&&bytes[0]===37&&bytes[1]===80&&bytes[2]===68&&bytes[3]===70&&bytes[4]===45;
 const isPng=b=>b.length>=8&&[137,80,78,71,13,10,26,10].every((n,i)=>b[i]===n);
 const isJpeg=b=>b.length>=4&&b[0]===255&&b[1]===216&&b[b.length-2]===255&&b[b.length-1]===217;
@@ -14,7 +15,6 @@ const safeText=text=>{
  if(new TextEncoder().encode(text).length>MAX_TEXT_BYTES)fail('extractedTextTooLarge');
  return text;
 };
-const importPinned=url=>import(/* @vite-ignore */ url);
 // One shared wall-clock budget covers reads, imports, decoding and OCR. A
 // deadline is not a sandbox: production binary uploads remain disabled.
 async function release(resource,method){
@@ -39,13 +39,13 @@ function extractionDeadline(timeoutMs){
  };
 }
 const validDimensions=(width,height)=>Number.isFinite(width)&&Number.isFinite(height)&&width>0&&height>0&&Math.ceil(width)<=4500&&Math.ceil(height)<=4500&&Math.ceil(width)*Math.ceil(height)<=12000000;
-async function createOcrWorker(ocrLoader=()=>importPinned(ocrModuleUrl),language='eng',wait){
+async function createOcrWorker(ocrLoader=()=>import('./ocr-runtime.js'),language='eng',wait){
  if(!['eng','fas','pus'].includes(language))fail('unsupportedOcrLanguage');
  let mod;
  try{mod=await wait(()=>ocrLoader());}catch{fail('extractionUnavailable');}
  const ocrApi=mod.default??mod;
  if(typeof ocrApi.createWorker!=='function')fail('extractionUnavailable');
- try{return await wait(()=>ocrApi.createWorker(language),worker=>release(worker,'terminate'));}catch{fail('extractionUnavailable');}
+ try{return await wait(()=>ocrApi.createWorker(language,1,{...ocrOptions}),worker=>release(worker,'terminate'));}catch{fail('extractionUnavailable');}
 }
 async function recognizeImage(bytes,mime,ocrLoader,language,wait){
  const declared=inspectImageDimensions(bytes,mime);
@@ -56,7 +56,7 @@ async function recognizeImage(bytes,mime,ocrLoader,language,wait){
   image=await wait(()=>createImageBitmap(blob),bitmap=>release(bitmap,'close'));
   if(!validDimensions(image.width,image.height)||!((image.width===declared.width&&image.height===declared.height)||(image.width===declared.height&&image.height===declared.width)))fail('imageDimensions');
   worker=await createOcrWorker(ocrLoader,language,wait);
-  const result=await wait(()=>worker.recognize(blob));
+  const result=await wait(()=>worker.recognize(blob,{},{...ocrOutput}));
   return result?.data?.text??'';
  }catch(error){if(typeof error?.code==='string')throw error;fail('extractionUnavailable');}
  finally{await release(image,'close');await release(worker,'terminate');}
@@ -66,7 +66,7 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language,wait){
  try{
   let lib;try{lib=await wait(()=>pdfLoader());}catch{fail('extractionUnavailable');}
   if(!lib?.getDocument||!lib?.GlobalWorkerOptions)fail('extractionUnavailable');
-  task=lib.getDocument({data:bytes.slice(),isEvalSupported:false,enableScripting:false,useSystemFonts:false,stopAtErrors:true});
+  task=lib.getDocument({data:bytes.slice(),isEvalSupported:false,enableScripting:false,useSystemFonts:false,stopAtErrors:true,maxImageSize:12000000,canvasMaxAreaInBytes:48000000});
   pdf=await wait(()=>task.promise,latePdf=>release(latePdf,'destroy'));
   if(!Number.isInteger(pdf.numPages)||pdf.numPages<1||pdf.numPages>MAX_PAGES)fail('pdfPageLimit');
   const lines=[];
@@ -85,10 +85,11 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language,wait){
     try{
     const context=canvas.getContext('2d');
     if(!context)fail('extractionUnavailable');
-    try{await wait(()=>page.render({canvasContext:context,viewport}).promise);}
-    catch{fail('extractionUnavailable');}
+    let renderTask;
+    try{renderTask=page.render({canvasContext:context,viewport});await wait(()=>renderTask.promise);}
+    catch{await release(renderTask,'cancel');fail('extractionUnavailable');}
     worker??=await createOcrWorker(ocrLoader,language,wait);
-    try{text=(await wait(()=>worker.recognize(canvas)))?.data?.text??'';}
+    try{text=(await wait(()=>worker.recognize(canvas,{},{...ocrOutput})))?.data?.text??'';}
     catch{fail('extractionUnavailable');}
     }finally{canvas.width=canvas.height=0;}
    }
@@ -101,7 +102,7 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language,wait){
  }catch(error){if(typeof error?.code==='string')throw error;fail('invalidPdf');}
  finally{await release(worker,'terminate');await release(pdf??task,'destroy');}
 }
-export async function extractDocumentText(file,{pdfLoader=()=>import('./pdf-runtime.js').then(module=>module.pdfRuntime()),ocrLoader=()=>importPinned(ocrModuleUrl),ocrLanguage='eng',timeoutMs=30000}={}){
+export async function extractDocumentText(file,{pdfLoader=()=>import('./pdf-runtime.js').then(module=>module.pdfRuntime()),ocrLoader=()=>import('./ocr-runtime.js'),ocrLanguage='eng',timeoutMs=30000}={}){
  if(!['eng','fas','pus'].includes(ocrLanguage))fail('unsupportedOcrLanguage');
  if(!file)fail('missingFile');
  const name=(file.name??'').toLowerCase();

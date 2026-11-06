@@ -19,17 +19,25 @@
     "diagnose:mac": "node verification/macos-start.mjs diagnose",
     "test:evaluation": "node verification/evaluate.mjs",
     "diagnose:meta-network": "node verification/meta-network.mjs",
-    "diagnose:meta-size": "node verification/meta-request-size.mjs"
+    "diagnose:meta-size": "node verification/meta-request-size.mjs",
+    "prepare:ocr": "node scripts/prepare-local-ocr.mjs",
+    "predev": "npm run prepare:ocr",
+    "prebuild": "npm run prepare:ocr"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",
     "@fontsource/noto-naskh-arabic": "^5.3.0",
     "@fontsource/vazirmatn": "^5.3.0",
+    "@tesseract.js-data/eng": "1.0.0",
+    "@tesseract.js-data/fas": "1.0.0",
+    "@tesseract.js-data/pus": "1.0.0",
     "firebase": "^13.1.0",
     "firebase-admin": "^14.5.0",
     "ipaddr.js": "2.5.0",
     "parse5": "8.0.1",
     "pdfjs-dist": "4.10.38",
+    "tesseract.js": "5.1.1",
+    "tesseract.js-core": "5.1.1",
     "vite": "^6.3.5"
   },
   "engines": {

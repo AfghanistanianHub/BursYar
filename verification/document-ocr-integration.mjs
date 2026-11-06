@@ -1,9 +1,10 @@
 // Real-integration gate for PDF/image OCR (Mission 20). Uses the ACTUAL pinned
-// PDF.js + Tesseract CDN assets — never mocks the extractor or loaders — with
+// PDF.js + same-origin Tesseract assets — never mocks the extractor or loaders — with
 // mocked auth and a local engine API. Synthetic fixtures only. No inference.
 // Run: node verification/document-ocr-integration.mjs
 import {chromium, expect} from '@playwright/test';
 import {createServer} from 'vite';
+import {prepareLocalOcr} from '../scripts/prepare-local-ocr.mjs';
 import {mkdtempSync, rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -68,6 +69,7 @@ const encryptedPdf = () => {
   return Buffer.from(head + lines.join('\n'), 'latin1');
 };
 
+prepareLocalOcr();
 const vite = await createServer({server: {host: '127.0.0.1', port: 0}});
 await vite.listen();
 const origin = 'http://127.0.0.1:' + vite.httpServer.address().port;
@@ -83,6 +85,7 @@ await new Promise(resolve => api.listen(0, '127.0.0.1', resolve));
 const apiBase = 'http://127.0.0.1:' + api.address().port;
 const browser = await chromium.launch({headless: true});
 const observed = [];
+const externalRequests=[];
 let failures = 0;
 const check = (id, cond, detail) => {
   const line = `${cond ? 'PASS' : 'FAIL'} ${id} ${detail}`;
@@ -92,6 +95,7 @@ const check = (id, cond, detail) => {
 };
 try {
   const context = await browser.newContext({viewport: {width: 1440, height: 900}});
+  await context.route('**/*',route=>{const url=route.request().url();if(new URL(url).origin!==origin){externalRequests.push(url);return route.abort('internetdisconnected');}return route.continue();});
   const page = await context.newPage();
   const user = 'ocr-real-ci';
   let writes = 0;
@@ -130,11 +134,12 @@ try {
   }, null, {timeout: 180000}).then(() => status.textContent());
   await form.locator('input[type=checkbox]').check();
   const render = (lines, rtl, type = 'image/png') => page.evaluate(async ({lines, rtl, type}) => {
+    if(rtl)await document.fonts.load('36px "Noto Naskh Arabic"','تحصیلي کچه لېسانس');
     const c = document.createElement('canvas');
     c.width = 900; c.height = 60 + lines.length * 56;
     const g = c.getContext('2d');
     g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
-    g.fillStyle = '#111'; g.font = '36px sans-serif';
+    g.fillStyle = '#111'; g.font = rtl?'36px "Noto Naskh Arabic", sans-serif':'36px sans-serif';
     if (rtl) { g.direction = 'rtl'; g.textAlign = 'right'; }
     lines.forEach((t, i) => g.fillText(t, rtl ? 870 : 30, 60 + i * 56));
     const blob = await new Promise(r => c.toBlob(r, type, 0.92));
@@ -297,10 +302,10 @@ try {
 
   // privacy: no non-GET traffic off-origin during the whole battery
   check('privacy-no-exfil', externalPosts.length === 0, externalPosts.join(';') || 'no off-origin writes');
-  console.log(observed.join('\n'));
+  check('same-origin-assets',externalRequests.length===0,externalRequests.join(';')||'no off-origin requests, including OCR workers');
   await context.close();
 
-  // 14. offline CDN in a fresh context: OCR unavailable, TXT still saves
+  // 14. unavailable local assets in a fresh context: honest recovery, TXT still saves
   {
     const context2 = await browser.newContext({viewport: {width: 1440, height: 900}});
     const page2 = await context2.newPage();
@@ -312,7 +317,8 @@ try {
       const response = await fetch(apiBase + path, {method: request.method(), headers: {authorization: request.headers().authorization, origin, 'content-type': 'application/json'}, ...(['POST', 'PUT'].includes(request.method()) ? {body: request.postData()} : {})});
       await route.fulfill({status: response.status, contentType: 'application/json', body: await response.text()});
     });
-    await page2.route(/cdn\.jsdelivr\.net|unpkg\.com/, route => route.abort('internetdisconnected'));
+    await context2.route('**/vendor/ocr-v1/**',route=>route.abort('internetdisconnected'));
+    await context2.route(/^https?:\/\/(?!127\.0\.0\.1:)/,route=>route.abort('internetdisconnected'));
     await page2.goto(origin);
     await page2.locator('#workspace-overview a[href="#profile-mount"]').click();
     const form2 = page2.locator('#documents > form');
@@ -335,8 +341,7 @@ try {
     await form2.locator('input[type=file]').setInputFiles({name: 'off.txt', mimeType: 'text/plain', buffer: Buffer.from('OFFLINE TXT SAVES')});
     await form2.locator('button[type=submit]').click();
     await expect(page2.locator('.document-source')).toContainText('OFFLINE TXT SAVES', {timeout: 20000});
-    check('14-offline-txt', true, 'TXT saves without CDN');
-    console.log(observed.slice(-2).join('\n'));
+    check('14-offline-txt', true, 'TXT saves without OCR assets');
     await context2.close();
   }
 } finally {
@@ -347,4 +352,4 @@ try {
   rmSync(dir, {recursive: true, force: true});
 }
 if (failures) { console.error(`OCR INTEGRATION FAILURES: ${failures}`); process.exit(1); }
-console.log('OCR REAL-INTEGRATION PASSED');
+console.log(`OCR REAL-INTEGRATION PASSED: ${observed.length} checks, 0 failures`);
