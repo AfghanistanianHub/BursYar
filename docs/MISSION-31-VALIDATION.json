@@ -1,0 +1,98 @@
+{
+  "mission": 31,
+  "date": "2026-11-06",
+  "base": "c0b63d3f05f27b9e76ca010fc88eba3900a2b297",
+  "securityCommit": "f745fec7ed9bb9c09e913b5b16d49d660f0554c1",
+  "productCommit": "2661fdb39f7313bf479bd972b7e6cf9fcc162080",
+  "implementationTree": "4fa398fa693bce3b8953a9b220914cec9c6e5588",
+  "branch": "work/no-spend-document-deadline",
+  "productionBinaryEnabled": false,
+  "productionApproved": false,
+  "checks": {
+    "node": {
+      "passed": 442,
+      "failed": 0,
+      "skipped": 0,
+      "cancelled": 0
+    },
+    "evaluation": {
+      "passed": 60,
+      "failed": 0
+    },
+    "realOcr": {
+      "passed": 34,
+      "failed": 0
+    },
+    "workerLifecycle": {
+      "passed": 5,
+      "remainingWorkers": 0
+    },
+    "binaryCoordination": {
+      "passed": 5
+    },
+    "imagePreflight": {
+      "passed": 6
+    },
+    "academicProductJourneys": {
+      "passed": 12,
+      "languages": [
+        "en",
+        "fa",
+        "ps"
+      ],
+      "widths": [
+        320,
+        390,
+        768,
+        1440
+      ]
+    },
+    "discoveryJourneys": {
+      "passed": 12
+    },
+    "productionGate": {
+      "assertionsPassed": 9
+    },
+    "builtOcr": "passed",
+    "localBuild": "passed",
+    "audit": {
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "moderate": 0,
+      "low": 0
+    }
+  },
+  "nativeOcrQuality": [
+    {
+      "language": "fas",
+      "characterErrorRate": 0,
+      "syntheticFixtures": 1,
+      "humanReviewed": false
+    },
+    {
+      "language": "pus",
+      "characterErrorRate": 0,
+      "syntheticFixtures": 1,
+      "humanReviewed": false
+    }
+  ],
+  "remoteCI": "not_run",
+  "deployed": false,
+  "review": {
+    "criticalOrImportantFindings": 0,
+    "scope": "fresh scoped read-only postreview; two later test-only additions passed final checks"
+  },
+  "limitations": [
+    "full browser-process memory isolation unproven",
+    "native component BOM/legal approval pending",
+    "power-loss durability not tested",
+    "human multilingual review pending",
+    "required remote CI and nonbillable release capacity unverified"
+  ],
+  "preservation": {
+    "method": "leased fast-forward of existing deployment-disabled branch; no PR",
+    "securityReviewFreeUntil": "2026-11-10",
+    "recheckBeforeFuturePush": true
+  }
+}

@@ -1,4 +1,4 @@
-> Current unpublished implementation: [Mission 30 evidence](MISSION-30-PRESERVE-AND-HARDEN.md). The candidate adds capped derived OCR cores and serialized asset preparation; production binary intake remains disabled. Older notes below describe historical baselines.
+> Current candidate implementation: [Mission 31 evidence](MISSION-31-RELEASE-GATES.md) and [validation](MISSION-31-VALIDATION.json). Local pinned OCR, capped cores, cross-tab coordination and interrupted asset recovery are implemented; complete native-component licensing, process-memory and hosted release gates remain pending. Production binary intake stays disabled. Notes below describe historical baselines.
 
 # PDF/image document intake — release gates (2026-11-03)
 
