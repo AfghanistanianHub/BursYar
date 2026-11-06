@@ -1,3 +1,4 @@
+import {verifiedAcademicPolicy} from '../data/verified-academic-policy.js';
 import {createHash} from 'node:crypto';
 import {OXFORD_CLARENDON} from './source-inventory.js';
 // Limited official-source excerpts rechecked 2026-10-29. This is not a full
@@ -10,3 +11,8 @@ export const defaultCatalog=[{id:'oxford-clarendon-exclusions',sourceUrl:OXFORD_
  {id:'deferred',type:'boolean_exclusion',field:'deferredOffer',excludedValue:true,sourceExcerpt:deferred},
  {id:'continuing',type:'boolean_exclusion',field:'continuingSameDegree',excludedValue:true,sourceExcerpt:continuing}
 ]}];
+
+// Scoped partial comparator: selecting this ID refers only to the named health
+// programmes. No overall eligibility/availability inference follows a pass.
+const checked=verifiedAcademicPolicy;
+defaultCatalog.push({id:checked.id,title:checked.title,sourceUrl:checked.sourceUrl,sourceText:checked.excerpt,sourceDigest:createHash('sha256').update(checked.excerpt).digest('hex'),coverageComplete:false,review:{status:'approved',sourceVerification:'official_source_reviewed',reviewer:'engineering_official_source_check_not_admissions',reviewedAt:checked.checkedAt,expiresAt:new Date(Date.parse(checked.checkedAt)+7*86400000).toISOString().replace('.000Z','Z')},rules:[{id:'health-academic-minimum',type:'academic_minimum',minimum:checked.minimum,scale:checked.scale,sourceExcerpt:checked.excerpt}]});

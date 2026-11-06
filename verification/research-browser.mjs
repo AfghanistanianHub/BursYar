@@ -19,9 +19,9 @@ try {
   await expect(page.locator('.workspace')).toHaveAttribute('open','');
   await page.locator('#workspace-overview a[href="#research-explorer"]').click();
   await expect(page.locator('.resources')).toHaveAttribute('open','');
-  await expect(page.locator('.verified-programs article')).toHaveCount(1);
+  await expect(page.locator('.verified-programs article')).toHaveCount(2);
   await expect(page.locator('.verified-programs')).toContainText('ETH Zurich');
-  await page.locator('[data-verified-prepare]').click();
+  await page.locator('[data-verified-prepare]').first().click();
   await expect(page.locator('#source-url')).toHaveValue('https://ethz.ch/students/en/studies/financial/scholarships/excellencescholarship.html');
   await expect(page.locator('#source-approved')).not.toBeChecked();
   expect(paidRequests).toBe(0);

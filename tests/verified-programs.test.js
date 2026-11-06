@@ -23,3 +23,11 @@ test('invalid dates, credential URLs and missing provenance fail closed',()=>{
   assert.equal(programWindow({...row(),...patch},new Date('2026-11-06T12:00:00Z')),'recheck');
  }
 });
+
+test('checked criteria without cohort dates never become an advertised open window',()=>{
+ const p=checkedPrograms.find(p=>p.id==='turkiye-health-academic');assert.ok(p,'missing checked criteria reference');
+ assert.equal(programWindow(p,new Date(Date.parse(p.checkedAt)+1000)),'dates_unknown');
+ assert.equal(programWindow(p,new Date(Date.parse(p.checkedAt)+8*86400000)),'recheck');
+ assert.equal(programWindow({...p,sourceUrl:'https://ethz.ch/other'},new Date(Date.parse(p.checkedAt)+1000)),'recheck');
+ for(const lang of ['en','fa','ps'])assert.ok(verifiedProgramCopy[lang].dates_unknown);
+});

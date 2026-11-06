@@ -17,12 +17,21 @@ export function createScholarshipCatalog(programs,{now=Date.now}={}){
   for(const r of p.rules){if(!/^[a-zA-Z0-9_-]{1,80}$/.test(r.id)||ids.has(r.id)||typeof r.sourceExcerpt!=='string'||!r.sourceExcerpt.trim()||!p.sourceText.includes(r.sourceExcerpt))throw Error('Invalid reviewed rule');ids.add(r.id);}
   entries.set(p.id,p);
  }
- return Object.freeze({list:()=>[...entries.values()].filter(p=>Date.parse(p.review.expiresAt)>now()&&Date.parse(p.review.reviewedAt)<=now()).map(p=>({id:p.id,sourceUrl:p.sourceUrl,review:structuredClone(p.review)})),get:id=>{
+ return Object.freeze({list:()=>[...entries.values()].filter(p=>Date.parse(p.review.expiresAt)>now()&&Date.parse(p.review.reviewedAt)<=now()).map(p=>({id:p.id,...(p.title?{title:p.title}:{}),sourceUrl:p.sourceUrl,review:structuredClone(p.review)})),get:id=>{
   const p=entries.get(id);if(!p||Date.parse(p.review.expiresAt)<=now()||Date.parse(p.review.reviewedAt)>now())throw Error('Scholarship unavailable');return structuredClone(p);
  }});
 }
 function fact(profile,key){const f=profile?.[key];return f&&['user_declared','document_extracted','issuer_verified'].includes(f.origin)&&f.reviewStatus!=='pending'&&f.verificationStatus!=='rejected'&&f.contradicted!==true?f:null;}
 const bool=(v,pass)=>typeof v==='boolean'?(v===pass?'met':'not_met'):'unknown';
+function academicAssessment(r,profile){
+ const response=(status,reason)=>({status,reason});
+ if(!Number.isFinite(r.minimum)||!Number.isFinite(r.scale)||r.scale<=0||r.minimum<0||r.minimum>r.scale)return response('unknown','unsupported_academic_rule');
+ const value=fact(profile,'academicScore')?.value;
+ if(!value)return response('unknown','missing_or_conflicting_academic_score');
+ if(!Number.isFinite(value.score)||!Number.isFinite(value.scale)||value.scale<=0||value.score<0||value.score>value.scale)return response('unknown','invalid_academic_score');
+ if(value.scale!==r.scale)return response('unknown','academic_scale_mismatch');
+ return value.score>=r.minimum?response('met','academic_threshold_met'):response('not_met','academic_threshold_not_met');
+}
 function evaluate(r,profile,depth=0){
  if(r.ambiguous===true||r.conflicting===true||depth>2)return 'unknown';
  if(['minimum_degree','ielts_academic','boolean_exclusion','minimum_gpa','toefl_ibt'].includes(r.type))return assessRequirement({...r,ambiguous:false},profile).status;
@@ -31,11 +40,7 @@ function evaluate(r,profile,depth=0){
   const statuses=r.alternatives.map(a=>evaluate({...a,id:r.id,sourceUrl:r.sourceUrl,sourceExcerpt:r.sourceExcerpt},profile,depth+1));
   return statuses.includes('met')?'met':statuses.every(s=>s==='not_met')?'not_met':'unknown';
  }
- if(r.type==='academic_minimum'){
-  const v=fact(profile,'academicScore')?.value;
-  if(!v||!Number.isFinite(v.score)||!Number.isFinite(v.scale)||!Number.isFinite(r.minimum)||!Number.isFinite(r.scale)||r.scale<=0||r.minimum<0||r.minimum>r.scale||v.scale!==r.scale||v.score<0||v.score>v.scale)return 'unknown';
-  return v.score>=r.minimum?'met':'not_met';
- }
+ if(r.type==='academic_minimum')return academicAssessment(r,profile).status;
  if(r.type==='document_available'){
   const v=fact(profile,'documents')?.value;
   if(!['transcripts','language_certificate','passport','recommendation'].includes(r.document)||!Array.isArray(v)||v.some(x=>typeof x!=='string'))return 'unknown';
@@ -51,7 +56,7 @@ function evaluate(r,profile,depth=0){
  return 'unknown';
 }
 export function evaluateReviewedScholarship(program,profile){
- const results=program.rules.map(r=>{const rule={...r,sourceUrl:program.sourceUrl};const ambiguous=r.ambiguous||r.conflicting;const detailed=!ambiguous&&['minimum_degree','ielts_academic','boolean_exclusion','minimum_gpa','toefl_ibt'].includes(r.type)?assessRequirement({...rule,ambiguous:false},profile):null;return {requirementId:r.id,status:detailed?.status??evaluate(rule,profile),source:{url:program.sourceUrl,excerpt:r.sourceExcerpt,digest:program.sourceDigest},reason:ambiguous?'conflicting_or_ambiguous':detailed?.reason??'reviewed_rule_comparison',issuerAuthenticated:false};});
+ const results=program.rules.map(r=>{const rule={...r,sourceUrl:program.sourceUrl};const ambiguous=r.ambiguous||r.conflicting;const detailed=!ambiguous&&['minimum_degree','ielts_academic','boolean_exclusion','minimum_gpa','toefl_ibt'].includes(r.type)?assessRequirement({...rule,ambiguous:false},profile):!ambiguous&&r.type==='academic_minimum'?academicAssessment(rule,profile):null;return {requirementId:r.id,status:detailed?.status??evaluate(rule,profile),source:{url:program.sourceUrl,excerpt:r.sourceExcerpt,digest:program.sourceDigest},reason:ambiguous?'conflicting_or_ambiguous':detailed?.reason??'reviewed_rule_comparison',issuerAuthenticated:false};});
  const summary=results.some(r=>r.status==='not_met')?'not_met':results.length&&results.every(r=>r.status==='met')?'met':'unknown';
  return {summary:summary==='met'&&program.coverageComplete!==true?'unknown':summary,enumeratedSummary:summary,results,externalInference:false,awardGuaranteed:false,coverage:'reviewed_enumerated_requirements_only',requiresHumanReview:true,sourceReview:program.review};
 }
