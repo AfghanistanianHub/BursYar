@@ -7,7 +7,7 @@ export const checkedPrograms=Object.freeze([Object.freeze({
  window:Object.freeze({opens:'2026-11-01',closes:'2026-11-30',timeZone:'Europe/Zurich',cutoffPublished:'11.59h MEZ'}),
  windowExcerpt:'Nov, 1 - Nov, 30 2026, 11.59h, MEZ',
  funding:'Study and living costs plus a tuition waiver; HS27 support is CHF 13,500 per semester for the regular master duration.',
- conditions:'Bachelor results in the top 10% are required. Applicants already in an ETH master or holding a master degree are excluded. A self-written thesis pre-proposal is required. Check the separate master admission conditions and nationality requirements.',
+ conditions:'Non-MAS master study only. Bachelor results in the top 10% (self-assessed, per ETH) are required. Applicants already in an ETH master or holding a master degree are excluded. A self-written thesis pre-proposal is required. Check the separate master admission conditions and nationality requirements.',
 })]);
 const validDate=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
 export function programWindow(row,now=new Date()){
