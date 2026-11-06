@@ -1,4 +1,4 @@
-export const PROFILE_FIELDS=['degree','languageTest','academicHistory','languages','targetDegree','deferredOffer','continuingSameDegree','courseStart','testExpiry','academicScore','gpa','documents','applicationSubmitted','fullTimeEnrollment','languageExemption'];
+export const PROFILE_FIELDS=['degree','languageTest','academicHistory','languages','targetDegree','deferredOffer','continuingSameDegree','courseStart','testExpiry','academicScore','gpa','documents','applicationSubmitted','fullTimeEnrollment','languageExemption','turkishCitizenshipHistory','enrolledInTurkiyeAtTargetLevel'];
 const date=s=>typeof s==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(s)&&Number.isFinite(Date.parse(s))&&new Date(s).toISOString().slice(0,10)===s;
 export function validProfileValue(key,value){
  if(key==='gpa')return !!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')==='gpa,scale'&&[4,5].includes(value.scale)&&typeof value.gpa==='number'&&Number.isFinite(value.gpa)&&value.gpa>=0&&value.gpa<=value.scale;
@@ -8,7 +8,7 @@ export function validProfileValue(key,value){
  if(key==='applicationSubmitted')return typeof value==='string'&&/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString()===value.replace('Z','.000Z');
  if(key==='degree')return ['secondary','bachelor','master','doctorate'].includes(value);
  if(key==='targetDegree')return ['bachelor','master','doctorate'].includes(value);
- if(['deferredOffer','continuingSameDegree'].includes(key))return typeof value==='boolean';
+ if(['deferredOffer','continuingSameDegree','turkishCitizenshipHistory','enrolledInTurkiyeAtTargetLevel'].includes(key))return typeof value==='boolean';
  if(['courseStart','testExpiry'].includes(key))return date(value);
  if(['academicHistory','languages'].includes(key))return typeof value==='string'&&value.trim().length>0&&value.length<=(key==='languages'?300:1000);
  if(key==='languageTest'&&value?.test==='TOEFL iBT')return !!value&&typeof value==='object'&&!Array.isArray(value)&&Object.keys(value).sort().join(',')==='overall,sections,test'&&Number.isInteger(value.overall)&&value.overall>=0&&value.overall<=120&&value.sections&&typeof value.sections==='object'&&!Array.isArray(value.sections)&&Object.keys(value.sections).sort().join(',')==='listening,reading,speaking,writing'&&Object.values(value.sections).every(n=>Number.isInteger(n)&&n>=0&&n<=30);

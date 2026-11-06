@@ -31,3 +31,13 @@ test('checked criteria without cohort dates never become an advertised open wind
  assert.equal(programWindow({...p,sourceUrl:'https://ethz.ch/other'},new Date(Date.parse(p.checkedAt)+1000)),'recheck');
  for(const lang of ['en','fa','ps'])assert.ok(verifiedProgramCopy[lang].dates_unknown);
 });
+
+test('Türkiye full-time discovery distinguishes recurring calendar from verified cohort availability',()=>{
+ const p=checkedPrograms.find(p=>p.id==='turkiye-fulltime-reviewed');assert.ok(p);
+ assert.equal(new URL(p.sourceUrl).hostname,'www.turkiyeburslari.gov.tr');
+ assert.equal(p.window,null);assert.equal(p.applicationStatus,'cohort_dates_unverified');
+ assert.equal(programWindow(p,new Date(Date.parse(p.checkedAt)+1000)),'dates_unknown');
+ assert.equal(programWindow(p,new Date(Date.parse(p.checkedAt)+8*86400000)),'recheck');
+ assert.equal(p.humanTranslationApproved,false);assert.ok(p.evidence.length>0);
+ assert.match(p.conditions,/graduate health sciences/i);assert.match(p.funding,/tuition/i);
+});

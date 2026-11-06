@@ -9,6 +9,13 @@ export const checkedPrograms=Object.freeze([Object.freeze({
  windowExcerpt:'Nov, 1 - Nov, 30 2026, 11.59h, MEZ',
  funding:'Study and living costs plus a tuition waiver; HS27 support is CHF 13,500 per semester for the regular master duration.',
  conditions:'Non-MAS master study only. Bachelor results in the top 10% (self-assessed, per ETH) are required. Applicants already in an ETH master or holding a master degree are excluded. A self-written thesis pre-proposal is required. Check the separate master admission conditions and nationality requirements.',
+}),Object.freeze({
+ id:'turkiye-fulltime-reviewed',title:'Türkiye Scholarships — full-time programmes',
+ sourceUrl:'https://www.turkiyeburslari.gov.tr/fulltimeprograms',sourceKind:'official_page_read',checkedAt:'2026-11-06T16:16:41Z',
+ window:null,applicationStatus:'cohort_dates_unverified',reviewStatus:'engineering_source_review_selected_facts',humanTranslationApproved:false,
+ evidence:Object.freeze(['Tuition Fee','Accommodation','Health Insurance','Turkish Language Course (1 Year)']),
+ funding:'The official scope lists tuition, accommodation, health insurance, a one-year Turkish course, university placement, a monthly stipend and a once-off flight benefit. Amounts and current award terms must be reconfirmed.',
+ conditions:'Associate, bachelor, master and PhD programmes are described. The graduate section excludes graduate health sciences. Academic background limits available departments; country-specific equivalence needs checking. The page describes an annual 10 January–20 February application period, but a cohort-specific window has not been verified. General citizenship, age and academic conditions also apply. No residency or English-test exemption is inferred.'
 }),Object.freeze({...verifiedAcademicPolicy,sourceKind:'official_page_read',conditions:verifiedAcademicPolicy.scope,evidence:verifiedAcademicPolicy.excerpt})]);
 const validDate=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value;
 export function programWindow(row,now=new Date()){

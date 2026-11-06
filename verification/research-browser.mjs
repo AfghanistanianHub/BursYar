@@ -19,8 +19,11 @@ try {
   await expect(page.locator('.workspace')).toHaveAttribute('open','');
   await page.locator('#workspace-overview a[href="#research-explorer"]').click();
   await expect(page.locator('.resources')).toHaveAttribute('open','');
-  await expect(page.locator('.verified-programs article')).toHaveCount(2);
+  await expect(page.locator('.verified-programs article')).toHaveCount(3);
   await expect(page.locator('.verified-programs')).toContainText('ETH Zurich');
+  const turkiye=page.locator('.verified-programs article').filter({hasText:'Türkiye Scholarships — full-time'});
+  await expect(turkiye).toHaveCount(1);await expect(turkiye).toContainText('graduate health sciences');
+  await expect(turkiye.locator('a')).toHaveAttribute('href','https://www.turkiyeburslari.gov.tr/fulltimeprograms');
   await page.locator('[data-verified-prepare]').first().click();
   await expect(page.locator('#source-url')).toHaveValue('https://ethz.ch/students/en/studies/financial/scholarships/excellencescholarship.html');
   await expect(page.locator('#source-approved')).not.toBeChecked();

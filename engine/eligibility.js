@@ -35,7 +35,7 @@ function evaluateRequirement(requirement,profile) {
   if (!validRequirement(requirement) || requirement.ambiguous!==false || requirement.conflicting===true || typeof requirement.sourceExcerpt!=='string' || !requirement.sourceExcerpt.trim() || typeof requirement.sourceUrl!=='string' || !sourceUrlValid(requirement.sourceUrl))
     return result(id,UNKNOWN,'unreviewed_or_unsupported_requirement');
   if(requirement.type==='boolean_exclusion'){
-    if(!['deferredOffer','continuingSameDegree'].includes(requirement.field)||requirement.excludedValue!==true)return result(id,UNKNOWN,'unsupported_exclusion');
+    if(!['deferredOffer','continuingSameDegree','turkishCitizenshipHistory','enrolledInTurkiyeAtTargetLevel'].includes(requirement.field)||requirement.excludedValue!==true)return result(id,UNKNOWN,'unsupported_exclusion');
     const f=fact(profile,requirement.field);if(!f||typeof f.value!=='boolean')return result(id,UNKNOWN,'missing_exclusion_evidence');
     return result(id,f.value?'not_met':'met',f.value?'explicit_exclusion_applies':'exclusion_not_reported',f.claimIds??[]);
   }
