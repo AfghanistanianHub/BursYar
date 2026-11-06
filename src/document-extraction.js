@@ -1,3 +1,4 @@
+import {inspectImageDimensions} from './image-preflight.js';
 // Local-only document-to-text extraction. Original PDF/image bytes are NOT sent
 // to BursYar's API or an AI provider. Code/model assets may be fetched on demand.
 // Pinned versions: updates require security review and browser regression checks.
@@ -47,12 +48,13 @@ async function createOcrWorker(ocrLoader=()=>importPinned(ocrModuleUrl),language
  try{return await wait(()=>ocrApi.createWorker(language),worker=>release(worker,'terminate'));}catch{fail('extractionUnavailable');}
 }
 async function recognizeImage(bytes,mime,ocrLoader,language,wait){
+ const declared=inspectImageDimensions(bytes,mime);
  if(typeof createImageBitmap!=='function'||typeof Blob==='undefined')fail('extractionUnavailable');
  let image,worker;
  try{
   const blob=new Blob([bytes],{type:mime});
   image=await wait(()=>createImageBitmap(blob),bitmap=>release(bitmap,'close'));
-  if(!validDimensions(image.width,image.height))fail('imageDimensions');
+  if(!validDimensions(image.width,image.height)||!((image.width===declared.width&&image.height===declared.height)||(image.width===declared.height&&image.height===declared.width)))fail('imageDimensions');
   worker=await createOcrWorker(ocrLoader,language,wait);
   const result=await wait(()=>worker.recognize(blob));
   return result?.data?.text??'';

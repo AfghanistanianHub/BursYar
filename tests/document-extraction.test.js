@@ -5,7 +5,8 @@ import {extractDocumentText} from '../src/document-extraction.js';
 const file=(name,bytes,advertisedSize)=>({name,size:advertisedSize??bytes.length,arrayBuffer:async()=>Uint8Array.from(bytes).buffer});
 const txt=(name,text)=>file(name,new TextEncoder().encode(text));
 const pdf=(text='hello')=>file('transcript.pdf',new TextEncoder().encode('%PDF-'+text));
-const png=file('scan.png',[137,80,78,71,13,10,26,10,0,0]);
+// Synthetic static 100×100 PNG with valid IHDR/IDAT/IEND and CRCs.
+const png=file('scan.png',Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAA/UlEQVR4nO3RMQ0AMAzAsPIn3d5DsBw2gkiZJWV+B/AyJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQmAP4K6zWNUjE4wAAAABJRU5ErkJggg==','base64'));
 test('TXT extraction preserves multilingual input and rejects forged file signatures',async()=>{
  assert.deepEqual(await extractDocumentText(txt('TRANSCRIPT.TXT','Degree: bachelor\nفارسی')),{text:'Degree: bachelor\nفارسی',method:'utf8_text'});
  await assert.rejects(()=>extractDocumentText(txt('wrong.pdf','not a PDF')),e=>e.code==='invalidPdf');
@@ -239,5 +240,16 @@ test('bitmap arriving after deadline is closed and never passed to OCR',async()=
   resolveBitmap({width:100,height:100,close(){closed++;}});
   await new Promise(resolve=>setTimeout(resolve,0));
   assert.equal(result,'extractionUnavailable');assert.equal(closed,1);assert.equal(ocrCalls,0);
+ }finally{if(prior===undefined)delete globalThis.createImageBitmap;else globalThis.createImageBitmap=prior;}
+});
+
+test('oversized PNG and JPEG declarations never reach native decoding or OCR',async()=>{
+ const prior=globalThis.createImageBitmap;let decoded=0,ocr=0;
+ globalThis.createImageBitmap=async()=>{decoded++;return {width:5000,height:1,close(){}};};
+ const pngBytes=[137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,19,136,0,0,0,1,8,6,0,0,0,0,0,0,0];
+ const jpegBytes=[255,216,255,192,0,11,8,0,1,19,136,1,1,17,0,255,218,0,8,1,1,0,0,63,0,0,255,217];
+ try{
+  for(const [name,bytes] of [['huge.png',pngBytes],['huge.jpg',jpegBytes]])await assert.rejects(()=>extractDocumentText(file(name,bytes),{ocrLoader:async()=>{ocr++;throw Error('must not load')}}),e=>e.code==='imageDimensions');
+  assert.equal(decoded,0);assert.equal(ocr,0);
  }finally{if(prior===undefined)delete globalThis.createImageBitmap;else globalThis.createImageBitmap=prior;}
 });
