@@ -20,3 +20,11 @@ test('missing score sections, unsupported GPA scales and uncertainty never imply
  assert.ok(gaps.every(g=>g.providerUrl===null&&g.competenceAssessment==='not_assessed'));
  assert.ok(gaps.every(g=>g.action==='clarify_evidence'));
 });
+
+test('specific missing-evidence guidance takes precedence over incidental deadline wording',()=>{
+ const reasons=['missing_language_test','degree_comparison','missing_or_invalid_band'];
+ const gaps=planGaps({results:reasons.map((reason,i)=>({requirementId:String(i),status:'unknown',reason,source:{excerpt:'Submit the required evidence before the application deadline.'}}))});
+ assert.deepEqual(gaps.map(g=>g.action),['confirm_accepted_tests','check_degree_route','clarify_evidence']);
+ const [deadline]=planGaps({results:[{requirementId:'date',status:'unknown',reason:'reviewed_rule_comparison',source:{excerpt:'Confirm the application deadline.'}}]});
+ assert.equal(deadline.action,'clarify_deadline');
+});
