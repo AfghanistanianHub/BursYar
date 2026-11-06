@@ -8,8 +8,8 @@ const url=`http://127.0.0.1:${server.httpServer.address().port}`;
 let browser;
 try {
  browser=await chromium.launch({headless:true});
- for(const language of ['en','fa','ps']) {
-  const context=await browser.newContext({viewport:{width:390,height:844}});
+ for(const language of ['en','fa','ps']) for(const width of [320,390,768,1440]) {
+  const context=await browser.newContext({viewport:{width,height:900}});
   const page=await context.newPage();
   await page.addInitScript(lang=>localStorage.setItem('bursyar-language',lang),language);
   let paidRequests=0;
@@ -68,13 +68,13 @@ try {
   await expect(page.locator('#research-explorer > .listing article')).toHaveCount(0);
   await page.locator('#research-no-ielts').uncheck();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
-  await page.screenshot({path:`verification/artifacts/${language}-connected-research-mobile.png`,fullPage:true});
+  await page.screenshot({path:`verification/artifacts/${language}-connected-research-${width}.png`,fullPage:true});
   const a11y=await new AxeBuilder({page}).include('#research-explorer').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
   expect(a11y.violations.map(x=>({id:x.id,nodes:x.nodes.map(n=>n.target)}))).toEqual([]);
   const overviewA11y=await new AxeBuilder({page}).include('#workspace-overview').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
   expect(overviewA11y.violations.map(x=>x.id)).toEqual([]);
   expect(paidRequests).toBe(0);
-  console.log(`${language}: search, save, reload, export, clear, strict filters, mobile layout, axe passed; zero POST requests`);
+  console.log(`${language}/${width}: search, save, reload, export, clear, strict filters, mobile layout, axe passed; zero POST requests`);
   await context.close();
  }
 }finally{await browser?.close();await server.close();}
