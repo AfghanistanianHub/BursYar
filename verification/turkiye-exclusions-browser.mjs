@@ -30,6 +30,12 @@ try{
   await page.locator('#local-assessment button[type=submit]').click();await expect(page.locator('#local-status')).toHaveText(copy.local.not_met);
   await save('false','false');await page.locator('#local-assessment button[type=submit]').click();await expect(page.locator('#local-status')).toHaveText(copy.local.unknownResult);
   await save('','');expect(documents.profile(uid).turkishCitizenshipHistory).toBeUndefined();await page.locator('#local-assessment button[type=submit]').click();await expect(page.locator('#local-status')).toHaveText(copy.local.unknownResult);
+  if(language==='en'&&width===320){
+   await page.locator('#profile-targetDegree').selectOption('bachelor');await page.locator('#profile-turkiye').evaluate(el=>el.open=true);await page.locator('#profile-enrolledInTurkiyeAtTargetLevel').selectOption('true');await page.locator('#profile-form input[name=consent]').check();await page.locator('#profile-form button[type=submit]').click();await expect(page.locator('#profile [role=status]')).toHaveText(copy.profile.saved);
+   await page.locator('#profile-targetDegree').selectOption('master');await expect(page.locator('#profile-enrolledInTurkiyeAtTargetLevel')).toHaveValue('');
+   await page.locator('#language').selectOption('fa');await page.locator('#language').selectOption('en');await page.locator('#profile-turkiye').evaluate(el=>el.open=true);await expect(page.locator('#profile-enrolledInTurkiyeAtTargetLevel')).toHaveValue('');
+   await page.locator('#profile-form input[name=consent]').check();await page.locator('#profile-form button[type=submit]').click();await expect(page.locator('#profile [role=status]')).toHaveText(copy.profile.saved);expect(documents.profile(uid).targetDegree.value).toBe('master');expect(documents.profile(uid).enrolledInTurkiyeAtTargetLevel).toBeUndefined();
+  }
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
   const axe=await new AxeBuilder({page}).include('#profile').include('.local-workflow').withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();expect(axe.violations.map(v=>v.id)).toEqual([]);expect(inference).toBe(0);
   console.log(`PASS ${language}/${width}: citizenship/enrolment declaration, exact exclusion, unknown reset, RTL/overflow, axe; no inference`);await context.close();

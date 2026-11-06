@@ -28,6 +28,7 @@ export function mountProfile(root,language='en'){
   }else if(['courseStart','testExpiry'].includes(key)){control=document.createElement('input');control.type='date';control.dir='ltr';}
   else{control=document.createElement('textarea');control.rows=2;control.maxLength=key==='languages'?300:1000;}
   control.id=`profile-${key}`;control.name=key;group.append(control);controls[key]=control;control.value=Object.prototype.hasOwnProperty.call(draft,key)?draft[key]:cached[key]?.value===undefined?'':String(cached[key].value);
+  if(key==='enrolledInTurkiyeAtTargetLevel'&&!Object.prototype.hasOwnProperty.call(draft,key)&&cached[key]?.context?.targetDegree!==(draft.targetDegree??cached.targetDegree?.value))control.value='';
   const origin=cached[key]?.origin;if(origin){const hint=document.createElement('small');hint.textContent=origin==='issuer_verified'?t.verified:origin==='document_extracted'?t.document:t.declared;group.append(hint);if(origin==='issuer_verified')control.disabled=true;}
  };
  for(const key of coreFields)makeField(key,form);
@@ -42,7 +43,7 @@ export function mountProfile(root,language='en'){
  if(hasSaved(oxfordFields))oxford.open=true;
  for(const key of oxfordFields)makeField(key,oxford);
  const turkiye=el('details','',form);turkiye.id='profile-turkiye';el('summary',t.turkiyeTitle,turkiye);el('p',t.turkiyeNote,turkiye);turkiye.open=hasSaved(turkiyeFields);for(const key of turkiyeFields)makeField(key,turkiye);
- controls.targetDegree.addEventListener('change',()=>{controls.enrolledInTurkiyeAtTargetLevel.value='';});
+ controls.targetDegree.addEventListener('change',()=>{controls.enrolledInTurkiyeAtTargetLevel.value='';draft.enrolledInTurkiyeAtTargetLevel='';});
  const consentLabel=el('label',t.consent,form),consent=el('input','',consentLabel);consent.type='checkbox';consent.required=true;consent.name='consent';
  const save=el('button',t.save,form);save.type='submit';
  const load=el('button',t.load);load.type='button';const remove=el('button',t.remove);remove.type='button';el('p',t.note);
