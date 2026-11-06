@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-11-06T07:07:19.891174+00:00",
+  "baseCandidate": "21472c01d242ff2fe22360e0e9eca9e7ebd0dd6b",
+  "implementationCommit": "d053d1db8b3f399b6d25506ac089b16ad9867297",
+  "implementationTree": "70bb1a96e12f66d77b9797619e664c0fe933b21d",
+  "scope": "cloud-local synthetic/offline; no inference or remote CI/deployment",
+  "node": {
+    "passed": 428,
+    "failed": 0,
+    "skipped": 0,
+    "command": "npm test"
+  },
+  "offlineEvaluation": {
+    "passed": 60,
+    "failed": 0,
+    "liveModelVerified": false,
+    "command": "npm run test:evaluation"
+  },
+  "realOcrJourneys": {
+    "passed": 34,
+    "failed": 0,
+    "languages": [
+      "eng",
+      "fas",
+      "pus"
+    ],
+    "command": "node verification/document-ocr-integration.mjs"
+  },
+  "workerLifecycle": {
+    "passed": 5,
+    "failed": 0,
+    "workersRemaining": 0,
+    "command": "node verification/ocr-worker-lifecycle-browser.mjs"
+  },
+  "builtOcr": {
+    "passed": true,
+    "externalRequests": 0,
+    "workersRemaining": 0,
+    "command": "node verification/ocr-built-browser.mjs"
+  },
+  "productionBinaryGate": {
+    "passed": true,
+    "passLines": 9,
+    "identity": "synthetic",
+    "command": "node verification/document-production-gate-browser.mjs"
+  },
+  "build": {
+    "passed": true,
+    "hostingBuild": false,
+    "command": "npm run build"
+  },
+  "dependencyAudit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 0,
+    "critical": 0,
+    "total": 0
+  },
+  "memoryScope": "256 MiB per derived WASM linear memory, not browser process/JS/PDF/GPU or cross-tab memory",
+  "remoteBranchCreated": false,
+  "remoteCiRun": false,
+  "deployed": false
+}

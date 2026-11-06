@@ -1,4 +1,4 @@
-> Current unpublished implementation: [Mission 29 evidence](MISSION-29-IMPLEMENTATION.md). OCR now uses checksum-verified same-origin assets in this candidate; production binary intake remains disabled. Older CDN notes below describe the prior baseline and are not current runtime behavior.
+> Current unpublished implementation: [Mission 30 evidence](MISSION-30-PRESERVE-AND-HARDEN.md). The candidate adds capped derived OCR cores and serialized asset preparation; production binary intake remains disabled. Older notes below describe historical baselines.
 
 # PDF/image document intake — release gates (2026-11-03)
 
