@@ -37,9 +37,88 @@ async function sampleProcessRss(cdp){
  return totals;
 }
 
+const stressMode=process.env.OCR_STRESS==='1';
+async function runStress(cdp){
+ const context=await browser.newContext();
+ const page=await context.newPage();
+ const requestedCores=new Set();
+ let corrupt=false,spawned=0;
+ const core='/vendor/ocr-v1/core/tesseract-core-lstm.wasm.js';
+ await context.route('**/*',route=>{
+  const url=new URL(route.request().url());
+  assert.equal(url.origin,origin,'stress request escaped loopback');
+  if(url.pathname.includes('/core/'))requestedCores.add(url.pathname);
+  if(corrupt&&url.pathname.endsWith('/eng.traineddata.gz'))return route.fulfill({body:'not-gzip'});
+  return route.continue();
+ });
+ await page.route(origin+'/stress',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><title>OCR stress fixture</title>'}));
+ await page.goto(origin+'/stress');
+ const jsHeapLimit=await page.evaluate(()=>performance.memory?.jsHeapSizeLimit);
+ assert.ok(jsHeapLimit>0&&jsHeapLimit<=128*1024*1024,'constrained V8 heap was not observed');
+ page.on('worker',()=>spawned++);
+ const rendererRss=async()=>{
+  const value=(await sampleProcessRss(cdp)).renderer;
+  assert.ok(Number.isFinite(value)&&value>0,'renderer RSS missing');
+  return value;
+ };
+ const iteration=async index=>{
+  corrupt=index%2===1;
+  const before=spawned;
+  const result=await page.evaluate(async corePath=>{
+   const {extractDocumentText}=await import('/src/document-extraction.js');
+   const {default:runtime}=await import('/src/ocr-runtime.js');
+   const ocrLoader=async()=>({createWorker:(language,oem,options)=>runtime.createWorker(language,oem,{...options,corePath})});
+   const canvas=document.createElement('canvas');canvas.width=360;canvas.height=90;
+   const context=canvas.getContext('2d');context.fillStyle='white';context.fillRect(0,0,360,90);
+   context.fillStyle='black';context.font='bold 38px sans-serif';context.fillText('OCR STRESS',15,57);
+   const blob=await new Promise(resolve=>canvas.toBlob(resolve));
+   try{return (await extractDocumentText(new File([blob],'stress.png'),{ocrLoader,timeoutMs:4000})).text.trim();}
+   catch(error){return error.code;}
+  },core);
+  assert.equal(result,corrupt?'extractionUnavailable':'OCR STRESS','iteration '+index);
+  await expect.poll(()=>page.workers().length,{timeout:3000}).toBe(0);
+  assert.ok(spawned>=before+2,'both worker layers must run on iteration '+index);
+ };
+ try{
+  for(let index=0;index<4;index++)await iteration(index);
+  const baseline=await rendererRss();
+  let peak=baseline,peakAll=await sampleProcessRss(cdp),samples=0,sampling=false,pending=Promise.resolve();
+  const sample=async()=>{
+   const reading=await sampleProcessRss(cdp);
+   assert.ok(reading.renderer>0,'renderer RSS missing during sampling');
+   peak=Math.max(peak,reading.renderer);samples++;
+   for(const [type,kib] of Object.entries(reading))peakAll[type]=Math.max(peakAll[type]??0,kib);
+  };
+  let sampleError;
+  sampler=setInterval(()=>{
+   if(sampling)return;
+   sampling=true;pending=sample().catch(error=>{sampleError=error;}).finally(()=>{sampling=false;});
+  },100);
+  const started=performance.now(),idle=[];
+  for(let index=0;index<24;index++){
+   await iteration(index);
+   // Leave time between attempts to observe settled RSS in the same renderer.
+   await new Promise(resolve=>setTimeout(resolve,1250));
+   idle.push(await rendererRss());
+  }
+  clearInterval(sampler);await pending;if(sampleError)throw sampleError;
+  const durationMs=Math.round(performance.now()-started);
+  const end=await rendererRss();peak=Math.max(peak,end,...idle);
+  const median=values=>[...values].sort((a,b)=>a-b)[Math.floor(values.length/2)];
+  const drift=median(idle.slice(-6))-median(idle.slice(0,6));
+  assert.ok(durationMs>=30000,'stress duration must cover at least 30 seconds');
+  assert.ok(samples>=30,'insufficient RSS samples');
+  assert.deepEqual([...requestedCores],[core],'exact non-SIMD core must be used');
+  const peakGrowthLimit=192*1024,idleDriftLimit=32*1024;
+  console.log('OCR-STRESS '+JSON.stringify({durationMs,iterations:24,failures:12,recoveries:12,jsHeapLimit,baseline,peak,end,peakAll,drift,peakGrowthLimit,idleDriftLimit,samples,spawned,remainingWorkers:page.workers().length}));
+  assert.ok(peak-baseline<=peakGrowthLimit,'renderer RSS peak exceeded 192 MiB growth');
+  assert.ok(drift<=idleDriftLimit,'median idle renderer RSS grew more than 32 MiB');
+ }finally{clearInterval(sampler);await context.close();}
+}
+
 try{
- browser=await chromium.launch({headless:true});
- const cdp=process.env.OCR_MEASURE_RSS==='1'?await browser.newBrowserCDPSession():null;
+ browser=await chromium.launch({headless:true,args:stressMode?['--js-flags=--max-old-space-size=64 --max-semi-space-size=4']:[]});
+ const cdp=stressMode||process.env.OCR_MEASURE_RSS==='1'?await browser.newBrowserCDPSession():null;
  for(const mode of ['stalled-model','missing-model','corrupt-model','missing-wasm','concurrent','cancelled-model']){
   const context=await browser.newContext();const outside=[];let modelSeen;const modelRequested=new Promise(resolve=>{modelSeen=resolve;});
   await context.route('**/*',r=>{if(new URL(r.request().url()).origin!==origin){outside.push(r.request().url());return r.abort();}return r.continue();});
@@ -93,4 +172,5 @@ try{
   if(cdp)console.log('RSS '+JSON.stringify({mode,baseline,peak,end:await sampleProcessRss(cdp),sampled,workerTargets:spawned.length}));
   console.log('PASS '+mode+'; '+spawned.length+' worker(s) observed, 0 remain');await context.close();
  }
+ if(stressMode)await runStress(cdp);
 }finally{clearInterval(sampler);await browser?.close();await vite.close();}

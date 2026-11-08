@@ -29,3 +29,26 @@ Run `OCR_MEASURE_RSS=1 node verification/ocr-worker-lifecycle-browser.mjs` on Li
 | Cancelled model | 80864 | 116988 | 106968 | 0 |
 
 Highest sampled browser RSS was 92868 KiB and GPU RSS was 60732 KiB. These observations do not establish a cap or a long-run leak result. Low-memory, non-SIMD and long-running tests remain open.
+
+## Mission 35 reproducible loopback gates
+
+After `npm ci`, `npm run build`, and `npx --no-install playwright install chromium --only-shell`, run:
+
+```sh
+./node_modules/.bin/firebase emulators:exec --config firebase.emulator.json --project demo-bursyar --only auth 'node verification/document-https-emulator.mjs'
+OCR_STRESS=1 node verification/ocr-worker-lifecycle-browser.mjs
+```
+
+The HTTPS fixture generates a one-day certificate with a loopback IP SAN and checks the peer with that certificate as its CA. It accepts only the loopback Auth emulator, uses in-memory SQLite, and denies inference. The 63 checks include CSP header presence, asset MIME and length, byte-exact pinned notices, emulator token and consent checks, upload boundaries, and cross-user list, read, review, and delete denial. Browser CSP execution and extraction are verified separately by the loopback browser integration. A trusted hosted certificate, deployed CSP and MIME, production-equivalent Firebase credentials, and real hosted isolation remain gated on an independently verified disposable target.
+
+The Linux Chromium stress profile sets `--max-old-space-size=64 --max-semi-space-size=4` and checks the observed JavaScript heap limit before testing. The run observed 81,400,000 bytes. The test forces the exact non-SIMD LSTM core through the fixture loader and asserts that only that core is requested. After four warm-up operations it alternates 12 successful reads with 12 corrupt-model failures in one page. Renderer RSS is sampled through CDP and `/proc` at 100 ms with overlapping samples skipped. The pass thresholds are 192 MiB peak growth above warm-up baseline and 32 MiB median idle drift from the first to the last six observations.
+
+| Observed metric | Result |
+| --- | ---: |
+| Duration | 46.795 seconds |
+| RSS samples | 463 |
+| Renderer baseline, peak, end | 114732, 184264, 121820 KiB |
+| Median idle renderer drift | 3884 KiB |
+| Worker targets spawned, remaining | 56, 0 |
+
+The constrained heap does not cap total system memory or individual worker RSS. Worker memory is included in the renderer process. This run does not establish multi-hour stability or behavior on devices that lack SIMD instructions.
