@@ -330,3 +330,31 @@ test('cancelling stalled PDF streaming releases reader and parser without waitin
  await assert.rejects(()=>extraction,e=>e.code==='extractionUnavailable');
  assert.equal(cancelled,1);assert.equal(destroyed,1);assert.ok(Date.now()-cancelledAt<1000);
 });
+
+test('PDF text accepts the exact UTF-8 limit across chunks without counting structural markers', async () => {
+  const first = 'ش'.repeat(3000);
+  const second = 'x'.repeat(5999);
+  const chunks = [
+    [{str: first, hasEOL: true}],
+    [{type: 'endMarkedContent'}, {str: second}],
+    [{type: 'endMarkedContent'}],
+  ];
+  const pdfLoader = async () => ({
+    GlobalWorkerOptions: {},
+    getDocument: () => ({
+      promise: Promise.resolve({
+        numPages: 1,
+        getPage: async () => ({
+          streamTextContent: () => new ReadableStream({
+            start(controller) {
+              for (const items of chunks) controller.enqueue({items});
+              controller.close();
+            },
+          }),
+        }),
+      }),
+    }),
+  });
+  const result = await extractDocumentText(pdf(), {pdfLoader});
+  assert.equal(result.text, first + '\n' + second);
+});

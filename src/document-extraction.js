@@ -66,18 +66,20 @@ async function recognizeImage(bytes,mime,ocrLoader,language,wait){
 // Bound text as it arrives from PDF.js, before concatenation/encoding. Streaming
 // limits application-side retention; it is not a parser/process memory ceiling.
 async function boundedPageText(page,remaining,wait){
- const parts=[];let used=0,reader;
+ const parts=[];let used=0,reader,separator='';
  const append=items=>{
   if(!Array.isArray(items))fail('invalidPdf');
   for(const item of items){
-   const text=item.str??'';
+   const text=item.str;
+   if(text===undefined)continue;
    if(typeof text!=='string')fail('invalidPdf');
    // UTF-8 uses at least one byte per UTF-16 code unit. Check length first
    // so an oversized item never causes an equally oversized encoding buffer.
-   if(text.length>remaining-used)fail('extractedTextTooLarge');
-   const size=new TextEncoder().encode(text).length+1;
+   if(text.length>remaining-used-separator.length)fail('extractedTextTooLarge');
+   const size=new TextEncoder().encode(text).length+separator.length;
    if(size>remaining-used)fail('extractedTextTooLarge');
-   used+=size;parts.push(text,item.hasEOL?'\n':' ');
+   used+=size;parts.push(separator,text);
+   separator=item.hasEOL?'\n':' ';
   }
  };
  try{
