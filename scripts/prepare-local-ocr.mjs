@@ -49,6 +49,20 @@ export function verifyModelProvenance(provenance,license){
  }
  return true;
 }
+const nativeNoticeManifest=readFileSync(join(repo,'data/ocr-native-notices.json'));
+export function verifyNativeNotices(directory=join(repo,'data/ocr-native-notices')){
+ const {productionApproved,notices}=JSON.parse(nativeNoticeManifest);
+ const names=new Set(notices.map(n=>n.file));
+ if(productionApproved!==false||names.size!==notices.length||readdirSync(directory).length!==names.size)throw Error('OCR native notice inventory mismatch');
+ return notices.map(({file,sha256:expected})=>{
+  if(!/^[a-zA-Z0-9.-]+\.txt$/.test(file))throw Error('Unsafe OCR native notice path');
+  const path=join(directory,file);
+  if(!lstatSync(path).isFile())throw Error('Unsafe OCR native notice file: '+file);
+  const bytes=readFileSync(path);
+  if(sha256(bytes)!==expected)throw Error('OCR native notice checksum mismatch: '+file);
+  return {path:'licenses/native/'+file,bytes};
+ });
+}
 function outputMatches(target,files,manifestText){
  try{
   if(!lstatSync(target).isDirectory()||lstatSync(target).isSymbolicLink()||readFileSync(join(target,'asset-manifest.json'),'utf8')!==manifestText)return false;
@@ -68,7 +82,8 @@ export function prepareLocalOcr(){
  const provenanceBytes=readFileSync(join(repo,'data/ocr-model-provenance.json'));
  const inventoryBytes=readFileSync(join(repo,'data/ocr-license-inventory.json')),inventory=JSON.parse(inventoryBytes);
  if(inventory.productionApproved!==false||inventory.assets.length!==ocrManifest.files.length||new Set(inventory.assets.map(a=>a.path)).size!==ocrManifest.files.length||!ocrManifest.files.every(f=>inventory.assets.some(a=>a.path===f.path&&a.sourceSha256===f.sha256&&(a.kind!=='model'||a.selectedLicense==='Apache-2.0'))))throw Error('OCR asset license inventory mismatch');
- files.push({path:'LICENSE-INVENTORY.json',bytes:inventoryBytes});
+ files.push({path:'LICENSE-INVENTORY.json',bytes:inventoryBytes},
+  {path:'licenses/native/NOTICE-SOURCES.json',bytes:nativeNoticeManifest},...verifyNativeNotices());
  const provenance=JSON.parse(provenanceBytes),license=readFileSync(join(repo,'public/licenses/tessdata-LICENSE.txt'));
  verifyModelProvenance(provenance,license);
  files.push({path:'licenses/tessdata-LICENSE.txt',bytes:license},{path:'MODEL-PROVENANCE.json',bytes:provenanceBytes},{path:'CORE-MODIFICATIONS.txt',bytes:Buffer.from('BursYar modifies Tesseract.js-core 5.1.1: defined WASM memory maximum reduced from 2 GiB to 256 MiB, including embedded equivalents. Initial memory and executable instructions unchanged. Original/derived hashes are in asset-manifest.json. Production binary uploads remain disabled.\n')});

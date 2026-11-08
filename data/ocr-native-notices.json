@@ -1,0 +1,71 @@
+{
+  "productionApproved": false,
+  "notices": [
+    {
+      "component": "emscripten",
+      "file": "emscripten-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/emscripten-core/emscripten/3.1.38/LICENSE",
+      "sha256": "620a78084fc7ca97c0b5dea9abf891f3ffcadfdbf305276f099c9c4e12fc1d86"
+    },
+    {
+      "component": "giflib",
+      "file": "giflib-COPYING.txt",
+      "source": "https://raw.githubusercontent.com/mirrorer/giflib/fa37672085ce4b3d62c51627ab3c8cf2dda8009a/COPYING",
+      "sha256": "0c9b7990ecdca88b676db232c226548ac408b279f550d424d996f0d83591dd8e"
+    },
+    {
+      "component": "leptonica",
+      "file": "leptonica-license.txt",
+      "source": "https://raw.githubusercontent.com/DanBloomberg/leptonica/4af068b56a9674da915debea4ed7e1b9885b17e8/leptonica-license.txt",
+      "sha256": "87829abb5bbb00b55a107365da89e9a33f86c4250169e5a1e5588505be7d5806"
+    },
+    {
+      "component": "libjpeg",
+      "file": "libjpeg-README.txt",
+      "source": "https://raw.githubusercontent.com/LuaDist/libjpeg/6c0fcb8ddee365e7abc4d332662b06900612e923/README",
+      "sha256": "c791da525733040e622ed257c7b096b8f5191b332604ead0c6bc2b54cbd8e0d1"
+    },
+    {
+      "component": "libpng",
+      "file": "libpng-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/glennrp/libpng/a37d4836519517bdce6cb9d956092321eca3e73b/LICENSE",
+      "sha256": "33ba4e187d8b0c8d7ab2bc2e522bb095219e03089e9aa0122b4fb9eb2b7de82b"
+    },
+    {
+      "component": "libtiff",
+      "file": "libtiff-COPYRIGHT.txt",
+      "source": "https://raw.githubusercontent.com/libsdl-org/libtiff/b51bb157123264e26d34c09cc673d213aea61fc7/COPYRIGHT",
+      "sha256": "fbd6fed7938541d2c809c0826225fc85e551fdbfa8732b10f0c87e0847acafd7"
+    },
+    {
+      "component": "libwebp",
+      "file": "libwebp-COPYING.txt",
+      "source": "https://raw.githubusercontent.com/webmproject/libwebp/20ef03ee351d4ff03fc5ff3ec4804a879d1b9d5c/COPYING",
+      "sha256": "5aec868f669e384a22372a4e8a1a6cd7d44c64cd451f960ca69cc170d1e13acf"
+    },
+    {
+      "component": "libwebp",
+      "file": "libwebp-PATENTS.txt",
+      "source": "https://raw.githubusercontent.com/webmproject/libwebp/20ef03ee351d4ff03fc5ff3ec4804a879d1b9d5c/PATENTS",
+      "sha256": "cc3273e0694ea5896145e0677699b53471b03ea43021ddc50e7923fbb9f5023c"
+    },
+    {
+      "component": "openlibm",
+      "file": "openlibm-LICENSE.md.txt",
+      "source": "https://raw.githubusercontent.com/JuliaMath/openlibm/ae2d91698508701c83cab83714d42a1146dccf85/LICENSE.md",
+      "sha256": "b1843fbf5b03f519a5f0a44fce751bdd1022ae7148614923f9d6293e17a18b17"
+    },
+    {
+      "component": "tesseract",
+      "file": "tesseract-LICENSE.txt",
+      "source": "https://raw.githubusercontent.com/Balearica/tesseract/e20b1c6553c8f68c4bbff1feef0a64064959a427/LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    {
+      "component": "zlib",
+      "file": "zlib-README.txt",
+      "source": "https://raw.githubusercontent.com/madler/zlib/21767c654d31d2dccdde4330529775c6c5fd5389/README",
+      "sha256": "fc2c3368901700f0acdeb1d8afeaca5923296768ec6824ecdf627aac396001fd"
+    }
+  ]
+}

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
-import {readFileSync,mkdtempSync,mkdirSync,copyFileSync,symlinkSync,rmSync} from 'node:fs';
+import {readFileSync,mkdtempSync,mkdirSync,copyFileSync,cpSync,symlinkSync,rmSync} from 'node:fs';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
@@ -12,13 +12,15 @@ test('cold concurrent initializers publish one complete, licensed, capped genera
  const cwd=mkdtempSync(join(tmpdir(),'bursyar-ocr-concurrent-'));
  try{
   for(const dir of ['scripts','data','public/licenses'])mkdirSync(join(cwd,dir),{recursive:true});
-  for(const path of ['scripts/prepare-local-ocr.mjs','scripts/atomic-directory.mjs','scripts/limit-ocr-memory.mjs','scripts/prepare-ocr-vendor-candidate.mjs','data/ocr-assets.json','data/ocr-derived-assets.json','data/ocr-model-provenance.json','data/ocr-license-inventory.json','public/licenses/tessdata-LICENSE.txt'])copyFileSync(join(repo,path),join(cwd,path));
+  for(const path of ['scripts/prepare-local-ocr.mjs','scripts/atomic-directory.mjs','scripts/limit-ocr-memory.mjs','scripts/prepare-ocr-vendor-candidate.mjs','data/ocr-assets.json','data/ocr-derived-assets.json','data/ocr-model-provenance.json','data/ocr-license-inventory.json','data/ocr-native-notices.json','public/licenses/tessdata-LICENSE.txt'])copyFileSync(join(repo,path),join(cwd,path));
+  cpSync(join(repo,'data/ocr-native-notices'),join(cwd,'data/ocr-native-notices'),{recursive:true});
   symlinkSync(join(repo,'node_modules'),join(cwd,'node_modules'),'junction');
   const results=await Promise.allSettled([1,2].map(()=>exec(process.execPath,['scripts/prepare-local-ocr.mjs'],{cwd,timeout:30000})));
-  const summaries=results.map(r=>{assert.equal(r.status,'fulfilled',r.reason?.message);const data=JSON.parse(r.value.stdout);assert.equal(data.productionApproved,false);assert.equal(data.files,21);return data;});
+  const summaries=results.map(r=>{assert.equal(r.status,'fulfilled',r.reason?.message);const data=JSON.parse(r.value.stdout);assert.equal(data.productionApproved,false);assert.equal(data.files,33);return data;});
   assert.ok(summaries.some(s=>s.reused!==true));assert.ok(summaries.some(s=>s.reused===true));
   const manifest=JSON.parse(readFileSync(join(cwd,'public/vendor/ocr-v1/asset-manifest.json')));
-  assert.equal(manifest.derived.memoryMaximumBytes,256*1024*1024);assert.equal(manifest.outputs.length,21);
+  assert.equal(manifest.derived.memoryMaximumBytes,256*1024*1024);assert.equal(manifest.outputs.length,33);
+  assert.equal(manifest.outputs.filter(f=>f.path.startsWith('licenses/native/')).length,12);
   for(const path of ['licenses/tessdata-LICENSE.txt','MODEL-PROVENANCE.json','CORE-MODIFICATIONS.txt'])assert.ok(manifest.outputs.some(f=>f.path===path));
  }finally{rmSync(cwd,{recursive:true,force:true});}
 });

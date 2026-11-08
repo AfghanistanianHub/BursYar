@@ -12,3 +12,20 @@ Use an independently approved disposable stage with synthetic documents, separat
 | Owner isolation | Create one synthetic document as each of two stage users. As the other user, attempt list, direct read, update and deletion by ID. Switch identity mid-extraction and inspect the pending upload. | No cross-user access or retained preview, no upload after identity changes, and owners can still access and delete their own documents. |
 
 Local checks cover the fixture logic and keep production locked. Hosted MIME, CSP, authenticated Firebase personas, process RSS thresholds and non-SIMD coverage require a disposable stage and recorded evidence before enabling binary uploads.
+
+## Mission 34 disposable loopback rehearsal
+
+Run `node verification/document-ocr-integration.mjs` from an isolated checkout after `npm ci` and Chromium installation. It binds the front end and engine to random ports on 127.0.0.1, uses temporary SQLite, synthetic documents and stub identities, and closes the servers and deletes the database on exit. Inference throws if called. The browser blocks off-origin requests. The 45 checks passed, including three MIME checks, enforced fixture CSP, anonymous rejection, synthetic cross-user list/read/review/delete isolation, consent withdrawal and owner recovery. This is a local gate. Firebase, HTTPS, the hosting proxy and a disposable hosted target still require independent authorization and verification.
+
+Run `OCR_MEASURE_RSS=1 node verification/ocr-worker-lifecycle-browser.mjs` on Linux. It samples Chromium CDP `SystemInfo.getProcessInfo` and Linux `/proc/<pid>/status` `VmRSS` every 100 ms, matching PID namespaces through `NSpid` and limiting the lookup to descendants of the test process. Values below are sampled sums by Chromium process type in KiB. RSS includes shared pages, and a short-lived peak between samples can be missed. OCR Web Workers share a renderer, so the renderer RSS includes worker memory without attributing it to individual workers.
+
+| Local workload | Renderer baseline | Sampled renderer peak | Renderer at cleanup | Live worker targets after cleanup |
+| --- | ---: | ---: | ---: | ---: |
+| Stalled model | 80832 | 137968 | 106892 | 0 |
+| Missing model | 80836 | 137792 | 106964 | 0 |
+| Corrupt model, three attempts | 80800 | 138412 | 110520 | 0 |
+| Missing WASM | 81032 | 104116 | 104116 | 0 |
+| Concurrent extraction | 80964 | 138044 | 106972 | 0 |
+| Cancelled model | 80864 | 116988 | 106968 | 0 |
+
+Highest sampled browser RSS was 92868 KiB and GPU RSS was 60732 KiB. These observations do not establish a cap or a long-run leak result. Low-memory, non-SIMD and long-running tests remain open.

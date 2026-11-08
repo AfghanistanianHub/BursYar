@@ -60,3 +60,9 @@ Each checksum applies to the upstream text at the linked revision.
 - zlib [README](https://raw.githubusercontent.com/madler/zlib/21767c654d31d2dccdde4330529775c6c5fd5389/README), SHA-256 `fc2c3368901700f0acdeb1d8afeaca5923296768ec6824ecdf627aac396001fd`.
 
 Release remains blocked pending per-variant link maps or a reproducible rebuild, the toolchain/sysroot inventory, final notice packaging, and redistribution approval. The pinned libtiff notice was retrieved from the GitHub mirror at the build recipe's commit. The zlib notice is carried in README at that pin.
+
+## Mission 34 packaged notices and binary evidence
+
+`npm run prepare:ocr` now includes the 11 pinned texts and their checksum index under `licenses/native/`. Preparation fails before publication on missing, substituted or altered notice files. Generated output verification also checks the notices on reuse.
+
+Run `node scripts/audit-ocr-binaries.mjs` to reproduce [the four-variant evidence](OCR-BINARY-EVIDENCE.json). It verifies that every original section other than memory is byte-identical after deriving the hardened cores and that the added custom section contains the modification notice. It also records import/export counts and diagnostic strings. A diagnostic string can identify a useful lead but cannot establish linker retention, exact dependency versions or completeness. The stripped release files do not contain a linker map. Per-object link evidence, the sysroot inventory and final redistribution sign-off remain release gates.

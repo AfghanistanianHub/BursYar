@@ -70,7 +70,10 @@ const encryptedPdf = () => {
 };
 
 prepareLocalOcr();
-const vite = await createServer({server: {host: '127.0.0.1', port: 0}});
+const csp = "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'";
+const vite = await createServer({server: {
+  host: '127.0.0.1', port: 0, headers:{'Content-Security-Policy':csp},
+}});
 await vite.listen();
 const origin = 'http://127.0.0.1:' + vite.httpServer.address().port;
 const dir = mkdtempSync(join(tmpdir(), 'bursyar-ocr-real-'));
@@ -126,7 +129,20 @@ try {
     const url = new URL(request.url());
     if (url.origin !== origin && url.origin !== apiBase && request.method() !== 'GET') externalPosts.push(request.method() + ' ' + url.origin);
   });
-  await page.goto(origin);
+  await page.addInitScript(() => {
+    globalThis.syntheticCspViolations=[];
+    addEventListener('securitypolicyviolation',event=>globalThis.syntheticCspViolations.push(event.violatedDirective));
+  });
+  for(const [asset,mime] of [
+    ['core/tesseract-core-lstm.wasm',/^application\/wasm\b/],
+    ['tesseract/worker.min.js',/^(text|application)\/javascript\b/],
+    ['asset-manifest.json',/^application\/json\b/],
+  ]){
+    const response=await fetch(origin+'/vendor/ocr-v1/'+asset,{method:'HEAD',redirect:'error'});
+    check('loopback-mime',response.ok&&mime.test(response.headers.get('content-type')??''),asset);
+  }
+  const response=await page.goto(origin);
+  check('loopback-csp-header',response.headers()['content-security-policy']===csp,'enforced fixture policy');
   await page.locator('#workspace-overview a[href="#profile-mount"]').click();
   const form = page.locator('#documents > form');
   const file = form.locator('input[type=file]');
@@ -302,6 +318,20 @@ try {
   catch (e) { got409 = e.status === 409; }
   check('18-conflict-409', r1.id === r2.id && got409 && documents.list('ocr-direct').length === 1, 'same-key dedupe + 409');
 
+  const documentPath='/api/documents/'+r1.id;
+  const localRequest=(path,token,method='GET',body)=>fetch(apiBase+path,{
+    method,headers:{origin,...(token?{authorization:'Bearer '+token}:{}),'content-type':'application/json'},
+    ...(body?{body:JSON.stringify(body)}:{}),
+  });
+  check('loopback-auth', (await localRequest(documentPath)).status===401,'anonymous read rejected');
+  const otherList=await localRequest('/api/documents','ocr-other');
+  check('loopback-owner-list',otherList.ok&&(await otherList.json()).length===0,'second identity has no records');
+  for(const [method,path,body] of [['GET',documentPath],['DELETE',documentPath],['POST',documentPath+'/review',{decisions:[]}]]) {
+    const denied=await localRequest(path,'ocr-other',method,body);
+    check('loopback-owner-isolation',denied.status===404,method+' rejected');
+  }
+  check('loopback-owner-read',(await localRequest(documentPath,'ocr-direct')).ok,'owner record still accessible');
+
   // 20. reload persistence
   await page.reload();
   await page.locator('#workspace-overview a[href="#profile-mount"]').click();
@@ -319,6 +349,7 @@ try {
   // privacy: no non-GET traffic off-origin during the whole battery
   check('privacy-no-exfil', externalPosts.length === 0, externalPosts.join(';') || 'no off-origin writes');
   check('same-origin-assets',externalRequests.length===0,externalRequests.join(';')||'no off-origin requests, including OCR workers');
+  check('loopback-csp-browser',(await page.evaluate(()=>globalThis.syntheticCspViolations)).length===0,'no page CSP violations');
   await context.close();
 
   // 14. unavailable local assets in a fresh context: honest recovery, TXT still saves

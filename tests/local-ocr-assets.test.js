@@ -65,3 +65,19 @@ test('model distribution selects the authoritative upstream grant and excludes w
  assert.equal(inventory.productionApproved,false);
  for(const a of inventory.assets.filter(a=>a.kind==='model'))assert.equal(a.selectedLicense,'Apache-2.0');
 });
+
+test('native notices reject missing and altered files before packaging', async () => {
+ const {verifyNativeNotices}=await import('../scripts/prepare-local-ocr.mjs');
+ const notices=verifyNativeNotices();
+ assert.equal(notices.length,11);
+ const directory=mkdtempSync(join(tmpdir(),'ocr-notices-test-'));
+ try{
+  for(const notice of notices)writeFileSync(join(directory,notice.path.split('/').at(-1)),notice.bytes);
+  assert.equal(verifyNativeNotices(directory).length,11);
+  const path=join(directory,notices[0].path.split('/').at(-1));
+  writeFileSync(path,'altered');
+  assert.throws(()=>verifyNativeNotices(directory),/checksum mismatch/);
+  rmSync(path);
+  assert.throws(()=>verifyNativeNotices(directory),/inventory mismatch/);
+ }finally{rmSync(directory,{recursive:true,force:true});}
+});

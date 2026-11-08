@@ -1,0 +1,73 @@
+{
+  "productionApproved": false,
+  "variants": [
+    {
+      "name": "tesseract-core.wasm",
+      "upstreamSha256": "b47a852b19181ae0999f9d970c368cd351135a320ea978b35bd38602d8bcc0bc",
+      "derivedSha256": "5a8ead06f068d99a008d0dfe9f8b14d0b3b73f75aa16617ee01f42353f8ceb8e",
+      "codeSha256": "18522fbfdf526896df9a2f58f433336e7df704345f6daafd29017a0144b932a1",
+      "imports": 46,
+      "exports": 305,
+      "hasNameSection": false,
+      "hasLinkingSection": false,
+      "diagnosticStrings": [
+        "leptonica",
+        "libjpeg",
+        "libpng",
+        "libtiff",
+        "zlib"
+      ]
+    },
+    {
+      "name": "tesseract-core-simd.wasm",
+      "upstreamSha256": "baa2f54ef5af43ada4605fd7ae999bde3c6ecc96bfe0d0410b0b4f4a5f9c8b91",
+      "derivedSha256": "44a948c05dfe52470a9da47654f7c99eaa130db7bf7b3dadc3e89da1499b7e98",
+      "codeSha256": "fa5696e89fa697c2dfc65ab1fa620b34e4d9c7e013df478a65ed3ff342001a19",
+      "imports": 46,
+      "exports": 305,
+      "hasNameSection": false,
+      "hasLinkingSection": false,
+      "diagnosticStrings": [
+        "leptonica",
+        "libjpeg",
+        "libpng",
+        "libtiff",
+        "zlib"
+      ]
+    },
+    {
+      "name": "tesseract-core-lstm.wasm",
+      "upstreamSha256": "5db58ea4d1bd4256be81e8ae3b4fa226c4625dfba1850b1b3308dbf3700e9929",
+      "derivedSha256": "a88f43f86638623b61ba1afafe898dcd2551a302915449cfcde72464170079c1",
+      "codeSha256": "fc00b5101ac3d398193f935acf3c1c0806b2682dc618830d00890e6047c66b38",
+      "imports": 50,
+      "exports": 305,
+      "hasNameSection": false,
+      "hasLinkingSection": false,
+      "diagnosticStrings": [
+        "leptonica",
+        "libjpeg",
+        "libpng",
+        "libtiff",
+        "zlib"
+      ]
+    },
+    {
+      "name": "tesseract-core-simd-lstm.wasm",
+      "upstreamSha256": "66b601224a0c4a8977bc9d92dd39841189f9ca22cc4122fcd7208cdb0961eeef",
+      "derivedSha256": "745d7e327b95775d7d0e7f5aec4f30d91f5405def31aaa88392740c9ec542182",
+      "codeSha256": "dd7e9c3cea09bad201ba5f5a8d9bee99ac3c10daa1fda4b8f330caadfb092ee0",
+      "imports": 50,
+      "exports": 305,
+      "hasNameSection": false,
+      "hasLinkingSection": false,
+      "diagnosticStrings": [
+        "leptonica",
+        "libjpeg",
+        "libpng",
+        "libtiff",
+        "zlib"
+      ]
+    }
+  ]
+}
