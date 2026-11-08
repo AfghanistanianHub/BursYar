@@ -1,8 +1,9 @@
 import {inspectImageDimensions} from './image-preflight.js';
+import {MAX_TEXT_BYTES} from './document-limits.js';
 // Local-only document-to-text extraction. Original PDF/image bytes are NOT sent
 // to BursYar's API or an AI provider. Pinned code/models load from this origin.
 // Pinned versions: updates require security review and browser regression checks.
-const MAX_TEXT_BYTES=12000, MAX_BINARY_BYTES=5*1024*1024, MAX_PAGES=5;
+const MAX_BINARY_BYTES=5*1024*1024, MAX_PAGES=5;
 const fail=code=>{const error=new Error(code);error.code=code;throw error;};
 const ocrOptions=Object.freeze({workerPath:'/vendor/ocr-v1/tesseract/worker.min.js',corePath:'/vendor/ocr-v1/core',langPath:'/vendor/ocr-v1/lang',workerBlobURL:false,cacheMethod:'none',gzip:true});
 const ocrOutput=Object.freeze({text:true,blocks:false,hocr:false,tsv:false,box:false,unlv:false,osd:false,pdf:false,imageColor:false,imageGrey:false,imageBinary:false,layoutBlocks:false,debug:false});
@@ -120,7 +121,7 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language,wait){
     catch{await release(renderTask,'cancel');fail('extractionUnavailable');}
     worker??=await createOcrWorker(ocrLoader,language,wait);
     try{text=(await wait(()=>worker.recognize(canvas,{},{...ocrOutput})))?.data?.text??'';}
-    catch{fail('extractionUnavailable');}
+    catch(error){if(error?.code==='extractedTextTooLarge')throw error;fail('extractionUnavailable');}
     }finally{canvas.width=canvas.height=0;}
    }
    // OCR output can contain padding. Cap raw text before trimming or encoding.

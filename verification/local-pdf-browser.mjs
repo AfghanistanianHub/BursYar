@@ -2,7 +2,8 @@
 import {chromium} from '@playwright/test';
 import {createServer} from 'vite';
 import assert from 'node:assert/strict';
-function textPdf(linesPerPage) {
+import {deflateSync} from 'node:zlib';
+function textPdf(linesPerPage,{compressed=false}={}) {
   const offsets = [];
   let body = '%PDF-1.4\n';
   const push = (s) => { offsets.push(body.length); body += s; };
@@ -12,9 +13,11 @@ function textPdf(linesPerPage) {
   push('2 0 obj\n<< /Type /Pages /Kids [' + linesPerPage.map((_, i) => `${3 + i * 2} 0 R`).join(' ') + `] /Count ${n} >>\nendobj\n`);
   const esc = s => s.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
   for (let i = 0; i < n; i++) {
-    const content = linesPerPage[i].map((t, j) => `BT /F1 14 Tf 72 ${720 - j * 24} Td (${esc(t)}) Tj ET`).join('\n');
+    const operators = linesPerPage[i].map((t, j) => `BT /F1 14 Tf 72 ${720 - (compressed ? j % 24 : j) * 24} Td (${esc(t)}) Tj ET`).join('\n');
+    const content = compressed ? deflateSync(Buffer.from(operators, 'latin1')).toString('latin1') : operators;
+    const filter = compressed ? ' /Filter /FlateDecode' : '';
     push(`${3 + i * 2} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 ${fontId} 0 R >> >> /Contents ${4 + i * 2} 0 R >>\nendobj\n`);
-    push(`${4 + i * 2} 0 obj\n<< /Length ${content.length} >>\nstream\n${content}\nendstream\nendobj\n`);
+    push(`${4 + i * 2} 0 obj\n<< /Length ${content.length}${filter} >>\nstream\n${content}\nendstream\nendobj\n`);
   }
   push(`${fontId} 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n`);
   const xref = body.length;
@@ -51,6 +54,20 @@ try{
  }
  assert.equal((await extract(textPdf(Array.from({length:6},()=>['Synthetic'])), 'pages.pdf','eng')).error,'pdfPageLimit');
  assert.equal((await extract(Buffer.from('not PDF'),'invalid.pdf','eng')).error,'invalidPdf');
+ const overBudget = textPdf([Array.from({length:1400}, () => 'Repeated synthetic data ')], {compressed:true});
+ assert.ok(overBudget.length < 4000);
+ for(let i=0;i<3;i++){
+  assert.equal((await extract(overBudget,'compressed.pdf','eng')).error,'extractedTextTooLarge');
+  assert.equal((await extract(fixture,'retry.pdf','eng')).method,'local_pdf_text_or_ocr');
+ }
+ const oversized=await page.evaluate(async()=>{
+  const {extractDocumentText}=await import('/src/document-extraction.js');
+  const file=new File([new Uint8Array(5*1024*1024+1)],'large.pdf');
+  file.arrayBuffer=()=>{throw Error('oversized input must not be read');};
+  try{await extractDocumentText(file);}catch(error){return error.code;}
+ });
+ assert.equal(oversized,'fileTooLarge');
+ console.log('PASS compressed PDF text budget, three successful retries, and oversized file preflight');
  assert.deepEqual(external,[]);
  console.log('PASS page/signature limits; zero external requests');
 }finally{await browser?.close();await vite.close();}

@@ -19,7 +19,10 @@ export default {async createWorker(language,oem,options){
   host.onmessage=({data})=>{
    if(data?.fatal){stop();return;}
    const task=pending.get(data?.id);if(!task)return;pending.delete(data.id);
-   data.error?task.reject(unavailable()):task.resolve(data.value);
+   if(data.error==='extractedTextTooLarge'){
+    task.reject(Object.assign(new Error(data.error),{code:data.error}));
+   }else if(data.error)task.reject(unavailable());
+   else task.resolve(data.value);
   };
   const ready=request('initialize',{language,oem,options});ready.catch(()=>{});
   return {
