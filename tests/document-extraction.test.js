@@ -358,3 +358,47 @@ test('PDF text accepts the exact UTF-8 limit across chunks without counting stru
   const result = await extractDocumentText(pdf(), {pdfLoader});
   assert.equal(result.text, first + '\n' + second);
 });
+
+test('oversized OCR text is rejected before whitespace normalization', async () => {
+  const priorDocument = globalThis.document;
+  const priorBitmap = globalThis.createImageBitmap;
+  let terminated = 0;
+  globalThis.document = {createElement: () => ({getContext: () => ({})})};
+  globalThis.createImageBitmap = async () => ({width:100, height:100, close() {}});
+  const ocrLoader = async () => ({
+    createWorker: async () => ({
+      recognize: async () => ({data:{text:' '.repeat(12000) + 'A'}}),
+      terminate() { terminated++; },
+    }),
+  });
+  const pdfLoader = async () => ({
+    GlobalWorkerOptions: {},
+    getDocument: () => ({promise: Promise.resolve({
+      numPages: 1,
+      getPage: async () => ({
+        getTextContent: async () => ({items: []}),
+        getViewport: () => ({width:100, height:100}),
+        render: () => ({promise: Promise.resolve()}),
+      }),
+    })}),
+  });
+  try {
+    await assert.rejects(extractDocumentText(pdf(), {pdfLoader, ocrLoader}),
+      {code:'extractedTextTooLarge'});
+    assert.equal(terminated, 1);
+    await assert.rejects(extractDocumentText(png, {
+      ocrLoader: async () => ({
+        createWorker: async () => ({
+          recognize: async () => ({data:{text:' '.repeat(12001)}}),
+          terminate() { terminated++; },
+        }),
+      }),
+    }), {code:'extractedTextTooLarge'});
+    assert.equal(terminated, 2);
+  } finally {
+    if (priorDocument === undefined) delete globalThis.document;
+    else globalThis.document = priorDocument;
+    if (priorBitmap === undefined) delete globalThis.createImageBitmap;
+    else globalThis.createImageBitmap = priorBitmap;
+  }
+});

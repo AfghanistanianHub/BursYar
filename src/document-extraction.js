@@ -10,7 +10,9 @@ const isPdf=bytes=>bytes.length>=5&&bytes[0]===37&&bytes[1]===80&&bytes[2]===68&
 const isPng=b=>b.length>=8&&[137,80,78,71,13,10,26,10].every((n,i)=>b[i]===n);
 const isJpeg=b=>b.length>=4&&b[0]===255&&b[1]===216&&b[b.length-2]===255&&b[b.length-1]===217;
 const safeText=text=>{
- if(typeof text!=='string'||!text.trim())fail('emptyFile');
+ if(typeof text!=='string')fail('emptyFile');
+ if(text.length>MAX_TEXT_BYTES)fail('extractedTextTooLarge');
+ if(!text.trim())fail('emptyFile');
  if(/[\x00-\x08\x0b\x0c\x0e-\x1f\ufffd]/u.test(text))fail('invalidEncoding');
  if(new TextEncoder().encode(text).length>MAX_TEXT_BYTES)fail('extractedTextTooLarge');
  return text;
@@ -121,6 +123,9 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language,wait){
     catch{fail('extractionUnavailable');}
     }finally{canvas.width=canvas.height=0;}
    }
+   // OCR output can contain padding. Cap raw text before trimming or encoding.
+   if(typeof text!=='string')fail('invalidEncoding');
+   if(text.length>MAX_TEXT_BYTES)fail('extractedTextTooLarge');
    text=text.trim();
    if(text.length>MAX_TEXT_BYTES-textBytes)fail('extractedTextTooLarge');
    textBytes+=new TextEncoder().encode(text).length+(lines.length?1:0);
