@@ -46,6 +46,7 @@ export function heroDocumentDemo(language) {
         <option value="" disabled selected>${t.empty}</option>
         <option value="associate">${t.associate}</option><option value="bachelor">${t.bachelor}</option><option value="master">${t.master}</option>
       </select>
+      <span class="document-demo-print-degree"></span>
       <small id="document-demo-hint">${t.waiting}</small>
     </div>
     <div aria-live="polite" aria-atomic="true">
@@ -59,10 +60,12 @@ export function heroDocumentDemo(language) {
 export function mountHeroDocumentDemo(root,language) {
   const t=copy[language]??copy.en;
   const degree=root.querySelector('#document-demo-degree');
+  const printDegree=root.querySelector('.document-demo-print-degree');
   const hint=root.querySelector('#document-demo-hint');
   const result=root.querySelector('[data-demo-result]');
   const next=root.querySelector('[data-demo-next]');
   function updateResult(){
+    printDegree.textContent=degree.selectedOptions[0].textContent;
     const meets=degree.value==='bachelor'||degree.value==='master';
     result.dataset.status=meets?'met':'not_met';
     result.textContent=meets?t.met:t.notMet;

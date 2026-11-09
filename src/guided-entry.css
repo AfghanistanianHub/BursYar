@@ -40,12 +40,11 @@ html[lang=fa] .guided-entry-head h2,html[lang=ps] .guided-entry-head h2{font-fam
 }
 @media(prefers-reduced-motion:reduce){.guided-option{transition:none}}
 @media print{
- #top>.guided-entry{break-inside:avoid!important;padding:8mm 4mm!important;margin:0 0 8mm!important}
+ #top>.guided-entry{break-inside:avoid!important;padding:4mm!important;margin:0 0 5mm!important}
  #top>.guided-entry .guided-entry-options{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
  #top>.guided-entry .guided-option{min-height:0!important;padding:3mm!important}
  #top>.guided-entry .guided-option .guided-arrow{display:none!important}
  #top>.guided-demo:not([open]){display:none!important}
- #top>.guided-demo[open]{break-before:page!important}
  #top>.guided-demo[open] #analysis-workspace .aw-flow{display:block!important}
  #top>.guided-demo[open] #analysis-workspace .aw-stage{break-inside:avoid!important;margin:0 0 4mm!important}
 }
