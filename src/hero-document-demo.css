@@ -35,3 +35,25 @@
  .hero-document-reader{margin-block-start:.6rem;padding:.45rem .55rem}
  .hero-reader-source p,.hero-reader-source button{font-size:.72rem}
 }
+
+@media (min-width:761px){
+ html[lang=en] #top>.hero{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-rows:auto auto;
+  align-content:center;
+  align-items:start;
+  column-gap:clamp(20px,4vw,64px);
+  row-gap:1rem;
+  padding:clamp(28px,4vw,58px) clamp(24px,4vw,70px);
+ }
+ html[lang=en] #top>.hero .hero-copy{display:contents}
+ html[lang=en] #top>.hero .hero-intro{grid-area:1/1}
+ html[lang=en] #top>.hero .hero-copy h1{max-width:20ch;font-size:clamp(36px,4vw,58px);line-height:1.08}
+ html[lang=en] #top>.hero .hero-copy .lead{max-width:57ch;margin-bottom:0}
+ html[lang=en] #top>.hero .hero-actions{margin-top:1rem}
+ html[lang=en] #top>.hero .hero-document-reader{grid-area:2/1;margin:0;max-width:34rem}
+ html[lang=en] #top>.hero .document-demo-visual{grid-area:2/2;justify-content:flex-start;padding:0}
+}
+@media (min-width:761px) and (max-width:950px){
+ html[lang=en] #top>.hero .hero-copy h1{font-size:clamp(27px,3.3vw,32px);max-width:none}
+}
