@@ -4,23 +4,10 @@ import {readFileSync} from 'node:fs';
 const theme = readFileSync(new URL('../src/workspace-theme.css', import.meta.url), 'utf8');
 const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 
-const aiHero = readFileSync(new URL('../src/ai-hero.css', import.meta.url), 'utf8');
-test('M14 AI-first hero has real workflow, source-to-evidence visualization, and original CTAs', () => {
-  assert.match(main, /<div class="hero-actions">/);
-  assert.match(main, /<p class="hero-kicker">\$\{esc\(j\.heroKicker\)\}<\/p>/);
-  assert.match(main, /<aside class="hero-visual ai-hero-visual"/);
-  assert.match(main, /class="ai-network"/);
-  for (const label of ['SOURCE', 'DOCUMENT', 'CRITERIA', 'EVIDENCE', 'ELIGIBILITY', 'PATHFINDER']) {
-    assert.match(main, new RegExp('>' + label + '<'));
-  }
-  assert.match(main, /class="ai-hero-verdict"/);
-  assert.match(main, /\$\{esc\(j\.flowNote\)\}/);
-  assert.match(main, /EN · فارسی · پښتو/);
-  assert.match(main, /href="#research-explorer" data-open="\.resources"/);
-  assert.match(theme, /\.hero-copy h1\{font-size:clamp\(2rem,4\.2vw,3rem\)/);
-  assert.match(aiHero, /max-height:none/);
-  assert.match(aiHero, /prefers-reduced-motion:reduce/);
-  assert.match(aiHero, /\.ai-pulses\{display:none\}/);
+test('hero pairs the document reader with the editable example and retains both entry actions', () => {
+  assert.ok(main.includes('${heroDocumentReader(state.language)}</div>${heroDocumentDemo(state.language)}'));
+  assert.ok(main.includes('href="#documents-mount" data-open=".workspace"'));
+  assert.ok(main.includes('href="#research-explorer" data-open=".resources"'));
 });
 
 test('M14 workflow band links the four journey stages', () => {

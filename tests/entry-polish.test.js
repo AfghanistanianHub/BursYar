@@ -16,8 +16,8 @@ test('entry offers a skip link targeting the focusable main landmark', () => {
 
 test('hero actions reuse localized labels and open their disclosures', () => {
   assert.match(main, /<div class="hero-actions">/);
-  assert.match(main, /<a class="primary-link" href="#research-explorer" data-open="\.resources">\$\{esc\(ed\.explore\)\}/);
-  assert.match(main, /<a class="primary-link secondary" href="#profile-mount" data-open="\.workspace">\$\{esc\(j\.profile\)\}<\/a>/);
+  assert.match(main, /<a class="primary-link" href="#documents-mount" data-open="\.workspace">\$\{esc\(j\.startDocuments\)\}<\/a>/);
+  assert.match(main, /<a class="primary-link secondary" href="#research-explorer" data-open="\.resources">\$\{esc\(ed\.explore\)\}/);
   assert.match(main, /querySelectorAll\('\[data-open\]'\)/);
   assert.match(main, /el\.dataset\.open/);
 });
@@ -25,7 +25,7 @@ test('hero actions reuse localized labels and open their disclosures', () => {
 test('hero action targets and disclosures exist in the shell', () => {
   assert.match(explorer, /<section id="research-explorer"/);
   assert.match(main, /id="research-explorer-mount"/);
-  assert.match(main, /id="profile-mount"/);
+  assert.match(main, /<details class="workspace">[\s\S]*?id="documents-mount"/);
   assert.match(main, /<details class="workspace">/);
   assert.match(main, /<details class="resources">/);
   assert.match(style, /\.hero-actions\{display:flex;flex-wrap:wrap/);

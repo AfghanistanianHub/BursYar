@@ -81,12 +81,19 @@ try {
   await expect(page.locator('.editorial-opportunity a').first()).toHaveAttribute('href',/^https:\/\//);
   await expect(page.locator('.editorial-opportunity a').first()).toHaveAttribute('rel','noopener noreferrer');
   await expect(page.locator('.editorial-nav a')).toHaveCount(4);
-  await expect(page.locator('.ai-hero .ai-network')).toBeVisible();
+  const heroDemo=page.locator('.document-demo');
+  await expect(heroDemo).toBeVisible();
+  await expect(heroDemo.locator('select')).toBeDisabled();
+  await page.locator('.hero-copy [data-demo-read]').click();
+  await expect(heroDemo.locator('select')).toHaveValue('bachelor');
+  await expect(heroDemo.locator('[data-demo-result]')).toHaveAttribute('data-status','met');
+  await heroDemo.locator('select').selectOption('associate');
+  await expect(heroDemo.locator('[data-demo-result]')).toHaveAttribute('data-status','not_met');
   const editorialGeometry=await page.evaluate(()=>{
     const rect=selector=>{const b=document.querySelector(selector).getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,right:b.right,width:b.width}};
     const hero=rect('.hero'),pillars=rect('.editorial-pillars'),selected=rect('.editorial-selected'),how=rect('.how-it-works');
     const nav=rect('.journey-more');
-    const network=document.querySelector('.ai-hero .ai-network');
+    const network=document.querySelector('.document-demo');
     return {hero,pillars,selected,how,nav,imageLoaded:!!network&&network.getBoundingClientRect().width>0};
   });
   expect(editorialGeometry.imageLoaded).toBe(true);
