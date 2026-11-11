@@ -7,6 +7,8 @@ const state={q:'',country:'all',degree:'all',funding:'all',noFee:false,noIelts:f
 let saved=null;
 let storageFailed=false;
 const storage=()=>{try{return globalThis.localStorage;}catch{return null;}};
+export function getSavedResearchIds(){return [...(saved??loadResearchSaved(storage()))];}
+const notifySaved=()=>document.dispatchEvent(new Event('bursyar:research-saved'));
 export function mountResearchExplorer(root,language='en') {
  if(!root)return;
  const lang=researchCopy[language]?language:'en';const t=researchCopy[lang];
@@ -33,7 +35,7 @@ export function mountResearchExplorer(root,language='en') {
   for(const [id,key] of [['no-fee','noFee'],['no-ielts','noIelts'],['hide-past','hidePast'],['saved-only','savedOnly']])root.querySelector('#research-'+id).addEventListener('change',event=>{state[key]=event.target.checked;render('research-'+id);});
   root.querySelectorAll('[data-research-save]').forEach(button=>button.addEventListener('click',()=>{
    const id=button.dataset.researchSave;saved=saved.includes(id)?saved.filter(x=>x!==id):[...saved,id];
-   storageFailed=!saveResearchIds(storage(),saved);render();
+   storageFailed=!saveResearchIds(storage(),saved);render();notifySaved();
    (root.querySelector(`[data-research-save="${id}"]`)??root.querySelector('#research-saved-only')).focus();
   }));
   root.querySelectorAll('[data-research-prepare]').forEach(button=>button.addEventListener('click',()=>{
@@ -43,7 +45,7 @@ export function mountResearchExplorer(root,language='en') {
    input.value=url;input.dispatchEvent(new Event('input',{bubbles:true}));
    document.querySelector('#assistant')?.scrollIntoView({block:'start'});input.focus({preventScroll:true});
   }));
-  root.querySelector('#research-clear').addEventListener('click',()=>{saved=[];storageFailed=!saveResearchIds(storage(),saved);render('research-saved-only');});
+  root.querySelector('#research-clear').addEventListener('click',()=>{saved=[];storageFailed=!saveResearchIds(storage(),saved);render('research-saved-only');notifySaved();});
   root.querySelector('#research-export').addEventListener('click',()=>{
    const blob=new Blob([JSON.stringify(exportResearchSaved(saved),null,2)],{type:'application/json'});
    const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='bursyar-public-references.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);

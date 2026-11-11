@@ -1,0 +1,217 @@
+#student-dashboard {
+  --dashboard-paper: #fdfbf8;
+  --dashboard-ink: #152132;
+  --dashboard-navy: #173a5e;
+  --dashboard-line: #e5ded5;
+  --dashboard-sand: #f3ece4;
+  color: var(--dashboard-ink);
+  background: var(--dashboard-paper);
+  min-block-size: 100dvh;
+}
+
+.dashboard-header {
+  min-block-size: 64px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 8px clamp(14px, 3vw, 36px);
+  border-block-end: 1px solid var(--dashboard-line);
+}
+
+.dashboard-brand, .dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-brand {
+  color: var(--dashboard-navy);
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.dashboard-brand svg { inline-size: 30px; block-size: 30px; }
+#dashboard-language {
+  max-inline-size: 105px;
+  min-block-size: 44px;
+  padding: 4px 6px;
+  border: 0;
+  background: transparent;
+  font-size: .875rem;
+}
+.dashboard-account {
+  position: relative;
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.dashboard-account summary {
+  display: grid;
+  place-items: center;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 50%;
+  background: var(--dashboard-sand);
+  color: var(--dashboard-navy);
+  list-style: none;
+}
+.dashboard-account summary::-webkit-details-marker { display: none; }
+.dashboard-account summary svg { inline-size: 20px; }
+.dashboard-account #account-controls {
+  width: min(260px, 82vw);
+  inset-inline-end: 0;
+}
+
+.dashboard-layout {
+  max-inline-size: 1440px;
+  margin-inline: auto;
+  display: grid;
+  grid-template-columns: minmax(200px, 230px) minmax(0, 1fr);
+  min-block-size: calc(100dvh - 64px);
+}
+
+.dashboard-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 24px 12px;
+  border-inline-end: 1px solid var(--dashboard-line);
+}
+
+.dashboard-nav-link, .dashboard-shortcut {
+  display: flex;
+  align-items: center;
+  min-block-size: 44px;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: .875rem;
+  font-weight: 400;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-nav-link:hover, .dashboard-nav-link[aria-current="page"], .dashboard-shortcut:hover {
+  background: var(--dashboard-sand);
+  color: var(--dashboard-navy);
+}
+.dashboard-nav-link[aria-current="page"] { font-weight: 500; }
+.dashboard-nav-short { display: none; }
+
+.dashboard-nav-link svg, .dashboard-shortcut svg {
+  color: var(--dashboard-navy);
+  flex: 0 0 19px;
+  inline-size: 19px;
+  block-size: 19px;
+}
+
+.dashboard-main { min-inline-size: 0; padding: clamp(18px, 4vw, 48px); }
+#student-dashboard #dashboard-title {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  font-weight: 500;
+  line-height: 1.3;
+  margin: 0 0 18px;
+}
+
+.dashboard-next {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(110px, 29%);
+  align-items: center;
+  gap: 18px;
+  padding: clamp(18px, 3vw, 32px);
+  background: var(--dashboard-sand);
+  border-radius: 12px;
+}
+
+.dashboard-next-label {
+  display: inline-block;
+  margin: 0 0 8px;
+  border-radius: 6px;
+  padding: 2px 8px;
+  color: #263e29;
+  background: #dbe6d1;
+  font-size: .75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+#student-dashboard .dashboard-next h2 {
+  margin: 0 0 16px;
+  font-size: clamp(1.15rem, 2.4vw, 1.65rem);
+  font-weight: 500;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-action {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-block-size: 44px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--dashboard-navy);
+  color: #fff;
+  font-size: .875rem;
+  font-weight: 500;
+  text-align: center;
+  text-decoration: none;
+}
+.dashboard-action:hover { background: #102e4b; }
+.dashboard-illustration { inline-size: 100%; max-inline-size: 190px; justify-self: center; color: var(--dashboard-navy); }
+
+.dashboard-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 12px;
+  margin-block-start: 14px;
+}
+.dashboard-shortcut { border: 1px solid var(--dashboard-line); }
+.dashboard-panel > * { min-inline-size: 0; }
+.dashboard-panel > :where(#assistant,#documents-mount,#profile-mount,#academic-evidence-mount,#local-workflow-mount,#eligibility-mount,#next-steps) {
+  margin-block: 0 18px;
+  max-inline-size: 100%;
+}
+.dashboard-panel pre, .dashboard-panel blockquote { overflow-wrap: anywhere; white-space: pre-wrap; }
+.dashboard-panel :is(input,select,textarea) { max-inline-size: 100%; }
+.dashboard-saved-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--dashboard-line); border-radius: 8px; }
+.dashboard-saved-list li { padding: 12px 16px; }
+.dashboard-saved-list li + li { border-block-start: 1px solid var(--dashboard-line); }
+
+.site .dashboard-entry {
+  color: var(--dashboard-navy, #173a5e);
+  font-weight: 500;
+  font-size: .875rem;
+  text-underline-offset: 3px;
+}
+.site:has(.dashboard-entry:not([hidden])) .header-start { display: none; }
+
+@media (max-width: 760px) {
+  .dashboard-layout { display: block; }
+  .dashboard-header { min-block-size: 58px; }
+  .dashboard-brand { gap: 8px; font-size: 1.125rem; }
+  .dashboard-brand svg { inline-size: 24px; }
+  .dashboard-header-actions { gap: 4px; }
+  .dashboard-main { padding-block-end: calc(84px + env(safe-area-inset-bottom)); }
+  .dashboard-nav {
+    position: fixed;
+    z-index: 10;
+    inset: auto 0 0;
+    display: grid;
+    grid-template-columns: repeat(4,minmax(0,1fr));
+    gap: 2px;
+    padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+    background: var(--dashboard-paper);
+    border-block-start: 1px solid var(--dashboard-line);
+    border-inline-end: 0;
+  }
+  .dashboard-nav-link { flex-direction: column; justify-content: center; gap: 3px; padding: 5px 2px; font-size: .75rem; text-align: center; }
+  .dashboard-nav-full { display: none; }
+  .dashboard-nav-short { display: inline; }
+  .dashboard-next { grid-template-columns: minmax(0,1fr); gap: 8px; }
+  .dashboard-next .dashboard-action { inline-size: 100%; }
+  .dashboard-illustration { grid-row: 1; max-inline-size: 112px; }
+  .dashboard-shortcuts { grid-template-columns: 1fr; gap: 6px; margin-block-start: 10px; }
+}
