@@ -73,3 +73,13 @@ test('funding facets never promote unknown research funding to confirmed support
  assert.deepEqual(catalog.filterResearch(rows,{funding:'partial'},NOW).map(x=>x.id),['partial']);
  assert.deepEqual(catalog.filterResearch(rows,{funding:'unknown'},NOW).map(x=>x.id),['unknown']);
 });
+
+test('Farsi and Pashto search tolerates Arabic keyboard forms and diacritics',()=>{
+ const rows=[listing({title:'Science Fellowship'}),listing({id:'uk',country:'United Kingdom',degrees:['phd']})];
+ for(const q of ['آلمان ماستري','آلمان مَاستَری','جرمني ماسټري','Ｇｅｒｍａｎｙ science']){
+  assert.deepEqual(catalog.filterResearch(rows,{q},NOW).map(x=>x.id),['test']);
+ }
+ // Searching must not change the public metadata or widen confirmed filters.
+ assert.equal(rows[0].title,'Science Fellowship');
+ assert.deepEqual(catalog.filterResearch(rows,{q:'آلمان ماستري',noFee:true},NOW),[]);
+});

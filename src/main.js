@@ -1,3 +1,6 @@
+import {onAuthChange} from './auth.js';
+import {dashboardCopy} from './dashboard-copy.js';
+import {isDashboardRoute,mountStudentDashboard} from './student-dashboard.js';
 import {mountWorkspaceOverview} from './workspace-overview.js';
 import {mountResearchExplorer} from './research-explorer.js';
 import {mountLocalWorkflow} from './local-workflow.js';
@@ -22,6 +25,7 @@ import './trust-explainer.css';
 import './storyboard.css';
 import './documents-storyboard.css';
 import './hero-document-demo.css';
+import './student-dashboard.css';
 import {heroDocumentDemo,heroDocumentReader,mountHeroDocumentDemo} from './hero-document-demo.js';
 import {sampleScholarships,filterScholarships,localizedCountry,localizedLevel} from './catalog.js';
 import {journeyCopy} from './journey-copy.js';
@@ -32,6 +36,7 @@ const state={language:localStorage.getItem('bursyar-language')||'en',q:'',countr
 if(!translations[state.language])state.language='en';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let analyzerInput={};
+let dashboard, signedIn=false, signedInUid, documentStatus, hasLocalAssessment=false;
 function render(){const disclosures=Object.fromEntries(['workspace','resources','scenarios','guided-demo'].map(key=>[key,document.querySelector('.'+key)?.open]));const old=document.querySelector('#analyze-form');if(old)analyzerInput={text:old.querySelector('textarea').value,sourceUrl:old.querySelector('[name=sourceUrl]')?.value||'',analysis:old.analysis,receipt:old.sourceReceipt,sourceApproved:old.sourceApproved,preview:old.sourcePreview,barrierAnswers:old.barrierAnswers,manualMode:old.manualMode,sourceFailure:old.sourceFailure};const t=translations[state.language],rtl=state.language!=='en';document.documentElement.lang=state.language;document.documentElement.dir=rtl?'rtl':'ltr';document.title=`${t.brand} | ${t.missionTitle}`;document.querySelector('meta[name="description"]')?.setAttribute('content',t.description);const fmt=new Intl.NumberFormat(state.language);
 const j=journeyCopy[state.language];
 const ed={
@@ -56,7 +61,7 @@ const trustCopy={
  ps:{summary:'پر دغو پایلو څنګه باور وکړم؟',intro:'بورس‌یار د سرچینې متن، د وسیلې تفسیر او ستاسو بیاکتنه بېل ښيي. هېڅ نښه د پوهنتون د منلو معنا نه لري.',source:'رسمي سرچینه',sourceNote:'د بورس چمتوکوونکي لینک یا نقل‌قول؛ بدلونونه یې په رسمي پاڼه کې وګورئ.',ai:'د AI تفسیر',aiNote:'د سرچینې د متن وړاندیز شوی تعبیر دی؛ تېروتنه پکې کېدای شي او بیاکتنې ته اړتیا لري.',human:'ستاسو له خوا بیاکتل شوی',humanNote:'تاسو معلومات د خپلې ارزونې لپاره کتلي؛ د سند اصالت نه تاییدوي.',met:'پوره شوی',metNote:'کتل شوي شواهد له ټاکلي شرط سره سمون لري.',notMet:'ناپوره',notMetNote:'کتل شوي شواهد له ټاکلي شرط سره سمون نه لري.',unknown:'نامعلوم',unknownNote:'د پرېکړې لپاره کافي باوري شواهد نشته؛ دا رد نه دی.',offline:'کله چې AI نه وي، د قواعدو ارزونه لا هم په بیاکتل شوو معلوماتو کار کولای شي.'}
 }[state.language]||null;
 const items=filterScholarships(sampleScholarships,state);
-app.innerHTML=`<div class="site"><a class="skip-link" href="#top">${esc(t.skipToContent)}</a><header class="header"><a class="logo" href="#top" aria-label="${esc(t.brand)}"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 42 42" width="37" height="37" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><path d="M21 34c-6-5-11-5-17-4V11c7-1 12 1 17 5 5-4 10-6 17-5v19c-6-1-11-1-17 4Z"/><path d="M21 16v18M6 33c7-1 11 0 15 3 4-3 8-4 15-3"/><path d="M21 4a7 7 0 0 0-7 7c0 5 7 11 7 11s7-6 7-11a7 7 0 0 0-7-7Z"/><circle cx="21" cy="11" r="2.5"/></svg></span><span>${esc(t.brand)}<small>${esc(t.tag)}</small></span></a><nav class="editorial-nav" aria-label="Main navigation"><a href="#top">${esc(ed.platform)}</a><a href="#research-explorer" data-open=".resources">${esc(ed.scholarships)}</a><a href="#research-explorer" data-open=".resources">${esc(ed.resources)}</a><a href="#about" data-open=".resources">${esc(ed.about)}</a></nav><details class="account"><summary>${esc(j.account)}</summary><div id="account-controls"></div></details><a class="header-start" href="#getting-started">${esc(state.language==='fa'?'شروع':state.language==='ps'?'پیل':'Get started')}</a><label class="language"><span class="sr-only">${esc(t.language)}</span><select id="language" aria-label="${esc(t.language)}"><option value="en" ${state.language==='en'?'selected':''}>English</option><option value="fa" ${state.language==='fa'?'selected':''}>فارسی</option><option value="ps" ${state.language==='ps'?'selected':''}>پښتو</option></select></label></header><main id="top" tabindex="-1"><section class="hero"><div class="hero-copy"><div class="hero-intro"><p class="hero-kicker">${esc(j.heroKicker)}</p><h1>${esc(ed.headline)}</h1><div class="editorial-divider"></div><p class="lead">${esc(ed.lead)}</p><div class="hero-actions"><a class="primary-link" href="#documents-mount" data-open=".workspace">${esc(j.startDocuments)}</a><a class="primary-link secondary" href="#research-explorer" data-open=".resources">${esc(ed.explore)} <span aria-hidden="true">↗</span></a></div></div>${heroDocumentReader(state.language)}</div>${heroDocumentDemo(state.language)}</section>
+app.innerHTML=`<div class="site"><a class="skip-link" href="#top">${esc(t.skipToContent)}</a><header class="header"><a class="logo" href="#top" aria-label="${esc(t.brand)}"><span class="logo-mark" aria-hidden="true"><svg viewBox="0 0 42 42" width="37" height="37" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"><path d="M21 34c-6-5-11-5-17-4V11c7-1 12 1 17 5 5-4 10-6 17-5v19c-6-1-11-1-17 4Z"/><path d="M21 16v18M6 33c7-1 11 0 15 3 4-3 8-4 15-3"/><path d="M21 4a7 7 0 0 0-7 7c0 5 7 11 7 11s7-6 7-11a7 7 0 0 0-7-7Z"/><circle cx="21" cy="11" r="2.5"/></svg></span><span>${esc(t.brand)}<small>${esc(t.tag)}</small></span></a><nav class="editorial-nav" aria-label="Main navigation"><a href="#top">${esc(ed.platform)}</a><a href="#research-explorer" data-open=".resources">${esc(ed.scholarships)}</a><a href="#research-explorer" data-open=".resources">${esc(ed.resources)}</a><a href="#about" data-open=".resources">${esc(ed.about)}</a></nav><details class="account"><summary>${esc(j.account)}</summary><div id="account-controls"></div></details><a class="dashboard-entry" id="dashboard-entry" href="#dashboard" hidden>${esc(dashboardCopy[state.language].home)}</a><a class="header-start" href="#getting-started">${esc(state.language==='fa'?'شروع':state.language==='ps'?'پیل':'Get started')}</a><label class="language"><span class="sr-only">${esc(t.language)}</span><select id="language" aria-label="${esc(t.language)}"><option value="en" ${state.language==='en'?'selected':''}>English</option><option value="fa" ${state.language==='fa'?'selected':''}>فارسی</option><option value="ps" ${state.language==='ps'?'selected':''}>پښتو</option></select></label></header><main id="top" tabindex="-1"><section class="hero"><div class="hero-copy"><div class="hero-intro"><p class="hero-kicker">${esc(j.heroKicker)}</p><h1>${esc(ed.headline)}</h1><div class="editorial-divider"></div><p class="lead">${esc(ed.lead)}</p><div class="hero-actions"><a class="primary-link" href="#documents-mount" data-open=".workspace">${esc(j.startDocuments)}</a><a class="primary-link secondary" href="#research-explorer" data-open=".resources">${esc(ed.explore)} <span aria-hidden="true">↗</span></a></div></div>${heroDocumentReader(state.language)}</div>${heroDocumentDemo(state.language)}</section>
 <section class="guided-entry" id="getting-started" aria-labelledby="guided-entry-heading">
  <div class="guided-entry-head"><p class="guided-kicker">${esc(welcome.eyebrow)}</p><h2 id="guided-entry-heading">${esc(welcome.title)}</h2><p>${esc(welcome.intro)}</p></div>
  <div class="guided-entry-options">
@@ -112,8 +117,8 @@ ${ed.pillars.map((p,i)=>`<article class="editorial-pillar"><div class="editorial
   ${pathUI.steps.map((step,i)=>`<li><a href="${['#research-explorer','#documents-mount','#eligibility-mount','#research-explorer','#next-steps'][i]}" ${[0,1,3].includes(i)?`data-open="${i===1?'.workspace':'.resources'}"`:''}><span class="pathfinder-index">${fmt.format(i+1)}</span><span class="pathfinder-step-copy"><strong>${esc(step[0])}</strong><small>${esc(step[1])}</small></span><span class="pathfinder-step-arrow" aria-hidden="true">↗</span></a></li>`).join('')}
   </ol>
  </div>
- <div class="pathfinder-live"><p class="pathfinder-eyebrow">${esc(pathUI.barrier)}</p><section id="next-steps"><h2>${fmt.format(4)} · ${esc(j.next)}</h2><div id="next-actions"><p class="empty-note">${esc(j.nextEmpty)} <a href="#assistant">${esc(j.nextEmptyCta)}</a></p></div><p>${esc(j.nextNote)}</p></section></div></section><details class="resources"><summary>${esc(j.resources)}</summary><div id="research-explorer-mount"></div><section id="explore" class="section"><div class="section-top"><div><p class="eyebrow">BURS YAR / 01</p><h2>${esc(t.scholarships)}</h2></div><span class="sample-note">${esc(t.demo)}</span></div><div class="filters"><label><span class="sr-only">${esc(t.search)}</span><input id="search" type="search" value="${esc(state.q)}" placeholder="${esc(t.search)}" autocomplete="off"></label><label><span class="sr-only">${esc(t.country)}</span><select id="country"><option value="all">${esc(t.allCountries)}</option>${['Canada','Germany','Japan'].map(x=>`<option value="${x}" ${state.country===x?'selected':''}>${esc(localizedCountry(x,state.language))}</option>`).join('')}</select></label><label><span class="sr-only">${esc(t.degree)}</span><select id="level"><option value="all">${esc(t.allLevels)}</option>${['Undergraduate','Masters','PhD'].map(x=>`<option value="${x}" ${state.level===x?'selected':''}>${esc(localizedLevel(x,state.language))}</option>`).join('')}</select></label></div><p class="count" role="status">${esc(t.results)}: ${fmt.format(items.length)}</p>${items.length?'':`<p class="empty-note">${esc(t.noResults)}</p>`}<div class="listing">${items.map(x=>`<article class="scholarship"><p class="small-caps">${esc(localizedCountry(x.country,state.language))} · ${esc(localizedLevel(x.level,state.language))}</p><h3>${esc(t.demoTitle)} — ${esc(localizedCountry(x.country,state.language))}</h3><p class="muted">${esc(t.sourceMissing)}</p><div class="card-bottom"><span class="pill">${esc(t.unverified)}</span><button class="detail-button" data-id="${esc(x.id)}">${esc(t.details)} <span aria-hidden="true">↗</span></button></div></article>`).join('')}</div><div id="detail" aria-live="polite">${state.selected?`<section class="detail" tabindex="-1"><h3>${esc(t.demoTitle)} · ${esc(localizedCountry(state.selected.country,state.language))}</h3><p>${esc(t.demo)}</p><p>${esc(t.deadline)}: ${esc(t.none)}</p><p>${esc(t.sourceMissing)}</p><button id="close-detail" type="button" aria-label="${esc(t.close)}">×</button></section>`:''}</div></section><section class="section about" id="about"><p class="eyebrow">BURS YAR / 03</p><h2>${esc(t.missionTitle)}</h2><p>${esc(t.missionCopy)}</p></section></details></main><footer><span>${esc(t.brand)} © 2026</span><span>${esc(t.footnote)}</span></footer></div>`;
-document.querySelector('#language').addEventListener('change',e=>{state.language=e.target.value;localStorage.setItem('bursyar-language',state.language);render();document.querySelector('#language').focus()});
+ <div class="pathfinder-live"><p class="pathfinder-eyebrow">${esc(pathUI.barrier)}</p><section id="next-steps"><h2>${fmt.format(4)} · ${esc(j.next)}</h2><div id="next-actions"><p class="empty-note">${esc(j.nextEmpty)} <a href="#assistant">${esc(j.nextEmptyCta)}</a></p></div><p>${esc(j.nextNote)}</p></section></div></section><details class="resources"><summary>${esc(j.resources)}</summary><div id="research-explorer-mount"></div><section id="explore" class="section"><div class="section-top"><div><p class="eyebrow">BURS YAR / 01</p><h2>${esc(t.scholarships)}</h2></div><span class="sample-note">${esc(t.demo)}</span></div><div class="filters"><label><span class="sr-only">${esc(t.search)}</span><input id="search" type="search" value="${esc(state.q)}" placeholder="${esc(t.search)}" autocomplete="off"></label><label><span class="sr-only">${esc(t.country)}</span><select id="country"><option value="all">${esc(t.allCountries)}</option>${['Canada','Germany','Japan'].map(x=>`<option value="${x}" ${state.country===x?'selected':''}>${esc(localizedCountry(x,state.language))}</option>`).join('')}</select></label><label><span class="sr-only">${esc(t.degree)}</span><select id="level"><option value="all">${esc(t.allLevels)}</option>${['Undergraduate','Masters','PhD'].map(x=>`<option value="${x}" ${state.level===x?'selected':''}>${esc(localizedLevel(x,state.language))}</option>`).join('')}</select></label></div><p class="count" role="status">${esc(t.results)}: ${fmt.format(items.length)}</p>${items.length?'':`<p class="empty-note">${esc(t.noResults)}</p>`}<div class="listing">${items.map(x=>`<article class="scholarship"><p class="small-caps">${esc(localizedCountry(x.country,state.language))} · ${esc(localizedLevel(x.level,state.language))}</p><h3>${esc(t.demoTitle)} — ${esc(localizedCountry(x.country,state.language))}</h3><p class="muted">${esc(t.sourceMissing)}</p><div class="card-bottom"><span class="pill">${esc(t.unverified)}</span><button class="detail-button" data-id="${esc(x.id)}">${esc(t.details)} <span aria-hidden="true">↗</span></button></div></article>`).join('')}</div><div id="detail" aria-live="polite">${state.selected?`<section class="detail" tabindex="-1"><h3>${esc(t.demoTitle)} · ${esc(localizedCountry(state.selected.country,state.language))}</h3><p>${esc(t.demo)}</p><p>${esc(t.deadline)}: ${esc(t.none)}</p><p>${esc(t.sourceMissing)}</p><button id="close-detail" type="button" aria-label="${esc(t.close)}">×</button></section>`:''}</div></section><section class="section about" id="about"><p class="eyebrow">BURS YAR / 03</p><h2>${esc(t.missionTitle)}</h2><p>${esc(t.missionCopy)}</p></section></details></main><footer><span>${esc(t.brand)} © 2026</span><span>${esc(t.footnote)}</span></footer></div><div id="student-dashboard" hidden></div>`;
+document.querySelector('#language').addEventListener('change',e=>{state.language=e.target.value;localStorage.setItem('bursyar-language',state.language);render();document.querySelector('#student-dashboard:not([hidden]) #dashboard-language, .site:not([hidden]) #language')?.focus()});
 document.querySelector('#search').addEventListener('input',e=>{state.q=e.target.value;const p=e.target.selectionStart;render();const el=document.querySelector('#search');el.focus();el.setSelectionRange(p,p)});
 for(const id of ['country','level'])document.querySelector('#'+id).addEventListener('change',e=>{state[id]=e.target.value;state.selected=null;render()});
 document.querySelectorAll('[data-id]').forEach(el=>el.addEventListener('click',()=>{state.selected=sampleScholarships.find(x=>x.id===el.dataset.id);render();document.querySelector('#detail .detail')?.focus()}));
@@ -125,16 +130,28 @@ mountAnalysisWorkspace(document.querySelector('#analysis-workspace'),state.langu
 mountResearchExplorer(document.querySelector('#research-explorer-mount'),state.language);
 mountJourney(document.querySelector('#journey-nav-mount'),state.language);
 mountAnalyzer(document.querySelector('#analyze-form'),state.language,esc,analyzerInput);
+hasLocalAssessment=false;
 mountLocalWorkflow(document.querySelector('#local-workflow-mount'),state.language);
 mountProfile(document.querySelector('#profile-mount'),state.language);
 mountAcademicEvidence(document.querySelector('#academic-evidence-mount'),state.language);
+documentStatus=undefined;
 mountDocuments(document.querySelector('#documents-mount'),state.language);
 mountEligibility(document.querySelector('#eligibility-mount'),state.language,document.querySelector('#analyze-form')?.analysis?.data?.compilation);
 for(const [key,open]of Object.entries(disclosures))if(open!==undefined&&document.querySelector('.'+key))document.querySelector('.'+key).open=open;
+dashboard=mountStudentDashboard(document.querySelector('#student-dashboard'),{
+ language:state.language,brand:t.brand,languageLabel:t.language,skipLabel:t.skipToContent,
+ getStatus:()=>({
+  documents:documentStatus,
+  assessment:hasLocalAssessment||!!document.querySelector('#analyze-form')?.analysis?.data?.compilation?.rules?.length
+ })
+});
+dashboard.sync(signedIn);
 }
 // Only a localized action message is propagated; never broadcast private profile data.
 function paintNextEmpty(){const actions=document.querySelector('#next-actions');if(!actions)return;const t=journeyCopy[state.language];actions.innerHTML=`<p class="empty-note">${esc(t.nextEmpty)} <a href="#assistant">${esc(t.nextEmptyCta)}</a></p>`;}
 document.addEventListener('bursyar:local-next',event=>{
+ hasLocalAssessment=typeof event.detail==='string'&&!!event.detail;
+ dashboard?.update();
  const actions=document.querySelector('#next-actions');
  if(!actions)return;
  actions.replaceChildren();
@@ -144,5 +161,24 @@ document.addEventListener('bursyar:local-next',event=>{
   paintNextEmpty();
  }
 });
-document.addEventListener('bursyar:compilation',event=>{mountEligibility(document.querySelector('#eligibility-mount'),state.language,event.detail);queueMicrotask(()=>{const active=!!event.detail;document.querySelector('#requirements-step').hidden=!active&&document.querySelector('#analysis-result').hidden;if(!active)paintNextEmpty();if(active){const result=document.querySelector('#analysis-result');const fields=result.querySelector('fieldset'),guidance=result.querySelector('#barrier-guidance');if(fields)document.querySelector('#next-actions').replaceChildren(fields,guidance);}});});
+document.addEventListener('bursyar:compilation',event=>{dashboard?.update();mountEligibility(document.querySelector('#eligibility-mount'),state.language,event.detail);queueMicrotask(()=>{const active=!!event.detail;document.querySelector('#requirements-step').hidden=!active&&document.querySelector('#analysis-result').hidden;if(!active)paintNextEmpty();if(active){const result=document.querySelector('#analysis-result');const fields=result.querySelector('fieldset'),guidance=result.querySelector('#barrier-guidance');if(fields)document.querySelector('#next-actions').replaceChildren(fields,guidance);}});});
+document.addEventListener('bursyar:identity',()=>{
+ documentStatus=undefined;
+ dashboard?.update();
+});
+document.addEventListener('bursyar:document-status',event=>{
+ documentStatus=event.detail;
+ dashboard?.update();
+});
+document.addEventListener('bursyar:research-saved',()=>dashboard?.update());
+window.addEventListener('hashchange',()=>dashboard?.sync(signedIn,true));
 render();
+onAuthChange(user=>{
+ const wasSignedIn=signedIn;
+ signedIn=!!user;
+ if(wasSignedIn&&user?.uid!==signedInUid)document.dispatchEvent(new Event('bursyar:identity'));
+ signedInUid=user?.uid;
+ if(signedIn&&!wasSignedIn&&!isDashboardRoute(location.hash))location.hash='dashboard';
+ if(!signedIn&&wasSignedIn&&isDashboardRoute(location.hash))history.replaceState(null,'','#top');
+ dashboard.sync(signedIn,true);
+}).catch(()=>{});

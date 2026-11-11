@@ -21,6 +21,8 @@ export const documentSteps={
 export const documentStageKeys=['upload','extract','review','save'];
 export const libraryCopy={en:{title:'Private document library',refresh:'Refresh list',open:'Open selected document',empty:'No documents saved',reviewed:'Reviewed — not verified',pending:'Pending review'},fa:{title:'کتابخانهٔ اسناد خصوصی',refresh:'تازه‌سازی فهرست',open:'باز کردن سند انتخاب‌شده',empty:'سندی ذخیره نشده است',reviewed:'بازبینی‌شده؛ تأیید نشده',pending:'در انتظار بازبینی'},ps:{title:'د شخصي اسنادو زېرمتون',refresh:'لړ تازه کول',open:'ټاکل شوی سند پرانیستل',empty:'هېڅ سند نه دی ساتل شوی',reviewed:'بیاکتل شوی؛ نه دی تایید شوی',pending:'د بیاکتنې په تمه'}};
 let current=null,identityEpoch=0;
+const pendingOpeners=new WeakMap();
+export function openPendingDocument(root){pendingOpeners.get(root)?.();}
 document.addEventListener('bursyar:identity',()=>{current=null;identityEpoch++;const root=document.querySelector('#documents-mount');if(root)mountDocuments(root,document.documentElement.lang);});
 export function mountDocuments(root,language='en'){
  if(!root)return;
@@ -76,14 +78,53 @@ export function mountDocuments(root,language='en'){
  const load=element('button',t.load);load.type='button';
  const l=libraryCopy[language]??libraryCopy.en;const library=element('fieldset');element('legend',l.title,library);const chooser=element('select','',library);chooser.setAttribute('aria-label',l.title);const refresh=element('button',l.refresh,library);refresh.type='button';const open=element('button',l.open,library);open.type='button';
  const status=element('p');status.setAttribute('role','status');const content=element('div');
- async function api(path,method='GET',body){if(mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();if(epoch!==identityEpoch)throw Error();const data=await documentRequest(path,{token,method,body});if(epoch!==identityEpoch)throw Error();return data;}
+ async function api(path,method='GET',body){if(!section.isConnected||mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();if(epoch!==identityEpoch)throw Error();const data=await documentRequest(path,{token,method,body});if(!section.isConnected||epoch!==identityEpoch)throw Error();return data;}
  const publish=profile=>document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:profile}));
  let inFlight=false;
  // Preserve the request key across uncertain responses without automatic retries.
  let lastUploadText=null,lastUploadRequestId=null;
  async function busy(action){if(inFlight)return;inFlight=true;section.setAttribute('aria-busy','true');status.textContent=t.busy;for(const button of section.querySelectorAll('button'))button.disabled=true;try{await action();}catch(error){status.textContent=t[error.code]??t.error;}finally{if(status.textContent===t.busy)status.textContent='';inFlight=false;section.removeAttribute('aria-busy');for(const button of section.querySelectorAll('button'))button.disabled=false;open.disabled=!chooser.value;}}
- async function refreshLibrary(){const items=await api('/api/documents');chooser.replaceChildren();for(const [i,item]of items.entries()){const date=new Intl.DateTimeFormat(language==='fa'?'fa-AF':language==='ps'?'ps-AF':'en',{dateStyle:'medium',timeStyle:'short'}).format(new Date(item.uploadedAt));const option=element('option',`${new Intl.NumberFormat(language).format(i+1)} · ${date} · ${item.reviewed?l.reviewed:l.pending}`,chooser);option.value=item.id;}if(!items.length){const option=element('option',l.empty,chooser);option.value='';}open.disabled=!chooser.value;}
- refresh.addEventListener('click',()=>busy(refreshLibrary));open.addEventListener('click',()=>busy(async()=>{if(!chooser.value)return;current=await api('/api/documents/'+chooser.value);show(current);}));open.disabled=true;
+ let pendingId;
+ const publishStatus=detail=>{
+  if(section.isConnected&&mountEpoch===identityEpoch)
+   document.dispatchEvent(new CustomEvent('bursyar:document-status',{detail}));
+ };
+ async function refreshLibrary(){
+  try{
+   const items=await api('/api/documents');
+   chooser.replaceChildren();
+   const date=new Intl.DateTimeFormat(language==='fa'?'fa-AF':language==='ps'?'ps-AF':'en',{dateStyle:'medium',timeStyle:'short'});
+   const number=new Intl.NumberFormat(language);
+   for(const [i,item] of items.entries()){
+    const option=element('option',`${number.format(i+1)} · ${date.format(new Date(item.uploadedAt))} · ${item.reviewed?l.reviewed:l.pending}`,chooser);
+    option.value=item.id;
+   }
+   if(!items.length)element('option',l.empty,chooser).value='';
+   const pending=items.filter(item=>!item.reviewed);
+   pendingId=pending[0]?.id;
+   open.disabled=!chooser.value;
+   publishStatus({total:items.length,pending:pending.length});
+  }catch(error){
+   pendingId=undefined;
+   publishStatus(null);
+   throw error;
+  }
+ }
+ const openDocument=async id=>{
+  current=await api('/api/documents/'+encodeURIComponent(id));
+  show(current);
+ };
+ pendingOpeners.set(root,()=>{
+  if(pendingId)busy(async()=>{
+   chooser.value=pendingId;
+   await openDocument(pendingId);
+   content.tabIndex=-1;
+   content.focus();
+  });
+ });
+ refresh.addEventListener('click',()=>busy(refreshLibrary));
+ open.addEventListener('click',()=>busy(async()=>{if(chooser.value)await openDocument(chooser.value);}));
+ open.disabled=true;
  load.addEventListener('click',()=>busy(async()=>{publish(await api('/api/profile'));status.textContent=t.done;}));
  function show(doc){setDocumentStage('review');
   content.replaceChildren();const documentNotice=element('p',doc.consistency==='discrepancy_requires_review'?t.conflict:doc.reviewedAt?t.done:t.pending,content);

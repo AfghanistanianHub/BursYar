@@ -1,3 +1,4 @@
+import {checkedPrograms,programWindow,verifiedProgramCopy} from './verified-programs.js';
 import {researchScholarships,researchCountries,filterResearch,researchLabel,researchDeadlineState,researchSourceUrl,loadResearchSaved,saveResearchIds,exportResearchSaved} from './research-catalog.js';
 import {researchCopy} from './research-copy.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -7,16 +8,20 @@ const state={q:'',country:'all',degree:'all',funding:'all',noFee:false,noIelts:f
 let saved=null;
 let storageFailed=false;
 const storage=()=>{try{return globalThis.localStorage;}catch{return null;}};
+export function getSavedResearchIds(){return [...(saved??loadResearchSaved(storage()))];}
+const notifySaved=()=>document.dispatchEvent(new Event('bursyar:research-saved'));
 export function mountResearchExplorer(root,language='en') {
  if(!root)return;
- const lang=researchCopy[language]?language:'en';const t=researchCopy[lang];
+ const lang=researchCopy[language]?language:'en';const t=researchCopy[lang],v=verifiedProgramCopy[lang];
  if(saved===null)saved=loadResearchSaved(storage());
  const number=new Intl.NumberFormat(lang);
  const countries=researchCountries();
  function render(focusId=null,selection=null){
   const rows=filterResearch(researchScholarships,state).filter(row=>!state.savedOnly||saved.includes(row.id));
   root.innerHTML=`<section id="research-explorer" class="section" aria-labelledby="research-title">
-   <h2 id="research-title">${esc(t.title)}</h2><p class="research-notice">${esc(t.notice)}</p>
+   <h2 id="research-title">${esc(t.title)}</h2>
+   <aside class="verified-programs" aria-label="${esc(v.heading)}"><h3>${esc(v.heading)}</h3><p>${esc(v.note)}</p>${checkedPrograms.map(p=>`<article class="scholarship"><h4 lang="en" dir="ltr">${esc(p.title)}</h4><p>${esc(v[programWindow(p)])}</p><p>${esc(v.window)}: <bdi>${esc(p.window.opens)} – ${esc(p.window.closes)} (${esc(p.window.cutoffPublished)})</bdi></p><p>${esc(v.checked)}: <bdi>${esc(p.checkedAt)}</bdi></p><details><summary>${esc(v.details)}</summary><p lang="en" dir="ltr">${esc(p.funding)}</p><p lang="en" dir="ltr">${esc(p.conditions)}</p></details><div class="card-bottom"><a href="${esc(p.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(v.source)}</a><button type="button" data-verified-prepare="${esc(p.id)}">${esc(v.prepare)}</button></div></article>`).join('')}</aside>
+   <p class="research-notice">${esc(t.notice)}</p>
    <div class="filters research-filters"><label for="research-search">${esc(t.search)}<input id="research-search" type="search" value="${esc(state.q)}" autocomplete="off"></label>
    <label for="research-country">${esc(t.country)}<select id="research-country"><option value="all">${esc(t.allCountries)}</option>${countries.map(country=>`<option value="${esc(country)}" ${country===state.country?'selected':''}>${esc(researchLabel(country,lang))}</option>`).join('')}</select></label>
    <label for="research-degree">${esc(t.degree)}<select id="research-degree"><option value="all">${esc(t.allDegrees)}</option>${['bachelor','master','phd'].map(degree=>`<option value="${degree}" ${degree===state.degree?'selected':''}>${esc(researchLabel(degree,lang))}</option>`).join('')}</select></label><label for="research-funding">${esc(t.funding)}<select id="research-funding"><option value="all">${esc(t.allFunding)}</option>${[['full','fullFunding'],['partial','partialFunding'],['unknown','unknownFunding']].map(([value,label])=>`<option value="${value}" ${state.funding===value?'selected':''}>${esc(t[label])}</option>`).join('')}</select></label></div>
@@ -33,17 +38,17 @@ export function mountResearchExplorer(root,language='en') {
   for(const [id,key] of [['no-fee','noFee'],['no-ielts','noIelts'],['hide-past','hidePast'],['saved-only','savedOnly']])root.querySelector('#research-'+id).addEventListener('change',event=>{state[key]=event.target.checked;render('research-'+id);});
   root.querySelectorAll('[data-research-save]').forEach(button=>button.addEventListener('click',()=>{
    const id=button.dataset.researchSave;saved=saved.includes(id)?saved.filter(x=>x!==id):[...saved,id];
-   storageFailed=!saveResearchIds(storage(),saved);render();
+   storageFailed=!saveResearchIds(storage(),saved);render();notifySaved();
    (root.querySelector(`[data-research-save="${id}"]`)??root.querySelector('#research-saved-only')).focus();
   }));
-  root.querySelectorAll('[data-research-prepare]').forEach(button=>button.addEventListener('click',()=>{
-   const row=researchScholarships.find(item=>item.id===button.dataset.researchPrepare);
+  root.querySelectorAll('[data-research-prepare], [data-verified-prepare]').forEach(button=>button.addEventListener('click',()=>{
+   const row=[...researchScholarships,...checkedPrograms].find(item=>item.id===(button.dataset.researchPrepare??button.dataset.verifiedPrepare));
    const url=researchSourceUrl(row?.sourceUrl);const input=document.querySelector('#source-url');
    if(!url||!input)return;
    input.value=url;input.dispatchEvent(new Event('input',{bubbles:true}));
    document.querySelector('#assistant')?.scrollIntoView({block:'start'});input.focus({preventScroll:true});
   }));
-  root.querySelector('#research-clear').addEventListener('click',()=>{saved=[];storageFailed=!saveResearchIds(storage(),saved);render('research-saved-only');});
+  root.querySelector('#research-clear').addEventListener('click',()=>{saved=[];storageFailed=!saveResearchIds(storage(),saved);render('research-saved-only');notifySaved();});
   root.querySelector('#research-export').addEventListener('click',()=>{
    const blob=new Blob([JSON.stringify(exportResearchSaved(saved),null,2)],{type:'application/json'});
    const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='bursyar-public-references.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);

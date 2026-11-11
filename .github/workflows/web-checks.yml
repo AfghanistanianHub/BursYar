@@ -45,9 +45,11 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: node verification/typography-probe.mjs
       - run: npm run test:browser
+      - run: node verification/dashboard-browser.mjs
       - run: node verification/research-browser.mjs
       - run: node verification/document-review-browser.mjs
       - run: node verification/document-library-browser.mjs
+      - run: node verification/local-pdf-browser.mjs
       - run: node verification/document-ocr-integration.mjs
       - run: node verification/document-preview-browser.mjs
       - run: npm run build
