@@ -62,7 +62,7 @@ export function describeCapabilities(input={}){
 }
 // Single-line human summary for launcher logs. Never claims inference success.
 export function formatCapabilities(capabilities){
- if(!capabilities||typeof capabilities!=='object')return 'Capabilities unknown: backend did not report status; inference not verified.';
+ if(!capabilities||typeof capabilities!=='object')return 'Capabilities unknown: backend did not report status; build unknown; inference not verified.';
  const local=capabilities.localAssessment?.available===true?'available':'unavailable';
  const docs=capabilities.documentStorage?.available===true?'available':'unavailable';
  const sources=capabilities.sourceRetrieval?.available===true?'available':'unavailable';
@@ -70,5 +70,7 @@ export function formatCapabilities(capabilities){
  const metaText=meta&&typeof meta.state==='string'
   ?`Meta ${meta.state} (${meta.reason??'unknown_reason'})`
   :'Meta status unknown';
- return `Local assessment ${local}; source retrieval ${sources}; document storage ${docs}; ${metaText}. Inference verified: false.`;
+ const commit=capabilities.build?.commit;
+ const buildText=typeof commit==='string'&&/^[0-9a-f]{40}$/i.test(commit)?`Build ${commit.toLowerCase()}.`:'Build unknown.';
+ return `Local assessment ${local}; source retrieval ${sources}; document storage ${docs}; ${metaText}. ${buildText} Inference verified: false.`;
 }

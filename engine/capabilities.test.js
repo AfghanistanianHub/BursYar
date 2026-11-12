@@ -64,6 +64,20 @@ test('formatted capabilities never describe health or catalog as successful infe
  assert.match(text,/Local assessment available/);assert.match(text,/document storage available/);
  assert.match(text,/Meta configured/);assert.match(text,/Inference verified: false/);
  assert.ok(!/success|verified: true/i.test(text));
- const unknown=formatCapabilities(null);
- assert.match(unknown,/unknown/i);assert.match(unknown,/not verified/i);
+  const unknown=formatCapabilities(null);
+ assert.match(unknown,/unknown/i);
+ assert.match(unknown,/not verified/i);
+ assert.match(unknown,/build unknown/i);
+});
+test('startup log line names the running build commit',()=>{
+ const def=formatCapabilities(describeCapabilities(configured));
+ assert.match(def,/Build unknown/);
+ const sha='e'.repeat(40);
+ const stamped=formatCapabilities(describeCapabilities({...configured,build:{commit:sha}}));
+ assert.ok(stamped.includes(`Build ${sha}.`));
+ assert.match(stamped,/Inference verified: false/);
+ assert.match(stamped,/Meta configured/);
+ assert.ok(!/success|verified: true/i.test(stamped));
+ const noBuild=formatCapabilities({localAssessment:{available:true},sourceRetrieval:{available:true},documentStorage:{available:true},meta:{state:'disabled',reason:'provider_config_missing'},inferenceVerified:false});
+ assert.match(noBuild,/Build unknown/);
 });
