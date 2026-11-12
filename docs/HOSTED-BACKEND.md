@@ -26,16 +26,29 @@ No private Admin key was created or exported. See KEYLESS-FIREBASE-AUTH.md.
 The project ID and public key alone do not authorize a caller; the existing
 project, issuer, nonanonymous identity and `bursyarDemo` checks remain required.
 
-Backend code: `4e272a74e65df5ccf2318f3adac312196f5db443`, Render deployment
-`dep-dbjooe0u01pc7383tj2g` (verified live). The storage implementation passed
-293 Node tests, production build and all four CI jobs. The subsequent consent
-wording release also passed all four CI jobs and is READY in production.
+Backend code: `3e7432a0a670d884135b970bfe97c9e521e8610c`, verified live via
+`/health` reporting `capabilities.build.commit` of `3e7432a` (outside-dashboard
+check, no Render access used). The storage implementation passed 293 Node tests,
+production build and all four CI jobs. The subsequent consent wording release
+also passed all four CI jobs and is READY in production.
 
 Deploy-ID note: PR #47 recorded earlier preparation deploy
-`dep-dbjoi5k9v7es73angf1g` for the same commit `4e272a7`; the later verified
-live record used here, in HOSTED-META.md, and in PR #48 is
-`dep-dbjooe0u01pc7383tj2g`. No live hosting state was probed to write this
-note; actually-serving SHAs remain unverified from the repository.
+`dep-dbjoi5k9v7es73angf1g` for commit `4e272a7`; the later verified live record
+used here, in HOSTED-META.md, and in PR #48 was `dep-dbjooe0u01pc7383tj2g`
+for the same `4e272a7` commit. Both are superseded: the current live backend
+build is `3e7432a` (squash-merge PR #121 of the build-SHA feature branch),
+confirmed serving by its own `/health` response. Actually-serving SHAs are
+now verifiable from the repository via `capabilities.build.commit`.
+
+## Live frontend — 2026-11-12
+
+Vercel project `bursyar` (`prj_doNm7kwcWaHXg66t1bJOfEo3XRTQ`) serves
+https://bursyar.vercel.app from deployment `dpl_4VyvcQ4MDosUmthP7a2xREgu7aSz`
+(git push of `main` @ `05d6994`, READY + PROMOTED). Commit `05d6994` only
+refreshed the ETH-ESOP `checkedAt` timestamp and its ledger evidence; no
+frontend logic changed since `3e7432a`, whose auto-deployed production build
+(`dpl_AJRvtu4X7F21Jw6WmVBEZTXqfTSY`) it replaced. Homepage `200`, all
+protected APIs `401` without token, verified live.
 
 ## Durable document/profile storage
 

@@ -84,8 +84,13 @@ The reviewed lifetime budget was administratively raised from 1,000,000 to
 Per-user/global daily caps remain unchanged. Render's effective provider/spend
 settings were updated through its configuration API to match the database.
 
-Backend `4e272a74e65df5ccf2318f3adac312196f5db443` is LIVE in Render deployment
-`dep-dbjooe0u01pc7383tj2g`. One real Firebase-authenticated Muse Spark 1.3
+Backend `4e272a74e65df5ccf2318f3adac312196f5db443` was LIVE in Render deployment
+`dep-dbjooe0u01pc7383tj2g` when the activation check below ran. The current
+live backend build is `3e7432a0a670d884135b970bfe97c9e521e8610c` (confirmed via
+`/health` `capabilities.build.commit`; see HOSTED-BACKEND.md). The successful
+inference evidence below is pinned to the `4e272a7` build, not re-run on
+`3e7432a`; no backend inference-path code changed between them (server boot
+log + capabilities reporting only). One real Firebase-authenticated Muse Spark 1.3
 Standard request passed the evidence validator: request ID
 `5a58bff8-0885-42c3-a707-60ce1fe4a8e9`, elapsed 3480 ms, one criterion and one
 funding excerpt. The public Oxford Clarendon source was manually excerpted after
