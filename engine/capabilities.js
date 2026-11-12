@@ -25,11 +25,29 @@ export function describeMeta({providerConfigPresent=false,providerEnabled=false,
  else{state='configured';reason='policy_authorization_required_per_request';}
  return Object.freeze({state,reason,actionable:META_ACTIONS[reason],inferenceVerified:false});
 }
+// Deployed commit reporting for outside-dashboard deploy verification.
+// The SHA of a public-repo commit is not sensitive. Render injects
+// RENDER_GIT_COMMIT for git-backed services; BURSYAR_BUILD_SHA is the
+// explicit override. Anything else (local runs, unknown providers)
+// reports 'unknown' rather than guessing.
+export function resolveBuildCommit(env={}){
+ for(const name of ['BURSYAR_BUILD_SHA','RENDER_GIT_COMMIT','VERCEL_GIT_COMMIT_SHA']){
+  const value=env?.[name];
+  if(typeof value==='string'&&/^[0-9a-f]{40}$/i.test(value.trim()))return value.trim().toLowerCase();
+ }
+ return undefined;
+}
+export function describeBuild(input){
+ const commit=typeof input==='string'?input:input?.commit;
+ const sha=typeof commit==='string'&&/^[0-9a-f]{40}$/i.test(commit.trim())?commit.trim().toLowerCase():'unknown';
+ return Object.freeze({commit:sha});
+}
 export function describeCapabilities(input={}){
  const meta=describeMeta(input);
  const documentsAvailable=input.documentsAvailable===true;
  const catalogAvailable=input.catalogAvailable!==false;
  return Object.freeze({
+  build:describeBuild(input.build),
   localAssessment:catalogAvailable
    ?Object.freeze({available:true,externalInference:false})
    :Object.freeze({available:false,reason:'catalog_unavailable',actionable:'Reviewed catalog failed to load; restart with a valid BURSYAR_REVIEWED_CATALOG or the built-in default.'}),
@@ -44,7 +62,7 @@ export function describeCapabilities(input={}){
 }
 // Single-line human summary for launcher logs. Never claims inference success.
 export function formatCapabilities(capabilities){
- if(!capabilities||typeof capabilities!=='object')return 'Capabilities unknown: backend did not report status; inference not verified.';
+ if(!capabilities||typeof capabilities!=='object')return 'Capabilities unknown: backend did not report status; build unknown; inference not verified.';
  const local=capabilities.localAssessment?.available===true?'available':'unavailable';
  const docs=capabilities.documentStorage?.available===true?'available':'unavailable';
  const sources=capabilities.sourceRetrieval?.available===true?'available':'unavailable';
@@ -52,5 +70,7 @@ export function formatCapabilities(capabilities){
  const metaText=meta&&typeof meta.state==='string'
   ?`Meta ${meta.state} (${meta.reason??'unknown_reason'})`
   :'Meta status unknown';
- return `Local assessment ${local}; source retrieval ${sources}; document storage ${docs}; ${metaText}. Inference verified: false.`;
+ const commit=capabilities.build?.commit;
+ const buildText=typeof commit==='string'&&/^[0-9a-f]{40}$/i.test(commit)?`Build ${commit.toLowerCase()}.`:'Build unknown.';
+ return `Local assessment ${local}; source retrieval ${sources}; document storage ${docs}; ${metaText}. ${buildText} Inference verified: false.`;
 }
