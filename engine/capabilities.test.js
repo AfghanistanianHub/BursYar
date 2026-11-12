@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {describeCapabilities,describeMeta,formatCapabilities} from './capabilities.js';
+import {describeBuild,describeCapabilities,describeMeta,formatCapabilities,resolveBuildCommit} from './capabilities.js';
 const configured={providerConfigPresent:true,providerEnabled:true,familyGrantsPresent:false,metaAvailable:true,spendingConfirmed:true,spendingApproved:true,policyRecordsConfigured:true,documentsAvailable:true,catalogAvailable:true};
 test('missing provider config disables Meta with an actionable deterministic reason',()=>{
  for(const input of [{}, {providerConfigPresent:false,providerEnabled:true}]){
@@ -43,6 +43,21 @@ test('document storage and catalog availability are reported separately from Met
  assert.equal(noDocs.meta.state,'configured');
  const noCatalog=describeCapabilities({...configured,catalogAvailable:false});
  assert.equal(noCatalog.localAssessment.available,false);assert.equal(noCatalog.localAssessment.reason,'catalog_unavailable');
+});
+test('build commit reports the deployed SHA and never guesses',()=>{
+ assert.equal(describeCapabilities({}).build.commit,'unknown');
+ assert.equal(describeCapabilities({build:{commit:'a'.repeat(40)}}).build.commit,'a'.repeat(40));
+ assert.equal(describeCapabilities({build:{commit:'ABCDEF1234567890abcdef1234567890ABCDEF12'}}).build.commit,'abcdef1234567890abcdef1234567890abcdef12');
+ for(const bad of ['deadbeef','',null,undefined,42,'zz'.repeat(20)]){
+  assert.equal(describeCapabilities({build:{commit:bad}}).build.commit,'unknown');
+ }
+ assert.equal(describeBuild('b'.repeat(40)).commit,'b'.repeat(40));
+ assert.equal(resolveBuildCommit({}),undefined);
+ assert.equal(resolveBuildCommit({RENDER_GIT_COMMIT:'c'.repeat(40)}),'c'.repeat(40));
+ assert.equal(
+  resolveBuildCommit({BURSYAR_BUILD_SHA:'d'.repeat(40),RENDER_GIT_COMMIT:'c'.repeat(40)}),
+  'd'.repeat(40));
+ assert.equal(resolveBuildCommit({RENDER_GIT_COMMIT:'short'}),undefined);
 });
 test('formatted capabilities never describe health or catalog as successful inference',()=>{
  const text=formatCapabilities(describeCapabilities(configured));

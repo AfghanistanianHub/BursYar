@@ -65,7 +65,7 @@ requests. Spending quotas are durable in the existing private Supabase project.
 
 ## Read-only release check
 
-Open https://bursyar.vercel.app/health directly. The earlier authentication-only release returned `ok: true`, deterministic
+Open https://bursyar.vercel.app/health directly. Its `capabilities.build.commit` is the git SHA Render built (`RENDER_GIT_COMMIT`, override `BURSYAR_BUILD_SHA`, else `"unknown"`), so outside-dashboard deploy verification is `curl .../health` and comparing that SHA to the intended commit. The earlier authentication-only release returned `ok: true`, deterministic
 features available, storage disabled and `inferenceVerified: false`. The current
 storage adapter must pass a real read-only RPC probe at startup before reporting
 `documentStorage.available: true`. Meta is now configured. Startup `inferenceVerified: false` remains intentional;
