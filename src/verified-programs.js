@@ -3,7 +3,7 @@
 export const checkedPrograms=Object.freeze([Object.freeze({
  id:'eth-esop-2027',title:'ETH Zurich — Excellence Scholarship & Opportunity Programme (ESOP), HS27',
  sourceUrl:'https://ethz.ch/students/en/studies/financial/scholarships/excellencescholarship.html',
- sourceKind:'official_page_read',checkedAt:'2026-11-06T00:12:21Z',
+ sourceKind:'official_page_read',checkedAt:'2026-11-12T05:47:15Z',
  window:Object.freeze({opens:'2026-11-01',closes:'2026-11-30',timeZone:'Europe/Zurich',cutoffPublished:'11.59h MEZ'}),
  windowExcerpt:'Nov, 1 - Nov, 30 2026, 11.59h, MEZ',
  funding:'Study and living costs plus a tuition waiver; HS27 support is CHF 13,500 per semester for the regular master duration.',
