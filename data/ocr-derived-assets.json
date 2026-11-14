@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "productionApproved": false,
+  "transformation": "defined WASM memory maximum 32768 -> 4096 pages; initial 256 unchanged; embedded bytes updated identically; binary custom-section notice and JavaScript modification comment added",
+  "memoryMaximumBytes": 268435456,
+  "files": [
+    {
+      "path": "core/tesseract-core.wasm",
+      "bytes": 3457183,
+      "sha256": "5a8ead06f068d99a008d0dfe9f8b14d0b3b73f75aa16617ee01f42353f8ceb8e"
+    },
+    {
+      "path": "core/tesseract-core.wasm.js",
+      "bytes": 4735131,
+      "sha256": "d842a7b7490efc78ef0c06d450aa9c3507e494cb7659fe937f4166d8af07cdce"
+    },
+    {
+      "path": "core/tesseract-core-simd.wasm",
+      "bytes": 3457465,
+      "sha256": "44a948c05dfe52470a9da47654f7c99eaa130db7bf7b3dadc3e89da1499b7e98"
+    },
+    {
+      "path": "core/tesseract-core-simd.wasm.js",
+      "bytes": 4735507,
+      "sha256": "169e3a783a74339a4d134a5651b21d942efc98cc8394f4d0d18e679dfef3d1fd"
+    },
+    {
+      "path": "core/tesseract-core-lstm.wasm",
+      "bytes": 2859572,
+      "sha256": "a88f43f86638623b61ba1afafe898dcd2551a302915449cfcde72464170079c1"
+    },
+    {
+      "path": "core/tesseract-core-lstm.wasm.js",
+      "bytes": 3938627,
+      "sha256": "7a621b7768a08242c824cfb8e31cae63424afa34ac0786d4a9c62eff385990fb"
+    },
+    {
+      "path": "core/tesseract-core-simd-lstm.wasm",
+      "bytes": 2859857,
+      "sha256": "745d7e327b95775d7d0e7f5aec4f30d91f5405def31aaa88392740c9ec542182"
+    },
+    {
+      "path": "core/tesseract-core-simd-lstm.wasm.js",
+      "bytes": 3939007,
+      "sha256": "9e8efd102f040af116a9c5ce322d9f18d14d739287fb9cb357b7d42b29933a7b"
+    }
+  ]
+}

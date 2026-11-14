@@ -2,7 +2,7 @@ name: BursYar web checks
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, release-verification]
 permissions:
   contents: read
 jobs:
@@ -52,8 +52,26 @@ jobs:
       - run: node verification/local-pdf-browser.mjs
       - run: node verification/document-ocr-integration.mjs
       - run: node verification/document-preview-browser.mjs
+      - run: node verification/document-consent-browser.mjs
+      - run: node verification/image-preflight-browser.mjs
+      - run: node verification/ocr-worker-lifecycle-browser.mjs
+      - run: node verification/academic-policy-browser.mjs
       - run: npm run build
+      - run: node verification/preview-proxy-browser.mjs
       - run: node verification/document-production-gate-browser.mjs
+      - run: node verification/ocr-built-browser.mjs
+      - name: Check the opt-in selectable PDF build
+        run: |
+          VITE_DOCUMENT_TEXT_PDF_PILOT=true npm run build -- --outDir dist-pdf-pilot
+          BURSYAR_VERIFY_TEXT_PDF_PILOT=true node verification/document-production-gate-browser.mjs
+      - name: Check Firebase popup startup under CSP
+        env:
+          VITE_FIREBASE_API_KEY: synthetic-key
+          VITE_FIREBASE_PROJECT_ID: synthetic-bursyar
+          VITE_FIREBASE_AUTH_DOMAIN: synthetic-bursyar.firebaseapp.com
+        run: |
+          npm run build -- --outDir dist-firebase-csp
+          node verification/firebase-csp-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -61,6 +79,7 @@ jobs:
           path: verification/artifacts/
           retention-days: 7
   macos-helper:
+    if: github.ref != 'refs/heads/release-verification'
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4

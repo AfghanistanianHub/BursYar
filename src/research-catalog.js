@@ -1,3 +1,4 @@
+import {checkedPrograms} from './verified-programs.js';
 import {researchData} from './research-data.js';
 export const researchScholarships = Object.freeze(researchData.map(row => Object.freeze({...row,degrees:Object.freeze([...row.degrees])})));
 // Explicit mappings preserve the original display metadata. Regional coverage
@@ -60,17 +61,18 @@ export function filterResearch(rows,{q='',country='all',degree='all',funding='al
   return words.every(word=>haystack.includes(word));
  });
 }
+export const saveableResearchPrograms=Object.freeze([...researchScholarships,...checkedPrograms]);
 const SAVED_KEY='bursyar:research-saved:v1';
 const knownIds=(ids,rows)=>[...new Set(Array.isArray(ids)?ids.filter(id=>typeof id==='string'&&rows.some(row=>row.id===id)):[])];
-export function loadResearchSaved(storage,rows=researchScholarships) {
+export function loadResearchSaved(storage,rows=saveableResearchPrograms) {
  try{return knownIds(JSON.parse(storage.getItem(SAVED_KEY)??'[]'),rows);}catch{return [];}
 }
-export function saveResearchIds(storage,ids,rows=researchScholarships) {
+export function saveResearchIds(storage,ids,rows=saveableResearchPrograms) {
  try{storage.setItem(SAVED_KEY,JSON.stringify(knownIds(ids,rows)));return true;}catch{return false;}
 }
-export function exportResearchSaved(ids,rows=researchScholarships,now=new Date()) {
+export function exportResearchSaved(ids,rows=saveableResearchPrograms,now=new Date()) {
  const known=new Set(knownIds(ids,rows));
  return {format:'bursyar-public-research-v1',exportedAt:now.toISOString(),verification:'needs_reverification',entries:rows.filter(row=>known.has(row.id)).map(row=>({
-  id:row.id,title:row.title,provider:row.provider,country:row.country,degrees:[...row.degrees],sourceUrl:researchSourceUrl(row.sourceUrl),lastCheckedAt:row.lastCheckedAt??null,deadline:row.deadline??null,reviewStatus:'needs_reverification'
+  id:row.id,title:row.title,provider:row.provider,country:row.country,degrees:[...(row.degrees??[])],sourceUrl:researchSourceUrl(row.sourceUrl),lastCheckedAt:row.lastCheckedAt??row.checkedAt??null,deadline:row.deadline??null,reviewStatus:'needs_reverification'
  }))};
 }

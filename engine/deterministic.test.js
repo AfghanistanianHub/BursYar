@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {createScholarshipCatalog,evaluateReviewedScholarship} from './deterministic.js';
+import {defaultCatalog} from './default-catalog.js';
 const sourceText='Applicants must hold a bachelor degree.\nMinimum academic score: 80/100.\nApplicants must provide transcripts.\nApplications must be submitted by 2027-01-01T12:00:00Z.\nFunding requires full-time enrollment.\nA documented language exemption may replace IELTS.';
 const excerpts=sourceText.split('\n');
 export const program={id:'reviewed-test',coverageComplete:true,sourceUrl:'https://example.edu/scholarship',sourceText,sourceDigest:createHash('sha256').update(sourceText).digest('hex'),review:{status:'approved',sourceVerification:'official_source_reviewed',reviewedAt:'2026-10-29',expiresAt:'2027-01-02T00:00:00Z'},rules:[
@@ -34,6 +35,7 @@ test('future-dated reviews stay out of discovery until evaluation is available',
  let now=Date.parse('2026-10-28');
  const catalog=createScholarshipCatalog([program],{now:()=>now});
  assert.deepEqual(catalog.list(),[]);
+ assert.deepEqual(catalog.expiredSources(),[]);
  assert.throws(()=>catalog.get(program.id),/unavailable/);
  now=Date.parse('2026-10-29');
  assert.equal(catalog.list()[0].id,program.id);
@@ -54,4 +56,26 @@ test('reviewed assessment preserves reasons needed by real PathFinder guidance',
  const uncertain=evaluateReviewedScholarship({...reviewed,rules:[{...reviewed.rules[1],conflicting:true}]},{});
  assert.equal(uncertain.results[0].status,'unknown');
  assert.equal(uncertain.results[0].reason,'conflicting_or_ambiguous');
+});
+
+test('Türkiye health-sciences comparison remains available after Clarendon expires',()=>{
+ let now=Date.parse('2026-12-12T00:00:00Z');
+ const catalog=createScholarshipCatalog(defaultCatalog,{now:()=>now});
+ const [entry]=catalog.list();
+ assert.equal(catalog.list().length,1);
+ assert.equal(entry.id,'turkiye-health-academic');
+ assert.match(entry.title,/health-sciences/);
+ const reviewed=catalog.get(entry.id);
+ const assess=(score,scale)=>evaluateReviewedScholarship(reviewed,{academicScore:f({score,scale})});
+ assert.equal(assess(90,100).results[0].status,'met');
+ assert.equal(assess(90,100).summary,'unknown');
+ assert.equal(assess(89,100).summary,'not_met');
+ assert.equal(assess(18,20).summary,'unknown');
+ assert.equal(evaluateReviewedScholarship(reviewed,{}).summary,'unknown');
+ now=Date.parse('2026-12-13T00:00:00Z');
+ assert.deepEqual(catalog.list(),[]);
+ assert.throws(()=>catalog.get(entry.id),/unavailable/);
+ assert.deepEqual(catalog.expiredSources().map(source=>Object.keys(source).sort()),[
+  ['id','sourceUrl','title'],['id','sourceUrl','title']
+ ]);
 });

@@ -1,4 +1,5 @@
-import {onAuthChange} from './auth.js';
+import {documentRequest,retryStartupRead} from './document-request.js';
+import {getInferenceToken,onAuthChange} from './auth.js';
 import {dashboardCopy} from './dashboard-copy.js';
 import {isDashboardRoute,mountStudentDashboard} from './student-dashboard.js';
 import {mountWorkspaceOverview} from './workspace-overview.js';
@@ -6,6 +7,7 @@ import {mountResearchExplorer} from './research-explorer.js';
 import {mountLocalWorkflow} from './local-workflow.js';
 import {mountJourney,journeyNavCopy} from './journey-navigation.js';
 import {mountProfile} from './profile-form.js';
+import {mountAccountData} from './account-data.js';
 import {mountAcademicEvidence} from './academic-evidence-form.js';
 import {mountDocuments} from './documents.js';
 import {mountAnalyzer} from './analyzer.js';
@@ -36,8 +38,9 @@ const state={language:localStorage.getItem('bursyar-language')||'en',q:'',countr
 if(!translations[state.language])state.language='en';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let analyzerInput={};
+let dashboardProfile,profileVersion=0;
 let dashboard, signedIn=false, signedInUid, documentStatus, hasLocalAssessment=false;
-function render(){const disclosures=Object.fromEntries(['workspace','resources','scenarios','guided-demo'].map(key=>[key,document.querySelector('.'+key)?.open]));const old=document.querySelector('#analyze-form');if(old)analyzerInput={text:old.querySelector('textarea').value,sourceUrl:old.querySelector('[name=sourceUrl]')?.value||'',analysis:old.analysis,receipt:old.sourceReceipt,sourceApproved:old.sourceApproved,preview:old.sourcePreview,barrierAnswers:old.barrierAnswers,manualMode:old.manualMode,sourceFailure:old.sourceFailure};const t=translations[state.language],rtl=state.language!=='en';document.documentElement.lang=state.language;document.documentElement.dir=rtl?'rtl':'ltr';document.title=`${t.brand} | ${t.missionTitle}`;document.querySelector('meta[name="description"]')?.setAttribute('content',t.description);const fmt=new Intl.NumberFormat(state.language);
+function render(){const disclosures=Object.fromEntries(['workspace','resources','scenarios','guided-demo'].map(key=>[key,document.querySelector('.'+key)?.open]));const old=document.querySelector('#analyze-form');if(old)analyzerInput={text:old.querySelector('textarea').value,sourceUrl:old.querySelector('[name=sourceUrl]')?.value||'',analysis:old.analysis,receipt:old.sourceReceipt,sourceApproved:old.sourceApproved,preview:old.sourcePreview,barrierAnswers:old.barrierAnswers,manualMode:old.manualMode,sourceFailure:old.sourceFailure};const t=translations[state.language],rtl=state.language!=='en';document.documentElement.lang=state.language;document.documentElement.dir=rtl?'rtl':'ltr';document.title=`${t.brand} | ${t.missionTitle}`;document.querySelector('meta[name="description"]')?.setAttribute('content',t.description);old?.dispatchEvent(new Event('bursyar:analyzer-dispose'));const fmt=new Intl.NumberFormat(state.language);
 const j=journeyCopy[state.language];
 const ed={
 en:{platform:"Platform",scholarships:"Scholarships",resources:"Resources",about:"About",headline:"Start with the documents you have.",lead:"Build a profile from your transcript, review what was extracted, and check it against scholarship requirements.",explore:"Explore Scholarships",pillars:[["Start with what you have","Review your information and documents when you are ready."],["Understand each requirement","See what is met, not met, or still unknown — without guessing."],["Find your next step","Turn missing evidence and unanswered questions into a practical plan."]],curated:"A place to begin.",selected:"Opportunities to explore",note:"Browse opportunities with source and verification status. Sample data is always identified.",view:"Browse scholarships"},
@@ -108,7 +111,7 @@ ${ed.pillars.map((p,i)=>`<article class="editorial-pillar"><div class="editorial
  <a class="editorial-browse-all" href="#research-explorer" data-open=".resources">${esc(ed.view)} <span aria-hidden="true">↗</span></a>
  </div>
 </section>
-<section class="how-it-works" aria-label="${esc(j.howTitle)}"><h2>${esc(j.howTitle)}</h2><ol><li><a href="#profile-mount" data-open=".workspace"><span class="step-num">${fmt.format(1)}</span><strong>${esc(nav.profile)}</strong><span>${esc(j.how1d)}</span></a></li><li><a href="#assistant"><span class="step-num">${fmt.format(2)}</span><strong>${esc(nav.source)}</strong><span>${esc(j.how2d)}</span></a></li><li><a href="#eligibility-mount"><span class="step-num">${fmt.format(3)}</span><strong>${esc(nav.assessment)}</strong><span>${esc(j.how3d)}</span></a></li><li><a href="#next-steps"><span class="step-num">${fmt.format(4)}</span><strong>${esc(nav.next)}</strong><span>${esc(j.how4d)}</span></a></li></ol></section><details class="journey-more"><summary>${esc(state.language==='fa'?'راهنمای مرحله‌به‌مرحلهٔ بیشتر':state.language==='ps'?'نورې ګام په ګام لارښوونې':'More step-by-step guidance')}</summary><div id="journey-nav-mount"></div></details><section class="editorial-study-band" aria-label="${esc(ed.pillars[0][0])}"><div class="editorial-study-copy"><p class="editorial-label">${esc(ed.pillars[0][0])}</p><h2>${esc(ed.pillars[0][1])}</h2><a href="#profile-mount" data-open=".workspace">${esc(j.profile)} <span aria-hidden="true">↗</span></a></div><img src="/editorial/document-student.webp" alt="Student organizing academic records at a desk" loading="lazy" decoding="async"></section><section id="workspace-overview" aria-label="${esc(t.brand)}"></section><details class="guided-demo" id="guided-demo"><summary>${esc(welcome.demo)}</summary><p class="guided-demo-note">${esc(welcome.demoNote)}</p><section id="analysis-workspace" aria-label="${esc((analysisWorkspaceCopy[state.language]??analysisWorkspaceCopy.en).title)}"></section></details><section class="assistant" id="assistant" aria-labelledby="assistant-heading"><h2 id="assistant-heading">${esc(welcome.understand)}</h2><p class="assistant-copy">${esc(welcome.understandNote)}</p><form id="analyze-form"><div id="source-entry"></div><div id="source-text" hidden><label for="requirements">${esc(t.inputLabel)}</label><textarea id="requirements" minlength="30" maxlength="12000" placeholder="${esc(t.inputPlaceholder)}" required rows="7" dir="auto"></textarea></div><div id="analysis-consent" hidden><button type="submit" class="primary-link">${esc(t.translate)}</button></div><section id="requirements-step" hidden><h2 tabindex="-1">${fmt.format(2)} · ${esc(j.requirements)}</h2><div role="status" id="analysis-result" class="status" hidden></div><a class="next-link" href="#eligibility-mount">${esc(j.eligibility)}</a></section></form></section><div id="local-workflow-mount"></div><div id="eligibility-mount"></div><details class="workspace"><summary>${esc(j.profile)}</summary><div id="profile-mount"></div><div id="academic-evidence-mount"></div><div id="documents-mount"></div></details><section class="pathfinder-dashboard" aria-labelledby="pathfinder-dashboard-title">
+<section class="how-it-works" aria-label="${esc(j.howTitle)}"><h2>${esc(j.howTitle)}</h2><ol><li><a href="#profile-mount" data-open=".workspace"><span class="step-num">${fmt.format(1)}</span><strong>${esc(nav.profile)}</strong><span>${esc(j.how1d)}</span></a></li><li><a href="#assistant"><span class="step-num">${fmt.format(2)}</span><strong>${esc(nav.source)}</strong><span>${esc(j.how2d)}</span></a></li><li><a href="#eligibility-mount"><span class="step-num">${fmt.format(3)}</span><strong>${esc(nav.assessment)}</strong><span>${esc(j.how3d)}</span></a></li><li><a href="#next-steps"><span class="step-num">${fmt.format(4)}</span><strong>${esc(nav.next)}</strong><span>${esc(j.how4d)}</span></a></li></ol></section><details class="journey-more"><summary>${esc(state.language==='fa'?'راهنمای مرحله‌به‌مرحلهٔ بیشتر':state.language==='ps'?'نورې ګام په ګام لارښوونې':'More step-by-step guidance')}</summary><div id="journey-nav-mount"></div></details><section class="editorial-study-band" aria-label="${esc(ed.pillars[0][0])}"><div class="editorial-study-copy"><p class="editorial-label">${esc(ed.pillars[0][0])}</p><h2>${esc(ed.pillars[0][1])}</h2><a href="#profile-mount" data-open=".workspace">${esc(j.profile)} <span aria-hidden="true">↗</span></a></div><img src="/editorial/document-student.webp" alt="Student organizing academic records at a desk" loading="lazy" decoding="async"></section><section id="workspace-overview" aria-label="${esc(t.brand)}"></section><details class="guided-demo" id="guided-demo"><summary>${esc(welcome.demo)}</summary><p class="guided-demo-note">${esc(welcome.demoNote)}</p><section id="analysis-workspace" aria-label="${esc((analysisWorkspaceCopy[state.language]??analysisWorkspaceCopy.en).title)}"></section></details><section class="assistant" id="assistant" aria-labelledby="assistant-heading"><h2 id="assistant-heading">${esc(welcome.understand)}</h2><p class="assistant-copy">${esc(welcome.understandNote)}</p><form id="analyze-form"><div id="source-entry"></div><div id="source-text" hidden><label for="requirements">${esc(t.inputLabel)}</label><textarea id="requirements" minlength="30" maxlength="12000" placeholder="${esc(t.inputPlaceholder)}" required rows="7" dir="auto"></textarea></div><div id="analysis-consent" hidden><button type="submit" class="primary-link">${esc(t.translate)}</button></div><section id="requirements-step" hidden><h2 tabindex="-1">${fmt.format(2)} · ${esc(j.requirements)}</h2><div role="status" id="analysis-result" class="status" hidden></div><a class="next-link" href="#eligibility-mount">${esc(j.eligibility)}</a></section></form></section><div id="local-workflow-mount"></div><div id="eligibility-mount"></div><details class="workspace"><summary>${esc(j.profile)}</summary><div id="profile-mount"></div><div id="academic-evidence-mount"></div><div id="documents-mount"></div><section id="account-data-mount" class="section"></section></details><section class="pathfinder-dashboard" aria-labelledby="pathfinder-dashboard-title">
  <div class="pathfinder-intro">
   <p class="pathfinder-eyebrow">${esc(pathUI.eyebrow)}</p>
   <h2 id="pathfinder-dashboard-title">${esc(pathUI.title)}</h2>
@@ -134,6 +137,7 @@ hasLocalAssessment=false;
 mountLocalWorkflow(document.querySelector('#local-workflow-mount'),state.language);
 mountProfile(document.querySelector('#profile-mount'),state.language);
 mountAcademicEvidence(document.querySelector('#academic-evidence-mount'),state.language);
+mountAccountData(document.querySelector('#account-data-mount'),state.language);
 documentStatus=undefined;
 mountDocuments(document.querySelector('#documents-mount'),state.language);
 mountEligibility(document.querySelector('#eligibility-mount'),state.language,document.querySelector('#analyze-form')?.analysis?.data?.compilation);
@@ -141,28 +145,63 @@ for(const [key,open]of Object.entries(disclosures))if(open!==undefined&&document
 dashboard=mountStudentDashboard(document.querySelector('#student-dashboard'),{
  language:state.language,brand:t.brand,languageLabel:t.language,skipLabel:t.skipToContent,
  getStatus:()=>({
-  documents:documentStatus,
+  documents:documentStatus,profile:dashboardProfile,
   assessment:hasLocalAssessment||!!document.querySelector('#analyze-form')?.analysis?.data?.compilation?.rules?.length
  })
 });
 dashboard.sync(signedIn);
 }
-// Only a localized action message is propagated; never broadcast private profile data.
-function paintNextEmpty(){const actions=document.querySelector('#next-actions');if(!actions)return;const t=journeyCopy[state.language];actions.innerHTML=`<p class="empty-note">${esc(t.nextEmpty)} <a href="#assistant">${esc(t.nextEmptyCta)}</a></p>`;}
+// Keep the two assessment outputs independent while sharing the empty state.
+function paintNextEmpty(){
+ const actions=document.querySelector('#next-actions');
+ const empty=actions.querySelector('.empty-note');
+ empty.hidden=!!actions.querySelector('#local-next-action, #analysis-next-action');
+}
 document.addEventListener('bursyar:local-next',event=>{
  hasLocalAssessment=typeof event.detail==='string'&&!!event.detail;
  dashboard?.update();
  const actions=document.querySelector('#next-actions');
- if(!actions)return;
- actions.replaceChildren();
- if(typeof event.detail==='string'&&event.detail){
-  const p=document.createElement('p');p.textContent=event.detail;actions.append(p);
- }else{
-  paintNextEmpty();
+ actions.querySelector('#local-next-action')?.remove();
+ if(hasLocalAssessment){
+  const p=document.createElement('p');
+  p.id='local-next-action';
+  p.textContent=event.detail;
+  actions.append(p);
  }
+ paintNextEmpty();
 });
-document.addEventListener('bursyar:compilation',event=>{dashboard?.update();mountEligibility(document.querySelector('#eligibility-mount'),state.language,event.detail);queueMicrotask(()=>{const active=!!event.detail;document.querySelector('#requirements-step').hidden=!active&&document.querySelector('#analysis-result').hidden;if(!active)paintNextEmpty();if(active){const result=document.querySelector('#analysis-result');const fields=result.querySelector('fieldset'),guidance=result.querySelector('#barrier-guidance');if(fields)document.querySelector('#next-actions').replaceChildren(fields,guidance);}});});
+document.addEventListener('bursyar:compilation',event=>{
+ dashboard?.update();
+ mountEligibility(document.querySelector('#eligibility-mount'),state.language,event.detail);
+ const result=document.querySelector('#analysis-result');
+ queueMicrotask(()=>{
+  if(!result.isConnected)return;
+  const active=!!event.detail;
+  document.querySelector('#requirements-step').hidden=!active&&result.hidden;
+  const actions=document.querySelector('#next-actions');
+  if(!active)actions.querySelector('#analysis-next-action')?.remove();
+  if(active){
+   const fields=result.querySelector('fieldset');
+   const guidance=result.querySelector('#barrier-guidance');
+   if(fields&&guidance){
+    const group=document.createElement('div');
+    group.id='analysis-next-action';
+    group.append(fields,guidance);
+    actions.querySelector('#analysis-next-action')?.remove();
+    actions.append(group);
+   }
+  }
+  paintNextEmpty();
+ });
+});
+document.addEventListener('bursyar:profile',event=>{
+ profileVersion++;
+ dashboardProfile=event.detail??{};
+ dashboard?.update();
+});
 document.addEventListener('bursyar:identity',()=>{
+ profileVersion++;
+ dashboardProfile=undefined;
  documentStatus=undefined;
  dashboard?.update();
 });
@@ -175,9 +214,25 @@ window.addEventListener('hashchange',()=>dashboard?.sync(signedIn,true));
 render();
 onAuthChange(user=>{
  const wasSignedIn=signedIn;
+ const changed=user?.uid!==signedInUid;
  signedIn=!!user;
- if(wasSignedIn&&user?.uid!==signedInUid)document.dispatchEvent(new Event('bursyar:identity'));
+ if(changed)document.dispatchEvent(new Event('bursyar:identity'));
  signedInUid=user?.uid;
+ if(user&&changed){
+  const version=++profileVersion;
+  getInferenceToken().then(token=>{
+   if(version===profileVersion)return retryStartupRead(
+    ()=>documentRequest('/api/profile',{token}),()=>version===profileVersion
+   );
+  }).then(profile=>{
+   if(version!==profileVersion)return;
+   document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:profile}));
+  }).catch(()=>{
+   if(version!==profileVersion)return;
+   dashboardProfile=null;
+   dashboard?.update();
+  });
+ }
  if(signedIn&&!wasSignedIn&&!isDashboardRoute(location.hash))location.hash='dashboard';
  if(!signedIn&&wasSignedIn&&isDashboardRoute(location.hash))history.replaceState(null,'','#top');
  dashboard.sync(signedIn,true);

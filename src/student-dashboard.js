@@ -1,6 +1,9 @@
+import {profileCopy} from './profile-form.js';
+import {programWindow,verifiedProgramCopy} from './verified-programs.js';
+import {researchCopy} from './research-copy.js';
 import {dashboardCopy} from './dashboard-copy.js';
 import {openPendingDocument} from './documents.js';
-import {researchScholarships, researchSourceUrl} from './research-catalog.js';
+import {saveableResearchPrograms, researchDeadlineState, researchSourceUrl} from './research-catalog.js';
 import {getSavedResearchIds} from './research-explorer.js';
 
 const paths = {
@@ -25,7 +28,7 @@ const illustration = `<svg class="dashboard-illustration" aria-hidden="true" vie
 const routes = {home:'#dashboard', documents:'#dashboard/documents',
  saved:'#dashboard/saved', assessments:'#dashboard/assessments'};
 const toolsByRoute = {
- documents:['#documents-mount','#profile-mount','#academic-evidence-mount'],
+ documents:['#documents-mount','#profile-mount','#academic-evidence-mount','#account-data-mount'],
  assessments:['#assistant','#local-workflow-mount','#eligibility-mount','#next-steps']
 };
 export const isDashboardRoute = hash => Object.values(routes).includes(hash);
@@ -73,6 +76,7 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
  const parked = new Map();
  let view;
  let reviewRequested = false;
+ let profileRequested = false;
  function restoreTools() {
   for (const [node, placeholder] of parked) placeholder.replaceWith(node);
   parked.clear();
@@ -88,7 +92,7 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
   if (view === 'assessments') panel.querySelector('.local-workflow').open = true;
  }
  function renderHome() {
-  const {documents, assessment} = getStatus();
+  const {documents, assessment,profile} = getStatus();
   const saved = getSavedResearchIds().length;
   const documentStatus = documents === undefined ? t.loadingDocuments :
    documents === null ? t.unavailableDocuments :
@@ -110,10 +114,39 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
       ['assessments',assessment ? t.assessmentReady : t.noAssessment]].map(([key,status]) =>
      `<a href="${routes[key]}" class="dashboard-shortcut">${icon(key)}<span>${status}</span></a>`).join('')}
    </div>`;
+  const summary=document.createElement('section');
+  summary.className='section dashboard-profile-summary';
+  const copy=profileCopy[language]??profileCopy.en;
+  const heading=document.createElement('h2');
+  heading.textContent=copy.title;
+  summary.append(heading);
+  if(profile){
+   const list=document.createElement('dl');
+   for(const key of ['degree','targetDegree']){
+    const label=document.createElement('dt');
+    label.textContent=copy[key];
+    const value=document.createElement('dd');
+    const degree=profile[key]?.value;
+    value.textContent=['secondary','bachelor','master','doctorate'].includes(degree)?copy[degree]:copy.unknown;
+    list.append(label,value);
+   }
+   summary.append(list);
+  }else{
+   const status=document.createElement('p');
+   status.textContent=profile===null?t.profileUnavailable:t.profileLoading;
+   summary.append(status);
+  }
+  const edit=document.createElement('a');
+  edit.className='dashboard-action';
+  edit.href=routes.documents;
+  edit.textContent=t.editProfile;
+  edit.dataset.dashboardProfile='';
+  summary.append(edit);
+  panel.append(summary);
  }
  function renderSaved() {
   const saved = new Set(getSavedResearchIds());
-  const rows = researchScholarships.filter(row => saved.has(row.id));
+  const rows = saveableResearchPrograms.filter(row => saved.has(row.id));
   const note = document.createElement('p');
   note.textContent = t.savedNote;
   const browse = document.createElement('a');
@@ -136,6 +169,26 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
      label.rel = 'noopener noreferrer';
     } else label.append(` · ${t.noSource}`);
     item.append(label);
+    if(row.window){
+     const details=document.createElement('p');
+     const copy=verifiedProgramCopy[language]??verifiedProgramCopy.en;
+     const dates=document.createElement('bdi');
+     dates.textContent=`${row.window.opens} – ${row.window.closes} (${row.window.cutoffPublished})`;
+     details.append(`${copy.window}: `,dates,` · ${copy[programWindow(row)]}`);
+     details.className='dashboard-saved-deadline';
+     item.append(details);
+    }else{
+     const copy=researchCopy[language]??researchCopy.en;
+     const details=document.createElement('p');
+     details.className='dashboard-saved-deadline';
+     const state=researchDeadlineState(row);
+     if(state!=='unknown'){
+      const date=document.createElement('bdi');
+      date.textContent=row.deadline;
+      details.append(`${copy.deadline}: `,date,` · ${state==='past'?copy.past:copy.unconfirmed}`);
+     }else details.textContent=`${copy.deadline}: ${copy.unknown}`;
+     item.append(details);
+    }
     list.append(item);
    }
   }
@@ -177,12 +230,19 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
    window.scrollTo(0,0);
   }
   if (view === 'documents' && reviewRequested) openPendingDocument(panel.querySelector('#documents-mount'));
+  if(view==='documents'&&profileRequested){
+   const profile=panel.querySelector('#profile h2');
+   profile.tabIndex=-1;
+   profile.focus();
+  }
+  profileRequested=false;
   reviewRequested = false;
  }
  root.addEventListener('click', event => {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
   const link = event.target.closest('a');
   if (!link) return;
+  if(link.hasAttribute('data-dashboard-profile'))profileRequested=true;
   if (link.hasAttribute('data-dashboard-review')) reviewRequested = true;
   if (link.hash === '#dashboard-title' || (view === 'assessments' && link.hash === '#eligibility-mount')) {
    event.preventDefault();

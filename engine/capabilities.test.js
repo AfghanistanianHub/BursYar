@@ -81,3 +81,10 @@ test('startup log line names the running build commit',()=>{
  const noBuild=formatCapabilities({localAssessment:{available:true},sourceRetrieval:{available:true},documentStorage:{available:true},meta:{state:'disabled',reason:'provider_config_missing'},inferenceVerified:false});
  assert.match(noBuild,/Build unknown/);
 });
+
+test('family assessment requires storage and configured grants',()=>{
+ for(const documentsAvailable of [false,true])for(const familyGrantsPresent of [false,true]){
+  const capabilities=describeCapabilities({documentsAvailable,familyGrantsPresent});
+  assert.deepEqual(capabilities.familyAssessment,{available:documentsAvailable&&familyGrantsPresent});
+ }
+});

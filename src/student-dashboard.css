@@ -178,6 +178,7 @@
 .dashboard-panel :is(input,select,textarea) { max-inline-size: 100%; }
 .dashboard-saved-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--dashboard-line); border-radius: 8px; }
 .dashboard-saved-list li { padding: 12px 16px; }
+.dashboard-saved-deadline { margin: 4px 0 0; font-size: var(--fs-small); }
 .dashboard-saved-list li + li { border-block-start: 1px solid var(--dashboard-line); }
 
 .site .dashboard-entry {

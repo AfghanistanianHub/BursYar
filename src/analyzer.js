@@ -35,10 +35,23 @@ export function mountAnalyzer(form,language,esc,initial={}){
  document.querySelector('#account-controls').append(login,logout,authStatus);form.querySelector('#source-entry').append(source);
  const setSignedIn=signedIn=>{login.hidden=!!signedIn;logout.hidden=!signedIn;};
  setSignedIn(false);
- onAuthChange(user=>{if(!form.isConnected)return;setSignedIn(!!user);if(user)authStatus.textContent=t.signedIn;else if(authStatus.textContent===t.signedIn)authStatus.textContent=t.signedOut;}).catch(()=>{});
+ let disposed=false, stopObserving;
+ onAuthChange(user=>{if(!form.isConnected)return;setSignedIn(!!user);if(user)authStatus.textContent=t.signedIn;else if(authStatus.textContent===t.signedIn)authStatus.textContent=t.signedOut;}).then(unsubscribe=>{
+  if(disposed)unsubscribe?.();
+  else stopObserving=unsubscribe;
+ }).catch(()=>{});
  const approved=mountSourcePreview(form,url,textarea,submit,language,initial);
- form.addEventListener('bursyar:sourcechanged',()=>{controller?.abort();form.barrierAnswers={};form.analysis=undefined;form.querySelector('#requirements-step').hidden=true;result.replaceChildren();result.hidden=true;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
- login.addEventListener('click',async()=>{login.disabled=true;try{await signIn();document.dispatchEvent(new Event('bursyar:identity'));setSignedIn(true);authStatus.textContent=t.signedIn;}catch{authStatus.textContent=t.authError;}finally{login.disabled=false;}});
+ form.addEventListener('bursyar:analyzer-dispose',()=>{
+  disposed=true;
+  stopObserving?.();
+  controller?.abort();
+ },{once:true});
+ form.addEventListener('bursyar:sourcechanged',()=>{
+  controller?.abort();
+  controller=undefined;
+  form.removeAttribute('aria-busy');
+  form.barrierAnswers={};form.analysis=undefined;form.querySelector('#requirements-step').hidden=true;result.replaceChildren();result.hidden=true;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
+ login.addEventListener('click',async()=>{login.disabled=true;try{await signIn();setSignedIn(true);authStatus.textContent=t.signedIn;}catch{authStatus.textContent=t.authError;}finally{login.disabled=false;}});
  logout.addEventListener('click',async()=>{document.dispatchEvent(new Event('bursyar:identity'));controller?.abort();form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));try{await signOut();result.replaceChildren();result.hidden=true;setSignedIn(false);authStatus.textContent=t.signedOut;}catch{authStatus.textContent=t.authError;}});
 
  function renderAnalysis(a,submittedSource){
@@ -65,10 +78,11 @@ export function mountAnalyzer(form,language,esc,initial={}){
  }
  if(initial.analysis)renderAnalysis(initial.analysis.data,new URL(initial.analysis.url));
  form.addEventListener('submit',async event=>{
-  event.preventDefault();if(!approved())return;form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));controller?.abort();const current=controller=new AbortController();
+  event.preventDefault();if(submit.disabled||form.hasAttribute('aria-busy')||!approved())return;form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));controller?.abort();const current=controller=new AbortController();
   form.querySelector('#requirements-step').hidden=false;result.hidden=false;result.textContent=t.loading;form.setAttribute('aria-busy','true');submit.disabled=true;
   try{
    const token=await getInferenceToken().catch(()=>{throw Object.assign(Error(),{status:401});});
+   if(current.signal.aborted||!form.isConnected)return;
    const submittedSource=new URL(url.value);if(submittedSource.protocol!=='https:'||submittedSource.username||submittedSource.password)throw Error();
    const response=await fetch('/api/analyze',{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify({text:textarea.value,sourceUrl:submittedSource.href,language,sourceApproved:true,...(form.sourceReceipt?{receipt:form.sourceReceipt,sourceApproved:true}:{})}),signal:AbortSignal.any([current.signal,AbortSignal.timeout(CLIENT_ANALYSIS_TIMEOUT_MS)])});
    if(!response.ok)throw Object.assign(Error(),{status:response.status});

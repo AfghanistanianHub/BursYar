@@ -1,12 +1,16 @@
-import {documentRequest} from './document-request.js';
-import {extractDocumentText} from './document-extraction.js';
+import {documentRequest,retryStartupRead} from './document-request.js';
+import {extractDocumentText,imageDocumentsEnabled,pdfDocumentsEnabled} from './document-extraction.js';
 import {publicDocumentReferenceAudit,issuerFromText} from './document-public-evidence.js';
 import {getInferenceToken} from './auth.js';
 import {journeyCopy} from './journey-copy.js';
 // Until OCR dependencies are served by our own audited origin, only TXT is
 // available to real production users. Local development and synthetic CI can
 // exercise the PDF/image pipeline without exposing private student records.
-const binaryDocumentsEnabled=!(import.meta.env?.PROD??false);
+const textPdfPilotCopy={
+ en:{scan:'This PDF has a page without selectable text. Enter the text manually or choose another file.',unsupported:'Choose TXT or a PDF with selectable text.',file:'Educational document (TXT or PDF)',note:'Choose TXT (12 KB) or a PDF with selectable text (up to 5 pages and 5 MB). Text is read in your browser for review before saving. For scanned files, paste the text yourself.'},
+ fa:{scan:'این PDF صفحه‌ای بدون متن قابل انتخاب دارد. متن را دستی وارد کنید یا فایل دیگری انتخاب کنید.',unsupported:'در این نسخه فایل TXT یا PDF دارای متن قابل انتخاب را انتخاب کنید.',file:'مدرک تحصیلی (TXT یا PDF)',note:'فایل TXT تا ۱۲ کیلوبایت یا PDF دارای متن قابل انتخاب تا ۵ صفحه و ۵ مگابایت را انتخاب کنید. متن پیش از ذخیره در مرورگر خوانده و برای بازبینی نمایش داده می‌شود. برای اسکن، متن را خودتان وارد کنید.'},
+ ps:{scan:'دا PDF داسې مخ لري چې متن یې نه شي ټاکل کېدای. متن پخپله ولیکئ یا بل فایل وټاکئ.',unsupported:'په دې نسخه کې TXT یا د ټاکلو وړ متن لرونکی PDF وټاکئ.',file:'تحصیلي سند (TXT یا PDF)',note:'تر ۱۲ کیلوبایټه TXT یا د ټاکلو وړ متن لرونکی PDF (تر ۵ مخونو او ۵ مېګابایټه) وټاکئ. متن تر ساتلو مخکې په براوزر کې لوستل کېږي. د سکن متن پخپله ولیکئ.'}
+};
 // fa/ps strings are UNREVIEWED pending fluent human review (see docs/TRANSLATION-REVIEW.json).
 export const documentsCopy={
  en:{requestTimedOut:'The request timed out. The server may be starting. Refresh the document library to check its state.',requestNetworkError:'The document server could not be reached. Check your connection, then refresh the library.',mutationUncertain:'The server response was lost. Your change may already be saved. Refresh and inspect the document library before submitting again; this request was not retried automatically.',pasteTitle:'Paste educational text instead',pasteLabel:'Educational document text',pasteNote:'While this section is open, only the pasted text is submitted. No file is uploaded. The same consent, size limits and review rules apply.',chooseDecision:"Choose a review decision",sourceExcerpt:"Original source excerpt · not verified",conflict:"Conflicting values were found. No claims were applied. Review the original text and correct your profile manually or upload corrected text.",formatTitle:"Supported text format",formatNote:"Only these exact English field labels are recognized. Use the values in your own document; this example is synthetic. Other text is retained for review but is not extracted.",missingFile:"Choose a text file first.",productionBinaryNotice:'Production currently accepts TXT only. PDF/image processing is under security review; use a private local demo with synthetic data, not real credentials.',previewTitle:'Review and correct extracted text before saving',previewNote:'The PDF or image was processed locally. Nothing has been saved yet. Check names, dates, qualifications and scores carefully; OCR may be inaccurate.',previewLabel:'Extracted editable text',previewConfirm:'Save reviewed extracted text',previewCancel:'Discard extraction',manualFallback:'OCR could not read this scan. Type or paste the visible text below. This will be recorded as your manual transcription, not OCR or issuer verification.',ocrLanguage:'OCR language (for scans and images)',unsupportedOcrLanguage:'Unsupported OCR language.',publicCheckTitle:'Compare with a public institution page',publicCheckLabel:'Public university/issuer HTTPS page',publicCheckAction:'Check public reference',invalidPublicUrl:'Use an HTTPS public page without login details, query parameters, or fragments.',publicCheckNoIssuer:'Add a separate text line such as Issuer: University Name to compare the issuer name. Your document is not sent to the public site.',publicCheckFound:'The issuer name appears on this public page. This does not authenticate your individual document.',publicCheckMissing:'No issuer-name match was found. This does not prove forgery.',publicCheckUnknown:'Public evidence is insufficient. The document remains unverified.',publicCheckNote:'Only the public URL is sent to the BursYar source-fetch service, not your document or personal details. A matched institution name is NOT credential verification.',invalidPdf:'Invalid or unsupported PDF file.',invalidImage:'Invalid image file.',pdfPageLimit:'PDFs must have 1 to 5 pages.',imageDimensions:'Image dimensions are unsupported.',extractedTextTooLarge:'Extracted text exceeds 12 KB. Select a shorter document.',extractionUnavailable:'Local PDF/OCR extraction is unavailable. Check your connection or paste document text.',unsupportedFile:"Use a UTF-8 TXT, PDF, PNG, or JPEG document.",unsupportedFileProduction:'Production accepts TXT only. PDF and image processing is under security review.',fileTooLarge:"TXT is limited to 12 KB; PDFs and images to 5 MB.",emptyFile:"The file has no readable text.",invalidEncoding:"The file is not valid UTF-8 text or contains unsupported binary characters.",signInRequired:"Sign in with an approved demo account before accessing private documents.",conflictError:"This record changed or cannot be reviewed. Refresh the document list and open it again.",limitError:"The document limit was reached. Review your existing document library before uploading again.",unavailableError:"Private document storage is unavailable. Refresh the library to confirm saved state before trying another upload.",busy:"Working on your document…",title:'Review educational documents',note:'TXT (12 KB), PDF (up to 5 pages / 5 MB), or PNG/JPEG (5 MB). PDF/image text is extracted locally in your browser; only extracted text (12 KB maximum) is stored after consent. OCR software/language files download on demand. OCR may be wrong. Neither review nor OCR proves authenticity. No document goes to Meta.',noteProduction:'TXT only in the online version: UTF-8 text up to 12 KB, reviewed claim by claim. PDF/image processing is under security review and unavailable here. Neither review nor extraction proves authenticity. No document goes to Meta.',consent:'I consent to private server storage and extraction for this demonstration.',upload:'Upload and inspect',review:'Approve reviewed claims',remove:'Delete document and linked profile facts',load:'Load my approved profile',accept:'Accept extracted value',correct:'Use my correction',reject:'Reject',pending:'Review every claim before approval. Translations and issuer authenticity are not verified.',error:'Document request unavailable. Sign in with an approved account and check that private document storage is enabled.',done:'Profile updated. Claims remain unverified.',deleted:'Document and linked facts deleted.',empty:'No supported claims extracted, or conflicting claims require manual review.',file:'Educational document (TXT/PDF/PNG/JPEG)',fileProduction:'Educational document (TXT only)',dropHint:'Drag and drop a file here, or choose one below.',dropActive:'Release to use this file.',dropDisabled:'Close the paste section to choose a file.',methodFrom:{utf8_text:'Read from a TXT file',local_pdf_text_or_ocr:'Text read locally from a PDF',local_image_ocr:'Text read locally from an image; OCR may be wrong',manual_transcription_from_image:'Your manual transcription of an image',manual_transcription_from_pdf:'Your manual transcription of a PDF',other:'Reading method not recorded'},bands:['Overall','Listening','Reading','Writing','Speaking'],degree:'Degree',languageTest:'IELTS Academic (overall, listening, reading, writing, speaking)',gpa:'GPA (value, scale)',scale:'Scale',toeflTest:'TOEFL iBT (overall, listening, reading, writing, speaking)'},
@@ -20,17 +24,19 @@ export const documentSteps={
 };
 export const documentStageKeys=['upload','extract','review','save'];
 export const libraryCopy={en:{title:'Private document library',refresh:'Refresh list',open:'Open selected document',empty:'No documents saved',reviewed:'Reviewed — not verified',pending:'Pending review'},fa:{title:'کتابخانهٔ اسناد خصوصی',refresh:'تازه‌سازی فهرست',open:'باز کردن سند انتخاب‌شده',empty:'سندی ذخیره نشده است',reviewed:'بازبینی‌شده؛ تأیید نشده',pending:'در انتظار بازبینی'},ps:{title:'د شخصي اسنادو زېرمتون',refresh:'لړ تازه کول',open:'ټاکل شوی سند پرانیستل',empty:'هېڅ سند نه دی ساتل شوی',reviewed:'بیاکتل شوی؛ نه دی تایید شوی',pending:'د بیاکتنې په تمه'}};
-let current=null,identityEpoch=0;
+let current=null,identityEpoch=0,extractionController=null;
 const pendingOpeners=new WeakMap();
 export function openPendingDocument(root){pendingOpeners.get(root)?.();}
-document.addEventListener('bursyar:identity',()=>{current=null;identityEpoch++;const root=document.querySelector('#documents-mount');if(root)mountDocuments(root,document.documentElement.lang);});
+document.addEventListener('bursyar:identity',()=>{extractionController?.abort();current=null;identityEpoch++;const root=document.querySelector('#documents-mount');if(root)mountDocuments(root,document.documentElement.lang);});
 export function mountDocuments(root,language='en'){
  if(!root)return;
+ extractionController?.abort();
  const mountEpoch=identityEpoch;
  const t=documentsCopy[language]??documentsCopy.en;
  root.replaceChildren();const section=document.createElement('section');section.className='section';section.id='documents';root.append(section);
  const element=(tag,text,parent=section)=>{const el=document.createElement(tag);if(text)el.textContent=text;parent.append(el);return el;};
- element('h2',t.title);element('p',binaryDocumentsEnabled?t.note:t.noteProduction);
+ const pdfPilot=textPdfPilotCopy[language]??textPdfPilotCopy.en;
+ element('h2',t.title);element('p',imageDocumentsEnabled?t.note:pdfDocumentsEnabled?pdfPilot.note:t.noteProduction);
  const figure=element('figure','',section);figure.className='document-figure';
  const plate=element('img','',figure);plate.className='document-figure-art';plate.src='/editorial/document-student.webp';plate.alt='';plate.loading='lazy';plate.decoding='async';
  element('figcaption',(journeyCopy[language]??journeyCopy.en).heroCaption,figure);
@@ -42,7 +48,7 @@ export function mountDocuments(root,language='en'){
  setDocumentStage('upload');
  const help=element('details');help.className='document-format';element('summary',t.formatTitle,help);element('p',t.formatNote,help);
  const example=element('pre','Degree: bachelor\nGPA: 3.4/4\nTOEFL iBT: overall=100; listening=25; reading=25; writing=25; speaking=25',help);example.dir='ltr';example.lang='en';
- const form=element('form'),label=element('label',binaryDocumentsEnabled?t.file:t.fileProduction,form),file=element('input','',label);file.type='file';file.accept=binaryDocumentsEnabled?'.txt,.pdf,.png,.jpg,.jpeg,text/plain,application/pdf,image/png,image/jpeg':'.txt,text/plain';file.required=true;
+ const form=element('form'),label=element('label',imageDocumentsEnabled?t.file:pdfDocumentsEnabled?pdfPilot.file:t.fileProduction,form),file=element('input','',label);file.type='file';file.accept=imageDocumentsEnabled?'.txt,.pdf,.png,.jpg,.jpeg,text/plain,application/pdf,image/png,image/jpeg':pdfDocumentsEnabled?'.txt,.pdf,text/plain,application/pdf':'.txt,text/plain';file.required=true;
  label.className='document-dropzone';
  const dropHint=element('span',t.dropHint,label);dropHint.className='document-drop-hint';
  const hasFiles=e=>[...(e.dataTransfer?.types??[])].includes('Files');
@@ -52,9 +58,9 @@ export function mountDocuments(root,language='en'){
  form.addEventListener('dragover',e=>{if(file.disabled||!hasFiles(e))return;e.preventDefault();});
  form.addEventListener('dragleave',e=>{if(!form.classList.contains('drop-active'))return;e.preventDefault();if(--dragDepth<=0)dropReset();});
  form.addEventListener('drop',e=>{e.preventDefault();dropReset();if(!e.dataTransfer?.files?.length)return;if(file.disabled){status.textContent=t.dropDisabled;return;}const dt=new DataTransfer();dt.items.add(e.dataTransfer.files[0]);file.files=dt.files;clearPreview();file.focus();});
- if(!binaryDocumentsEnabled)element('p',t.productionBinaryNotice,form);
+ if(!pdfDocumentsEnabled)element('p',t.productionBinaryNotice,form);
  const langLabel=element('label',t.ocrLanguage,form),ocrSelect=element('select','',langLabel);
- langLabel.hidden=!binaryDocumentsEnabled;
+ langLabel.hidden=!imageDocumentsEnabled;
  for(const [value,name] of [['eng','English'],['fas','فارسی'],['pus','پښتو']]){const option=element('option',name,ocrSelect);option.value=value;}
  ocrSelect.value=language==='fa'?'fas':language==='ps'?'pus':'eng';
  const paste=element('details','',form);paste.className='document-paste';element('summary',t.pasteTitle,paste);element('p',t.pasteNote,paste);
@@ -69,21 +75,22 @@ export function mountDocuments(root,language='en'){
  previewText.rows=10;previewText.maxLength=12000;previewText.dir='auto';previewText.autocomplete='off';
  const previewConfirm=element('button',t.previewConfirm,preview);previewConfirm.type='button';
  const previewCancel=element('button',t.previewCancel,preview);previewCancel.type='button';
- let pendingMethod=null;
- const clearPreview=()=>{pendingMethod=null;previewText.value='';preview.hidden=true;setDocumentStage('upload');};
+ let pendingMethod=null,consentVersion=0;
+ const clearPreview=()=>{extractionController?.abort();pendingMethod=null;previewText.value='';preview.hidden=true;setDocumentStage('upload');};
  previewCancel.addEventListener('click',clearPreview);
+ consent.addEventListener('change',()=>{consentVersion++;if(!consent.checked)clearPreview();});
  file.addEventListener('change',clearPreview);
  paste.addEventListener('toggle',clearPreview);
  ocrSelect.addEventListener('change',clearPreview);
  const load=element('button',t.load);load.type='button';
  const l=libraryCopy[language]??libraryCopy.en;const library=element('fieldset');element('legend',l.title,library);const chooser=element('select','',library);chooser.setAttribute('aria-label',l.title);const refresh=element('button',l.refresh,library);refresh.type='button';const open=element('button',l.open,library);open.type='button';
  const status=element('p');status.setAttribute('role','status');const content=element('div');
- async function api(path,method='GET',body){if(!section.isConnected||mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();if(epoch!==identityEpoch)throw Error();const data=await documentRequest(path,{token,method,body});if(!section.isConnected||epoch!==identityEpoch)throw Error();return data;}
+ async function api(path,method='GET',body,beforeSend){if(!section.isConnected||mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();if(!section.isConnected||epoch!==identityEpoch)throw Error();beforeSend?.();const data=await documentRequest(path,{token,method,body});if(!section.isConnected||epoch!==identityEpoch)throw Error();return data;}
  const publish=profile=>document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:profile}));
  let inFlight=false;
  // Preserve the request key across uncertain responses without automatic retries.
  let lastUploadText=null,lastUploadRequestId=null;
- async function busy(action){if(inFlight)return;inFlight=true;section.setAttribute('aria-busy','true');status.textContent=t.busy;for(const button of section.querySelectorAll('button'))button.disabled=true;try{await action();}catch(error){status.textContent=t[error.code]??t.error;}finally{if(status.textContent===t.busy)status.textContent='';inFlight=false;section.removeAttribute('aria-busy');for(const button of section.querySelectorAll('button'))button.disabled=false;open.disabled=!chooser.value;}}
+ async function busy(action){if(inFlight)return;inFlight=true;section.setAttribute('aria-busy','true');status.textContent=t.busy;for(const button of section.querySelectorAll('button'))button.disabled=true;try{await action();}catch(error){status.textContent=error.code==='unsupportedFileProduction'&&pdfDocumentsEnabled?pdfPilot.unsupported:t[error.code]??t.error;}finally{if(status.textContent===t.busy)status.textContent='';inFlight=false;section.removeAttribute('aria-busy');for(const button of section.querySelectorAll('button'))button.disabled=false;open.disabled=!chooser.value;}}
  let pendingId;
  const publishStatus=detail=>{
   if(section.isConnected&&mountEpoch===identityEpoch)
@@ -171,12 +178,13 @@ export function mountDocuments(root,language='en'){
   const remove=element('button',t.remove,content);remove.type='button';remove.addEventListener('click',()=>busy(async()=>{await api(`/api/documents/${doc.id}`,'DELETE');current=null;content.replaceChildren();publish(await api('/api/profile'));status.textContent=t.deleted;await refreshLibrary();}));
  }
  async function saveExtractedText(text,method){
+  const approvedVersion=consentVersion;
   if(!consent.checked)throw Object.assign(Error('Consent required'),{code:'error'});
   if(!text.trim())throw Object.assign(Error('Empty extraction'),{code:'emptyFile'});
   if(new TextEncoder().encode(text).length>12000)throw Object.assign(Error('Too large'),{code:'extractedTextTooLarge'});
   if(/[\x00-\x08\x0b\x0c\x0e-\x1f\ufffd]/u.test(text))throw Object.assign(Error('Invalid text'),{code:'invalidEncoding'});
   if(text!==lastUploadText||!lastUploadRequestId){lastUploadText=text;lastUploadRequestId=crypto.randomUUID();}
-  current=await api('/api/documents','POST',{text,mime:'text/plain',consent:true,extractionMethod:method,requestId:lastUploadRequestId});
+  current=await api('/api/documents','POST',{text,mime:'text/plain',consent:true,extractionMethod:method,requestId:lastUploadRequestId},()=>{if(!consent.checked||consentVersion!==approvedVersion)throw Object.assign(Error('Consent changed'),{code:'error'});});
   lastUploadText=null;lastUploadRequestId=null;clearPreview();show(current);await refreshLibrary();
  }
  previewConfirm.addEventListener('click',()=>{if(!pendingMethod)return;busy(async()=>{await saveExtractedText(previewText.value,pendingMethod);});});
@@ -184,17 +192,22 @@ export function mountDocuments(root,language='en'){
   if(!consent.checked)return;
   const selected=paste.open?new File([pasted.value],'pasted-education.txt',{type:'text/plain'}):file.files[0];
   let extracted;
-  if(!binaryDocumentsEnabled&&!paste.open&&!/\.txt$/i.test(selected?.name??''))throw Object.assign(Error('Binary document upload unavailable in production'),{code:'unsupportedFileProduction'});
-  try{extracted=await extractDocumentText(selected,{ocrLanguage:ocrSelect.value});}
+  const controller=new AbortController();
+  extractionController=controller;
+  try{
+   extracted=await extractDocumentText(selected,{ocrLanguage:ocrSelect.value,signal:controller.signal});
+   if(controller.signal.aborted||!section.isConnected||mountEpoch!==identityEpoch)return;
+  }
   catch(error){
+   if(controller.signal.aborted||!section.isConnected||mountEpoch!==identityEpoch)return;
    // An OCR model may return no characters, particularly on Pashto records.
    // Offer explicit manual transcription instead of inventing content.
    if(error?.code==='emptyFile'&&!paste.open&&/\.(pdf|png|jpe?g)$/i.test(selected?.name??'')){
     pendingMethod=/\.pdf$/i.test(selected.name)?'manual_transcription_from_pdf':'manual_transcription_from_image';
-    previewText.value='';preview.hidden=false;setDocumentStage('extract');previewText.focus();status.textContent=t.manualFallback;return;
+    previewText.value='';preview.hidden=false;setDocumentStage('extract');previewText.focus();status.textContent=imageDocumentsEnabled?t.manualFallback:pdfPilot.scan;return;
    }
    throw error;
-  }
+  }finally{if(extractionController===controller)extractionController=null;}
   if(extracted.method!=='utf8_text'){
    pendingMethod=extracted.method;previewText.value=extracted.text;preview.hidden=false;setDocumentStage('extract');previewText.focus();status.textContent=t.previewNote;return;
   }
@@ -202,7 +215,9 @@ export function mountDocuments(root,language='en'){
  });});
  if(current)show(current);
  // Issue #91: populate the library on mount so saved records survive reload
- // without a manual refresh. Signed-out visitors skip silently; explicit
- // Refresh remains the recovery path for uncertain states.
- getInferenceToken().then(()=>{if(mountEpoch===identityEpoch)busy(refreshLibrary);},()=>{});
+ // without a manual refresh. Retry a transient startup read once.
+ getInferenceToken().then(()=>{
+  if(!section.isConnected||mountEpoch!==identityEpoch)return;
+  return busy(()=>retryStartupRead(refreshLibrary,()=>section.isConnected&&mountEpoch===identityEpoch));
+ },()=>{});
 }

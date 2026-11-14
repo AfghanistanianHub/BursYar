@@ -2,6 +2,7 @@ import {localProgram} from './fixtures/local-program.mjs';
 import {createScholarshipCatalog} from '../engine/deterministic.js';
 import {createSourceFetcher,SourceFailure} from '../engine/source-fetch.js';
 import {normalizeEvidence} from '../engine/evidence.js';
+import {describeCapabilities} from '../engine/capabilities.js';
 import {chromium,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import {createServer} from 'vite';
@@ -15,7 +16,7 @@ const baseUrl=`http://127.0.0.1:${vite.httpServer.address().port}`;
 const documentDir=mkdtempSync(join(tmpdir(),'bursyar-browser-docs-'));
 const documents=new DocumentStore(join(documentDir,'docs.db'));
 const sources=createSourceFetcher({resolve:async()=>[{address:'93.184.216.34',family:4}],transport:async url=>{if(url.pathname.endsWith('/blocked'))throw new SourceFailure('challenge');return {body:'<main><h1>SYNTHETIC OFFLINE SOURCE FIXTURE</h1><p>Applicants must provide academic transcripts.</p><p>Tuition fees are covered.</p><a href="/course">Course conditions require confirmation.</a></main>'};}});
-const api=createInferenceServer({catalog:createScholarshipCatalog([localProgram]),loadFamilyGrant:async(uid,subjectId)=>({guardianUid:uid,subjectId,authorityVerified:true,consentActive:true,subjectAgeBand:'under_18',expiresAt:Date.now()+60000}),sources,projectId:'demo-bursyar',origin:baseUrl,documents,quota:{reserve(){}},infer:async()=>{throw Error('Browser model must remain mocked');},verify:async token=>({uid:token,aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true})});
+const api=createInferenceServer({capabilities:describeCapabilities({documentsAvailable:true,familyGrantsPresent:true}),catalog:createScholarshipCatalog([localProgram]),loadFamilyGrant:async(uid,subjectId)=>subjectId==='student'?{guardianUid:uid,subjectId,authorityVerified:true,consentActive:true,subjectAgeBand:'under_18',expiresAt:Date.now()+60000}:null,sources,projectId:'demo-bursyar',origin:baseUrl,documents,quota:{reserve(){}},infer:async()=>{throw Error('Browser model must remain mocked');},verify:async token=>({uid:token,aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true})});
 await new Promise(resolve=>api.listen(0,'127.0.0.1',resolve));
 const apiUrl=`http://127.0.0.1:${api.address().port}`;
 let browser;
@@ -25,10 +26,11 @@ const report={mode:'BROWSER_WITH_MOCK_AUTH_AND_API',liveMetaVerified:false,liveG
 mkdirSync('verification/artifacts',{recursive:true});
 try {
  for(const language of ['en','fa','ps'])for(const width of [320,390,768,1280,1440]){
-  const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();let unexpectedSourceRequests=0;page.on('request',request=>{if(new URL(request.url()).hostname==='malicious.invalid')unexpectedSourceRequests++;});
+  const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'});const page=await context.newPage();let unexpectedSourceRequests=0;page.on('request',request=>{if(new URL(request.url()).hostname==='malicious.invalid')unexpectedSourceRequests++;});
   await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{const note=document.createElement('p');note.textContent='OFFLINE REHEARSAL — mocked identity and Meta; synthetic applicant data';note.setAttribute('role','note');note.style.cssText='padding:12px;background:#fff;color:#111;border:2px solid #111';document.body.prepend(note);},{once:true}));
   // Test-only network interception, not a runtime bypass or simulated live verification.
   const browserToken=`browser-test-${language}-${width}`;
+  await page.route('**/health',async route=>route.fulfill({json:await (await fetch(apiUrl+'/health')).json()}));
   await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{};} export async function getInferenceToken(){return "'+browserToken+'";}'}));
   let importGate=null;
   await page.route(/\/api\/(documents|profile|source|scholarships|evaluate|family)/,async route=>{const request=route.request();if(new URL(request.url()).pathname.endsWith('/source/import')&&importGate)await importGate;const response=await fetch(apiUrl+new URL(request.url()).pathname,{method:request.method(),headers:{authorization:request.headers().authorization,origin:baseUrl,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});});
@@ -159,6 +161,20 @@ try {
   if(language!=='en')await expect(page.locator(`.criterion [lang=${language}]`)).toBeVisible();
   await page.locator('[name=transcripts]').selectOption('unavailable');
   await expect(page.locator('#barrier-guidance')).toContainText({en:'Potential mismatch',fa:'ناسازگاری احتمالی',ps:'احتمالي نه سمون'}[language]);
+  if(width===390){
+   const publishLocal=detail=>page.evaluate(message=>document.dispatchEvent(new CustomEvent('bursyar:local-next',{detail:message})),detail);
+   await publishLocal('Synthetic local recommendation');
+   await expect(page.locator('#analysis-next-action [name=transcripts]')).toHaveValue('unavailable');
+   await expect(page.locator('#local-next-action')).toHaveText('Synthetic local recommendation');
+   await publishLocal(null);
+   await expect(page.locator('#analysis-next-action [name=transcripts]')).toHaveValue('unavailable');
+   await publishLocal('Synthetic local recommendation');
+   await page.evaluate(()=>document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null})));
+   await expect(page.locator('#analysis-next-action')).toHaveCount(0);
+   await expect(page.locator('#local-next-action')).toBeVisible();
+   await publishLocal(null);
+   await expect(page.locator('#next-actions .empty-note')).not.toHaveAttribute('hidden','');
+  }
   await page.locator('#language').selectOption(language==='en'?'fa':'en');await expect(page.locator('.criterion')).toBeVisible();await page.locator('#language').selectOption(language);await expect(page.locator('.criterion')).toBeVisible();await expect(page.locator('[name=transcripts]')).toHaveValue('unavailable');expect(calls).toBe(1);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);if(overflow)console.log(JSON.stringify({language,width,overflowElements:await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(el=>el.getBoundingClientRect().right>innerWidth+1||el.getBoundingClientRect().left< -1).map(el=>({tag:el.tagName,id:el.id,class:el.className,width:el.getBoundingClientRect().width})).slice(0,20))}));expect(overflow).toBe(false);
   const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
@@ -268,9 +284,22 @@ try {
   if(width===390)await page.screenshot({path:`verification/artifacts/${language}-supplied-source-390.png`,fullPage:true});
   report.recoveryCases=(report.recoveryCases??0)+1;
   report.sourcePreviewCases=(report.sourcePreviewCases??0)+1;
+  const healthResponse=page.waitForResponse(response=>new URL(response.url()).pathname==='/health');
   await page.locator('.local-workflow > summary').click();
-  for(const scope of ['', 'student']){
-   await page.locator('#local-scope').fill(scope);
+  const health=await (await healthResponse).json();
+  expect(health.capabilities.familyAssessment.available).toBe(true);
+  await expect(page.locator('#local-scope')).toBeVisible();
+  await page.locator('#local-scope').fill('no-grant');
+  const denied=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/family/no-grant/scholarships');
+  await page.locator('#local-assessment button').nth(1).click();
+  expect((await denied).status()).toBe(403);
+  await expect(page.locator('#local-assessment button[type=submit]')).toBeDisabled();
+  for(const scope of ['', 'student', '']){
+   const scopeInput=page.locator('#local-scope');
+   await scopeInput.fill(scope);
+   await expect(page.locator('#local-degree')).toHaveValue('');
+   await expect(page.locator('#local-consent')).not.toBeChecked();
+   await expect(page.locator('.local-workflow [role=note]')).toHaveCount(0);
    await page.locator('#local-assessment button').filter({hasText:{en:'Load reviewed scholarships',fa:'بارگذاری بورسیه‌های بازبینی‌شده',ps:'بیاکتل شوي بورسونه راوړئ'}[language]}).click();
    await expect(page.locator('#local-program')).toHaveValue('synthetic-local-test');
    await expect(page.locator('#local-source-info a')).toHaveAttribute('href',/^https:\/\//);

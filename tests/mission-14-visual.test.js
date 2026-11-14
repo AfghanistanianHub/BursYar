@@ -36,7 +36,7 @@ test('M14 verdict cards differentiate the three states', () => {
 
 test('M14 PathFinder numbers steps without touching fieldsets', () => {
   assert.match(theme, /#next-actions\{counter-reset:by-step\}/);
-  assert.match(theme, /#next-actions>\*:not\(fieldset\):not\(\.empty-note\)::before\{counter-increment:by-step/);
+  assert.match(theme, /#local-next-action::before,#analysis-next-action>#barrier-guidance::before\{counter-increment:by-step/);
   assert.match(theme, /#barrier-guidance p:not\(\.barrier-summary\)::after\{content:counter\(by-barrier\)/);
 });
 

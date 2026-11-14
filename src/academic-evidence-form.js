@@ -2,20 +2,22 @@ import {getInferenceToken} from './auth.js';
 import {validProfileValue} from '../engine/profile-schema.js';
 
 // These are user declarations, never issuer-verified scores or accepted tests.
-// This form edits only GPA and languageTest; existing profile fields remain intact.
+// This form edits only GPA, academicScore and languageTest; existing profile fields remain intact.
 // fa/ps strings are UNREVIEWED pending fluent human review (see docs/TRANSLATION-REVIEW.json).
 export const academicEvidenceCopy={
- en:{title:'Academic scores (optional)',note:'Enter scores only as stated on your records. Nothing here proves issuer authenticity, scholarship eligibility or acceptance of a test.',gpa:'GPA',scale:'Official GPA scale',test:'Language test',none:'Not provided',overall:'Overall',reading:'Reading',listening:'Listening',speaking:'Speaking',writing:'Writing',consent:'I approve storing these scores privately as unverified declarations.',save:'Save score declarations',load:'Reload saved scores',remove:'Clear these score declarations',saved:'Score declarations saved; not issuer verified.',error:'Could not save or load scores.',locked:'Issuer-verified scores cannot be edited here.',working:'Working…'},
- fa:{title:'نمره‌های تحصیلی (اختیاری)',note:'نمره‌ها را فقط مطابق مدارک خود وارد کنید. این اطلاعات تأیید صادرکننده، واجد شرایط بودن یا پذیرش آزمون را اثبات نمی‌کند.',gpa:'معدل (GPA)',scale:'مقیاس رسمی معدل',test:'آزمون زبان',none:'ارائه نشده',overall:'نمره مجموع',reading:'خواندن',listening:'شنیدن',speaking:'صحبت کردن',writing:'نوشتن',consent:'ذخیره خصوصی این نمره‌ها را به‌عنوان اظهارات تأییدنشده می‌پذیرم.',save:'ذخیره نمره‌های اظهارشده',load:'بارگذاری نمره‌های ذخیره‌شده',remove:'پاک کردن نمره‌های اظهارشده',saved:'نمره‌ها ذخیره شدند؛ تأیید صادرکننده نیستند.',error:'ذخیره یا بارگذاری نمره‌ها ممکن نشد.',locked:'نمره‌های تأییدشدهٔ صادرکننده در اینجا قابل ویرایش نیستند.',working:'در حال انجام…'},
- ps:{title:'تحصیلي نمرې (اختیاري)',note:'یوازې د خپلو اسنادو مطابق نمرې ولیکئ. دا د صادرونکي تایید، د بورس وړتوب یا د ازموینې منل نه ثابتوي.',gpa:'اوسط نمره (GPA)',scale:'د اوسط رسمي مقیاس',test:'د ژبې ازموینه',none:'نه ده ورکړل شوې',overall:'ټولیزې نمرې',reading:'لوستل',listening:'اورېدل',speaking:'خبرې کول',writing:'لیکل',consent:'زه د دې نه تایید شویو نمراتو شخصي ساتنې ته رضایت ورکوم.',save:'د نمراتو ثبتول',load:'ساتل شوې نمرې راوړل',remove:'ثبت شوې نمرې پاکول',saved:'نمرې وساتل شوې؛ د صادرونکي تایید نه دی.',error:'د نمراتو ساتل یا راوړل ناکام شول.',locked:'د صادرونکي تایید شوې نمرې دلته نه شي بدلېدای.',working:'کار روان دی…'}
+ en:{title:'Academic scores (optional)',note:'Enter scores only as stated on your records. Nothing here proves issuer authenticity, scholarship eligibility or acceptance of a test.',academicScore:'Other academic score (as recorded)',academicScale:'Official scale (no conversion)',gpa:'GPA',scale:'Official GPA scale',test:'Language test',none:'Not provided',overall:'Overall',reading:'Reading',listening:'Listening',speaking:'Speaking',writing:'Writing',consent:'I approve storing these scores privately as unverified declarations.',save:'Save score declarations',load:'Reload saved scores',remove:'Clear these score declarations',saved:'Score declarations saved; not issuer verified.',error:'Could not save or load scores.',locked:'Issuer-verified scores cannot be edited here.',working:'Working…'},
+ fa:{title:'نمره‌های تحصیلی (اختیاری)',note:'نمره‌ها را فقط مطابق مدارک خود وارد کنید. این اطلاعات تأیید صادرکننده، واجد شرایط بودن یا پذیرش آزمون را اثبات نمی‌کند.',academicScore:'نمرهٔ تحصیلی دیگر (مطابق سند)',academicScale:'مقیاس رسمی (بدون تبدیل)',gpa:'معدل (GPA)',scale:'مقیاس رسمی معدل',test:'آزمون زبان',none:'ارائه نشده',overall:'نمره مجموع',reading:'خواندن',listening:'شنیدن',speaking:'صحبت کردن',writing:'نوشتن',consent:'ذخیره خصوصی این نمره‌ها را به‌عنوان اظهارات تأییدنشده می‌پذیرم.',save:'ذخیره نمره‌های اظهارشده',load:'بارگذاری نمره‌های ذخیره‌شده',remove:'پاک کردن نمره‌های اظهارشده',saved:'نمره‌ها ذخیره شدند؛ تأیید صادرکننده نیستند.',error:'ذخیره یا بارگذاری نمره‌ها ممکن نشد.',locked:'نمره‌های تأییدشدهٔ صادرکننده در اینجا قابل ویرایش نیستند.',working:'در حال انجام…'},
+ ps:{title:'تحصیلي نمرې (اختیاري)',note:'یوازې د خپلو اسنادو مطابق نمرې ولیکئ. دا د صادرونکي تایید، د بورس وړتوب یا د ازموینې منل نه ثابتوي.',academicScore:'بله تحصیلي نمره (د سند مطابق)',academicScale:'رسمي مقیاس (له بدلولو پرته)',gpa:'اوسط نمره (GPA)',scale:'د اوسط رسمي مقیاس',test:'د ژبې ازموینه',none:'نه ده ورکړل شوې',overall:'ټولیزې نمرې',reading:'لوستل',listening:'اورېدل',speaking:'خبرې کول',writing:'لیکل',consent:'زه د دې نه تایید شویو نمراتو شخصي ساتنې ته رضایت ورکوم.',save:'د نمراتو ثبتول',load:'ساتل شوې نمرې راوړل',remove:'ثبت شوې نمرې پاکول',saved:'نمرې وساتل شوې؛ د صادرونکي تایید نه دی.',error:'د نمراتو ساتل یا راوړل ناکام شول.',locked:'د صادرونکي تایید شوې نمرې دلته نه شي بدلېدای.',working:'کار روان دی…'}
 };
 const sections=['listening','reading','speaking','writing'];
 let profile={},epoch=0,notice='';
-document.addEventListener('bursyar:identity',()=>{profile={};epoch++;notice='';const root=document.querySelector('#academic-evidence-mount');if(root)mountAcademicEvidence(root,document.documentElement.lang);});
+let captureDraft;
+document.addEventListener('bursyar:identity',()=>{profile={};captureDraft=undefined;epoch++;notice='';const root=document.querySelector('#academic-evidence-mount');if(root)mountAcademicEvidence(root,document.documentElement.lang);});
 document.addEventListener('bursyar:profile',event=>{profile=structuredClone(event.detail??{});const root=document.querySelector('#academic-evidence-mount');if(root)mountAcademicEvidence(root,document.documentElement.lang);});
 export function mountAcademicEvidence(root,language='en'){
  if(!root)return;
  const t=academicEvidenceCopy[language]??academicEvidenceCopy.en,ownEpoch=epoch;
+ const draft=captureDraft?.()??{};
  root.replaceChildren();
  const section=document.createElement('section');section.className='section';section.id='academic-evidence';root.append(section);
  const create=(tag,parent=section,text)=>{const el=document.createElement(tag);if(text)el.textContent=text;parent.append(el);return el;};
@@ -29,6 +31,9 @@ export function mountAcademicEvidence(root,language='en'){
  const gpa=field('gpa');
  const scaleLabel=create('label',form,t.scale),scale=create('select',scaleLabel);
  scale.name='scale';for(const value of ['4','5']){const option=create('option',scale,value);option.value=value;}
+ const academicScore=field('academicScore');
+ const otherScaleLabel=create('label',form,t.academicScale),academicScale=create('select',otherScaleLabel);
+ academicScale.name='academicScale';for(const value of ['100','20','5','4']){const option=create('option',academicScale,value);option.value=value;}
  const testLabel=create('label',form,t.test),test=create('select',testLabel);
  test.name='test';
  for(const [value,label] of [['',t.none],['IELTS Academic','IELTS Academic'],['TOEFL iBT','TOEFL iBT']]){const opt=create('option',test,label);opt.value=value;}
@@ -39,20 +44,29 @@ export function mountAcademicEvidence(root,language='en'){
  const save=create('button',form,t.save);save.type='submit';
  const reload=create('button',section,t.load);reload.type='button';
  const clear=create('button',section,t.remove);clear.type='button';
- const status=create('p',section,notice);status.setAttribute('role','status');
+ const status=create('p',section,t[notice]??'');status.setAttribute('role','status');
  const locked=key=>profile[key]?.origin==='issuer_verified';
+ const inputsByField={
+  gpa:[gpa,scale],
+  academicScore:[academicScore,academicScale],
+  languageTest:[test,overall,...Object.values(sectionInputs)]
+ };
+ const readInputs=()=>Object.fromEntries(Object.entries(inputsByField).map(([key,inputs])=>[key,inputs.map(input=>input.value)]));
+ let loadedInputs;
  const refresh=()=>{
   const gp=profile.gpa?.value,lang=profile.languageTest?.value;
   gpa.value=gp?.gpa??'';scale.value=String(gp?.scale??4);
   test.value=['IELTS Academic','TOEFL iBT'].includes(lang?.test)?lang.test:'';
   overall.value=lang?.overall??'';
   for(const key of sections)sectionInputs[key].value=lang?.bands?.[key]??lang?.sections?.[key]??'';
+  academicScore.value=profile.academicScore?.value?.score??'';const recordedScale=String(profile.academicScore?.value?.scale??100);if(![...academicScale.options].some(o=>o.value===recordedScale)){const option=create('option',academicScale,recordedScale);option.value=recordedScale;}academicScale.value=recordedScale;academicScore.max=academicScale.value;academicScore.disabled=academicScale.disabled=locked('academicScore');
   gpa.max=scale.value;
   gpa.disabled=scale.disabled=locked('gpa');
   test.disabled=overall.disabled=locked('languageTest');
   for(const key of sections)sectionInputs[key].disabled=locked('languageTest');
   scores.hidden=!test.value;
   updateLimits();
+  loadedInputs=readInputs();
  };
  function updateLimits(){
   const isIelts=test.value==='IELTS Academic',max=isIelts?9:120,step=isIelts?'0.5':'1';
@@ -60,12 +74,16 @@ export function mountAcademicEvidence(root,language='en'){
   for(const input of Object.values(sectionInputs)){input.max=String(isIelts?9:30);input.step=step;}
  }
  test.addEventListener('change',()=>{scores.hidden=!test.value;updateLimits();});
+ academicScale.addEventListener('change',()=>{academicScore.max=academicScale.value;});
  scale.addEventListener('change',()=>{gpa.max=scale.value;});
  const toNumber=(input)=>{if(input.value.trim()==='')throw Error('Missing score');const v=Number(input.value);if(!Number.isFinite(v))throw Error('Invalid score');return v;};
  function valuesForSave(){
   const values={};
-  if(!locked('gpa')){if(gpa.value.trim())values.gpa={gpa:toNumber(gpa),scale:Number(scale.value)};}
-  if(!locked('languageTest')&&test.value){
+  const currentInputs=readInputs();
+  const edited=key=>!locked(key)&&currentInputs[key].some((value,index)=>value!==loadedInputs[key][index]);
+  if(edited('gpa')&&gpa.value.trim())values.gpa={gpa:toNumber(gpa),scale:Number(scale.value)};
+  if(edited('academicScore')&&academicScore.value.trim())values.academicScore={score:toNumber(academicScore),scale:Number(academicScale.value)};
+  if(edited('languageTest')&&test.value){
    const numeric=Object.fromEntries(sections.map(k=>[k,toNumber(sectionInputs[k])]));
    values.languageTest=test.value==='IELTS Academic'?{test:'IELTS Academic',overall:toNumber(overall),bands:numeric}:{test:'TOEFL iBT',overall:toNumber(overall),sections:numeric};
   }
@@ -74,18 +92,39 @@ export function mountAcademicEvidence(root,language='en'){
  }
  async function api(method,values){
   const token=await getInferenceToken();
-  if(epoch!==ownEpoch)throw Error('Identity changed');
+  if(!section.isConnected||epoch!==ownEpoch)throw Error('Profile form changed');
   const result=await fetch('/api/profile',{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(values?{body:JSON.stringify({consent:true,values})}:{}),signal:AbortSignal.timeout(15000)});
   if(!result.ok)throw Error('Request failed');
-  const data=await result.json();if(epoch!==ownEpoch)throw Error('Identity changed');
-  profile=data;document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:data}));refresh();
+  const data=await result.json();if(!section.isConnected||epoch!==ownEpoch)throw Error('Identity changed');
+  captureDraft=undefined;
+  notice='saved';
+  document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:data}));
  }
  async function act(fn){
+  if(save.disabled)return;
+  const editable=[...form.elements].filter(control=>!control.disabled);
+  for(const control of editable)control.disabled=true;
   status.textContent=t.working;for(const button of [save,reload,clear])button.disabled=true;
-  try{await fn();status.textContent=t.saved;}catch{status.textContent=t.error;}finally{for(const button of [save,reload,clear])button.disabled=false;}
+  try{await fn();status.textContent=t.saved;}catch{status.textContent=t.error;}finally{for(const control of editable)control.disabled=false;reload.disabled=clear.disabled=false;}
  }
  form.addEventListener('submit',e=>{e.preventDefault();act(async()=>{if(!consent.checked)throw Error('Consent required');const values=valuesForSave();if(!Object.keys(values).length)throw Error('No values');await api('PUT',values);});});
  reload.addEventListener('click',()=>act(()=>api('GET')));
- clear.addEventListener('click',()=>act(async()=>{if(!consent.checked||locked('gpa')||locked('languageTest'))throw Error('Unavailable');await api('PUT',{gpa:null,languageTest:null});}));
+ clear.addEventListener('click',()=>act(async()=>{if(!consent.checked||locked('gpa')||locked('languageTest')||locked('academicScore'))throw Error('Unavailable');await api('PUT',{gpa:null,languageTest:null,academicScore:null});}));
  refresh();
+ for(const [key,values] of Object.entries(draft)){
+  if(locked(key))continue;
+  inputsByField[key].forEach((input,index)=>{
+   const value=values[index];
+   if(input===academicScale&&![...input.options].some(option=>option.value===value)){
+    create('option',input,value).value=value;
+   }
+   input.value=value;
+  });
+ }
+ scores.hidden=!test.value;
+ gpa.max=scale.value;
+ academicScore.max=academicScale.value;
+ updateLimits();
+ captureDraft=()=>Object.fromEntries(Object.entries(readInputs()).filter(([key,values])=>
+  !locked(key)&&values.some((value,index)=>value!==loadedInputs[key][index])));
 }

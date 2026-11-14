@@ -35,7 +35,15 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
   const current=!hasText?0:!approval.checked?1:2;
   stepItems.forEach((li,index)=>{if(index===current)li.setAttribute('aria-current','step');else li.removeAttribute('aria-current');});
  };
- const invalidate=()=>{revision++;form.dispatchEvent(new Event('bursyar:sourcechanged'));controller?.abort();approval.checked=false;textarea.readOnly=false;form.sourceReceipt=null;form.sourcePreview=null;preview.hidden=true;sync();};
+ const invalidate=()=>{
+  revision++;
+  controller?.abort();
+  controller=undefined;
+  busy=false;
+  fetchButton.disabled=false;
+  file.disabled=false;
+  form.dispatchEvent(new Event('bursyar:sourcechanged'));
+  approval.checked=false;textarea.readOnly=false;form.sourceReceipt=null;form.sourcePreview=null;preview.hidden=true;sync();};
  const render=data=>{preview.replaceChildren();preview.hidden=false;
   const h=document.createElement('h2');h.tabIndex=-1;h.textContent='1 · '+journeyCopy[language].overview;
   const host=document.createElement('p');host.textContent=new URL(data.receipt.sourceUrl).hostname;host.dir='ltr';
@@ -52,6 +60,7 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
  const requestSource=async(path,body)=>{
   invalidate();const current=controller=new AbortController();busy=true;sync();fetchButton.disabled=true;file.disabled=true;status.textContent=t.loading;
   try{const token=await getInferenceToken().catch(()=>{throw Object.assign(Error(),{status:401});});
+   if(current.signal.aborted||!form.isConnected)return;
    const response=await fetch(path,{method:'POST',credentials:'omit',headers:{'content-type':'application/json',authorization:`Bearer ${token}`},body:JSON.stringify(body),signal:AbortSignal.any([current.signal,AbortSignal.timeout(15000)])});
    if(!response.ok){const problem=await response.json().catch(()=>({}));throw Object.assign(Error(),{status:response.status,code:problem.code});}
    const data=await response.json();if(current.signal.aborted||!form.isConnected)return;
@@ -64,11 +73,25 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
   const selected=file.files?.[0];if(!selected)return;invalidate();const version=revision;
   const format=/\.html?$/i.test(selected.name)?'html':/\.txt$/i.test(selected.name)?'text':null;
   if(!format||selected.size>256*1024||!selected.size){status.textContent=r.fileError;file.value='';return;}
-  const entered=url.value;try{const bytes=new Uint8Array(await selected.arrayBuffer());if(!form.isConnected||entered!==url.value||revision!==version)return;let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);
-   await requestSource('/api/source/import',{url:entered,format,contentBase64:btoa(binary)});
-  }catch{if(form.isConnected)status.textContent=r.fileError;}finally{file.value='';}
+  const entered=url.value;
+  const isCurrent=()=>form.isConnected&&entered===url.value&&revision===version;
+  let bytes;
+  try{bytes=new Uint8Array(await selected.arrayBuffer());}
+  catch{if(isCurrent())status.textContent=r.fileError;return;}
+  finally{if(file.files?.[0]===selected)file.value='';}
+  if(!isCurrent())return;
+  if(!bytes.length||bytes.length>256*1024){status.textContent=r.fileError;return;}
+  let binary='';
+  for(const byte of bytes)binary+=String.fromCharCode(byte);
+  await requestSource('/api/source/import',{url:entered,format,contentBase64:btoa(binary)});
  });
  if(initial.preview){render(initial.preview);textarea.readOnly=!!form.sourceReceipt;}else if(form.sourceFailure)status.textContent=form.sourceFailure==='auth'?t.auth:form.sourceFailure==='busy'?t.busy:form.sourceFailure==='challenge'?r.blocked:r.unavailable;
- document.addEventListener('bursyar:identity',()=>{if(!form.isConnected)return;invalidate();form.sourceFailure=null;form.manualMode=false;textarea.value='';sync();status.textContent='';});
+ const onIdentity=()=>{if(!form.isConnected)return;invalidate();form.sourceFailure=null;form.manualMode=false;url.value='';textarea.value='';file.value='';preview.replaceChildren();sync();status.textContent='';};
+ document.addEventListener('bursyar:identity',onIdentity);
+ form.addEventListener('bursyar:analyzer-dispose',()=>{
+  revision++;
+  controller?.abort();
+  document.removeEventListener('bursyar:identity',onIdentity);
+ },{once:true});
  sync();return ()=>!busy&&approval.checked;
 }

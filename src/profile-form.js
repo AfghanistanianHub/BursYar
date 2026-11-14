@@ -11,7 +11,7 @@ export const profileCopy={
 };
 let cached={},epoch=0,draft={},notice='';
 document.addEventListener('bursyar:identity',()=>{cached={};draft={};notice='';epoch++;const root=document.querySelector('#profile-mount');if(root)mountProfile(root,document.documentElement.lang);});
-document.addEventListener('bursyar:profile',event=>{cached=structuredClone(event.detail??{});draft={};const root=document.querySelector('#profile-mount');if(root)mountProfile(root,document.documentElement.lang);});
+document.addEventListener('bursyar:profile',event=>{cached=structuredClone(event.detail??{});for(const key of Object.keys(draft)){if(cached[key]?.origin==='issuer_verified')delete draft[key];}const root=document.querySelector('#profile-mount');if(root)mountProfile(root,document.documentElement.lang);});
 export function mountProfile(root,language='en'){
  if(!root)return;const t=profileCopy[language]??profileCopy.en,startedEpoch=epoch;
  root.replaceChildren();const section=document.createElement('section');section.id='profile';section.className='section';root.append(section);
@@ -45,11 +45,34 @@ export function mountProfile(root,language='en'){
  const load=el('button',t.load);load.type='button';const remove=el('button',t.remove);remove.type='button';el('p',t.note);
  const status=el('p');status.setAttribute('role','status');if(notice)status.textContent=t[notice];
  if(cached.testExpiry?.value){const p=el('p',cached.testExpiry.value<new Date().toISOString().slice(0,10)?t.expired:t.unconfirmed);p.className='status';}
- async function api(method,body){if(epoch!==startedEpoch)throw Error();const token=await getInferenceToken();if(epoch!==startedEpoch)throw Error();const response=await fetch('/api/profile',{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error();const data=await response.json();if(epoch!==startedEpoch)throw Error();return data;}
- const publish=(data,message='saved')=>{notice=message;cached=data;document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:data}));};
- async function run(action){section.setAttribute('aria-busy','true');for(const b of section.querySelectorAll('button'))b.disabled=true;status.textContent=t.loading;try{await action();if(status.isConnected)status.textContent=t.saved;}catch{if(status.isConnected)status.textContent=t.error;}finally{section.removeAttribute('aria-busy');for(const b of section.querySelectorAll('button'))b.disabled=false;}}
- form.addEventListener('input',()=>{draft=Object.fromEntries(Object.entries(controls).map(([k,c])=>[k,c.value]));});
- form.addEventListener('submit',event=>{event.preventDefault();run(async()=>{if(!consent.checked)throw Error();const values={};for(const [key,c]of Object.entries(controls)){if(cached[key]?.origin==='issuer_verified')continue;values[key]=c.value===''?null:['deferredOffer','continuingSameDegree'].includes(key)?c.value==='true':c.value;}publish(await api('PUT',{values,consent:true}));});});
+ async function api(method,body){if(!section.isConnected||epoch!==startedEpoch)throw Error();const token=await getInferenceToken();if(!section.isConnected||epoch!==startedEpoch)throw Error();const response=await fetch('/api/profile',{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error();const data=await response.json();if(!section.isConnected||epoch!==startedEpoch)throw Error();return data;}
+ const publish=(data,message='saved')=>{notice=message;cached=data;draft={};document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:data}));};
+ async function run(action){if(section.hasAttribute('aria-busy'))return;section.setAttribute('aria-busy','true');for(const b of section.querySelectorAll('button'))b.disabled=true;status.textContent=t.loading;try{await action();if(status.isConnected)status.textContent=t.saved;}catch{if(status.isConnected)status.textContent=t.error;}finally{section.removeAttribute('aria-busy');for(const b of section.querySelectorAll('button'))b.disabled=false;}}
+ form.addEventListener('input',event=>{
+  const key=event.target.name;
+  if(!Object.hasOwn(controls,key)||controls[key]!==event.target)return;
+  const value=event.target.value;
+  if(value===String(cached[key]?.value??''))delete draft[key];
+  else draft[key]=value;
+ });
+ form.addEventListener('submit',event=>{
+  event.preventDefault();
+  const edits=Object.entries(draft);
+  if(!edits.length)return;
+  run(async()=>{
+   if(!consent.checked)throw Error();
+   const values=Object.fromEntries(edits.map(([key,value])=>[
+    key,value===''?null:oxfordFields.includes(key)?value==='true':value
+   ]));
+   const data=await api('PUT',{values,consent:true});
+   for(const [key,value] of edits){
+    if(controls[key].value===value)delete draft[key];
+    else draft[key]=controls[key].value;
+   }
+   notice='saved';
+   document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:data}));
+  });
+ });
  load.addEventListener('click',()=>run(async()=>publish(await api('GET'))));
  remove.addEventListener('click',()=>run(async()=>{await api('DELETE');publish({},'deleted');}));
 }

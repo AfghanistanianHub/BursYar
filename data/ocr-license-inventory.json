@@ -1,0 +1,173 @@
+{
+  "schema": 1,
+  "productionApproved": false,
+  "modelLicenseSelection": "Apache-2.0 from matching upstream distribution, not npm wrapper metadata",
+  "assets": [
+    {
+      "path": "tesseract/tesseract.esm.min.js",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "2537be686335e4b2637e933cdc85a52dd80267a592689c1bd63235c8591540ae",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "tesseract/worker.min.js",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "aca1229639fc9907d86f96e825955a2b7c5716d17f3bc3acd71f9c7ab66181fc",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "licenses/tesseract-LICENSE.md",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "b40930bbcf80744c86c46a12bc9da056641d722716c378f5659b9e555ef833e1",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "licenses/worker-NOTICES.txt",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "45f54171aeaa1d10c0c1a66f374b7bba1f02472b1487fbe892eec04f840002ac",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "licenses/tesseract-NOTICES.txt",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "cdf963ced7d25a0f98901a547647b4d6e2dbe0197fd78c87a059a87b0e542fe2",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "licenses/core-LICENSE",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "core/tesseract-core.wasm.js",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "2b8c8c92b8788807061fb4bb16c5acdf000c149e100255f879f78d2c58ca9969",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "core/tesseract-core.wasm",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "b47a852b19181ae0999f9d970c368cd351135a320ea978b35bd38602d8bcc0bc",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "core/tesseract-core-simd.wasm.js",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "63f232c4f7a97b04e52eb940202700b2c6239783a75d0ff0553274fac530cd5c",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "core/tesseract-core-simd.wasm",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "baa2f54ef5af43ada4605fd7ae999bde3c6ecc96bfe0d0410b0b4f4a5f9c8b91",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "core/tesseract-core-lstm.wasm.js",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "8f04aa0cc81e7bde33f80e92fa01a7a665f0b4884d098acf5de9c7104a11dfaa",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "core/tesseract-core-lstm.wasm",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "5db58ea4d1bd4256be81e8ae3b4fa226c4625dfba1850b1b3308dbf3700e9929",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "core/tesseract-core-simd-lstm.wasm.js",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "ce20eda9533cbed1e6c2b4276fbae1e0adc61b6754b5513084be601787b457cf",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "core/tesseract-core-simd-lstm.wasm",
+      "kind": "project_asset_or_notice",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": null,
+      "licenseEvidence": "pinned npm package LICENSE; see retained project and bundle notices",
+      "sourceSha256": "66b601224a0c4a8977bc9d92dd39841189f9ca22cc4122fcd7208cdb0961eeef",
+      "embeddedComponentReview": "human review of complete embedded-component BOM remains pending"
+    },
+    {
+      "path": "lang/eng.traineddata.gz",
+      "kind": "model",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": "Apache-2.0",
+      "licenseEvidence": "https://github.com/naptha/tessdata/blob/806cd9adc8c6e8abc11c782db1818c990576bebc/LICENSE",
+      "sourceSha256": "45b4cb346724ac1774f1c36f42f182b887bcdb28ebe63e6fff90ac41f3fcff91",
+      "embeddedComponentReview": "not_applicable"
+    },
+    {
+      "path": "lang/fas.traineddata.gz",
+      "kind": "model",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": "Apache-2.0",
+      "licenseEvidence": "https://github.com/naptha/tessdata/blob/806cd9adc8c6e8abc11c782db1818c990576bebc/LICENSE",
+      "sourceSha256": "b5847360e25f646c55449f1fe93eee57d53e406a265ead2374e7320bf0b82025",
+      "embeddedComponentReview": "not_applicable"
+    },
+    {
+      "path": "lang/pus.traineddata.gz",
+      "kind": "model",
+      "projectLicense": "Apache-2.0",
+      "selectedLicense": "Apache-2.0",
+      "licenseEvidence": "https://github.com/naptha/tessdata/blob/806cd9adc8c6e8abc11c782db1818c990576bebc/LICENSE",
+      "sourceSha256": "689b369c109107c4df1cd133446b9de0b10b79706a070d4c35dc885a52764105",
+      "embeddedComponentReview": "not_applicable"
+    }
+  ],
+  "retainedNotices": [
+    "licenses/tesseract-LICENSE.md",
+    "licenses/core-LICENSE",
+    "licenses/tessdata-LICENSE.txt",
+    "licenses/worker-NOTICES.txt",
+    "licenses/tesseract-NOTICES.txt",
+    "CORE-MODIFICATIONS.txt"
+  ],
+  "limitations": [
+    "Project licenses and all distributed input-file hashes are recorded.",
+    "This is not a completed license audit of every native component compiled into WASM.",
+    "Npm wrapper package.json/README files are build-input metadata and are no longer copied into the released asset subtree."
+  ]
+}

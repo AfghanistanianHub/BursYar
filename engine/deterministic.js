@@ -17,7 +17,12 @@ export function createScholarshipCatalog(programs,{now=Date.now}={}){
   for(const r of p.rules){if(!/^[a-zA-Z0-9_-]{1,80}$/.test(r.id)||ids.has(r.id)||typeof r.sourceExcerpt!=='string'||!r.sourceExcerpt.trim()||!p.sourceText.includes(r.sourceExcerpt))throw Error('Invalid reviewed rule');ids.add(r.id);}
   entries.set(p.id,p);
  }
- return Object.freeze({list:()=>[...entries.values()].filter(p=>Date.parse(p.review.expiresAt)>now()&&Date.parse(p.review.reviewedAt)<=now()).map(p=>({id:p.id,sourceUrl:p.sourceUrl,review:structuredClone(p.review)})),get:id=>{
+ const expiredSources=()=>{
+  const at=now();
+  return [...entries.values()].filter(p=>Date.parse(p.review.reviewedAt)<=at&&Date.parse(p.review.expiresAt)<=at)
+   .map(p=>({id:p.id,title:typeof p.title==='string'?p.title:p.id,sourceUrl:p.sourceUrl}));
+ };
+ return Object.freeze({expiredSources,list:()=>[...entries.values()].filter(p=>Date.parse(p.review.expiresAt)>now()&&Date.parse(p.review.reviewedAt)<=now()).map(p=>({id:p.id,...(typeof p.title==='string'?{title:p.title}:{}),sourceUrl:p.sourceUrl,review:structuredClone(p.review)})),get:id=>{
   const p=entries.get(id);if(!p||Date.parse(p.review.expiresAt)<=now()||Date.parse(p.review.reviewedAt)>now())throw Error('Scholarship unavailable');return structuredClone(p);
  }});
 }

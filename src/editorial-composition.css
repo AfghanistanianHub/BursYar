@@ -193,8 +193,8 @@ html[dir=rtl] #top>.editorial-study-band>img{
  #top>.pathfinder-dashboard .pathfinder-intro,
  #top>.pathfinder-dashboard .pathfinder-live{padding:5mm!important}
  #top>.pathfinder-dashboard .pathfinder-intro h2{font-size:30px!important}
- #top>.pathfinder-dashboard:has(#next-actions > .empty-note){grid-template-columns:minmax(0,1fr)!important}
- #top>.pathfinder-dashboard .pathfinder-live:has(#next-actions > .empty-note){display:none!important}
+ #top>.pathfinder-dashboard:has(#next-actions > .empty-note:not([hidden])){grid-template-columns:minmax(0,1fr)!important}
+ #top>.pathfinder-dashboard .pathfinder-live:has(#next-actions > .empty-note:not([hidden])){display:none!important}
  #top>.pathfinder-dashboard .pathfinder-live::before{display:none!important}
  #top>.pathfinder-dashboard .pathfinder-timeline a{padding:1mm 0!important}
  #top>.pathfinder-dashboard .pathfinder-step-copy strong{font-size:18px!important}

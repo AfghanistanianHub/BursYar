@@ -1,5 +1,6 @@
 export const dashboardCopy = {
  en: {
+  editProfile: 'Edit profile', profileLoading: 'Loading saved profile…', profileUnavailable: 'Saved profile unavailable',
   title: 'My dashboard', home: 'Dashboard', mobileHome: 'Home',
   documents: 'Documents & profile', mobileDocuments: 'Documents',
   saved: 'Saved scholarships', mobileSaved: 'Saved',
@@ -18,6 +19,7 @@ export const dashboardCopy = {
   assessmentLink: 'Review your assessment', noSource: 'Official source unavailable'
  },
  fa: {
+  editProfile: 'ویرایش پروفایل', profileLoading: 'در حال دریافت پروفایل ذخیره‌شده…', profileUnavailable: 'پروفایل ذخیره‌شده در دسترس نیست',
   title: 'پیشخوان من', home: 'پیشخوان', mobileHome: 'خانه',
   documents: 'مدارک و پروفایل', mobileDocuments: 'مدارک',
   saved: 'بورسیه‌های ذخیره‌شده', mobileSaved: 'ذخیره‌ها',
@@ -36,6 +38,7 @@ export const dashboardCopy = {
   assessmentLink: 'بازبینی ارزیابی', noSource: 'منبع رسمی در دسترس نیست'
  },
  ps: {
+  editProfile: 'پروفایل سم کړئ', profileLoading: 'ساتل شوی پروفایل راوړل کېږي…', profileUnavailable: 'ساتل شوی پروفایل نشته',
   title: 'زما کاري پاڼه', home: 'کاري پاڼه', mobileHome: 'کور',
   documents: 'اسناد او پروفایل', mobileDocuments: 'اسناد',
   saved: 'ساتل شوي بورسونه', mobileSaved: 'ساتل شوي',

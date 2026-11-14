@@ -17,9 +17,9 @@ test('M16 next-steps section is always visible with a localized empty state', ()
 
 test('M16 inactive analysis restores the empty state instead of hiding', () => {
   assert.match(main, /function paintNextEmpty\(\)/);
-  assert.match(main, /if\(!active\)paintNextEmpty\(\)/);
+  assert.match(main, /if\(!active\)actions\.querySelector\('#analysis-next-action'\)\?\.remove\(\)/);
   assert.doesNotMatch(main, /querySelector\('#next-steps'\)\.hidden/);
-  assert.match(theme, /#next-actions>\*:not\(fieldset\):not\(\.empty-note\)::before/);
+  assert.match(theme, /#local-next-action::before,#analysis-next-action>#barrier-guidance::before/);
 });
 
 test('M16 stage-4 and journey links target a rendered section', () => {

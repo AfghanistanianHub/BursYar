@@ -9,3 +9,12 @@ dist/
 *.db-*
 *-debug.log*
 verification/artifacts/
+
+# Reproducible checksum-verified assets from pinned npm dependencies
+public/vendor/
+
+# Fail-closed local asset preparation lock (never deployed)
+.ocr-preparation.lock/
+
+# Owner-aware OCR initialization coordination (never deployed)
+.ocr-preparation-tickets/

@@ -55,3 +55,20 @@ test('missing explicit evidence and unsupported clauses stay unknown',()=>{
 });
 
 test('empty rules do not count as success',()=>{assert.equal(assessScholarship([],{}).summary,'unknown');});
+
+test('explicitly conflicting requirements cannot produce an eligibility decision',()=>{
+ const reviewed=[rules[0],rules[1],{...source,id:'gpa',type:'minimum_gpa',gpaMin:3,scale:4}];
+ const profile={degree:f('master'),languageTest:f(testScore(7)),gpa:f({gpa:3.8,scale:4})};
+ for(const rule of reviewed){
+  const assessment=assessScholarship([{...rule,conflicting:true}],profile);
+  assert.equal(assessment.summary,'unknown',rule.type);
+  assert.equal(assessment.results[0].reason,'unreviewed_or_unsupported_requirement');
+  assert.equal(assessment.results[0].source.excerpt,rule.sourceExcerpt);
+ }
+ assert.equal(assessScholarship(reviewed,profile).summary,'met');
+});
+test('missing and contradicted GPA evidence never becomes a failed or met threshold',()=>{
+ const rule={...source,id:'gpa',type:'minimum_gpa',gpaMin:3,scale:4};
+ for(const profile of [{},{gpa:{...f({gpa:3.8,scale:4}),contradicted:true}},{gpa:f({gpa:19,scale:20})}])assert.equal(assessScholarship([rule],profile).summary,'unknown');
+ assert.equal(assessScholarship([rule],{gpa:f({gpa:2.9,scale:4})}).summary,'not_met');
+});

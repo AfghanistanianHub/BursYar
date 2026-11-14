@@ -38,3 +38,15 @@ test('evaluate-shaped results map to localized barriers and fail-closed gaps', (
   for (const gap of gaps) for (const lang of ['en', 'fa', 'ps']) assert.ok(actionText[lang][gap.action].length > 0, `${gap.action}.${lang}`);
   assert.equal(gaps.find(g => g.requirementId === 'english').action, 'confirm_accepted_tests');
 });
+
+test('deterministic workflow invalidates stale evaluation results and in-flight requests when bursyar:profile changes', async () => {
+  const workflow = readFileSync(new URL('../src/local-workflow.js', import.meta.url), 'utf8');
+  assert.match(workflow, /document\.addEventListener\('bursyar:profile',profileChanged\)/);
+  assert.match(workflow, /document\.removeEventListener\('bursyar:profile',profileChanged\)/);
+  assert.match(workflow, /profileChanged=event=>\{if\(scope\.value\)return;epoch\+\+;[^}]*clearResult\(\);status\.textContent=t\.changed;/);
+  const {localWorkflowCopy} = await import('../src/local-workflow.js');
+  for (const lang of ['en', 'fa', 'ps']) {
+    assert.equal(typeof localWorkflowCopy[lang].changed, 'string');
+    assert.ok(localWorkflowCopy[lang].changed.length > 0);
+  }
+});

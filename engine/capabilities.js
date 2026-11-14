@@ -48,6 +48,7 @@ export function describeCapabilities(input={}){
  const catalogAvailable=input.catalogAvailable!==false;
  return Object.freeze({
   build:describeBuild(input.build),
+  familyAssessment:Object.freeze({available:documentsAvailable&&input.familyGrantsPresent===true}),
   localAssessment:catalogAvailable
    ?Object.freeze({available:true,externalInference:false})
    :Object.freeze({available:false,reason:'catalog_unavailable',actionable:'Reviewed catalog failed to load; restart with a valid BURSYAR_REVIEWED_CATALOG or the built-in default.'}),

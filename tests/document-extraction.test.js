@@ -5,7 +5,8 @@ import {extractDocumentText} from '../src/document-extraction.js';
 const file=(name,bytes,advertisedSize)=>({name,size:advertisedSize??bytes.length,arrayBuffer:async()=>Uint8Array.from(bytes).buffer});
 const txt=(name,text)=>file(name,new TextEncoder().encode(text));
 const pdf=(text='hello')=>file('transcript.pdf',new TextEncoder().encode('%PDF-'+text));
-const png=file('scan.png',[137,80,78,71,13,10,26,10,0,0]);
+// Synthetic static 100×100 PNG with valid IHDR/IDAT/IEND and CRCs.
+const png=file('scan.png',Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAA/UlEQVR4nO3RMQ0AMAzAsPIn3d5DsBw2gkiZJWV+B/AyJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQGENiDIkxJMaQmAP4K6zWNUjE4wAAAABJRU5ErkJggg==','base64'));
 test('TXT extraction preserves multilingual input and rejects forged file signatures',async()=>{
  assert.deepEqual(await extractDocumentText(txt('TRANSCRIPT.TXT','Degree: bachelor\nفارسی')),{text:'Degree: bachelor\nفارسی',method:'utf8_text'});
  await assert.rejects(()=>extractDocumentText(txt('wrong.pdf','not a PDF')),e=>e.code==='invalidPdf');
@@ -150,9 +151,7 @@ test('document extraction loads code only from pinned reviewed origins (Issue #8
  // synthetic runs may, from these exact pinned files only.
  const source=readFileSync(new URL('../src/document-extraction.js',import.meta.url),'utf8');
  const urls=[...new Set([...source.matchAll(/https:\/\/[^\s'")]+/g)].map(m=>m[0]))].sort();
- assert.deepEqual(urls,[
-  'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js'
- ]);
+ assert.deepEqual(urls,[]);
 });
 
 test('failed PDF loading destroys the loading task',async()=>{
@@ -231,7 +230,10 @@ test('successful PDF stages share one cumulative extraction budget',async()=>{
  assert.equal(await extractionOutcome(extractDocumentText(pdf(),{pdfLoader,timeoutMs:100})),'extractionUnavailable');
  assert.equal(destroyed,1);
 });
-test('bitmap arriving after deadline is closed and never passed to OCR',async()=>{
+test('bitmap arriving after deadline is closed and never passed to OCR',async(t)=>{
+ // Freeze only Date during microtask setup; the real deadline timer still fires.
+ // CPU preemption while other test files compile WASM must not skip decoding.
+ const started=Date.now();t.mock.method(Date,'now',()=>started);
  const prior=globalThis.createImageBitmap;let resolveBitmap,closed=0,ocrCalls=0;
  globalThis.createImageBitmap=()=>new Promise(resolve=>{resolveBitmap=resolve;});
  try{
@@ -240,4 +242,163 @@ test('bitmap arriving after deadline is closed and never passed to OCR',async()=
   await new Promise(resolve=>setTimeout(resolve,0));
   assert.equal(result,'extractionUnavailable');assert.equal(closed,1);assert.equal(ocrCalls,0);
  }finally{if(prior===undefined)delete globalThis.createImageBitmap;else globalThis.createImageBitmap=prior;}
+});
+
+test('oversized PNG and JPEG declarations never reach native decoding or OCR',async()=>{
+ const prior=globalThis.createImageBitmap;let decoded=0,ocr=0;
+ globalThis.createImageBitmap=async()=>{decoded++;return {width:5000,height:1,close(){}};};
+ const pngBytes=[137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,19,136,0,0,0,1,8,6,0,0,0,0,0,0,0];
+ const jpegBytes=[255,216,255,192,0,11,8,0,1,19,136,1,1,17,0,255,218,0,8,1,1,0,0,63,0,0,255,217];
+ try{
+  for(const [name,bytes] of [['huge.png',pngBytes],['huge.jpg',jpegBytes]])await assert.rejects(()=>extractDocumentText(file(name,bytes),{ocrLoader:async()=>{ocr++;throw Error('must not load')}}),e=>e.code==='imageDimensions');
+  assert.equal(decoded,0);assert.equal(ocr,0);
+ }finally{if(prior===undefined)delete globalThis.createImageBitmap;else globalThis.createImageBitmap=prior;}
+});
+
+
+test('OCR worker receives only explicit local asset paths and no persistent cache',async()=>{
+ const native=globalThis.createImageBitmap;
+ globalThis.createImageBitmap=async()=>({width:100,height:100,close(){}});
+ let received;
+ try{
+  await extractDocumentText(png,{ocrLanguage:'fas',ocrLoader:async()=>({createWorker:async(...args)=>{
+   received=args;return {recognize:async()=>({data:{text:'مدرک تحصیلی'}}),terminate:async()=>{}};
+  }})});
+  assert.equal(received[0],'fas');
+  assert.equal(received[1],1);
+  assert.deepEqual(received[2],{workerPath:'/vendor/ocr-v1/tesseract/worker.min.js',corePath:'/vendor/ocr-v1/core',langPath:'/vendor/ocr-v1/lang',workerBlobURL:false,cacheMethod:'none',gzip:true});
+ }finally{globalThis.createImageBitmap=native;}
+});
+
+test('OCR requests only text output instead of duplicate layout exports',async()=>{
+ const native=globalThis.createImageBitmap;globalThis.createImageBitmap=async()=>({width:100,height:100,close(){}});
+ let output;
+ try{
+  await extractDocumentText(png,{ocrLoader:async()=>({createWorker:async()=>({recognize:async(_image,_options,formats)=>{output=formats;return {data:{text:'SYNTHETIC'}};},terminate(){}})})});
+  assert.deepEqual(output,{text:true,blocks:false,hocr:false,tsv:false,box:false,unlv:false,osd:false,pdf:false,imageColor:false,imageGrey:false,imageBinary:false,layoutBlocks:false,debug:false});
+ }finally{globalThis.createImageBitmap=native;}
+});
+test('a stalled scanned-page render is cancelled before canvas cleanup',async()=>{
+ const prior=globalThis.document;const canvas={width:0,height:0,getContext:()=>({})};let cancelled=0,options;
+ globalThis.document={createElement:()=>canvas};
+ try{
+  const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:opts=>{options=opts;return {promise:Promise.resolve({numPages:1,getPage:async()=>({getTextContent:async()=>({items:[]}),getViewport:()=>({width:200,height:200}),render:()=>({promise:pending(),cancel(){cancelled++;}}),cleanup(){}}),destroy(){}})};}});
+  assert.equal(await extractionOutcome(extractDocumentText(pdf(),{pdfLoader,timeoutMs:15})),'extractionUnavailable');
+  assert.equal(cancelled,1);assert.equal(canvas.width,0);assert.equal(canvas.height,0);
+  assert.equal(options.maxImageSize,12000000);assert.equal(options.canvasMaxAreaInBytes,48000000);
+ }finally{globalThis.document=prior;}
+});
+
+test('PDF text budget stops before traversing later malicious items',async()=>{
+ let readLater=false,destroyed=false;
+ const items=[{str:'x'.repeat(12001)},{get str(){readLater=true;throw Error('must not read beyond budget');}}];
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:1,getPage:async()=>({getTextContent:async()=>({items}),cleanup(){}}),destroy(){destroyed=true;}})})});
+ await assert.rejects(()=>extractDocumentText(pdf(),{pdfLoader}),e=>e.code==='extractedTextTooLarge');
+ assert.equal(readLater,false);assert.equal(destroyed,true);
+});
+test('PDF text budget counts UTF-8 bytes before joining and includes earlier pages',async()=>{
+ let calls=0;
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:2,getPage:async()=>({getTextContent:async()=>({items:[{str:'ش'.repeat(3100)}]}),cleanup(){calls++;}}),destroy(){}})})});
+ await assert.rejects(()=>extractDocumentText(pdf(),{pdfLoader}),e=>e.code==='extractedTextTooLarge');
+ assert.equal(calls,2);
+});
+
+test('PDF streaming cancels its reader at the budget without requesting later chunks',async()=>{
+ let reads=0,cancelled=0,released=0;
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:1,getPage:async()=>({streamTextContent:()=>({getReader:()=>({read:async()=>{reads++;return {done:false,value:{items:[{str:'x'.repeat(12001)}]}};},cancel(){cancelled++;},releaseLock(){released++;}})}),cleanup(){}}),destroy(){}})})});
+ await assert.rejects(()=>extractDocumentText(pdf(),{pdfLoader}),e=>e.code==='extractedTextTooLarge');
+ assert.equal(reads,1);assert.equal(cancelled,1);assert.equal(released,1);
+});
+test('PDF streaming accepts real multilingual chunks without getTextContent buffering',async()=>{
+ let i=0,cancelled=0;
+ const chunks=[{done:false,value:{items:[{str:'فارسی',hasEOL:true}]}},{done:false,value:{items:[{str:'پښتو'}]}},{done:true}];
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:1,getPage:async()=>({streamTextContent:()=>({getReader:()=>({read:async()=>chunks[i++],cancel(){cancelled++;},releaseLock(){}})}),getTextContent(){throw Error('unbounded path');},cleanup(){}}),destroy(){}})})});
+ assert.equal((await extractDocumentText(pdf(),{pdfLoader})).text,'فارسی\nپښتو');assert.equal(cancelled,1);
+});
+
+test('aborted document extraction never reads bytes or initializes a parser',async()=>{
+ const controller=new AbortController();controller.abort();let reads=0;
+ await assert.rejects(()=>extractDocumentText({name:'test.txt',size:1,arrayBuffer:async()=>{reads++;return new Uint8Array([65]).buffer;}},{signal:controller.signal}),e=>e.code==='extractionUnavailable');
+ assert.equal(reads,0);
+});
+test('cancelling stalled PDF streaming releases reader and parser without waiting for deadline',async()=>{
+ const controller=new AbortController();let ready,cancelled=0,destroyed=0;
+ const reading=new Promise(resolve=>{ready=resolve;});
+ const pdfLoader=async()=>({GlobalWorkerOptions:{},getDocument:()=>({promise:Promise.resolve({numPages:1,getPage:async()=>({streamTextContent:()=>({getReader:()=>({read:()=>{ready();return new Promise(()=>{});},cancel(){cancelled++;},releaseLock(){}})}),cleanup(){}}),destroy(){destroyed++;}})})});
+ const extraction=extractDocumentText(pdf(),{pdfLoader,signal:controller.signal,timeoutMs:2000});
+ await reading;const cancelledAt=Date.now();controller.abort();
+ await assert.rejects(()=>extraction,e=>e.code==='extractionUnavailable');
+ assert.equal(cancelled,1);assert.equal(destroyed,1);assert.ok(Date.now()-cancelledAt<1000);
+});
+
+test('PDF text accepts the exact UTF-8 limit across chunks without counting structural markers', async () => {
+  const first = 'ش'.repeat(3000);
+  const second = 'x'.repeat(5999);
+  const chunks = [
+    [{str: first, hasEOL: true}],
+    [{type: 'endMarkedContent'}, {str: second}],
+    [{type: 'endMarkedContent'}],
+  ];
+  const pdfLoader = async () => ({
+    GlobalWorkerOptions: {},
+    getDocument: () => ({
+      promise: Promise.resolve({
+        numPages: 1,
+        getPage: async () => ({
+          streamTextContent: () => new ReadableStream({
+            start(controller) {
+              for (const items of chunks) controller.enqueue({items});
+              controller.close();
+            },
+          }),
+        }),
+      }),
+    }),
+  });
+  const result = await extractDocumentText(pdf(), {pdfLoader});
+  assert.equal(result.text, first + '\n' + second);
+});
+
+test('oversized OCR text is rejected before whitespace normalization', async () => {
+  const priorDocument = globalThis.document;
+  const priorBitmap = globalThis.createImageBitmap;
+  let terminated = 0;
+  globalThis.document = {createElement: () => ({getContext: () => ({})})};
+  globalThis.createImageBitmap = async () => ({width:100, height:100, close() {}});
+  const ocrLoader = async () => ({
+    createWorker: async () => ({
+      recognize: async () => ({data:{text:' '.repeat(12000) + 'A'}}),
+      terminate() { terminated++; },
+    }),
+  });
+  const pdfLoader = async () => ({
+    GlobalWorkerOptions: {},
+    getDocument: () => ({promise: Promise.resolve({
+      numPages: 1,
+      getPage: async () => ({
+        getTextContent: async () => ({items: []}),
+        getViewport: () => ({width:100, height:100}),
+        render: () => ({promise: Promise.resolve()}),
+      }),
+    })}),
+  });
+  try {
+    await assert.rejects(extractDocumentText(pdf(), {pdfLoader, ocrLoader}),
+      {code:'extractedTextTooLarge'});
+    assert.equal(terminated, 1);
+    await assert.rejects(extractDocumentText(png, {
+      ocrLoader: async () => ({
+        createWorker: async () => ({
+          recognize: async () => ({data:{text:' '.repeat(12001)}}),
+          terminate() { terminated++; },
+        }),
+      }),
+    }), {code:'extractedTextTooLarge'});
+    assert.equal(terminated, 2);
+  } finally {
+    if (priorDocument === undefined) delete globalThis.document;
+    else globalThis.document = priorDocument;
+    if (priorBitmap === undefined) delete globalThis.createImageBitmap;
+    else globalThis.createImageBitmap = priorBitmap;
+  }
 });

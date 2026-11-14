@@ -3,17 +3,22 @@
 // the real local engine API; identity is stubbed at the bundle boundary (the
 // local build has no Firebase config, so the SDK branch is tree-shaken away),
 // never live Meta.
-// Run: npm run build && node verification/document-production-gate-browser.mjs
+// Default: npm run build && node verification/document-production-gate-browser.mjs
+// Pilot: VITE_DOCUMENT_TEXT_PDF_PILOT=true npm run build -- --outDir dist-pdf-pilot
+// Then: BURSYAR_VERIFY_TEXT_PDF_PILOT=true node verification/document-production-gate-browser.mjs
 import {chromium, expect} from '@playwright/test';
 import {createServer as createHttpServer} from 'node:http';
 import {readFileSync, existsSync, mkdtempSync, rmSync} from 'node:fs';
 import {extname} from 'node:path';
 import {join} from 'node:path';
 import {tmpdir} from 'node:os';
+import {textPdf} from './fixtures/text-pdf.mjs';
 import {DocumentStore} from '../engine/documents.js';
 import {createInferenceServer} from '../engine/http.js';
 
-const dist = new URL('../dist/index.html', import.meta.url);
+const pilot = process.env.BURSYAR_VERIFY_TEXT_PDF_PILOT === 'true';
+const root = new URL(pilot ? '../dist-pdf-pilot/' : '../dist/', import.meta.url);
+const dist = new URL('index.html', root);
 if (!existsSync(dist)) {
   console.error('FAIL PROD-DIST missing: run `npm run build` first');
   process.exit(1);
@@ -24,8 +29,7 @@ const deployConfig = JSON.parse(readFileSync(new URL('../vercel.json', import.me
 const globalHeaders = Object.fromEntries(
   (deployConfig.headers ?? []).filter(h => h.source === '/(.*)').flatMap(h => h.headers ?? []).map(h => [h.key.toLowerCase(), h.value])
 );
-const types = {'.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.woff': 'font/woff', '.woff2': 'font/woff2', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml'};
-const root = new URL('../dist/', import.meta.url);
+const types = {'.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.woff': 'font/woff', '.woff2': 'font/woff2', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml'};
 const staticServer = createHttpServer((req, res) => {
   try {
     const path = new URL(req.url, 'http://localhost').pathname;
@@ -64,6 +68,7 @@ try {
   const page = await (await browser.newContext({viewport: {width: 1280, height: 900}})).newPage();
   let writes = 0;
   const cdnRequests = [];
+  const ocrRequests = [];
   const cspViolations = [];
   let tokenStubbed = false;
   await page.route('**/assets/*.js', async route => {
@@ -94,18 +99,20 @@ try {
   });
   page.on('request', request => {
     const url = new URL(request.url());
+    if (/ocr|tesseract/i.test(url.pathname)) ocrRequests.push(url.pathname);
     if (['cdn.jsdelivr.net', 'unpkg.com'].includes(url.hostname)) cdnRequests.push(request.method() + ' ' + url.pathname);
   });
   page.on('console', msg => {
     if (msg.type() === 'error' && /content security policy/i.test(msg.text())) cspViolations.push(msg.text());
   });
-  await page.goto(origin);
+  const navigation = await page.goto(origin);
+  check('PROD-CSP-HEADER', !!globalHeaders['content-security-policy'] && navigation.headers()['content-security-policy'] === globalHeaders['content-security-policy'], 'deployment CSP is enforced');
   check('PROD-IDENTITY-STUBBED', tokenStubbed, 'synthetic identity installed at bundle boundary');
   await page.locator('#workspace-overview a[href="#profile-mount"]').click();
   const form = page.locator('#documents > form');
   const status = page.locator('#documents > [role=status]');
-  check('PROD-NOTICE', await form.getByText('Production currently accepts TXT only').isVisible(), 'TXT-only notice shown');
-  check('PROD-ACCEPT', (await form.locator('input[type=file]').getAttribute('accept')) === '.txt,text/plain', 'file picker limited to TXT');
+  if (!pilot) check('PROD-NOTICE', await form.getByText('Production currently accepts TXT only').isVisible(), 'TXT-only notice shown');
+  check('PROD-ACCEPT', (await form.locator('input[type=file]').getAttribute('accept')) === (pilot ? '.txt,.pdf,text/plain,application/pdf' : '.txt,text/plain'), 'file picker matches build mode');
   await form.locator('input[type=checkbox]').check();
   await form.locator('input[type=file]').setInputFiles({name: 'x.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 fake')});
   await form.locator('button[type=submit]').click();
@@ -121,7 +128,37 @@ try {
   await expect(page.locator('.document-source')).toContainText('SYNTHETIC PROD TXT ONLY', {timeout: 20000});
   check('PROD-TXT-OK', writes === 1 && documents.list(user).length === 1, `writes=${writes}`);
   check('PROD-NO-CDN-AFTER-TXT', cdnRequests.length === 0, cdnRequests.join(';') || 'TXT path loads no vendor code');
+  if (pilot) {
+    const preview = page.locator('.document-extraction-preview');
+    await form.locator('input[type=file]').setInputFiles({name: 'ok.pdf', mimeType: 'application/pdf', buffer: textPdf([['SYNTHETIC PILOT PDF', 'Degree: bachelor']])});
+    await form.locator('button[type=submit]').click();
+    await expect(preview.locator('textarea')).toHaveValue(/SYNTHETIC PILOT PDF/);
+    check('PILOT-PREVIEW', writes === 1, 'PDF preview performs no write');
+    await preview.getByRole('button', {name: 'Save reviewed extracted text'}).click();
+    await expect(page.locator('.document-source')).toContainText('SYNTHETIC PILOT PDF');
+    check('PILOT-SAVE', writes === 2, 'reviewed PDF text saved');
+    await form.locator('input[type=file]').setInputFiles({name: 'scan.pdf', mimeType: 'application/pdf', buffer: textPdf([[]])});
+    await form.locator('button[type=submit]').click();
+    await expect(preview).toBeVisible();
+    await expect(preview.locator('textarea')).toHaveValue('');
+    await expect(status).toContainText('without selectable text');
+    check('PILOT-SCAN', writes === 2, 'scan offers manual transcription without saving');
+    check('PILOT-NO-OCR', ocrRequests.length === 0, 'no OCR assets requested');
+  }
   check('PROD-CSP-CLEAN', cspViolations.length === 0, cspViolations.join(';').slice(0, 200) || 'no boot CSP violations');
+  const blockedInlineScript = await page.evaluate(() => new Promise(resolve => {
+    const timer = setTimeout(() => resolve(false), 1000);
+    document.addEventListener('securitypolicyviolation', event => {
+      if (event.blockedURI !== 'inline' || !event.effectiveDirective.startsWith('script-src')) return;
+      clearTimeout(timer);
+      resolve(true);
+    });
+    const script = document.createElement('script');
+    script.textContent = 'window.syntheticInlineScriptRan = true';
+    document.head.append(script);
+    script.remove();
+  }));
+  check('PROD-CSP-INLINE-BLOCKED', blockedInlineScript && !await page.evaluate(() => window.syntheticInlineScriptRan), 'inline script blocked by browser');
   await page.context().close();
 } finally {
   await browser?.close().catch(() => {});

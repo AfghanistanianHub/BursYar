@@ -40,8 +40,8 @@ try {
   await expect(page.locator('#source-approved')).not.toBeChecked();
   await expect(page.locator('#source-url')).toBeFocused();
   expect(paidRequests).toBe(0);
-  await page.locator('[data-research-save]').click();
-  await expect(page.locator('[data-research-save]')).toHaveAttribute('aria-pressed','true');
+  await page.locator('[data-research-save="gates-cambridge-2027"]').click();
+  await expect(page.locator('[data-research-save="gates-cambridge-2027"]')).toHaveAttribute('aria-pressed','true');
   await page.locator('#research-search').fill('');
   await page.locator('#research-saved-only').check();
   await expect(page.locator('#research-explorer > .listing article')).toHaveCount(1);

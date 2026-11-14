@@ -47,6 +47,17 @@ try {
  assert.equal(responses.filter(r=>r.status===200).length,1);assert.equal(responses.filter(r=>r.status===429).length,2);assert.equal(calls,1);checks+=3;
  assert.equal((await post(b.idToken)).status,200);assert.equal(calls,2);checks++;
  const documentRequest=(token,path,method='GET',body)=>fetch(`http://127.0.0.1:${server.address().port}${path}`,{method,headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});
+ // A preview hostname must match the isolated backend's configured origin.
+ const previewProfile={consent:true,values:{targetDegree:'doctorate'}};
+ const saveFromOrigin=origin=>fetch(`http://127.0.0.1:${server.address().port}/api/profile`,{
+  method:'PUT',headers:{origin,authorization:`Bearer ${a.idToken}`,'content-type':'application/json'},
+  body:JSON.stringify(previewProfile)
+ });
+ assert.equal((await saveFromOrigin('https://unconfigured-preview.example')).status,403);
+ assert.deepEqual(await (await documentRequest(a.idToken,'/api/profile')).json(),{});
+ assert.equal((await saveFromOrigin('http://localhost:5173')).status,200);
+ assert.equal((await (await documentRequest(a.idToken,'/api/profile')).json()).targetDegree.value,'doctorate');
+ checks+=4;
  const uploaded=await documentRequest(a.idToken,'/api/documents','POST',{mime:'text/plain',consent:true,text:'SYNTHETIC EMULATOR ONLY\nDegree: bachelor'});
  assert.equal(uploaded.status,201);const document=await uploaded.json();checks++;
  assert.equal((await documentRequest(b.idToken,`/api/documents/${document.id}`)).status,404);checks++;
@@ -55,6 +66,37 @@ try {
  assert.deepEqual(await (await documentRequest(b.idToken,'/api/profile')).json(),{});checks++;
  assert.equal((await documentRequest(a.idToken,`/api/documents/${document.id}`,'DELETE')).status,200);checks++;
  assert.equal((await documentRequest(a.idToken,`/api/documents/${document.id}`)).status,404);checks++;
+ // Verify the account-data controls against the real authenticated API.
+ const uploadFor=token=>documentRequest(token,'/api/documents','POST',{
+  mime:'text/plain',consent:true,text:'SYNTHETIC ACCOUNT EXPORT\nDegree: bachelor'
+ });
+ const own=await uploadFor(a.idToken);
+ const other=await uploadFor(b.idToken);
+ assert.equal(own.status,201);
+ assert.equal(other.status,201);
+ const ownId=(await own.json()).id;
+ const otherId=(await other.json()).id;
+ const profile=await documentRequest(a.idToken,'/api/profile','PUT',{consent:true,values:{targetDegree:'master'}});
+ assert.equal(profile.status,200);
+ const readExport=async token=>{
+  const response=await documentRequest(token,'/api/export');
+  assert.equal(response.status,200);
+  assert.equal(response.headers.get('cache-control'),'no-store');
+  return response.json();
+ };
+ const before=await readExport(a.idToken);
+ assert.equal(before.profile.targetDegree.value,'master');
+ assert.deepEqual(before.documents.map(record=>record.id),[ownId]);
+ assert.deepEqual((await readExport(b.idToken)).documents.map(record=>record.id),[otherId]);
+ assert.equal((await documentRequest(unapproved.idToken,'/api/erase','DELETE')).status,401);
+ const erased=await documentRequest(a.idToken,'/api/erase','DELETE');
+ assert.equal(erased.status,200);
+ assert.deepEqual(await erased.json(),{deleted:true});
+ const after=await readExport(a.idToken);
+ assert.deepEqual(after.profile,{});
+ assert.deepEqual(after.documents,[]);
+ assert.deepEqual((await readExport(b.idToken)).documents.map(record=>record.id),[otherId]);
+ checks+=8;
  await auth.updateUser(b.localId,{disabled:true});assert.equal((await post(b.idToken)).status,401);checks++;
  await new Promise(resolve=>server.close(resolve));server=undefined;quota.close();
  console.log(JSON.stringify({mode:'LOCAL_EMULATORS_WITH_FAKE_MODEL',checks,passed:true,liveFirebaseVerified:false,liveMetaVerified:false}));

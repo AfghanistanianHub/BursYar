@@ -52,7 +52,11 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
    }
    if(localRoute){
     try{
-     if(route==='/api/scholarships'&&req.method==='GET')return send(res,200,{scholarships:catalog?.list()??[],externalInference:false});
+     if(route==='/api/scholarships'&&req.method==='GET'){
+      const scholarships=catalog?.list()??[];
+      const expiredSources=scholarships.length?[]:catalog?.expiredSources?.()??[];
+      return send(res,200,{scholarships,...(expiredSources.length?{expiredSources}:{}),externalInference:false});
+     }
      if(!documents)return send(res,503,{error:'Local processing unavailable'});
      if(route==='/api/evaluate'&&req.method==='POST'){
       const body=await readInput(req,x=>x);if(!catalog||typeof body?.scholarshipId!=='string')return send(res,422,{error:'Reviewed scholarship unavailable'});

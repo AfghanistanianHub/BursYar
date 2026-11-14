@@ -11,3 +11,13 @@ export async function documentRequest(path,{token,method='GET',body,fetchImpl=fe
   throw failure(write?'mutationUncertain':['TimeoutError','AbortError'].includes(error.name)?'requestTimedOut':'requestNetworkError');
  }
 }
+
+export async function retryStartupRead(read,isCurrent){
+ try{
+  return await read();
+ }catch(error){
+  if(!['unavailableError','requestTimedOut','requestNetworkError'].includes(error.code)||!isCurrent())throw error;
+  await new Promise(resolve=>setTimeout(resolve,1500));
+  if(isCurrent())return read();
+ }
+}
