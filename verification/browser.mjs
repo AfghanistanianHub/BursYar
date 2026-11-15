@@ -82,8 +82,20 @@ try {
   await expect(page.locator('.editorial-opportunity')).toHaveCount(3);
   await expect(page.locator('.editorial-opportunity a').first()).toHaveAttribute('href',/^https:\/\//);
   await expect(page.locator('.editorial-opportunity a').first()).toHaveAttribute('rel','noopener noreferrer');
-  await expect(page.locator('.editorial-nav a')).toHaveCount(4);
-  expect(await page.locator('.editorial-nav a').evaluateAll(links=>new Set(links.map(link=>link.hash)).size)).toBe(4);
+  const visibleNav=page.locator('.editorial-nav a:visible');
+  const compactHeader=width<=900;
+  await expect(visibleNav).toHaveCount(compactHeader?4:5);
+  expect(await visibleNav.evaluateAll(links=>new Set(links.map(link=>link.hash)).size)).toBe(compactHeader?4:5);
+  if(compactHeader){
+    const account=await page.locator('.header .account').boundingBox();
+    const languageControl=await page.locator('.header .language').boundingBox();
+    const navRow=await page.locator('.editorial-nav').boundingBox();
+    expect(Math.abs(account.y-languageControl.y)).toBeLessThan(4);
+    expect(navRow.y).toBeGreaterThanOrEqual(account.y+account.height);
+    expect(await visibleNav.evaluateAll(links=>links.every(link=>link.offsetHeight>=44))).toBe(true);
+    await page.locator('.header-start').click();
+    await expect(page.locator('#guided-entry-heading')).toBeFocused();
+  }
   expect(await page.locator('.step-num').first().evaluate(number=>{
    const style=getComputedStyle(number);
    return style.color!==style.backgroundColor;
@@ -108,8 +120,13 @@ try {
     return {hero,pillars,selected,how,nav,imageLoaded:!!network&&network.getBoundingClientRect().width>0};
   });
   expect(editorialGeometry.imageLoaded).toBe(true);
-  expect(editorialGeometry.pillars.top).toBeGreaterThanOrEqual(editorialGeometry.hero.bottom-2);
-  expect(editorialGeometry.selected.top).toBeGreaterThanOrEqual(editorialGeometry.pillars.bottom-2);
+  if(width<=760){
+    await expect(page.locator('.editorial-pillars')).toBeHidden();
+    expect(editorialGeometry.selected.top).toBeGreaterThanOrEqual(editorialGeometry.hero.bottom-2);
+  }else{
+    expect(editorialGeometry.pillars.top).toBeGreaterThanOrEqual(editorialGeometry.hero.bottom-2);
+    expect(editorialGeometry.selected.top).toBeGreaterThanOrEqual(editorialGeometry.pillars.bottom-2);
+  }
   expect(editorialGeometry.how.top).toBeGreaterThanOrEqual(editorialGeometry.selected.bottom-2);
   expect(editorialGeometry.nav.top).toBeGreaterThanOrEqual(editorialGeometry.how.bottom-2);
   expect(editorialGeometry.selected.width).toBeGreaterThan(width*0.8);

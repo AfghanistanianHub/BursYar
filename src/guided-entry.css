@@ -13,7 +13,7 @@
 .guided-option strong{font-size:clamp(15px,1.4vw,19px);font-weight:650;letter-spacing:-.02em;line-height:1.35;margin-bottom:8px}
 .guided-option>span:nth-last-child(2){font-size:12px;color:#595653;line-height:1.7;max-width:44ch}
 .guided-option .guided-arrow{position:absolute;right:22px;bottom:17px;color:var(--brand);font-size:18px}
-html[dir=rtl] .guided-option .guided-arrow{right:auto;left:22px;transform:scaleX(-1)}
+html[dir=rtl] .guided-option .guided-arrow{right:auto;left:22px}
 .guided-reassurance{font-size:12px;line-height:1.7;color:#4E554F;margin:20px 0 0;display:flex;align-items:center;gap:9px}
 .guided-reassurance span{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#E3ECE7;color:#285B41;font-weight:700;flex-shrink:0}
 /* Treat synthetic technical details as opt-in learning, not the first thing

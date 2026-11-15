@@ -49,10 +49,6 @@ html[dir=rtl] .story-index-kicker{padding:14px 0 14px 18px}
 .story-index a:hover{background:var(--sb-paper)}
 .story-index a:hover::before{color:var(--sb-navy-deep)}
 .story-index a:focus-visible{outline:3px solid var(--sb-navy);outline-offset:-3px}
-/* ---- Guided entry: storyboard numerals on the three choices ---- */
-.guided-entry-options{counter-reset:choice}
-.guided-option{counter-increment:choice}
-.guided-option strong::before{content:"0" counter(choice);display:block;font-size:11px;font-weight:700;color:var(--sb-navy);letter-spacing:.08em;margin-bottom:6px;font-variant-numeric:tabular-nums}
 #top>.guided-entry{background-color:var(--sb-paper);background-image:var(--sb-dots);background-size:22px 22px}
 /* ---- Responsive ---- */
 @media(max-width:1024px){
