@@ -3,6 +3,8 @@ import {extractDocumentText,imageDocumentsEnabled,pdfDocumentsEnabled} from './d
 import {publicDocumentReferenceAudit,issuerFromText} from './document-public-evidence.js';
 import {getInferenceToken} from './auth.js';
 import {journeyCopy} from './journey-copy.js';
+import {mountDocumentVerification} from './document-verification.js';
+import {verificationCopy} from './official-verification.js';
 // Until OCR dependencies are served by our own audited origin, only TXT is
 // available to real production users. Local development and synthetic CI can
 // exercise the PDF/image pipeline without exposing private student records.
@@ -84,6 +86,13 @@ export function mountDocuments(root,language='en'){
  ocrSelect.addEventListener('change',clearPreview);
  const load=element('button',t.load);load.type='button';
  const l=libraryCopy[language]??libraryCopy.en;const library=element('fieldset');element('legend',l.title,library);const chooser=element('select','',library);chooser.setAttribute('aria-label',l.title);const refresh=element('button',l.refresh,library);refresh.type='button';const open=element('button',l.open,library);open.type='button';
+ // Document-level entry point. No document text is read here: the learner
+ // selects the exact test/document type and institution in the panel.
+ const v=verificationCopy[language]??verificationCopy.en;
+ const verifyBox=element('section','',section);verifyBox.className='document-verification-library';
+ const verifyFieldset=element('fieldset','',verifyBox);element('legend',v.action,verifyFieldset);element('p',v.recordsNote,verifyFieldset);
+ const verifyList=element('ul','',verifyFieldset);verifyList.className='document-verify-records';
+ const verifyPanel=element('div','',verifyBox);
  const status=element('p');status.setAttribute('role','status');const content=element('div');
  async function api(path,method='GET',body,beforeSend){if(!section.isConnected||mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();if(!section.isConnected||epoch!==identityEpoch)throw Error();beforeSend?.();const data=await documentRequest(path,{token,method,body});if(!section.isConnected||epoch!==identityEpoch)throw Error();return data;}
  const publish=profile=>document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:profile}));
@@ -107,6 +116,13 @@ export function mountDocuments(root,language='en'){
     option.value=item.id;
    }
    if(!items.length)element('option',l.empty,chooser).value='';
+   verifyList.replaceChildren();
+   for(const [i,item] of items.entries()){
+    const row=element('li','',verifyList);row.className='document-verify-record';
+    const rowLabel=element('span',`${number.format(i+1)} · ${date.format(new Date(item.uploadedAt))} · ${item.reviewed?l.reviewed:l.pending}`,row);rowLabel.dir='auto';
+    const rowVerify=element('button',v.action,row);rowVerify.type='button';rowVerify.setAttribute('aria-label',`${v.action} — ${v.panelTitle}`);rowVerify.addEventListener('click',()=>busy(async()=>{const panel=mountDocumentVerification(verifyPanel,{language,documentId:item.id});panel?.focus();}));
+   }
+   if(!items.length)element('li',l.empty,verifyList).className='document-verify-empty';
    const pending=items.filter(item=>!item.reviewed);
    pendingId=pending[0]?.id;
    open.disabled=!chooser.value;

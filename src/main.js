@@ -26,6 +26,7 @@ import './guided-entry.css';
 import './trust-explainer.css';
 import './storyboard.css';
 import './documents-storyboard.css';
+import './document-verification.css';
 import './hero-document-demo.css';
 import './student-dashboard.css';
 import {heroDocumentDemo,heroDocumentReader,mountHeroDocumentDemo} from './hero-document-demo.js';
