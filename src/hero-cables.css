@@ -24,14 +24,6 @@
   .cables-chip::before{content:"";position:absolute;inset:auto 9% 100%;height:6px;background:repeating-linear-gradient(90deg,#b98c42 0 7px,transparent 7px 12px);border-radius:2px}
   .cables-chip strong{font-size:clamp(1.28rem,2.65vw,2rem)}
   .cables-chip-ai{color:var(--brand-soft);font:bold .72rem system-ui;letter-spacing:.22em}
-  .cables-result{padding:.35rem .45rem;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:0 0 9px 9px;font-size:clamp(.66rem,1.01vw,.78rem);text-align:start}
-  .cables-result p{margin:0 0 .24rem;color:var(--muted);font-weight:700}
-  .cables-result dl,.cables-result dd{margin:0}
-  .cables-result dl>div{display:flex;justify-content:space-between;align-items:baseline;gap:.25rem;padding:.16rem 0;border-top:1px solid #e9e1d7}
-  .cables-result dd{padding:0 .26em;border-radius:.3em;font-weight:650}
-  .cables-met{background:#e6f1e7;color:#23573c}
-  .cables-unknown{background:#f6ead6;color:#69430c}
-  .cables-not-met{background:#f6e5e3;color:#80332c}
 }
 @media screen and (max-width:760px){
   html #top>.hero.hero-with-cables{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto auto;gap:.75rem;padding:1rem}
@@ -44,6 +36,5 @@
   .cables-icon{border-radius:7px}
   .cables-reader{width:clamp(120px,37%,158px)}
   .cables-chip{min-height:72px}
-  .cables-result{font-size:.64rem}
 }
 @media (prefers-reduced-motion:reduce){.cables-traces circle{display:none}}

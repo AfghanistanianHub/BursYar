@@ -83,6 +83,15 @@ try {
   await expect(page.locator('.editorial-opportunity a').first()).toHaveAttribute('href',/^https:\/\//);
   await expect(page.locator('.editorial-opportunity a').first()).toHaveAttribute('rel','noopener noreferrer');
   await expect(page.locator('.editorial-nav a')).toHaveCount(4);
+  expect(await page.locator('.editorial-nav a').evaluateAll(links=>new Set(links.map(link=>link.hash)).size)).toBe(4);
+  expect(await page.locator('.step-num').first().evaluate(number=>{
+   const style=getComputedStyle(number);
+   return style.color!==style.backgroundColor;
+  })).toBe(true);
+  expect(await page.locator('#assistant').evaluate(assistant=>
+   Boolean(assistant.compareDocumentPosition(document.querySelector('.editorial-selected'))&Node.DOCUMENT_POSITION_FOLLOWING)
+  )).toBe(true);
+
   const heroDemo=page.locator('.document-demo');
   await expect(heroDemo).toBeVisible();
   await expect(heroDemo.locator('select')).toBeDisabled();

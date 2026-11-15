@@ -18,8 +18,7 @@ test('hero actions reuse localized labels and open their disclosures', () => {
   assert.match(main, /<div class="hero-actions">/);
   assert.match(main, /<a class="primary-link" href="#documents-mount" data-open="\.workspace">\$\{esc\(j\.startDocuments\)\}<\/a>/);
   assert.match(main, /<a class="primary-link secondary" href="#research-explorer" data-open="\.resources">\$\{esc\(ed\.explore\)\}/);
-  assert.match(main, /querySelectorAll\('\[data-open\]'\)/);
-  assert.match(main, /el\.dataset\.open/);
+  assert.match(main, /link\.dataset\.open/);
 });
 
 test('hero action targets and disclosures exist in the shell', () => {

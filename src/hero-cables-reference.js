@@ -44,36 +44,30 @@ const PINS=[530.8,546.7,556.2,568.8,582.1,593.2,609.3,622.6,633.8,647.0,657.5,66
 
 const copy = {
   en: {
-    title:'Introducing <span class="by-acc">BursYar AI</span><br>Scholarships, checked against your documents',
-    lead:'BursYar reads your documents, checks the official requirements, and shows your next step.',
-    action:'Check my eligibility', sample:'Illustrative example', program:'Meridian', degree:'Degree', language:'Language', grades:'GPA',
-    met:'Met', unknown:'Unknown', notMet:'Not met', evidence:'1 needs evidence', pause:'Pause animation', play:'Play animation',
+    action:'Start with your documents', caption:'How BursYar connects documents and official requirements',
+    pause:'Pause animation', play:'Play animation',
   },
   fa: {
-    title:'<span class="by-acc">بورس‌یار با هوش مصنوعی</span><br>بررسی بورسیه بر اساس مدارک شما',
-    lead:'بورس‌یار مدارک شما را می‌خواند، شرایط رسمی را بررسی می‌کند و گام بعدی را نشان می‌دهد.',
-    action:'شروع با مدارک خود', sample:'نمونهٔ نمایشی', program:'مریدین', degree:'مدرک تحصیلی', language:'زبان', grades:'معدل',
-    met:'برآورده شد', unknown:'نامشخص', notMet:'برآورده نشد', evidence:'یک شرط به مدرک نیاز دارد', pause:'توقف حرکت', play:'پخش حرکت',
+    action:'شروع با مدارک خود', caption:'ارتباط مدارک با شرایط رسمی بورسیه',
+    pause:'توقف حرکت', play:'پخش حرکت',
     tiles:['رزومه','انگیزه‌نامه','گذرنامه','آیلتس ۷٫۰','ریزنمرات','مدرک تحصیلی','صفحهٔ رسمی','دانشگاه','بورسیه‌ها','صورت‌حساب بانکی','توصیه‌نامه','مدرک هویت'],
   },
   ps: {
-    title:'<span class="by-acc">بورس‌یار له مصنوعي ځیرکتیا سره</span><br>ستاسو د اسنادو پر بنسټ د بورس ارزونه',
-    lead:'بورس‌یار ستاسو اسناد لولي، رسمي شرطونه ارزوي او بل ګام درښيي.',
-    action:'خپل شرایط وارزوئ', sample:'ازمایښتي بېلګه', program:'مېریډین', degree:'تحصیلي سند', language:'ژبه', grades:'نمرې',
-    met:'پوره شو', unknown:'نامعلوم', notMet:'پوره نه شو', evidence:'یو شرط سند ته اړتیا لري', pause:'حرکت ودروئ', play:'حرکت پیل کړئ',
+    action:'له خپلو اسنادو پیل وکړئ', caption:'له رسمي شرطونو سره د اسنادو تړاو',
+    pause:'حرکت ودروئ', play:'حرکت پیل کړئ',
     tiles:['ژوندلیک','انګېزه‌لیک','پاسپورټ','آیلټس ۷٫۰','د نمرو لړلیک','تحصیلي سند','رسمي پاڼه','پوهنتون','بورسونه','بانکي حساب','سپارښت‌لیک','پېژندپاڼه'],
   },
 };
 
-export function referenceHero(language) {
+export function referenceHero(language, {headline,lead,explore}) {
   const t=copy[language] ?? copy.en;
   const dir=language==='en'?'ltr':'rtl';
   return `<section id="by-hero-cables" aria-labelledby="by-title">
     <div id="by-stage">
       <div class="by-hero" dir="${dir}">
-        <h1 id="by-title">${t.title}</h1>
-        <p>${t.lead}</p>
-        <div class="by-actions"><a class="by-btn" href="#documents-mount" data-open=".workspace">${t.action}</a></div>
+        <h1 id="by-title">${headline}</h1>
+        <p>${lead}</p>
+        <div class="by-actions"><a class="by-btn" href="#documents-mount" data-open=".workspace">${t.action}</a><a class="by-btn by-btn-secondary" href="#research-explorer">${explore}</a></div>
       </div>
       <svg id="by-cables" width="1200" height="676" viewBox="0 0 1200 676" aria-hidden="true">
         <ellipse class="by-halo" cx="601" cy="433" rx="219" ry="145"/>
@@ -85,13 +79,7 @@ export function referenceHero(language) {
       </svg>
       ${TILES.map((tile,index)=>`<div class="by-tile"><span aria-hidden="true">${ICONS[tile.icon]}</span><span class="by-tlabel ${tile.lab}">${t.tiles?.[index] ?? tile.label}</span></div>`).join('')}
       <div id="by-hub" aria-hidden="true"><div class="by-fa" lang="fa">بورس‌یار</div><div class="by-en">BursYar</div><div class="by-ai">AI</div></div>
-      <div id="by-result" dir="${dir}">
-        <div class="by-rhead"><span>${t.sample}</span><span>${t.program}</span></div>
-        <div class="by-row"><span>${t.degree}</span><span class="by-pill ok">${t.met}</span></div>
-        <div class="by-row"><span>${t.language}</span><span class="by-pill warn">${t.unknown}</span></div>
-        <div class="by-row"><span>${t.grades}</span><span class="by-pill no">${t.notMet}</span></div>
-        <div class="by-rfoot">${t.evidence}</div>
-      </div>
+      <p class="by-diagram-caption" dir="${dir}">${t.caption}</p>
       <button class="by-motion" type="button" hidden>${t.pause}</button>
     </div>
   </section>`;

@@ -1,0 +1,25 @@
+@media screen {
+ .site .editorial-nav a{display:inline-flex;align-items:center;min-height:32px}
+ #top>.how-it-works .step-num{color:#fff}
+ #top>.how-it-works li a{display:block;min-height:32px}
+ #top>.hero-with-cables .hero-document-reader,
+ #top>.hero-with-cables .document-demo-visual{align-self:start}
+ #by-hero-cables .by-actions{display:flex;justify-content:center;gap:12px}
+ #by-hero-cables .by-btn-secondary{color:var(--brand-dark);background:var(--surface);border:1px solid var(--line)}
+ #by-hero-cables .by-btn-secondary:hover{background:var(--brand-soft)}
+ #by-hero-cables .by-diagram-caption{position:absolute;inset:526px 0 auto;margin:0 auto;width:240px;text-align:center;color:var(--muted);font-size:14px}
+ #top>.pathfinder-dashboard:has(#next-actions > .empty-note:not([hidden])) .pathfinder-live{align-self:start;min-height:0;background-image:none}
+ #top>.pathfinder-dashboard:has(#next-actions > .empty-note:not([hidden])) .pathfinder-live::before{display:none}
+ .pathfinder-step-static{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:1rem;padding-block:.75rem}
+ .site [dir=rtl] .guided-arrow,.site [dir=rtl] .pathfinder-step-arrow,
+ html[dir=rtl] .site .guided-arrow,html[dir=rtl] .site .pathfinder-step-arrow{display:inline-block;scale:-1 1}
+ .site footer a{min-height:24px;display:inline-flex;align-items:center}
+}
+@media screen and (max-width:760px){
+ html #top>.hero.hero-with-cables .hero-document-reader{grid-area:2/1}
+ html #top>.hero.hero-with-cables .document-demo-visual{grid-area:3/1}
+ html #top>.hero.hero-with-cables .hero-cables{grid-area:4/1}
+}
+@media screen and (min-width:1050px){
+ #by-hero-cables{aspect-ratio:1200/570;overflow:hidden}
+}

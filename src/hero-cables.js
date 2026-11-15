@@ -41,7 +41,6 @@ export function heroCables(language) {
       <span class="cables-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="${icon}"/></svg></span>
       <span>${t.sources[i]}</span>
     </div>`).join('');
-  const rows = [[t.academic, t.met, 'met'], [t.language, t.unknown, 'unknown'], [t.grades, t.notMet, 'not-met']];
   return `<figure class="hero-cables" aria-label="${t.label}">
     <figcaption class="sr-only">${t.sample}</figcaption>
     <div class="cables-diagram">
@@ -56,10 +55,6 @@ export function heroCables(language) {
       </div>
       <div class="cables-reader">
         <div class="cables-chip" aria-hidden="true"><span lang="fa">بورس‌یار</span><strong>BursYar</strong><span class="cables-chip-ai">AI</span></div>
-        <div class="cables-result">
-          <p>${t.sample}</p>
-          <dl>${rows.map(([name, value, status]) => `<div><dt>${name}</dt><dd class="cables-${status}">${value}</dd></div>`).join('')}</dl>
-        </div>
       </div>
     </div>
   </figure>`;
