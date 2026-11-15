@@ -1,0 +1,21 @@
+name: BursYar Google sign-in smoke
+on:
+  push:
+    branches: [release-verification]
+    paths:
+      - '.github/workflows/live-google-smoke.yml'
+      - 'verification/live-google-popup.mjs'
+permissions:
+  contents: read
+jobs:
+  open-google-popup:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: node verification/live-google-popup.mjs
