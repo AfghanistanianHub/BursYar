@@ -40,7 +40,7 @@ try {
  const target = 'http://127.0.0.1:'+api.address().port;
  site = await preview({
   configFile:false,
-  preview:{host:listenHost(),port,strictPort:true,
+  preview:{host:listenHost(),port,strictPort:true,allowedHosts:[origin.hostname],
    headers:{'Content-Security-Policy':csp,'Cache-Control':'no-store'},
    proxy:{'/api':target,'/health':target}}
  });
