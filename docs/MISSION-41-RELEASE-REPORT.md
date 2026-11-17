@@ -2,8 +2,28 @@
 
 Baseline: `origin/main` @ `797b777` (clean, no uncommitted work).
 Development branch: `freebuff/c5ef0632c5ef6ac6e4c3dbd7`.
-Release-candidate commit: `c337011` (single commit on top of `797b777`).
-Nothing was deployed. Production (`https://bursyar.vercel.app`) was not touched.
+Release-candidate commits: `c337011` (verification workflow) and `7dbd75f`
+(release report + translation ledger) on top of `797b777`.
+
+### Deployment side effect (recorded after the fact)
+
+The push was requested without a branch and the remote accepted it on **`main`**
+(`797b777..7dbd75f`). Vercel therefore created production deployment
+`dpl_5kTEatYfvg2Z9dCweuPSKW6BDjQj` from `7dbd75f`, which reached **READY /
+PROMOTED** and the `bursyar.vercel.app` alias. Verified live afterwards:
+
+- `https://bursyar.vercel.app/` serves `assets/index-BBWmzBSU.js`, which contains
+  the new verification UI strings.
+- `/health` returns 200 with `build.commit = 3e7432a` — the **Render backend was
+  not redeployed**, so `/api/verifications` returns **404** in production. The
+  verification page therefore shows its unavailable state; no request can be
+  recorded against the live backend yet.
+- `/api/export` and `/api/erase` already exist in backend `3e7432a`, so the
+  privacy page's download and delete actions are served by the live backend.
+
+This deployment was not the intended target and was not authorised as a
+production release; Vercel rollback to the previous deployment is available and
+was **not** performed because it is an owner decision.
 
 ## 1. What was verified before editing
 
@@ -99,7 +119,9 @@ path that has no HTTP route.
 
 ## 7. Decision
 
-**NO-GO for the full v1.0 public release as specified**, because production OCR
+**NO-GO for the full v1.0 public release as specified** — and the production
+alias currently serves this release candidate's frontend while the backend
+(`3e7432a`) has no verification routes — because production OCR
 is not enabled/verified (criterion 3), issuer verification is not authorised
 (credential workflow exists but only as a request/consent record), and human
 translation review is outstanding.
