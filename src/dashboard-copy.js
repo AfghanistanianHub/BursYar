@@ -15,7 +15,16 @@ export const dashboardCopy = {
   noSaved: 'No saved scholarships yet', browse: 'Browse scholarships',
   savedNote: 'Saved in this browser. Check the official source for current details.',
   noAssessment: 'No assessments in this session', assessmentReady: 'Assessment ready to review',
-  assessmentLink: 'Review your assessment', noSource: 'Official source unavailable'
+  assessmentLink: 'Review your assessment', noSource: 'Official source unavailable',
+  verifications: 'Verification', mobileVerifications: 'Verify', mobileAccount: 'Account',
+  privacy: 'Privacy and your data',
+  privacyNote: 'Your profile, documents and verification requests are private to your account. You can download a copy or delete everything at any time.',
+  exportData: 'Download my data', deleteData: 'Delete all my data',
+  deleteConfirm: 'Click again to delete everything',
+  deleted: 'Your profile, documents and verification requests were deleted.',
+  exported: 'Your data file was downloaded.', privacyBusy: 'Working…',
+  privacyError: 'Data request unavailable. Check your connection and sign in again.',
+  deleteLocalNote: 'Saved scholarships kept in this browser are separate from your account; clear them from the saved page.'
  },
  fa: {
   title: 'پیشخوان من', home: 'پیشخوان', mobileHome: 'خانه',
@@ -33,7 +42,16 @@ export const dashboardCopy = {
   noSaved: 'هنوز بورسیه‌ای ذخیره نشده', browse: 'جست‌وجوی بورسیه‌ها',
   savedNote: 'این فهرست در همین مرورگر ذخیره می‌شود. جزئیات تازه را در منبع رسمی ببین.',
   noAssessment: 'در این نشست هنوز ارزیابی انجام نشده', assessmentReady: 'ارزیابی آمادهٔ بازبینی است',
-  assessmentLink: 'بازبینی ارزیابی', noSource: 'منبع رسمی در دسترس نیست'
+  assessmentLink: 'بازبینی ارزیابی', noSource: 'منبع رسمی در دسترس نیست',
+  verifications: 'تأیید مدارک', mobileVerifications: 'تأیید', mobileAccount: 'حساب',
+  privacy: 'حریم خصوصی و داده‌های شما',
+  privacyNote: 'پروفایل، مدارک و درخواست‌های تأیید شما فقط برای حساب شماست. هر زمان بخواهید می‌توانید نسخه‌ای دانلود یا همه را حذف کنید.',
+  exportData: 'دانلود داده‌های من', deleteData: 'حذف همهٔ داده‌های من',
+  deleteConfirm: 'برای حذف همه، دوباره کلیک کنید',
+  deleted: 'پروفایل، مدارک و درخواست‌های تأیید شما حذف شد.',
+  exported: 'فایل داده‌های شما دانلود شد.', privacyBusy: 'در حال انجام…',
+  privacyError: 'درخواست داده در دسترس نیست. اتصال را بررسی و دوباره وارد شوید.',
+  deleteLocalNote: 'بورسیه‌های ذخیره‌شده در این مرورگر جدا از حساب شماست؛ از صفحهٔ ذخیره‌ها پاک کنید.'
  },
  ps: {
   title: 'زما کاري پاڼه', home: 'کاري پاڼه', mobileHome: 'کور',
@@ -51,6 +69,15 @@ export const dashboardCopy = {
   noSaved: 'تر اوسه کوم بورس نه دی ساتل شوی', browse: 'بورسونه وپلټئ',
   savedNote: 'دا لړ په همدې براوزر کې ساتل کېږي. تازه معلومات په رسمي سرچینه کې وګورئ.',
   noAssessment: 'په دې ناسته کې تر اوسه ارزونه نشته', assessmentReady: 'ارزونه د بیاکتنې لپاره چمتو ده',
-  assessmentLink: 'ارزونه بیا وګورئ', noSource: 'رسمي سرچینه نه ده لاسرسی وړ'
+  assessmentLink: 'ارزونه بیا وګورئ', noSource: 'رسمي سرچینه نه ده لاسرسی وړ',
+  verifications: 'د سند تایید', mobileVerifications: 'تایید', mobileAccount: 'حساب',
+  privacy: 'محرمیت او ستاسو معلومات',
+  privacyNote: 'ستاسو پروفایل، اسناد او د تایید غوښتنې یوازې ستاسو حساب ته دي. هر وخت یې کاپي ډاونلوډ یا ټول حذف کولی شئ.',
+  exportData: 'زما معلومات ډاونلوډ کړئ', deleteData: 'زما ټول معلومات حذف کړئ',
+  deleteConfirm: 'د ټولو حذف لپاره بیا کلیک وکړئ',
+  deleted: 'ستاسو پروفایل، اسناد او د تایید غوښتنې حذف شوې.',
+  exported: 'ستاسو معلومات فایل ډاونلوډ شو.', privacyBusy: 'کار روان دی…',
+  privacyError: 'د معلوماتو غوښتنه نه ده لاسرسی وړ. اړیکه وګورئ او بیا ننوځئ.',
+  deleteLocalNote: 'په دې براوزر کې ساتل شوي بورسونه ستاسو له حسابه بېل دي؛ د ساتل شویو پاڼې څخه یې پاک کړئ.'
  }
 };

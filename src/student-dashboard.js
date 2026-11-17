@@ -2,6 +2,9 @@ import {dashboardCopy} from './dashboard-copy.js';
 import {openPendingDocument} from './documents.js';
 import {researchScholarships, researchSourceUrl} from './research-catalog.js';
 import {getSavedResearchIds} from './research-explorer.js';
+import {mountVerifications} from './verifications.js';
+import {getInferenceToken} from './auth.js';
+import {documentRequest} from './document-request.js';
 
 const paths = {
  home: 'M3 10l9-7 9 7v10h-6v-6H9v6H3z',
@@ -9,7 +12,9 @@ const paths = {
  saved: 'M6 4h12v17l-6-4-6 4z',
  assessments: 'M20 11v9H4V4h11m-7 8 3 3 10-10',
  book: 'M12 6C8 3 5 3 2 4v15c4-1 7 0 10 2 3-2 6-3 10-2V4c-3-1-6-1-10 2v15',
- account: 'M5 20v-2a7 7 0 0 1 14 0v2M16 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0'
+ account: 'M5 20v-2a7 7 0 0 1 14 0v2M16 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
+ verified: 'M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6zM8.5 12l2.5 2.5 4.5-5',
+ privacy: 'M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3'
 };
 const icon = name => `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none"
  stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[name]}"/></svg>`;
@@ -23,7 +28,8 @@ const illustration = `<svg class="dashboard-illustration" aria-hidden="true" vie
  </svg>`;
 
 const routes = {home:'#dashboard', documents:'#dashboard/documents',
- saved:'#dashboard/saved', assessments:'#dashboard/assessments'};
+ saved:'#dashboard/saved', assessments:'#dashboard/assessments',
+ verifications:'#dashboard/verifications', account:'#dashboard/account'};
 const toolsByRoute = {
  documents:['#documents-mount','#profile-mount','#academic-evidence-mount'],
  assessments:['#assistant','#local-workflow-mount','#eligibility-mount','#next-steps']
@@ -141,6 +147,55 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
   }
   panel.replaceChildren(list,note,browse);
  }
+ function renderAccount() {
+  panel.innerHTML = `<section class="dashboard-privacy">
+   <h2>${t.privacy}</h2>
+   <p>${t.privacyNote}</p>
+   <div class="privacy-actions">
+    <button type="button" class="dashboard-action" data-privacy="export">${t.exportData}</button>
+    <button type="button" class="dashboard-action" data-privacy="delete">${t.deleteData}</button>
+   </div>
+   <p class="privacy-status" role="status"></p>
+   <p class="privacy-note">${t.deleteLocalNote}</p></section>`;
+  const status = panel.querySelector('.privacy-status');
+  const [exportButton, deleteButton] = panel.querySelectorAll('[data-privacy]');
+  let confirming = false, timer;
+  exportButton.addEventListener('click', async () => {
+   exportButton.disabled = true; status.textContent = t.privacyBusy;
+   try {
+    const token = await getInferenceToken();
+    const data = await documentRequest('/api/export', {token});
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
+    const link = document.createElement('a');
+    link.href = url; link.download = 'bursyar-my-data.json';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    status.textContent = t.exported;
+   } catch (error) { status.textContent = t[error.code] ?? t.privacyError; }
+   finally { exportButton.disabled = false; }
+  });
+  deleteButton.addEventListener('click', async () => {
+   if (!confirming) {
+    confirming = true; deleteButton.textContent = t.deleteConfirm;
+    timer = setTimeout(() => { confirming = false; deleteButton.textContent = t.deleteData; }, 8000);
+    return;
+   }
+   clearTimeout(timer); confirming = false;
+   exportButton.disabled = deleteButton.disabled = true; status.textContent = t.privacyBusy;
+   try {
+    const token = await getInferenceToken();
+    await documentRequest('/api/erase', {token, method: 'DELETE'});
+    status.textContent = t.deleted;
+    // Documents and verifications now belong to an empty account: remount them
+    // so no stale record stays visible after deletion.
+    document.dispatchEvent(new CustomEvent('bursyar:identity'));
+   } catch (error) { status.textContent = t[error.code] ?? t.privacyError; }
+   finally {
+    deleteButton.textContent = t.deleteData;
+    exportButton.disabled = deleteButton.disabled = false;
+   }
+  });
+ }
  function sync(signedIn, focus = false) {
   const next = signedIn && Object.keys(routes).find(key => routes[key] === location.hash);
   site.querySelector('#dashboard-entry').hidden = !signedIn;
@@ -171,6 +226,8 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
   }
   if (view === 'home') renderHome();
   else if (view === 'saved') renderSaved();
+  else if (view === 'verifications') mountVerifications(panel, language);
+  else if (view === 'account') renderAccount();
   else attachTools();
   if (focus) {
    title.focus({preventScroll:true});

@@ -1,6 +1,7 @@
 import {listenHost} from './listen-config.js';
 import {defaultCatalog} from './default-catalog.js';
 import {createDocumentStorage} from './document-storage.js';
+import {createVerificationService,VerificationStore} from './verification.js';
 import {isSpendingConfirmed} from './spending.js';
 import {createFirebaseVerifier} from './auth.js';
 import {createQuotaStorage} from './remote-quota.js';
@@ -40,10 +41,13 @@ const policyContextForRequest=createTrustedPolicyResolver({providers:config,load
 const catalog=env.BURSYAR_REVIEWED_CATALOG?createScholarshipCatalog(await readPrivateJson(env.BURSYAR_REVIEWED_CATALOG)):createScholarshipCatalog(defaultCatalog);
 const loadFamilyGrant=env.BURSYAR_FAMILY_GRANTS?async(uid,subjectId)=>(await readPrivateJson(env.BURSYAR_FAMILY_GRANTS)).find(r=>r.guardianUid===uid&&r.subjectId===subjectId):null;
 const documents=await createDocumentStorage(env);
+// Credential verification requires both the private document store (ownership
+// checks) and its own private database. Otherwise the workflow is unavailable.
+const verifications=env.BURSYAR_VERIFICATION_DB&&documents?createVerificationService({store:new VerificationStore(env.BURSYAR_VERIFICATION_DB),documents}):null;
 const verify=createFirebaseVerifier({projectId:env.FIREBASE_PROJECT_ID,webApiKey:env.FIREBASE_WEB_API_KEY?.trim()||undefined});
 const buildCommit=resolveBuildCommit(env);
 const capabilities=describeCapabilities({build:{commit:buildCommit},providerConfigPresent:!!(env.BURSYAR_PROVIDER_CONFIG||env.BURSYAR_PROVIDER_JSON),providerEnabled:config.meta?.enabled===true,familyGrantsPresent:!!env.BURSYAR_FAMILY_GRANTS,metaAvailable:providers.meta?.available===true,spendingConfirmed:isSpendingConfirmed(env),spendingApproved:config.meta?.spendingApproved===true,policyRecordsConfigured:!!(env.BURSYAR_POLICY_RECORDS||env.BURSYAR_POLICY_RECORDS_JSON),documentsAvailable:!!documents,catalogAvailable:!!catalog});
-const server=createInferenceServer({documents,verify,projectId:env.FIREBASE_PROJECT_ID,quota:{reserve(){throw Error('Provider unavailable');}},providers,catalog,loadFamilyGrant,origin:env.BURSYAR_ORIGIN,canInfer:provider=>isSpendingConfirmed(env)&&config[provider]?.spendingApproved===true,policyContextForRequest,capabilities});
+const server=createInferenceServer({documents,verifications,verify,projectId:env.FIREBASE_PROJECT_ID,quota:{reserve(){throw Error('Provider unavailable');}},providers,catalog,loadFamilyGrant,origin:env.BURSYAR_ORIGIN,canInfer:provider=>isSpendingConfirmed(env)&&config[provider]?.spendingApproved===true,policyContextForRequest,capabilities});
 server.listen(port,listenHost(env));
 console.log(formatCapabilities(capabilities));
-for(const signal of ['SIGTERM','SIGINT'])process.once(signal,()=>{server.close(()=>{for(const quota of quotas)quota.close();documents?.close();process.exit(0);});server.closeIdleConnections();});
+for(const signal of ['SIGTERM','SIGINT'])process.once(signal,()=>{server.close(()=>{for(const quota of quotas)quota.close();verifications?.close();documents?.close();process.exit(0);});server.closeIdleConnections();});

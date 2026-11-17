@@ -6,6 +6,7 @@ import {auditScholarshipEvidence} from './source-provenance.js';
 import {metaReservationUnits} from './meta-request.js';
 import {MAX_META_TIMEOUT_MS,safeProviderDiagnostics} from './provider-config.js';
 import {DocumentError} from './documents.js';
+import {VerificationError} from './verification.js';
 import {createServer} from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {MetaFailure} from './meta.js';
@@ -20,7 +21,7 @@ async function readInput(req,validate=validateEvidenceRequest,maxBody=MAX_BODY){
  for await(const chunk of req){size+=chunk.length;if(size>maxBody)throw Object.assign(Error(),{status:413});chunks.push(chunk);}
  try{return validate(JSON.parse(Buffer.concat(chunks).toString('utf8')));}catch{throw Object.assign(Error(),{status:400});}
 }
-export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,providers=null,catalog=null,loadFamilyGrant=null,policyContextForRequest=async()=>{throw Error('Provider policy unavailable');},documents=null,sources=createSourceFetcher(),capabilities=null,diagnose=record=>console.error(JSON.stringify(record))}){
+export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,providers=null,catalog=null,loadFamilyGrant=null,policyContextForRequest=async()=>{throw Error('Provider policy unavailable');},documents=null,verifications=null,sources=createSourceFetcher(),capabilities=null,diagnose=record=>console.error(JSON.stringify(record))}){
  if(!verify || !projectId || !quota || (!infer&&!providers) || !origin || !Number.isSafeInteger(maxConcurrent) || maxConcurrent<1)throw Error('Missing gateway configuration');
  let active=0;
  const server=createServer(async(req,res)=>{
@@ -32,7 +33,11 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
   const sourceRoute=!family&&req.method==='POST'&&['/api/source','/api/source/import'].includes(route);
   const importRoute=route==='/api/source/import';
   const documentRoute=/^\/api\/(?:documents(?:\/[a-f0-9-]{36}(?:\/review)?)?|profile)$/.test(route??'');
-  if(!(req.method==='POST'&&req.url==='/api/analyze')&&!documentRoute&&!sourceRoute&&!localRoute&&!family)return send(res,404,{error:'Not found'});
+  // Credential verification: students may record a request; only a server-side
+  // issuer decision (no HTTP route) can change a status to verified.
+  const verificationProviderRoute=route==='/api/verifications/providers';
+  const verificationRoute=/^\/api\/verifications(?:\/[a-f0-9-]{36})?$/.test(route??'');
+  if(!(req.method==='POST'&&req.url==='/api/analyze')&&!documentRoute&&!sourceRoute&&!localRoute&&!family&&!verificationRoute&&!verificationProviderRoute)return send(res,404,{error:'Not found'});
   if(req.headers.origin && req.headers.origin!==origin)return send(res,403,{error:'Origin denied'});
   // No CORS headers; proxy same-origin /api to this service. No cookie authentication.
   if(active>=maxConcurrent)return send(res,429,{error:'Busy; retry later'});
@@ -58,12 +63,34 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
       const body=await readInput(req,x=>x);if(!catalog||typeof body?.scholarshipId!=='string')return send(res,422,{error:'Reviewed scholarship unavailable'});
       return send(res,200,evaluateReviewedScholarship(catalog.get(body.scholarshipId),await documents.profile(storageOwner)));
      }
-     if(route==='/api/export'&&req.method==='GET')return send(res,200,await documents.export(storageOwner));
+     if(route==='/api/export'&&req.method==='GET'){
+      const data=await documents.export(storageOwner);
+      // A student's export includes their verification requests and the issuer
+      // decisions recorded for them, never an inferred authenticity claim.
+      return send(res,200,verifications?{...data,verificationRequests:verifications.list(storageOwner).requests}:data);
+     }
      if(route==='/api/erase'&&req.method==='DELETE'){
-      await documents.eraseOwner(storageOwner);return send(res,200,{deleted:true});
+      await documents.eraseOwner(storageOwner);
+      // Account deletion also erases verification requests and their audit trail.
+      verifications?.eraseOwner?.(storageOwner);
+      return send(res,200,{deleted:true});
      }
      return send(res,405,{error:'Method unavailable'});
     }catch{return send(res,422,{error:'Local processing unavailable'});}
+   }
+   if(verificationRoute||verificationProviderRoute){
+    if(!verifications)return send(res,503,{error:'Verification workflow unavailable'});
+    try{
+     if(verificationProviderRoute){
+      if(req.method!=='GET')return send(res,405,{error:'Method unavailable'});
+      return send(res,200,verifications.providers());
+     }
+     const id=route.split('/')[3];
+     if(req.method==='GET'&&!id)return send(res,200,verifications.list(storageOwner));
+     if(req.method==='POST'&&!id)return send(res,201,verifications.create(storageOwner,await readInput(req,x=>x)));
+     if(req.method==='DELETE'&&id)return send(res,200,verifications.withdraw(storageOwner,id));
+     return send(res,405,{error:'Method unavailable'});
+    }catch(error){return send(res,error instanceof VerificationError?error.status:[400,413,415].includes(error.status)?error.status:503,{error:'Verification request unavailable'});}
    }
    if(sourceRoute){
     try{const body=await readInput(req,x=>x,importRoute?400*1024:MAX_BODY);const source=importRoute?sources.importSource(body,{uid}):await sources.fetchSource(body?.url,{signal:pending.signal,uid});return send(res,200,source);}

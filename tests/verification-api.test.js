@@ -1,0 +1,115 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {mkdtempSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {DocumentStore} from '../engine/documents.js';
+import {VerificationStore,createVerificationService} from '../engine/verification.js';
+import {createInferenceServer} from '../engine/http.js';
+
+const origin='http://localhost';
+function fixture(){
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-api-'));
+ const documents=new DocumentStore(join(dir,'documents.db'));
+ const verifications=createVerificationService({store:new VerificationStore(join(dir,'verifications.db')),documents});
+ const server=createInferenceServer({
+  projectId:'demo-bursyar',origin,documents,verifications,
+  quota:{reserve(){throw Error('verification routes must never reserve inference');}},
+  infer:async()=>{throw Error('verification routes must never call a model');},
+  verify:async token=>{
+   if(!token||token==='revoked')throw Error('no account');
+   return {uid:token,aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true};
+  },
+  loadFamilyGrant:async()=>null
+ });
+ return {dir,documents,verifications,server};
+}
+async function listen(server){
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+ return `http://127.0.0.1:${server.address().port}`;
+}
+const call=(base,path,{token='alice',method='GET',body,originHeader=origin,contentType='application/json'}={})=>fetch(base+path,{
+ method,
+ headers:{origin:originHeader,...(token?{authorization:`Bearer ${token}`}:{}),'content-type':contentType},
+ ...(body!==undefined?{body:typeof body==='string'?body:JSON.stringify(body)}:{})
+});
+
+test('verification API is authenticated, consent-gated and cannot self-verify',async()=>{
+ const {dir,documents,verifications,server}=fixture();
+ const base=await listen(server);
+ try{
+  const doc=documents.upload('alice',{text:'Degree: bachelor',mime:'text/plain',consent:true});
+  assert.equal((await call(base,'/api/verifications',{token:null})).status,401);
+  assert.equal((await call(base,'/api/verifications/providers',{token:'revoked'})).status,401);
+
+  const matrix=await call(base,'/api/verifications/providers');
+  assert.equal(matrix.status,200);
+  const providers=await matrix.json();
+  assert.equal(providers.autoVerificationAvailable,false);
+  assert.ok(providers.providers.length>=14);
+  assert.ok(providers.statuses.includes('VERIFIED_BY_ISSUER'));
+  const serialized=JSON.stringify(providers);
+  assert.ok(!/apiKey|secret|token/i.test(serialized),'provider matrix must expose no credentials');
+
+  // A client-supplied status or issuer evidence is ignored, never trusted.
+  const created=await call(base,'/api/verifications',{method:'POST',body:{
+   documentId:doc.id,providerId:'ielts',consent:true,reference:'TRF-0001',
+   status:'VERIFIED_BY_ISSUER',issuerEvidence:{kind:'issuer_portal_confirmation'}
+  }});
+  assert.equal(created.status,201);
+  const request=await created.json();
+  assert.equal(request.status,'PENDING');
+  assert.equal(request.issuerEvidence,null);
+  assert.equal(request.provider.autoVerificationAvailable,false);
+
+  assert.equal((await call(base,'/api/verifications',{method:'POST',body:{documentId:doc.id,providerId:'toefl'}})).status,400);
+  assert.equal((await call(base,'/api/verifications',{method:'POST',body:{documentId:doc.id,providerId:'not_an_issuer',consent:true}})).status,422);
+  assert.equal((await call(base,'/api/verifications',{method:'POST',body:'{bad json'})).status,400);
+  assert.equal((await call(base,'/api/verifications',{method:'POST',body:{documentId:doc.id,providerId:'ielts',consent:true},contentType:'text/plain'})).status,415);
+  assert.equal((await call(base,'/api/verifications',{method:'POST',body:{documentId:doc.id,providerId:'ielts',consent:true},originHeader:'https://evil.example'})).status,403);
+
+  // Cross-account isolation: another account sees nothing and cannot withdraw.
+  assert.deepEqual((await (await call(base,'/api/verifications',{token:'bob'})).json()).requests,[]);
+  assert.equal((await call(base,`/api/verifications/${request.id}`,{token:'bob',method:'DELETE'})).status,404);
+  assert.equal((await call(base,'/api/verifications',{method:'POST',token:'bob',body:{documentId:doc.id,providerId:'ielts',consent:true}})).status,404);
+
+  const listed=await (await call(base,'/api/verifications')).json();
+  assert.equal(listed.requests.length,1);
+  assert.equal(listed.requests[0].id,request.id);
+  assert.equal(listed.autoVerificationAvailable,false);
+
+  // Data export includes the request history and still claims no authenticity.
+  const exported=await (await call(base,'/api/export')).json();
+  assert.equal(exported.issuerAuthenticated,false);
+  assert.equal(exported.verificationRequests.length,1);
+  assert.equal(exported.verificationRequests[0].status,'PENDING');
+  assert.equal(exported.verificationRequests[0].issuerEvidence,null);
+
+  // Guardian-scoped family routes never expose the verification workflow.
+  assert.equal((await call(base,'/api/family/subject-1/verifications')).status,403);
+
+  assert.equal((await call(base,`/api/verifications/${request.id}`,{method:'DELETE'})).status,200);
+  assert.deepEqual((await (await call(base,'/api/verifications')).json()).requests,[]);
+
+  // Account erasure removes verification requests and their audit trail.
+  await call(base,'/api/verifications',{method:'POST',body:{documentId:doc.id,providerId:'goethe',consent:true}});
+  assert.equal((await call(base,'/api/erase',{method:'DELETE'})).status,200);
+  assert.deepEqual((await (await call(base,'/api/verifications')).json()).requests,[]);
+  assert.equal(verifications.list('alice').requests.length,0);
+ }finally{server.close();rmSync(dir,{recursive:true,force:true});}
+});
+
+test('verification routes report unavailable instead of pretending to work',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-off-'));
+ const documents=new DocumentStore(join(dir,'documents.db'));
+ const server=createInferenceServer({
+  projectId:'demo-bursyar',origin,documents,
+  quota:{reserve(){throw Error('unused');}},infer:async()=>{},
+  verify:async token=>({uid:token,aud:'demo-bursyar',iss:'https://securetoken.google.com/demo-bursyar',bursyarDemo:true})
+ });
+ const base=await listen(server);
+ try{
+  assert.equal((await call(base,'/api/verifications')).status,503);
+  assert.equal((await call(base,'/api/verifications/providers')).status,503);
+ }finally{server.close();rmSync(dir,{recursive:true,force:true});}
+});

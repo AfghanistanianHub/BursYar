@@ -215,3 +215,36 @@
   .dashboard-illustration { grid-row: 1; max-inline-size: 112px; }
   .dashboard-shortcuts { grid-template-columns: 1fr; gap: 6px; margin-block-start: 10px; }
 }
+
+/* Credential verification + privacy controls (Mission 41) */
+.verification-center .verification-request,
+.verification-center .verification-list { margin-top: 1.75rem; display: grid; gap: .6rem; }
+.verification-center h3 { font-family: Newsreader, Georgia, serif; font-weight: 400; font-size: 1.15rem; margin: 0; }
+.verification-center label { display: grid; gap: .35rem; font-size: .9rem; }
+.verification-center select,
+.verification-center input[type="text"] { max-width: 32rem; padding: .55rem .6rem; border: 1px solid #d8d0c8; border-radius: 4px; background: #fefdfb; color: #1a1a1a; font: inherit; }
+.verification-center input[type="checkbox"] { width: 1rem; height: 1rem; margin-inline-end: .5rem; }
+.verification-center form > label:last-of-type { grid-template-columns: auto 1fr; align-items: start; font-size: .85rem; line-height: 1.45; }
+.verification-center button { justify-self: start; padding: .55rem 1rem; border: 1px solid #1e3a5f; border-radius: 3px; background: #1e3a5f; color: #fefdfb; font: inherit; cursor: pointer; }
+.verification-center button[disabled] { opacity: .55; cursor: progress; }
+.verification-notice,
+.verification-auto-note { border-inline-start: 2px solid #1e3a5f; padding: .5rem .75rem; background: rgba(30, 58, 95, .04); font-size: .85rem; line-height: 1.5; margin: 0; }
+.verification-provider-note { font-size: .85rem; line-height: 1.5; margin: 0; }
+.verification-official { color: #1e3a5f; text-underline-offset: 2px; }
+.verification-hint { font-size: .78rem; color: #555; margin: 0; }
+.verification-requests { list-style: none; margin: 0; padding: 0; display: grid; gap: .75rem; }
+.verification-requests li { border: 1px solid #e4ddd5; border-radius: 6px; padding: .75rem .9rem; display: grid; gap: .3rem; }
+.verification-provider { font-weight: 500; margin: 0; }
+.verification-status { font-size: .78rem; letter-spacing: .02em; text-transform: uppercase; color: #1e3a5f; }
+.verification-requests li[data-status="VERIFIED_BY_ISSUER"] .verification-status { color: #1f5c3a; }
+.verification-requests li[data-status="REJECTED_BY_ISSUER"] .verification-status { color: #8a2b2b; }
+.verification-meta { font-size: .78rem; color: #555; margin: 0; }
+.verification-reference { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; margin: 0; }
+.verification-legend { font-size: .85rem; margin-top: .75rem; }
+.verification-center [role="status"] { min-height: 1.2rem; font-size: .85rem; }
+.dashboard-privacy { display: grid; gap: .75rem; max-width: 44rem; }
+.dashboard-privacy h2 { font-family: Newsreader, Georgia, serif; font-weight: 400; margin: 0; }
+.privacy-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.dashboard-privacy .dashboard-action { border: 1px solid #1a1a1a; background: #1a1a1a; color: #fefdfb; padding: .6rem 1rem; border-radius: 3px; font: inherit; cursor: pointer; }
+.privacy-status { font-size: .85rem; min-height: 1.2rem; margin: 0; }
+.privacy-note { font-size: .78rem; color: #555; margin: 0; }
