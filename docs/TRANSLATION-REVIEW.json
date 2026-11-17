@@ -19,7 +19,8 @@
     "Review retained-source navigation tags and preserve their unreviewed/incomplete status",
     "Review blocked-page recovery, original URL retention and supplied-versus-fetched labels in English/Dari/Pashto",
     "Review source approval, saved HTML/TXT privacy wording and Other options at 320/390/768/1280/1440 px",
-    "Bind semantic approval of the verified live output to actual source/output digests; never approve diagnostic metadata alone"
+    "Bind semantic approval of the verified live output to actual source/output digests; never approve diagnostic metadata alone",
+    "Review credential-verification request, status and privacy export/deletion wording in English, Dari and Pashto; never imply issuer confirmation without an issuer record"
   ],
   "approvalRule": "An authorized fluent human must supply reviewer identity, timestamp and specific output digest before marking reviewed. Automated tests never approve translations."
 }
