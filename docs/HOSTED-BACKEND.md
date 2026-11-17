@@ -78,6 +78,16 @@ requests. Spending quotas are durable in the existing private Supabase project.
 
 ## Read-only release check
 
+After a backend deploy that should include the credential-verification workflow,
+run `node scripts/verify-live-verification-api.mjs --base=https://bursyar.vercel.app
+--expect-commit=<deployed sha>` (also `npm run verify:live-verification`). It
+needs no credentials for the deploy evidence: a 401 on `/api/verifications` and
+`/api/verifications/providers` proves the routes exist behind authentication, a
+404 means the deployed build predates them, and a foreign `Origin` must be
+rejected with 403. Set `BURSYAR_VERIFY_TOKEN` to a real ID token to also exercise
+create/list/withdraw with a synthetic document that it deletes again. Exit status
+is 0 only when every applicable check passes.
+
 Open https://bursyar.vercel.app/health directly. Its `capabilities.build.commit` is the git SHA Render built (`RENDER_GIT_COMMIT`, override `BURSYAR_BUILD_SHA`, else `"unknown"`), so outside-dashboard deploy verification is `curl .../health` and comparing that SHA to the intended commit. The earlier authentication-only release returned `ok: true`, deterministic
 features available, storage disabled and `inferenceVerified: false`. The current
 storage adapter must pass a real read-only RPC probe at startup before reporting
