@@ -68,6 +68,42 @@
 #documents label:has(input[type=checkbox]) input,#profile label:has(input[type=checkbox]) input{order:-1}
 #academic-evidence label:has(input[type=checkbox]){display:flex;gap:10px;align-items:flex-start}
 #academic-evidence label:has(input[type=checkbox]) input{order:-1}
+#academic-evidence label:not(:has(input[type=checkbox])) {
+ display:grid;
+ gap:6px;
+ min-width:0;
+}
+#academic-evidence :is(select,input[type=number]) {
+ width:100%;
+ min-width:0;
+}
+#academic-evidence .academic-grade-fields {
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:12px;
+ align-items:end;
+}
+#academic-evidence .academic-secondary-actions {
+ display:flex;
+ flex-wrap:wrap;
+ gap:8px 16px;
+ margin-block-start:8px;
+}
+#academic-evidence .academic-secondary-actions button {
+ margin:0;
+ background:transparent;
+}
+#academic-evidence [role=status]:empty {
+ position:absolute;
+ width:1px;
+ height:1px;
+ margin:0;
+ padding:0;
+ border:0;
+ overflow:hidden;
+ clip-path:inset(50%);
+}
+
 /* ---- Empty-state glyph (M08-7): icon + text, no new assets ---- */
 .empty-note{text-align:center}
 .empty-note::before{content:"";display:block;width:30px;height:30px;margin:2px auto 10px;background:var(--glyph-search) no-repeat center/contain}
