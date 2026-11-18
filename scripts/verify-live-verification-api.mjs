@@ -11,7 +11,12 @@
 // to also exercise the authenticated create/list/withdraw path end to end. The
 // synthetic document and request it creates are deleted again at the end.
 //
-// Exit status is 0 only when every applicable check passes; a 404 here means the
+// A skipped check is never counted as a pass: the summary reports it separately
+// and names what the run did not prove. Without BURSYAR_VERIFY_TOKEN the
+// authenticated leg is skipped; pass --require-auth to turn that into a failure
+// (for a gate that must not report success on unverified authentication).
+//
+// Exit status is 0 only when every executed check passes; a 404 here means the
 // backend build is older than the release that added the verification routes.
 import {randomUUID} from 'node:crypto';
 
@@ -27,9 +32,9 @@ const origin = base;
 const foreignOrigin = 'https://foreign-origin.invalid';
 
 const results = [];
-function record(name, ok, detail) {
-  results.push({name, ok, detail});
-  if (!asJson) console.log((ok ? 'PASS ' : 'FAIL ') + name.padEnd(26) + ' ' + detail);
+function record(name, ok, detail, {skipped = false} = {}) {
+  results.push({name, ok, detail, skipped});
+  if (!asJson) console.log((skipped ? 'SKIP ' : ok ? 'PASS ' : 'FAIL ') + name.padEnd(26) + ' ' + detail);
 }
 
 async function call(path, {method = 'GET', body, headers = {}, timeoutMs = 60000} = {}) {
@@ -95,7 +100,8 @@ async function unauthenticated() {
 
 async function authenticated() {
   if (!token) {
-    record('authenticated flow', true, 'SKIPPED (set BURSYAR_VERIFY_TOKEN to enable)');
+    record('authenticated flow', true,
+      'no BURSYAR_VERIFY_TOKEN: create/list/withdraw were not exercised', {skipped: true});
     return;
   }
   const auth = {authorization: 'Bearer ' + token, origin};
@@ -155,12 +161,24 @@ try {
 }
 
 const failed = results.filter(result => !result.ok);
-if (asJson) console.log(JSON.stringify({base, expectCommit, results, passed: !failed.length}, null, 2));
-else {
-  console.log('\n' + (results.length - failed.length) + '/' + results.length + ' checks passed against ' + base);
+const skipped = results.filter(result => result.skipped);
+const requireAuth = args.has('require-auth');
+if (asJson) {
+  console.log(JSON.stringify({
+    base, expectCommit, results,
+    passed: !failed.length && !(requireAuth && skipped.length),
+    skipped: skipped.map(result => result.name)
+  }, null, 2));
+} else {
+  console.log('\n' + (results.length - failed.length - skipped.length) + ' passed, '
+    + failed.length + ' failed, ' + skipped.length + ' skipped against ' + base);
+  if (skipped.length) {
+    console.log('NOT PROVEN by this run: ' + skipped.map(result => result.name).join(', ')
+      + '. Set BURSYAR_VERIFY_TOKEN to exercise it' + (requireAuth ? '' : ' (or pass --require-auth to fail instead).'));
+  }
   if (failed.length) {
     const missing = results.find(result => result.name.startsWith('GET /api/verifications') && /status 404/.test(result.detail));
     if (missing) console.log('The deployed backend build does not include the verification routes (404, not 401).');
   }
 }
-process.exit(failed.length ? 1 : 0);
+process.exit(failed.length || (requireAuth && skipped.length) ? 1 : 0);

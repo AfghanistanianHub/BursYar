@@ -48,3 +48,23 @@ Scope: homepage, actions, source review, evidence, eligibility, PathFinder, uplo
 | demo | Sample data — not active scholarships | دادهٔ نمونه — بورسیهٔ فعال نیست | یوازې بېلګې دي؛ فعال بورسونه نه دي |  | PENDING |
 | unverified | Not verified | تأیید نشده | نه دی تایید شوی |  | PENDING |
 | sourceMissing | Official source not linked yet | منبع رسمی هنوز ثبت نشده است | رسمي سرچینه لا نه ده ثبت شوې |  | PENDING |
+
+## Credential-verification strings (added with the verification release)
+
+Scope: `src/verifications.js` (`verificationCopy`) — the request form, the status list and the issuer-method guidance. Every row is PENDING; these are the strings where a mistranslation could be read as an authenticity claim.
+
+| Key | English (source) | Farsi/Dari (current) | Pashto (current) | Correction | Status |
+|---|---|---|---|---|---|
+| intro | Ask the organisation that issued your certificate to confirm your result. BursYar records your request and its outcome; it never decides authenticity itself. | از سازمانی که مدرک شما را صادر کرده بخواهید نتیجه را تأیید کند. بورس‌یار درخواست و پاسخ را ثبت می‌کند و خودش دربارهٔ اصالت تصمیم نمی‌گیرد. | له هغې ادارې وغواړئ چې ستاسو سند یې صادر کړی، ستاسو پایله تایید کړي. بورس‌یار غوښتنه او ځواب ثبتوي او پخپله د اصالت په اړه پریکړه نه کوي. |  | PENDING |
+| notice | Uploading a document, reading its text or matching an issuer name on a public page never proves a credential is genuine. Only the issuing organisation can confirm it. | بارگذاری مدرک، خواندن متن آن یا یافتن نام صادرکننده در یک صفحهٔ عمومی هرگز اصالت مدرک را ثابت نمی‌کند. فقط سازمان صادرکننده می‌تواند آن را تأیید کند. | د سند پورته کول، د هغه متن لوستل یا په عامه پاڼه کې د صادرونکي نوم موندل هېڅکله د سند اصالت نه ثابتوي. یوازې صادرونکې اداره یې تاییدولی شي. |  | PENDING |
+| consent | I consent to BursYar storing this request, the reference number and the issuer's decision in my account. | موافقم که بورس‌یار این درخواست، شمارهٔ مرجع و پاسخ صادرکننده را در حساب من ذخیره کند. | منم چې بورس‌یار دا غوښتنه، مرجع شمېره او د صادرونکي ځواب زما په حساب کې وساتي. |  | PENDING |
+| autoNote | This release has no authorized direct connection to issuer systems, so every request stays pending until the issuer answers. | در این نسخه هیچ اتصال مجاز مستقیمی به سامانه‌های صادرکننده وجود ندارد؛ بنابراین هر درخواست تا پاسخ صادرکننده در حالت انتظار می‌ماند. | په دې نسخه کې د صادرونکو سامانه‌و ته هېڅ مجاز مستقیم اړیکه نشته؛ نو هره غوښتنه تر ځواب پورې په تمه پاتې کېږي. |  | PENDING |
+| statuses.PENDING | Request recorded — awaiting the issuer's response | درخواست ثبت شد؛ در انتظار پاسخ صادرکننده | غوښتنه ثبت شوه؛ د صادرونکي ځواب ته په تمه |  | PENDING |
+| statuses.VERIFIED_BY_ISSUER | Confirmed by the issuing organisation | تأییدشده توسط سازمان صادرکننده | د صادرونکې ادارې لخوا تایید شوی |  | PENDING |
+| statuses.REJECTED_BY_ISSUER | Rejected by the issuing organisation | ردشده توسط سازمان صادرکننده | د صادرونکې ادارې لخوا رد شوی |  | PENDING |
+| access.institution_account | Only the issuing organisation can confirm this. BursYar has no authorized access yet, so you must complete it with them. | فقط سازمان صادرکننده می‌تواند این را تأیید کند. بورس‌یار هنوز دسترسی مجاز ندارد؛ باید خودتان با آن‌ها پیگیری کنید. | یوازې صادرونکې اداره دا تاییدولی شي. بورس‌یار لا مجاز لاسرسی نه لري؛ باید پخپله ورسره تعقیب وکړئ. |  | PENDING |
+| access.public_lookup | The issuer publishes a lookup page you can use yourself. | صادرکننده صفحهٔ بررسی عمومی دارد که می‌توانید خودتان از آن استفاده کنید. | صادرونکي عامه کتنپاڼه لري چې پخپله یې کارولی شئ. |  | PENDING |
+| verifiedLocked | A result confirmed by the issuer cannot be withdrawn. | نتیجهٔ تأییدشده توسط صادرکننده قابل لغو نیست. | د صادرونکي تاییدشوی پایله لغوه کېدلی نشي. |  | PENDING |
+| official | Open the issuer's official verification page | باز کردن صفحهٔ رسمی تأیید صادرکننده | د صادرونکي رسمي تایید پاڼه پرانیزئ |  | PENDING |
+
+Reviewer rule for this section: a translation passes only if it makes clear that BursYar records a request and cannot itself confirm authenticity. Any wording that reads as an approval, a stamp or a guarantee must be corrected before release marketing mentions verification.
