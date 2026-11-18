@@ -63,6 +63,22 @@ try {
     await page.emulateMedia({reducedMotion:'no-preference'});
   }
   if (width === 390) {
+    await page.goto(baseUrl + '/#documents-mount');
+    await expect(page.locator('#documents-mount')).toBeInViewport();
+    await page.goto(baseUrl + '/#research-explorer');
+    await expect(page.locator('#research-title')).toBeInViewport();
+    await page.goto(baseUrl + '/#eligibility-mount');
+    await page.reload();
+    const eligibility = page.locator('#eligibility-example');
+    await expect(eligibility).toHaveAttribute('open', '');
+    await expect(page.locator('#eligibility-heading')).toBeInViewport();
+    await page.locator('#eligibility-example > summary').click();
+    await page.evaluate(() => { location.hash = 'top'; });
+    await expect(page).toHaveURL(/#top$/);
+    await page.goBack();
+    await expect(eligibility).toHaveAttribute('open', '');
+    await expect(page.locator('#eligibility-heading')).toBeInViewport();
+    await page.evaluate(() => window.scrollTo({top:0,behavior:'instant'}));
     await motion.focus();
     await page.keyboard.press('Space');
     await expect(hero.locator('.by-arc-band')).toHaveClass(/is-paused/);
