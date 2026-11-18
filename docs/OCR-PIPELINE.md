@@ -120,6 +120,13 @@ assets, mocked identity):
 isolation (a second identity sees an empty library and gets 404 on a direct
 fetch) and the PDF/image consent gate in en/fa/ps.
 
+`verification/browser.mjs` — **15/15 cases PASS**: English, Dari and Pashto at
+320, 390, 768, 1280 and 1440 px, RTL direction asserted per language, 200 % text
+zoom and halved-layout zoom without horizontal overflow, 0 axe
+`wcag2a/wcag2aa/wcag21aa` violations, 66 screenshots under
+`verification/artifacts/`. It exercises the real local document API with mocked
+identity and mocked Meta; live Google sign-in remains unverified there.
+
 Unit suite: `npm test` **419 pass / 0 fail**, including 6 new tests that assert
 the manifest hashes, the asset list, the absence of any absolute URL in
 `src/ocr-runtime.js` and `src/document-extraction.js`, and that the generated
