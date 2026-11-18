@@ -9,3 +9,4 @@ dist/
 *.db-*
 *-debug.log*
 verification/artifacts/
+public/ocr/

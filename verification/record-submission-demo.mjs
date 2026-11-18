@@ -6,7 +6,7 @@ import {chromium} from '@playwright/test';
 import {mkdirSync, renameSync} from 'node:fs';
 const OUT = 'verification/artifacts/m09';
 mkdirSync(OUT, {recursive: true});
-const browser = await chromium.launch({headless: true});
+const browser = await chromium.launch({headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage']});
 async function scene(name, fn) {
   console.log('scene:', name);
   const context = await browser.newContext({viewport: {width: 1920, height: 1080}, recordVideo: {dir: OUT, size: {width: 1920, height: 1080}}});

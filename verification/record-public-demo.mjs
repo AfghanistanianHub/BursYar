@@ -4,7 +4,7 @@
 import {chromium} from '@playwright/test';
 const OUT = 'verification/artifacts/demo-public-flows.webm';
 const rm = await import('node:fs').then(fs => { try { fs.rmSync(OUT); } catch {} });
-const browser = await chromium.launch({headless: true});
+const browser = await chromium.launch({headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage']});
 const context = await browser.newContext({viewport: {width: 1280, height: 720}, recordVideo: {dir: 'verification/artifacts', size: {width: 1280, height: 720}}});
 const page = await context.newPage();
 const step = async (name, fn) => { console.log('scene:', name); await fn(); await page.waitForTimeout(1200); };

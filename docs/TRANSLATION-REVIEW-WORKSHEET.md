@@ -49,6 +49,29 @@ Scope: homepage, actions, source review, evidence, eligibility, PathFinder, uplo
 | unverified | Not verified | تأیید نشده | نه دی تایید شوی |  | PENDING |
 | sourceMissing | Official source not linked yet | منبع رسمی هنوز ثبت نشده است | رسمي سرچینه لا نه ده ثبت شوې |  | PENDING |
 
+## Document-extraction strings (Mission 43)
+
+Scope: `src/documents.js` (`documentsCopy`). English was reviewed in Mission 43 and
+contains no misleading authenticity claim: `note` says OCR may be wrong —
+"especially for Dari and Pashto" — and that neither review nor OCR proves
+authenticity. The English `productionBinaryNotice`/`noteProduction`/
+`fileProduction`/`unsupportedFileProduction` strings were deleted because the
+TXT-only gate no longer exists.
+
+The three `note` strings changed (OCR assets now load from BursYar instead of a
+CDN) and the two Asian-language versions remain unreviewed by a fluent speaker.
+
+| Key | English (reviewed) | Farsi/Dari (current) | Pashto (current) | Status |
+|---|---|---|---|---|
+| note | TXT (12 KB), PDF (up to 5 pages / 5 MB), or PNG/JPEG (5 MB). … The text reader loads from BursYar itself only when a PDF or image needs it. OCR may be wrong, especially for Dari and Pashto. Neither review nor OCR proves authenticity. No document goes to Meta. | متن تغییر کرده: ابزار متن‌خوانی فقط در صورت نیاز و از خود بورس‌یار بارگذاری می‌شود؛ خطای OCR به‌ویژه در دری و پشتو ممکن است. | متن بدل شوی: متن لوستونکی یوازې د اړتیا پر مهال له بورس‌یار څخه راځي؛ د OCR پایله، په ځانګړي ډول په دري او پښتو کې، ممکن ناسمه وي. | PENDING (fa/ps) |
+| manualFallback | OCR could not read this scan. Type or paste the visible text below. This will be recorded as your manual transcription, not OCR or issuer verification. | متن این تصویر با OCR خوانده نشد… این کار رونویسی دستی است و اصالت مدرک را تأیید نمی‌کند. | OCR د دې سند متن ونه لوست… دا لاسي لیکنه ده، رسمي تصدیق نه دی. | PENDING (fa/ps) |
+| extractionUnavailable | Local PDF/OCR extraction is unavailable. Check your connection or paste document text. | ابزار محلی خواندن PDF/OCR در دسترس نیست… | د PDF/OCR ځايي لوستونکی نشته… | PENDING (fa/ps) |
+
+Pashto OCR itself is not established: with the shipped `best_int` model it
+returned no characters for synthetic input, so the app offers manual
+transcription. Do not advertise Pashto OCR accuracy until a fluent reviewer and a
+real-document benchmark exist.
+
 ## Credential-verification strings (added with the verification release)
 
 Scope: `src/verifications.js` (`verificationCopy`) — the request form, the status list and the issuer-method guidance. Every row is PENDING; these are the strings where a mistranslation could be read as an authenticity claim.

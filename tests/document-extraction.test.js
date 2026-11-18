@@ -143,16 +143,14 @@ test('unsupported OCR locale and malformed binary fail without loading third-par
  await assert.rejects(()=>extractDocumentText(txt('bad.jpg','not-jpeg'),{pdfLoader,ocrLoader}),e=>e.code==='invalidImage');
  assert.equal(imported,0);
 });
-test('document extraction loads code only from pinned reviewed origins (Issue #88)',()=>{
- // Change detector: any new or re-pinned third-party code URL requires an
- // explicit security review that updates this allowlist alongside the gate
- // tests. Production never imports these (TXT-only gate); local and CI
- // synthetic runs may, from these exact pinned files only.
+test('document extraction loads no remote code at all (Mission 43 self-hosting)',()=>{
+ // Change detector: the extractor must resolve PDF.js and Tesseract from this
+ // application only. Any absolute http(s) URL here means a pinned third-party
+ // asset came back, which requires a new security review and a CSP change.
  const source=readFileSync(new URL('../src/document-extraction.js',import.meta.url),'utf8');
- const urls=[...new Set([...source.matchAll(/https:\/\/[^\s'")]+/g)].map(m=>m[0]))].sort();
- assert.deepEqual(urls,[
-  'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js'
- ]);
+ const urls=[...new Set([...source.matchAll(/https?:\/\/[^\s'")]+/g)].map(m=>m[0]))].sort();
+ assert.deepEqual(urls,[]);
+ assert.match(source,/import\('\.\/ocr-runtime\.js'\)/, 'OCR resolves through the self-hosted runtime');
 });
 
 test('failed PDF loading destroys the loading task',async()=>{

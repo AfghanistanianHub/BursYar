@@ -24,7 +24,7 @@ const api = createInferenceServer({
 });
 await new Promise(resolve => api.listen(0, '127.0.0.1', resolve));
 const apiBase = `http://127.0.0.1:${api.address().port}`;
-const browser = await chromium.launch({headless: true});
+const browser = await chromium.launch({headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage']});
 const observed = [];
 let failures = 0;
 const check = (id, cond, detail) => {

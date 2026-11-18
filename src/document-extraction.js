@@ -3,7 +3,6 @@
 // Pinned versions: updates require security review and browser regression checks.
 const MAX_TEXT_BYTES=12000, MAX_BINARY_BYTES=5*1024*1024, MAX_PAGES=5;
 const fail=code=>{const error=new Error(code);error.code=code;throw error;};
-const ocrModuleUrl='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.esm.min.js';
 const isPdf=bytes=>bytes.length>=5&&bytes[0]===37&&bytes[1]===80&&bytes[2]===68&&bytes[3]===70&&bytes[4]===45;
 const isPng=b=>b.length>=8&&[137,80,78,71,13,10,26,10].every((n,i)=>b[i]===n);
 const isJpeg=b=>b.length>=4&&b[0]===255&&b[1]===216&&b[b.length-2]===255&&b[b.length-1]===217;
@@ -13,9 +12,9 @@ const safeText=text=>{
  if(new TextEncoder().encode(text).length>MAX_TEXT_BYTES)fail('extractedTextTooLarge');
  return text;
 };
-const importPinned=url=>import(/* @vite-ignore */ url);
 // One shared wall-clock budget covers reads, imports, decoding and OCR. A
-// deadline is not a sandbox: production binary uploads remain disabled.
+// deadline is not a sandbox: files are parsed and read locally and only the
+// reviewed extracted text is ever sent to the API.
 async function release(resource,method){
  let timer;
  try{await Promise.race([Promise.resolve().then(()=>resource?.[method]?.()).catch(()=>{}),new Promise(resolve=>{timer=setTimeout(resolve,1000);})]);}
@@ -38,7 +37,7 @@ function extractionDeadline(timeoutMs){
  };
 }
 const validDimensions=(width,height)=>Number.isFinite(width)&&Number.isFinite(height)&&width>0&&height>0&&Math.ceil(width)<=4500&&Math.ceil(height)<=4500&&Math.ceil(width)*Math.ceil(height)<=12000000;
-async function createOcrWorker(ocrLoader=()=>importPinned(ocrModuleUrl),language='eng',wait){
+async function createOcrWorker(ocrLoader=()=>import('./ocr-runtime.js').then(module=>module.ocrRuntime()),language='eng',wait){
  if(!['eng','fas','pus'].includes(language))fail('unsupportedOcrLanguage');
  let mod;
  try{mod=await wait(()=>ocrLoader());}catch{fail('extractionUnavailable');}
@@ -99,12 +98,12 @@ async function readPdf(bytes,pdfLoader,ocrLoader,language,wait){
  }catch(error){if(typeof error?.code==='string')throw error;fail('invalidPdf');}
  finally{await release(worker,'terminate');await release(pdf??task,'destroy');}
 }
-export async function extractDocumentText(file,{pdfLoader=()=>import('./pdf-runtime.js').then(module=>module.pdfRuntime()),ocrLoader=()=>importPinned(ocrModuleUrl),ocrLanguage='eng',timeoutMs=30000}={}){
+export async function extractDocumentText(file,{pdfLoader=()=>import('./pdf-runtime.js').then(module=>module.pdfRuntime()),ocrLoader=()=>import('./ocr-runtime.js').then(module=>module.ocrRuntime()),ocrLanguage='eng',timeoutMs=30000}={}){
  if(!['eng','fas','pus'].includes(ocrLanguage))fail('unsupportedOcrLanguage');
  if(!file)fail('missingFile');
  const name=(file.name??'').toLowerCase();
  const kind=name.endsWith('.txt')?'txt':name.endsWith('.pdf')?'pdf':/\.(png|jpe?g)$/.test(name)?'image':null;
- if(!kind||((import.meta.env?.PROD??false)&&kind!=='txt'))fail((import.meta.env?.PROD??false)?'unsupportedFileProduction':'unsupportedFile');
+ if(!kind)fail('unsupportedFile');
  if(file.size>(kind==='txt'?MAX_TEXT_BYTES:MAX_BINARY_BYTES))fail('fileTooLarge');
  const wait=extractionDeadline(timeoutMs);
  const bytes=new Uint8Array(await wait(()=>file.arrayBuffer()));

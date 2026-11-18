@@ -1,5 +1,6 @@
-// Real-integration gate for PDF/image OCR (Mission 20). Uses the ACTUAL pinned
-// PDF.js + Tesseract CDN assets — never mocks the extractor or loaders — with
+// Real-integration gate for PDF/image OCR (Mission 20, updated by Mission 43).
+// Uses the ACTUAL pinned PDF.js and self-hosted Tesseract assets served from
+// this application's origin — never mocks the extractor or the loaders — with
 // mocked auth and a local engine API. Synthetic fixtures only. No inference.
 // Run: node verification/document-ocr-integration.mjs
 import {chromium, expect} from '@playwright/test';
@@ -81,7 +82,7 @@ const api = createInferenceServer({
 });
 await new Promise(resolve => api.listen(0, '127.0.0.1', resolve));
 const apiBase = 'http://127.0.0.1:' + api.address().port;
-const browser = await chromium.launch({headless: true});
+const browser = await chromium.launch({headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage']});
 const observed = [];
 let failures = 0;
 const check = (id, cond, detail) => {
@@ -300,11 +301,19 @@ try {
   console.log(observed.join('\n'));
   await context.close();
 
-  // 14. offline CDN in a fresh context: OCR unavailable, TXT still saves
+  // 14. first-party OCR: every worker/core/model byte comes from this origin,
+  // and blocking all CDN hosts leaves OCR fully working (Mission 43).
   {
     const context2 = await browser.newContext({viewport: {width: 1440, height: 900}});
     const page2 = await context2.newPage();
     const user2 = 'ocr-real-offline';
+    const ocrAssetRequests = [];
+    const thirdParty = [];
+    page2.on('request', request => {
+      const url = new URL(request.url());
+      if (url.pathname.startsWith('/ocr/')) ocrAssetRequests.push(url.pathname);
+      else if (url.origin !== origin && url.origin !== apiBase) thirdParty.push(request.url());
+    });
     await page2.route('**/src/auth.js', route => route.fulfill({contentType: 'text/javascript', body: `export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{};} export async function getInferenceToken(){return "${user2}";}`}));
     await page2.route('**/api/**', async route => {
       const request = route.request();
@@ -330,8 +339,15 @@ try {
       const el = document.querySelector('#documents > [role=status]');
       return el && el.textContent && !/Working on your document/.test(el.textContent);
     }, null, {timeout: 120000});
-    const s14 = await page2.locator('#documents > [role=status]').textContent();
-    check('14-offline-ocr', /unavailable/.test(s14) && !(await page2.locator('.document-extraction-preview').isVisible()), JSON.stringify(s14.slice(0, 55)));
+    const preview2 = page2.locator('.document-extraction-preview');
+    await expect(preview2).toBeVisible({timeout: 180000});
+    const offlineText = await preview2.locator('textarea').inputValue();
+    check('14-ocr-without-cdn', /OFFLINE/.test(offlineText), JSON.stringify(offlineText.slice(0, 55)));
+    check('14-no-third-party', thirdParty.length === 0, thirdParty.join(';') || 'zero off-origin requests');
+    check('14-worker-first-party', ocrAssetRequests.includes('/ocr/worker.min.js'), `${ocrAssetRequests.length} first-party OCR asset requests`);
+    check('14-core-first-party', ocrAssetRequests.some(p => /^\/ocr\/tesseract-core-(simd-)?lstm\.wasm(\.js)?$/.test(p)), ocrAssetRequests.filter(p => p.includes('core')).join(';') || 'no core request');
+    check('14-model-first-party', ocrAssetRequests.some(p => /^\/ocr\/lang\/eng\.traineddata\.gz$/.test(p)), ocrAssetRequests.filter(p => p.includes('lang')).join(';') || 'no model request');
+    await preview2.locator('button').nth(1).click();
     await form2.locator('input[type=file]').setInputFiles({name: 'off.txt', mimeType: 'text/plain', buffer: Buffer.from('OFFLINE TXT SAVES')});
     await form2.locator('button[type=submit]').click();
     await expect(page2.locator('.document-source')).toContainText('OFFLINE TXT SAVES', {timeout: 20000});
