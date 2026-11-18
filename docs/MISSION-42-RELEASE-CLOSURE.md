@@ -56,11 +56,21 @@ fixed in this session: previously the skipped leg was recorded as `PASS`.
 A local build of this tree emits `assets/index-D2V2hq6i.js` (261 780 B) with the
 **same CSS hash**. Both bundles contain the verification UI (`verifications/providers`,
 `VERIFIED_BY_ISSUER`, withdraw, PENDING strings all present), so the deployed
-frontend includes the verification centre. The JS bundle is 571 bytes larger than
-a local build and has a different content hash, so **byte-identity between the
-deployed bundle and this commit is not established**; the difference is
-consistent with a build-environment dependency resolution, but that is an
-inference, not a measurement.
+frontend includes the verification centre.
+
+The 571-byte JS difference is explained by measurement, not inference. A
+string-literal diff of the two bundles shows the deployed bundle inlines the
+production Firebase configuration (`afghanistanian-scholarships` and
+`afghanistanian-scholarships.firebaseapp.com`), while the local bundle contains
+no project ID and instead carries the `Firebase configuration and the enabled
+Google provider.` failure text. `src/auth.js` reads `import.meta.env.VITE_FIREBASE_*`,
+so those values are baked in at build time; this workspace has no such values.
+Both bundles also contain the `createWorker` (OCR) and `pdfRuntime` paths, so
+production ships those code paths behind the runtime gate.
+
+Byte-identity with the deployed bundle therefore cannot be reproduced here
+without the production Vite values, which were not requested. Feature parity is
+established; artifact identity is not claimed.
 
 No older implementation was overwritten: this mission added no frontend source
 changes, so the approved homepage, dashboard and document reader are the ones
@@ -165,7 +175,9 @@ Firebase SDK (`fast-xml-parser` low, `gaxios`, `google-gax`, `gcp-metadata`,
 | `npm audit` (prod / full) | 0 critical / 4 high / 6 moderate / 1 low — full: 0 / 10 / 12 / 1 |
 | `scripts/verify-live-verification-api.mjs` production | 5 passed, 0 failed, 1 skipped (exit 0); `--require-auth` exit 1 |
 | same script, local real engine | 12 passed, 0 failed, 0 skipped |
-| `npm run test:emulator`, `test:browser`, macOS jobs | **NOT RUN** (Firebase emulator and Chromium unavailable in this environment) |
+| `npm run test:emulator` | **NOT RUN** — no Java runtime is installed and there is no root access to install one (`command -v java` empty, no passwordless sudo) |
+| `npm run test:browser` and the three browser regressions | **NOT RUN** — `npx playwright install chromium` timed out after 295 s |
+| macOS helper jobs | **NOT RUN** — require macOS, unavailable in this environment |
 
 Earlier session results are not restated as if they were rerun.
 
