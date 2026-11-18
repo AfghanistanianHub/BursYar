@@ -21,9 +21,19 @@
 #by-hero-cables .by-hub-en{
   font-family:var(--editorial-serif,Georgia,"Times New Roman",serif);
 }
+.by-arc-art{position:relative;container-type:inline-size}
 #by-hero-cables .by-hub-fa{
-  font-family:"Noto Naskh Arabic","Vazirmatn",Tahoma,sans-serif;
+  position:absolute;
+  top:33.5%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  color:var(--brand);
+  font:600 clamp(10px,1.5cqw,16px)/1.2 var(--font-fa);
+  white-space:nowrap;
+  pointer-events:none;
 }
+.by-motion-icon,.by-motion .by-play-icon,.by-motion.shows-play .by-pause-icon{display:none}
+.by-motion.shows-play .by-play-icon{display:block}
 #by-hero-cables .by-arc-meta{
   display:flex;
   align-items:center;
@@ -235,18 +245,30 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   #by-hero-cables .by-tile-desktop{
     display:none;
   }
-  #by-hero-cables .by-arc-meta{
-    margin-top:2px;
-    gap:4px 8px;
+  #by-hero-cables .by-hub-fa{
+    top:43%;
+    font-size:clamp(10px,2.8cqw,19px);
   }
-  #by-hero-cables .by-diagram-caption{
-    font-size:11px;
-    margin-top:0;
-  }
+  #by-hero-cables .by-arc-meta{position:static;margin:0}
+  #by-hero-cables .by-diagram-caption{display:none}
   #by-hero-cables .by-motion{
-    min-height:26px;
-    padding:3px 8px;
-    font-size:11px;
+    position:absolute;
+    inset-block-start:0;
+    inset-inline-end:0;
+    display:grid;
+    place-items:center;
+    width:44px;
+    min-height:44px;
+    padding:0;
+  }
+  .by-motion-icon{display:block}
+  .by-motion-label{
+    position:absolute;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    clip-path:inset(50%);
+    white-space:nowrap;
   }
   html #top>.hero.hero-with-cables .hero-intro{
     grid-area:2/1;

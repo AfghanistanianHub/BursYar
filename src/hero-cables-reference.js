@@ -10,8 +10,6 @@ const DESKTOP = {
   innerR: 48,
   enY: 146,
   enSize: 19,
-  faY: 168,
-  faSize: 15,
   nodeR: 20,
   iconTransform: 'translate(-9,-9) scale(0.75)',
 };
@@ -28,8 +26,6 @@ const MOBILE = {
   innerR: 35,
   enY: 71,
   enSize: 14.5,
-  faY: 88,
-  faSize: 12,
   nodeR: 17,
   iconTransform: 'translate(-8,-8) scale(0.667)',
 };
@@ -153,6 +149,7 @@ export function referenceHero(language) {
 
   return `<div id="by-hero-cables" class="by-arc-band">
     <div id="by-stage" class="by-arc-stage">
+      <div class="by-arc-art">
       <svg id="heroArc" viewBox="${DESKTOP.viewBox}" role="img" aria-label="${t.ariaLabel}">
         <title>${t.ariaLabel}</title>
         <defs>
@@ -170,12 +167,19 @@ export function referenceHero(language) {
         <circle class="by-hub-outer" cx="${DESKTOP.cx}" cy="${DESKTOP.cy}" r="${DESKTOP.hubR}" fill="#FEFDFB" stroke="#1A1A1A" stroke-width="1.5"/>
         <circle class="by-hub-inner" cx="${DESKTOP.cx}" cy="${DESKTOP.cy}" r="${DESKTOP.innerR}" fill="none" stroke="#D8D0C8" stroke-width="1"/>
         <text class="by-hub-en" x="${DESKTOP.cx}" y="${DESKTOP.enY}" text-anchor="middle" font-size="${DESKTOP.enSize}" font-weight="700" fill="#1A1A1A">BursYar</text>
-        <text class="by-hub-fa" x="${DESKTOP.cx}" y="${DESKTOP.faY}" text-anchor="middle" font-size="${DESKTOP.faSize}" font-weight="600" fill="#1E3A5F" lang="fa">بورس‌یار</text>
         ${nodesMarkup}
       </svg>
+      <span class="by-hub-fa" lang="fa" dir="rtl" aria-hidden="true">بورس‌یار</span>
+      </div>
       <div class="by-arc-meta" dir="${dir}">
         <p class="by-diagram-caption">${t.caption}</p>
-        <button class="by-motion" type="button" hidden>${t.pause}</button>
+        <button class="by-motion" type="button" hidden>
+          <svg class="by-motion-icon" aria-hidden="true" viewBox="0 0 20 20" width="18" height="18" fill="currentColor">
+            <path class="by-pause-icon" d="M5 4h3v12H5zm7 0h3v12h-3z"/>
+            <path class="by-play-icon" d="M6 4l10 6-10 6z"/>
+          </svg>
+          <span class="by-motion-label">${t.pause}</span>
+        </button>
       </div>
     </div>
   </div>`;
@@ -193,9 +197,9 @@ export function mountReferenceHero(root, language, paused, onPauseChange) {
   const outer = section.querySelector('.by-hub-outer');
   const inner = section.querySelector('.by-hub-inner');
   const enText = section.querySelector('.by-hub-en');
-  const faText = section.querySelector('.by-hub-fa');
   const tileNodes = [...section.querySelectorAll('.by-tile')];
   const button = section.querySelector('.by-motion');
+  const buttonLabel = button.querySelector('.by-motion-label');
 
   const mobileMq = matchMedia('screen and (max-width: 760px)');
   const reducedMq = matchMedia('(prefers-reduced-motion: reduce)');
@@ -234,9 +238,6 @@ export function mountReferenceHero(root, language, paused, onPauseChange) {
     enText.setAttribute('x', cfg.cx);
     enText.setAttribute('y', cfg.enY);
     enText.setAttribute('font-size', cfg.enSize);
-    faText.setAttribute('x', cfg.cx);
-    faText.setAttribute('y', cfg.faY);
-    faText.setAttribute('font-size', cfg.faSize);
 
     for (const node of tileNodes) {
       node.querySelector('.by-tile-circle').setAttribute('r', cfg.nodeR);
@@ -306,7 +307,8 @@ export function mountReferenceHero(root, language, paused, onPauseChange) {
     const motionAvailable = Boolean(observer) && !reducedMq.matches;
     const running = motionAvailable && visible && !paused && !document.hidden;
     button.hidden = !motionAvailable;
-    button.textContent = paused ? t.play : t.pause;
+    buttonLabel.textContent = paused ? t.play : t.pause;
+    button.classList.toggle('shows-play', paused);
     section.classList.toggle('is-paused', !running);
     draw(motionAvailable);
     if (!running) return;

@@ -42,7 +42,19 @@ try {
           const loaded = await document.fonts.load('16px "Noto Naskh Arabic"', '\u06B1');
           naskhFallback = loaded.length > 0 && document.fonts.check('16px "Noto Naskh Arabic"', '\u06B1');
         } catch { naskhFallback = false; }
+        const wordmark = document.querySelector('.by-hub-fa');
+        const label = wordmark.getBoundingClientRect();
+        const ring = document.querySelector('.by-hub-inner').getBoundingClientRect();
+        const head = document.querySelector('.site .header').getBoundingClientRect();
+        const motion = document.querySelector('.by-motion').getBoundingClientRect();
         return {
+          markOk: wordmark instanceof HTMLElement && wordmark.lang === 'fa'
+            && getComputedStyle(wordmark).direction === 'rtl' && wordmark.textContent === 'بورس‌یار'
+            && Math.abs((label.left + label.right - ring.left - ring.right) / 2) < 1
+            && label.top > ring.top && label.bottom < ring.bottom
+            && label.left > ring.left && label.right < ring.right,
+          compactHeader: head.height < 112,
+          motionTarget: motion.width >= 44 && motion.height >= 44,
           // Check the loaded script subset; the default Latin sample may still be unloaded.
           body, h1, loads,
           motion: getComputedStyle(document.querySelector('.by-motion')).fontFamily,
@@ -78,7 +90,7 @@ try {
       await context.close();
     }
   }
-  report.passed = report.cases.every((c) => c.stackOk && c.excerpt.startsWith("Inter") && c.inter && c.vazirmatn && c.arabicSubset && c.naskhFallback && Object.values(c.loads).every(Boolean) && c.fontResponses.length > 0 && c.fontResponses.every(r => r.status === 200))
+  report.passed = report.cases.every((c) => c.stackOk && c.markOk && (c.width > 760 || (c.compactHeader && c.motionTarget)) && c.excerpt.startsWith("Inter") && c.inter && c.vazirmatn && c.arabicSubset && c.naskhFallback && Object.values(c.loads).every(Boolean) && c.fontResponses.length > 0 && c.fontResponses.every(r => r.status === 200))
     && report.externalFontRequests.length === 0;
   // Naskh must cover every Pashto letter (Vazirmatn covers all but U+06B1 per fontTools audit).
   report.pashtoFallbackOk = report.cases.every((c) => PASHTO.every((ch) => c.pashtoCoverage[ch].naskh));

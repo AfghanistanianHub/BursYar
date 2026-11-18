@@ -28,14 +28,18 @@ html[dir=rtl] .corner-arrow{rotate:-45deg}
   display:grid;grid-template-columns:minmax(0,1fr) auto auto;column-gap:8px;
   row-gap:0;padding:4px clamp(12px,4vw,20px) 0;
  }
- .site .header .logo{order:0;margin:0;justify-self:start}
+ .site .header .logo{order:0;margin:0;justify-self:start;grid-area:1/1}
+ .site .header .account{grid-area:1/2}
+ .site .header .language{grid-area:1/3}
+ .site .header .header-start{display:none}
+ .site .header .dashboard-entry{grid-area:3/1/4/-1;justify-self:start;min-height:44px}
  .site .header .account{position:static}
  .site .header .account summary,.site .header .language select{
   min-height:44px;padding-inline:8px;font-size:.8125rem;
  }
  .site .header .account[open] #account-controls{inset-inline-end:12px;top:calc(100% + 4px)}
  .site .header .editorial-nav{
-  order:0;grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  order:0;grid-area:2/1/3/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
   justify-items:stretch;gap:4px;width:100%;margin:4px 0 0;padding:0;
   border-top:1px solid var(--line);overflow:visible;
  }
@@ -43,12 +47,6 @@ html[dir=rtl] .corner-arrow{rotate:-45deg}
   justify-content:center;min-height:44px;font-size:.75rem;
   text-transform:none;letter-spacing:0;text-align:center;white-space:normal;line-height:1.2;
  }
- .site .header .editorial-nav .nav-platform{display:none}
- .site .header .editorial-nav .header-start{
-  justify-self:stretch;padding:4px;background:transparent;border:0;color:var(--brand);font-weight:750;
- }
- .site .header .editorial-nav .header-start:hover{background:var(--brand-soft)}
- .site .header .editorial-nav .dashboard-entry{font-weight:750}
  #top [id]{scroll-margin-top:112px}
 }
 
