@@ -13,7 +13,7 @@ const paths = {
  assessments: 'M20 11v9H4V4h11m-7 8 3 3 10-10',
  book: 'M12 6C8 3 5 3 2 4v15c4-1 7 0 10 2 3-2 6-3 10-2V4c-3-1-6-1-10 2v15',
  account: 'M5 20v-2a7 7 0 0 1 14 0v2M16 8a4 4 0 1 1-8 0 4 4 0 0 1 8 0',
- verified: 'M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6zM8.5 12l2.5 2.5 4.5-5',
+ verifications: 'M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6zM8.5 12l2.5 2.5 4.5-5',
  privacy: 'M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3'
 };
 const icon = name => `<svg aria-hidden="true" viewBox="0 0 24 24" fill="none"

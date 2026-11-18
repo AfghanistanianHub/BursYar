@@ -1,4 +1,4 @@
-// Responsive probe: 5 widths x 3 locales against the production build.
+// Responsive probe: 10 viewport sizes x 3 locales against the production build.
 // Serves dist/ locally, opens each locale, expands workspace/resources panels,
 // and reports horizontal overflow + console errors. No network inference.
 import {createServer} from 'node:http';
@@ -28,7 +28,10 @@ function serve(){
   });
 }
 
-const WIDTHS = [320, 390, 768, 1024, 1440];
+const VIEWPORTS = [
+  [320, 568], [360, 800], [390, 844], [430, 932], [768, 1024],
+  [1024, 768], [1280, 800], [1440, 900], [1728, 1117], [1920, 1080],
+];
 const LOCALES = ['en', 'fa', 'ps'];
 
 const {chromium} = await import('@playwright/test');
@@ -38,11 +41,11 @@ const base = `http://127.0.0.1:${port}/`;
 const report = [];
 let failures = 0;
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({args: ['--no-sandbox'], executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH});
 try {
   for (const locale of LOCALES) {
-    for (const width of WIDTHS) {
-      const page = await browser.newPage({viewport: {width, height: 900}});
+    for (const [width, height] of VIEWPORTS) {
+      const page = await browser.newPage({viewport: {width, height}, reducedMotion: 'reduce'});
       const errors = [];
       page.on('pageerror', e => errors.push('pageerror: ' + String(e).slice(0, 200)));
       page.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.text().slice(0, 200)); });
@@ -64,11 +67,12 @@ try {
         return {lang: de.lang, dir: de.dir, docOver: de.scrollWidth - de.clientWidth,
           bodyOver: document.body.scrollWidth - document.body.clientWidth, over};
       });
-      const shot = `${OUT}/${locale}-${width}.png`;
-      await page.screenshot({path: shot, fullPage: false});
+      const shot = `${OUT}/${locale}-${width}x${height}.png`;
+      await page.evaluate(() => document.fonts.ready);
+      await page.screenshot({path: shot});
       const bad = m.docOver > 1 || m.bodyOver > 1 || m.over.length > 0 || errors.length > 0;
       if (bad) failures++;
-      report.push({locale, width, ...m, errors, shot, ok: !bad});
+      report.push({locale, width, height, ...m, errors, shot, ok: !bad});
       await page.close();
     }
   }
@@ -78,6 +82,6 @@ try {
 }
 
 writeFileSync(join(OUT, 'report.json'), JSON.stringify(report, null, 1));
-for (const r of report) console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.locale} ${r.width}px lang=${r.lang} dir=${r.dir} docOver=${r.docOver} bodyOver=${r.bodyOver} extras=${r.over.join(';') || 'none'} errors=${r.errors.length ? r.errors.join(' | ') : 'none'}`);
-console.log(failures ? `\n${failures} failing combos — see ${OUT}/report.json` : '\nAll 15 combos clean.');
+for (const r of report) console.log(`${r.ok ? 'PASS' : 'FAIL'} ${r.locale} ${r.width}×${r.height} lang=${r.lang} dir=${r.dir} docOver=${r.docOver} bodyOver=${r.bodyOver} extras=${r.over.join(';') || 'none'} errors=${r.errors.length ? r.errors.join(' | ') : 'none'}`);
+console.log(failures ? `\n${failures} failing combos — see ${OUT}/report.json` : '\nAll viewport and locale combinations passed.');
 process.exit(failures ? 1 : 0);

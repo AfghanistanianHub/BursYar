@@ -1,5 +1,5 @@
 const DESKTOP = {
-  viewBox: '0 16 1120 356',
+  viewBox: '0 56 1120 316',
   track: 'M28,346 Q560,-46 1092,346',
   leftWing: 'M28,346 Q266,168 506,152',
   rightWing: 'M1092,346 Q854,168 614,152',
@@ -75,7 +75,7 @@ const MOBILE_OFFSETS = [0.14, 0.37, 0.60, 0.83];
 const copy = {
   en: {
     ariaLabel: 'Documents and official scholarship sources connecting into BursYar',
-    caption: 'Your documents & official requirements · one clear answer out',
+    caption: 'Compare your documents with official requirements',
     pause: 'Pause animation',
     play: 'Play animation',
     labels: {
@@ -95,7 +95,7 @@ const copy = {
   },
   fa: {
     ariaLabel: 'اتصال مدارک شما و منابع رسمی بورسیه به بورس‌یار',
-    caption: 'مدارک شما و شرایط رسمی · یک پاسخ روشن',
+    caption: 'مدارک‌تان را با شرایط رسمی مقایسه کنید',
     pause: 'توقف حرکت',
     play: 'پخش حرکت',
     labels: {
@@ -115,7 +115,7 @@ const copy = {
   },
   ps: {
     ariaLabel: 'ستاسو اسناد او رسمي سرچینې بورس‌یار ته نښلي',
-    caption: 'ستاسو اسناد او رسمي شرایط · یو روښانه ځواب',
+    caption: 'خپل اسناد له رسمي شرطونو سره پرتله کړئ',
     pause: 'حرکت ودروئ',
     play: 'حرکت پیل کړئ',
     labels: {
@@ -181,7 +181,7 @@ export function referenceHero(language) {
   </div>`;
 }
 
-export function mountReferenceHero(root, language) {
+export function mountReferenceHero(root, language, paused, onPauseChange) {
   const section = root.querySelector('#by-hero-cables');
   if (!section) return () => {};
   const svg = section.querySelector('#heroArc');
@@ -203,7 +203,6 @@ export function mountReferenceHero(root, language) {
 
   let isMobile = mobileMq.matches;
   let visible = false;
-  let paused = false;
   let frame = 0;
   let elapsed = 0;
   let lastFrame;
@@ -304,7 +303,6 @@ export function mountReferenceHero(root, language) {
   function sync() {
     cancelAnimationFrame(frame);
     lastFrame = undefined;
-    applyGeometry();
     const motionAvailable = Boolean(observer) && !reducedMq.matches;
     const running = motionAvailable && visible && !paused && !document.hidden;
     button.hidden = !motionAvailable;
@@ -315,8 +313,14 @@ export function mountReferenceHero(root, language) {
     frame = requestAnimationFrame(tick);
   }
 
+  function resize() {
+    applyGeometry();
+    sync();
+  }
+
   function toggle() {
     paused = !paused;
+    onPauseChange(paused);
     sync();
   }
 
@@ -330,16 +334,16 @@ export function mountReferenceHero(root, language) {
   observer?.observe(section);
   button.addEventListener('click', toggle);
   document.addEventListener('visibilitychange', sync);
-  mobileMq.addEventListener('change', sync);
+  mobileMq.addEventListener('change', resize);
   reducedMq.addEventListener('change', sync);
-  sync();
+  resize();
 
   return () => {
     cancelAnimationFrame(frame);
     observer?.disconnect();
     button.removeEventListener('click', toggle);
     document.removeEventListener('visibilitychange', sync);
-    mobileMq.removeEventListener('change', sync);
+    mobileMq.removeEventListener('change', resize);
     reducedMq.removeEventListener('change', sync);
   };
 }

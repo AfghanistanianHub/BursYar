@@ -40,7 +40,7 @@ try {
   const motion = hero.locator('.by-motion');
   await expect(hero.getByRole('heading', {level:1})).toBeVisible();
   await expect(arc).toBeVisible();
-  await expect(arc).toHaveAttribute('viewBox', width <= 760 ? '0 8 560 176' : '0 16 1120 356');
+  await expect(arc).toHaveAttribute('viewBox', width <= 760 ? '0 8 560 176' : '0 56 1120 316');
   await expect(arc.locator('.by-tile:visible')).toHaveCount(width <= 760 ? 8 : 12);
   await hero.locator('a[href="#documents-mount"]').click();
   await expect(page.locator('details.workspace')).toHaveAttribute('open', '');
@@ -61,6 +61,46 @@ try {
     await expect(motion).toBeHidden();
     await expect(hero.locator('.by-arc-band')).toHaveClass(/is-paused/);
     await page.emulateMedia({reducedMotion:'no-preference'});
+  }
+  if (width === 390) {
+    await motion.focus();
+    await page.keyboard.press('Space');
+    await expect(hero.locator('.by-arc-band')).toHaveClass(/is-paused/);
+    const otherLanguage = language === 'en' ? 'fa' : 'en';
+    await page.locator('#language').selectOption(otherLanguage);
+    await expect(hero.locator('.by-arc-band')).toHaveClass(/is-paused/);
+    await page.locator('#language').selectOption(language);
+    await expect(hero.locator('.by-arc-band')).toHaveClass(/is-paused/);
+    await motion.click();
+  }
+  if (width === 1280) {
+    const pathfinder = page.locator('.pathfinder-timeline');
+    await pathfinder.locator('a[href="#eligibility-mount"]').click();
+    await expect(page.locator('#eligibility-example')).toHaveAttribute('open', '');
+    await expect(page.locator('#eligibility-form')).toBeVisible();
+    await page.locator('#eligibility-example > summary').click();
+    await page.locator('details.resources > summary').click();
+    const search = page.locator('#search');
+    const sampleErrors = [];
+    const recordError = error => sampleErrors.push(error.message);
+    page.on('pageerror', recordError);
+    const searchControl = await search.elementHandle();
+    await search.pressSequentially(language === 'en' ? 'Canada' : 'demo-01');
+    await expect(page.locator('#explore .scholarship')).toHaveCount(1);
+    await expect(search).toBeFocused();
+    expect(await searchControl.evaluate(input => input === document.activeElement)).toBe(true);
+    await searchControl.dispose();
+    await page.locator('#country').selectOption('Japan');
+    await expect(page.locator('#explore .scholarship')).toHaveCount(0);
+    await page.locator('#country').selectOption('all');
+    await page.locator('#sample-results .detail-button').click();
+    await expect(page.locator('#detail .detail')).toBeFocused();
+    await page.locator('#close-detail').click();
+    await search.fill('');
+    await expect(page.locator('#explore .scholarship')).toHaveCount(3);
+    expect(sampleErrors).toEqual([]);
+    page.off('pageerror', recordError);
+    await page.locator('details.resources > summary').click();
   }
   await expect(page.locator('.guided-option')).toHaveCount(3);
   await expect(page.locator('#trust-explainer')).not.toHaveAttribute('open','');

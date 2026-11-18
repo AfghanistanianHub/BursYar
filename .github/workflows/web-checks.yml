@@ -53,6 +53,7 @@ jobs:
       - run: node verification/document-ocr-integration.mjs
       - run: node verification/document-preview-browser.mjs
       - run: npm run build
+      - run: node verification/responsive-probe.mjs
       - run: node verification/document-production-gate-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()

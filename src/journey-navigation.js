@@ -12,12 +12,12 @@ export function mountJourney(root,language='en'){
  nav.className='journey-nav';nav.setAttribute('aria-label',t.label);
  const list=document.createElement('ol');
  const links=[];
- for(const [label,id,disclosure] of [[t.profile,'profile-mount','workspace'],[t.source,'assistant',null],[t.assessment,'eligibility-mount',null],[t.next,'next-steps',null]]){
+ for(const [label,id,disclosure] of [[t.profile,'profile-mount','.workspace'],[t.source,'assistant',null],[t.assessment,'eligibility-mount','#eligibility-example'],[t.next,'next-steps',null]]){
   const li=document.createElement('li'),a=document.createElement('a');a.href='#'+id;a.textContent=label;
   a.addEventListener('click',event=>{
    const target=document.getElementById(id);
    if(!target || target.hidden){event.preventDefault();return;}
-   if(disclosure){const details=target.closest('details');if(details)details.open=true;}
+   if(disclosure){const details=target.closest(disclosure)??target.querySelector(disclosure);if(details)details.open=true;}
    // Do not intercept normal anchor behavior or move sensitive data to URLs.
   });
   li.append(a);list.append(li);
