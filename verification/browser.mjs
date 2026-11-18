@@ -35,6 +35,33 @@ try {
   let responseEvidence=evidence;let responseStatus=200;let sawRequest=false;let calls=0;
   await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?{...normalizeEvidence(JSON.stringify({criteria:responseEvidence.criteria.map(({kind,required,excerpt,en,fa,ps})=>({kind,required,excerpt,en,fa,ps})),deadline:responseEvidence.deadline,funding:responseEvidence.funding}),{text:body.text,sourceUrl:body.sourceUrl}),sourceProvenance:body.receipt??{kind:'user_pasted_text'}}:{error:'test-error'})});});
   await page.goto(baseUrl);await page.locator('#language').selectOption(language);
+  const hero = page.locator('.hero');
+  const arc = hero.locator('#heroArc');
+  const motion = hero.locator('.by-motion');
+  await expect(hero.getByRole('heading', {level:1})).toBeVisible();
+  await expect(arc).toBeVisible();
+  await expect(arc).toHaveAttribute('viewBox', width <= 760 ? '0 8 560 176' : '0 16 1120 356');
+  await expect(arc.locator('.by-tile:visible')).toHaveCount(width <= 760 ? 8 : 12);
+  await hero.locator('a[href="#documents-mount"]').click();
+  await expect(page.locator('details.workspace')).toHaveAttribute('open', '');
+  await page.locator('details.workspace').evaluate(el => { el.open = false; });
+  await hero.locator('a[href="#research-explorer"]').click();
+  await expect(page.locator('#research-explorer')).toBeVisible();
+  await page.locator('details.resources').evaluate(el => { el.open = false; });
+  await page.evaluate(() => window.scrollTo({top:0, behavior:'instant'}));
+  if (width === 390 || width === 1280) {
+    await motion.click();
+    await expect(hero.locator('.by-arc-band')).toHaveClass(/is-paused/);
+    const tile = arc.locator('.by-tile:visible').first();
+    const position = await tile.getAttribute('transform');
+    await expect(tile).toHaveAttribute('transform', position);
+    await motion.click();
+    await expect.poll(() => tile.getAttribute('transform')).not.toBe(position);
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await expect(motion).toBeHidden();
+    await expect(hero.locator('.by-arc-band')).toHaveClass(/is-paused/);
+    await page.emulateMedia({reducedMotion:'no-preference'});
+  }
   await expect(page.locator('.guided-option')).toHaveCount(3);
   await expect(page.locator('#trust-explainer')).not.toHaveAttribute('open','');
   await page.locator('#trust-explainer > summary').click();
@@ -91,14 +118,16 @@ try {
   await expect(heroDemo.locator('[data-demo-result]')).toHaveAttribute('data-status','not_met');
   const editorialGeometry=await page.evaluate(()=>{
     const rect=selector=>{const b=document.querySelector(selector).getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,right:b.right,width:b.width}};
-    const hero=rect('.hero'),pillars=rect('.editorial-pillars'),selected=rect('.editorial-selected'),how=rect('.how-it-works');
+    const hero=rect('.hero'),entry=rect('.guided-entry'),pillars=rect('.editorial-pillars'),selected=rect('.editorial-selected'),how=rect('.how-it-works');
     const nav=rect('.journey-more');
     const network=document.querySelector('.document-demo');
-    return {hero,pillars,selected,how,nav,imageLoaded:!!network&&network.getBoundingClientRect().width>0};
+    return {hero,entry,pillars,selected,how,nav,imageLoaded:!!network&&network.getBoundingClientRect().width>0};
   });
   expect(editorialGeometry.imageLoaded).toBe(true);
-  expect(editorialGeometry.pillars.top).toBeGreaterThanOrEqual(editorialGeometry.hero.bottom-2);
-  expect(editorialGeometry.selected.top).toBeGreaterThanOrEqual(editorialGeometry.pillars.bottom-2);
+  expect(editorialGeometry.entry.top).toBeGreaterThanOrEqual(editorialGeometry.hero.bottom-2);
+  const {entry, pillars, selected} = editorialGeometry;
+  if (pillars.width) expect(pillars.top).toBeGreaterThanOrEqual(entry.bottom-2);
+  expect(selected.top).toBeGreaterThanOrEqual((pillars.width ? pillars : entry).bottom-2);
   expect(editorialGeometry.how.top).toBeGreaterThanOrEqual(editorialGeometry.selected.bottom-2);
   expect(editorialGeometry.nav.top).toBeGreaterThanOrEqual(editorialGeometry.how.bottom-2);
   expect(editorialGeometry.selected.width).toBeGreaterThan(width*0.8);

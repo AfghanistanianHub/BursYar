@@ -4,19 +4,10 @@
  #top>.how-it-works li a{display:block;min-height:32px}
  #top>.hero-with-cables .hero-document-reader,
  #top>.hero-with-cables .document-demo-visual{align-self:start}
- #by-hero-cables .by-actions{display:flex;justify-content:center;gap:12px}
- #by-hero-cables .by-btn-secondary{color:var(--brand-dark);background:var(--surface);border:1px solid var(--line)}
- #by-hero-cables .by-btn-secondary:hover{background:var(--brand-soft)}
- #by-hero-cables .by-diagram-caption{position:absolute;inset:586px 0 auto;margin:0 auto;width:420px;text-align:center;color:var(--muted);font-size:14px}
  #top>.pathfinder-dashboard:has(#next-actions > .empty-note:not([hidden])) .pathfinder-live{align-self:start;min-height:0;background-image:none}
  #top>.pathfinder-dashboard:has(#next-actions > .empty-note:not([hidden])) .pathfinder-live::before{display:none}
  .pathfinder-step-static{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:1rem;padding-block:.75rem}
  .site footer a{min-height:24px;display:inline-flex;align-items:center}
-}
-@media screen and (max-width:760px){
- html #top>.hero.hero-with-cables .hero-document-reader{grid-area:2/1}
- html #top>.hero.hero-with-cables .document-demo-visual{grid-area:3/1}
- html #top>.hero.hero-with-cables .hero-cables{grid-area:4/1}
 }
 
 .editorial-opportunity-link{
@@ -62,11 +53,6 @@ html[dir=rtl] .corner-arrow{rotate:-45deg}
 }
 
 @media screen and (max-width:760px){
- html #top>.hero.hero-with-cables .hero-actions{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
-  width:min(100%,440px);margin:16px auto 0;
- }
- html #top>.hero.hero-with-cables .hero-actions .primary-link{min-height:44px;padding:9px 8px}
  #top>.guided-entry{background-image:none}
  #top>.guided-entry .guided-option{
   display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;
@@ -86,8 +72,4 @@ html[dir=rtl] .corner-arrow{rotate:-45deg}
  }
  #top>.how-it-works .step-num{grid-row:span 2;margin:0}
  #top>.pathfinder-dashboard .pathfinder-step-static{grid-template-columns:44px minmax(0,1fr);gap:12px}
-}
-
-@media screen and (max-width:360px){
- html #top>.hero.hero-with-cables .hero-actions{grid-template-columns:1fr}
 }
