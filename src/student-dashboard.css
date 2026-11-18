@@ -160,6 +160,8 @@
   text-decoration: none;
 }
 .dashboard-action:hover { background: #102e4b; }
+.dashboard-action.danger { background: transparent; color: #8a2b2b; border: 1px solid #8a2b2b; }
+.dashboard-action.danger:hover { background: #fbeaea; color: #7a2020; }
 .dashboard-illustration { inline-size: 100%; max-inline-size: 190px; justify-self: center; color: var(--dashboard-navy); }
 
 .dashboard-shortcuts {
@@ -241,7 +243,7 @@
 .verification-meta { font-size: .78rem; color: #555; margin: 0; }
 .verification-reference { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; margin: 0; }
 .verification-legend { font-size: .85rem; margin-top: .75rem; }
-.verification-center [role="status"] { min-height: 1.2rem; font-size: .85rem; }
+.verification-center [role="status"] { font-size: .85rem; }
 .dashboard-privacy { display: grid; gap: .75rem; max-width: 44rem; }
 .dashboard-privacy h2 { font-family: Newsreader, Georgia, serif; font-weight: 400; margin: 0; }
 .privacy-actions { display: flex; flex-wrap: wrap; gap: .75rem; }

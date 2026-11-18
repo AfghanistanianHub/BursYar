@@ -73,6 +73,14 @@
  gap:6px;
  min-width:0;
 }
+/* A form, not a wall of full-width inputs: cap the measure on wide screens. */
+#academic-evidence form {
+ max-inline-size:36rem;
+}
+/* Long single-column forms stay readable instead of stretching controls edge to edge. */
+#profile form{max-inline-size:42rem}
+#eligibility-demo form{max-inline-size:36rem}
+#eligibility-demo .eligibility-scores:not([hidden]){max-inline-size:32rem}
 #academic-evidence :is(select,input[type=number]) {
  width:100%;
  min-width:0;
@@ -82,6 +90,14 @@
  grid-template-columns:repeat(2,minmax(0,1fr));
  gap:12px;
  align-items:end;
+}
+#academic-evidence .academic-scores:not([hidden]) {
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:12px;
+}
+@media(max-width:420px){
+ #academic-evidence .academic-grade-fields,
+ #academic-evidence .academic-scores:not([hidden]){grid-template-columns:minmax(0,1fr)}
 }
 #academic-evidence .academic-secondary-actions {
  display:flex;
@@ -93,16 +109,6 @@
  margin:0;
  background:transparent;
 }
-#academic-evidence [role=status]:empty {
- position:absolute;
- width:1px;
- height:1px;
- margin:0;
- padding:0;
- border:0;
- overflow:hidden;
- clip-path:inset(50%);
-}
 
 /* ---- Empty-state glyph (M08-7): icon + text, no new assets ---- */
 .empty-note{text-align:center}
@@ -111,7 +117,8 @@
 [aria-busy=true]{cursor:progress}
 /* ---- Footer: two-part row on wide screens ---- */
 @media(min-width:701px){footer{justify-content:space-between;align-items:baseline}}
-section[id],div[id$='mount']{scroll-margin-top:90px}
+section[id],div[id$='mount']{scroll-margin-top:112px}
+@media(min-width:701px){section[id],div[id$='mount']{scroll-margin-top:92px}}
 @media(min-width:1024px){#journey-nav-mount{grid-row:3/span 8}#workspace-overview{grid-column:2}.journey-nav{border:0;background:transparent;box-shadow:none;padding-inline:0}.journey-nav li{margin-block:4px}.journey-nav li:has(a:hover){background:var(--surface)}}
 @media(max-width:700px){.workspace-overview-grid{grid-template-columns:1fr}.workspace-start-card{padding:18px}.workspace-start-card p{min-height:0}#workspace-overview{padding:18px}.workspace-shortcuts{gap:8px 20px}.scholarship{padding:16px}.scholarship::before{margin-block-start:-16px;margin-inline:-16px;margin-block-end:8px}}
 #research-explorer .research-filters{grid-template-columns:repeat(3,minmax(0,1fr))}#research-explorer .research-filters>label:first-child{grid-column:1/-1}

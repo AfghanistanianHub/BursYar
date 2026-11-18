@@ -153,7 +153,7 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
    <p>${t.privacyNote}</p>
    <div class="privacy-actions">
     <button type="button" class="dashboard-action" data-privacy="export">${t.exportData}</button>
-    <button type="button" class="dashboard-action" data-privacy="delete">${t.deleteData}</button>
+    <button type="button" class="dashboard-action danger" data-privacy="delete">${t.deleteData}</button>
    </div>
    <p class="privacy-status" role="status"></p>
    <p class="privacy-note">${t.deleteLocalNote}</p></section>`;
