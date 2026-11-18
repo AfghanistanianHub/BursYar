@@ -18,6 +18,7 @@
 .hero-reader-heading svg{color:#916223;flex:none}
 .hero-reader-source{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.3rem .8rem;margin-block-start:.4rem;padding-block-start:.42rem;border-top:1px solid #e8e0d3}
 .hero-reader-source p{margin:0;font-size:.83rem;text-align:left;overflow-wrap:anywhere}
+.hero-reader-source p[lang=en]{font-family:var(--font-en)}
 .hero-reader-source mark{padding:0 .12rem;background:#f4e5b9;color:#1e3a5f}
 .hero-reader-source button{border-color:#b9c5d2;background:#edf3fa;font-weight:650;cursor:pointer}
 .hero-reader-source button:hover{background:#dce8f5}

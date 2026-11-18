@@ -45,6 +45,8 @@ try {
         return {
           // Check the loaded script subset; the default Latin sample may still be unloaded.
           body, h1, loads,
+          motion: getComputedStyle(document.querySelector('.by-motion')).fontFamily,
+          excerpt: getComputedStyle(document.querySelector('.hero-reader-source p')).fontFamily,
           inter: document.fonts.check('16px "Inter"', 'Scholarship'),
           vazirmatn: document.fonts.check('16px "Vazirmatn"', 'بورسیه'),
           naskh: document.fonts.check('16px "Noto Naskh Arabic"', '\u06B1'),
@@ -63,9 +65,10 @@ try {
       }, PASHTO);
       const external = fontHosts.filter((h) => !h.startsWith('127.0.0.1'));
       report.externalFontRequests.push(...external);
-      const expected = language === 'en' ? 'Inter' : 'Vazirmatn';
-      const stackOk = fonts.body.includes(expected);
-      const arabicSubset = fontHosts.some((h) => h.includes('vazirmatn-arabic-400'));
+      const expected = {en:'Inter',fa:'Vazirmatn',ps:'Noto Naskh Arabic'}[language];
+      const stackOk = [fonts.body, fonts.h1, fonts.motion].every(stack => stack.split(',')[0].replaceAll('"','') === expected);
+      const face = language === 'ps' ? 'noto-naskh-arabic' : 'vazirmatn';
+      const arabicSubset = fontHosts.some((h) => h.includes(face + '-arabic-400'));
       report.cases.push({ language, width, ...fonts, stackOk, arabicSubset: language === 'en' ? true : arabicSubset, externalFontRequests: fontHosts, fontResponses, pashtoCoverage });
       await page.screenshot({ path: `verification/artifacts/typography/after-${language}-${width}.png`, fullPage: false });
       // "Before" proxy: force the old generic system stack to show the visual delta.
@@ -75,7 +78,7 @@ try {
       await context.close();
     }
   }
-  report.passed = report.cases.every((c) => c.stackOk && c.inter && c.vazirmatn && c.arabicSubset && c.naskhFallback && Object.values(c.loads).every(Boolean) && c.fontResponses.length > 0 && c.fontResponses.every(r => r.status === 200))
+  report.passed = report.cases.every((c) => c.stackOk && c.excerpt.startsWith("Inter") && c.inter && c.vazirmatn && c.arabicSubset && c.naskhFallback && Object.values(c.loads).every(Boolean) && c.fontResponses.length > 0 && c.fontResponses.every(r => r.status === 200))
     && report.externalFontRequests.length === 0;
   // Naskh must cover every Pashto letter (Vazirmatn covers all but U+06B1 per fontTools audit).
   report.pashtoFallbackOk = report.cases.every((c) => PASHTO.every((ch) => c.pashtoCoverage[ch].naskh));

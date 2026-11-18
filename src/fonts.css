@@ -1,9 +1,9 @@
 /* Locally hosted, unicode-range-partitioned WOFF2 (OFL-1.1). No runtime CDN dependency.
  * Per-weight entry points bundle every subset with unicode-range descriptors, so the
- * browser fetches only the subsets a page needs (Latin for English, Arabic for Dari/Pashto).
+ * browser fetches only the subsets a page needs (Latin for English, Arabic for Farsi/Pashto).
  * Inter (Latin/English) — weights 400/500/600/700.
- * Vazirmatn (Arabic-script primary for Dari + Pashto UI) — weights 400/500/600/700.
- * Noto Naskh Arabic (Pashto fallback: full Pashto-letter coverage incl. U+06B1) — weights 400/500/600/700.
+ * Vazirmatn (Farsi UI) — weights 400/500/600/700.
+ * Noto Naskh Arabic (Pashto UI: full Pashto-letter coverage incl. U+06B1) — weights 400/500/600/700.
  * font-display: swap is set by Fontsource.
  */
 @import '@fontsource/inter/400.css';

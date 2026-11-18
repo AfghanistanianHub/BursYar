@@ -72,7 +72,7 @@
  .site .header .editorial-nav a{font-size:9px}
  #journey-nav-mount .journey-nav ol{grid-template-columns:1fr}
 }
-html[lang=fa] .editorial-opportunity h3,html[lang=ps] .editorial-opportunity h3{font-family:var(--font-fa);letter-spacing:0}
+html[lang=fa] .editorial-opportunity h3,html[lang=ps] .editorial-opportunity h3{font-family:var(--font-ui);letter-spacing:0}
 
 /* Document review — actual persisted workflow; no issuer-verification claims */
 #documents{padding:clamp(20px,3.2vw,44px);background:#FEFDFB;border:1px solid var(--line);border-radius:3px;box-shadow:none}
@@ -86,7 +86,7 @@ html[lang=fa] .editorial-opportunity h3,html[lang=ps] .editorial-opportunity h3{
 .document-stage-list li[aria-current=step]>span:first-child{color:var(--brand)}
 #documents > form{padding:clamp(18px,3vw,30px);border:1px dashed #B5AFA7;background:#FCFAF6;margin:20px 0 26px;display:grid;gap:16px}
 #documents > form > label:first-child{font-family:var(--editorial-serif);font-size:clamp(22px,2.2vw,32px);font-weight:400;text-align:center;display:grid;justify-items:center;gap:12px}
-#documents input[type=file]{display:block;max-width:100%;font:12px var(--font-en);border:1px solid var(--line);padding:12px;background:#fff}
+#documents input[type=file]{display:block;max-width:100%;font:12px var(--font-ui);border:1px solid var(--line);padding:12px;background:#fff}
 #documents :where(input,textarea,select){background:#fff;border-color:var(--line)}
 #documents :where(button){border-radius:3px;min-height:39px}
 #documents :where(button[type=submit]){background:var(--brand);color:#fff;border:1px solid var(--brand);padding:10px 20px}
@@ -96,7 +96,7 @@ html[lang=fa] .editorial-opportunity h3,html[lang=ps] .editorial-opportunity h3{
 #documents .document-paste{border:1px solid var(--line);padding:12px;background:#fff}
 #documents .document-format{border-bottom:1px solid var(--line);padding:10px 0}
 #documents [aria-busy=true]{opacity:.8}
-html[lang=fa] #documents>h2,html[lang=ps] #documents>h2{font-family:var(--font-fa);font-weight:500;letter-spacing:0;line-height:1.55}
+html[lang=fa] #documents>h2,html[lang=ps] #documents>h2{font-family:var(--font-ui);font-weight:500;letter-spacing:0;line-height:1.55}
 /* PathFinder uses real navigation and existing next-actions event content */
 #top > .pathfinder-dashboard{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.95fr);border-block:1px solid var(--line);background:#FEFDFB;margin-top:42px}
 .pathfinder-intro{padding:clamp(24px,4.5vw,62px);min-width:0}
@@ -117,7 +117,7 @@ html[lang=fa] #documents>h2,html[lang=ps] #documents>h2{font-family:var(--font-f
 .pathfinder-live #next-steps>h2{font:clamp(25px,2.8vw,38px) var(--editorial-serif);letter-spacing:-.035em;font-weight:400;margin-block:0 24px}
 .pathfinder-live #next-actions{border-top:1px solid var(--line);padding-top:22px;min-height:150px}
 .pathfinder-live #next-actions :where(p,div){overflow-wrap:anywhere}
-html[lang=fa] .pathfinder-intro h2,html[lang=ps] .pathfinder-intro h2,html[lang=fa] .pathfinder-step-copy strong,html[lang=ps] .pathfinder-step-copy strong,html[lang=fa] .pathfinder-live h2,html[lang=ps] .pathfinder-live h2{font-family:var(--font-fa);letter-spacing:0;line-height:1.6}
+html[lang=fa] .pathfinder-intro h2,html[lang=ps] .pathfinder-intro h2,html[lang=fa] .pathfinder-step-copy strong,html[lang=ps] .pathfinder-step-copy strong,html[lang=fa] .pathfinder-live h2,html[lang=ps] .pathfinder-live h2{font-family:var(--font-ui);letter-spacing:0;line-height:1.6}
 @media(max-width:850px){
  #top > .pathfinder-dashboard{grid-template-columns:1fr}
  .pathfinder-live{border-inline-start:0;border-top:1px solid var(--line)}

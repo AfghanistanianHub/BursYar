@@ -77,10 +77,10 @@ body {background:var(--bg);color:var(--ink);font-size:14px;letter-spacing:-.005e
 .site :where(.status,.empty-note) {box-shadow:none}
 footer {border-top:1px solid var(--line);background:var(--bg);color:var(--muted);font-size:12px}
 html[dir=rtl] .hero-copy {align-items:flex-start}
-html[lang=fa] .hero h1,html[lang=ps] .hero h1 {font-family:var(--font-fa);font-size:clamp(40px,5vw,72px);font-weight:500;line-height:1.55;letter-spacing:0}
-html[lang=fa] .header .logo,html[lang=ps] .header .logo {font-family:var(--font-fa);letter-spacing:0}
+html[lang=fa] .hero h1,html[lang=ps] .hero h1 {font-family:var(--font-ui);font-size:clamp(40px,5vw,72px);font-weight:500;line-height:1.55;letter-spacing:0}
+html[lang=fa] .header .logo,html[lang=ps] .header .logo {font-family:var(--font-ui);letter-spacing:0}
 html[lang=fa] .header .logo small,html[lang=ps] .header .logo small {letter-spacing:0}
-html[lang=fa] .how-it-works>h2,html[lang=ps] .how-it-works>h2 {font-family:var(--font-fa);letter-spacing:0}
+html[lang=fa] .how-it-works>h2,html[lang=ps] .how-it-works>h2 {font-family:var(--font-ui);letter-spacing:0}
 @media(max-width:900px){
  .hero {grid-template-columns:1fr 1fr;min-height:440px}
  .hero h1 {font-size:clamp(46px,6vw,65px)}

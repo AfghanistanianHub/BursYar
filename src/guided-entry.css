@@ -29,7 +29,7 @@ html[dir=rtl] .guided-option .guided-arrow{right:auto;left:22px;transform:scaleX
 #top>.guided-demo #analysis-workspace .aw-stage{min-width:0}
 #top>.guided-demo #analysis-workspace .aw-stage:last-child:nth-child(odd){grid-column:1/-1}
 #top>.guided-demo #analysis-workspace .aw-shell{max-width:100%;overflow:visible}
-html[lang=fa] .guided-entry-head h2,html[lang=ps] .guided-entry-head h2{font-family:var(--font-fa);letter-spacing:0;line-height:1.6}
+html[lang=fa] .guided-entry-head h2,html[lang=ps] .guided-entry-head h2{font-family:var(--font-ui);letter-spacing:0;line-height:1.6}
 @media(max-width:850px){.guided-entry-options{grid-template-columns:1fr}.guided-option{min-height:0;padding:18px 54px 18px 18px}html[dir=rtl] .guided-option{padding:18px 18px 18px 54px}.guided-option-icon{margin-bottom:9px}.guided-option .guided-arrow{top:25px;bottom:auto}.guided-entry-head h2{font-size:clamp(29px,6vw,42px)}}
 @media(max-width:700px){
  #top>.guided-entry{padding:33px 20px}

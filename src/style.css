@@ -1,7 +1,8 @@
 :root{
  --font-en:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
  --font-fa:"Vazirmatn","Noto Naskh Arabic",system-ui,"Segoe UI",Tahoma,sans-serif;
- --font-ps:"Vazirmatn","Noto Naskh Arabic",system-ui,"Segoe UI",Tahoma,sans-serif;
+ --font-ps:"Noto Naskh Arabic","Inter",system-ui,"Segoe UI",Tahoma,sans-serif;
+ --font-ui:var(--font-en);
  --font-mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
  --bg:#f0f3f1; --surface:#ffffff; --surface-2:#f4f7f4; --surface-3:#e6ece7;
  --ink:#1d2c26; --muted:#54665d; --faint:#75867e;
@@ -18,9 +19,9 @@
  color:var(--ink); background:var(--bg); font-size:16px; line-height:var(--lh-body);
  font-synthesis:none; text-rendering:optimizeLegibility;
 }
-body{font-family:var(--font-en); margin:0}
-html[lang=fa] body{font-family:var(--font-fa)}
-html[lang=ps] body{font-family:var(--font-ps)}
+html[lang=fa]{--font-ui:var(--font-fa)}
+html[lang=ps]{--font-ui:var(--font-ps)}
+body{font-family:var(--font-ui); margin:0}
 *{box-sizing:border-box}
 a{color:inherit; text-underline-offset:3px}
 button,input,select,textarea{font:inherit; color:inherit}

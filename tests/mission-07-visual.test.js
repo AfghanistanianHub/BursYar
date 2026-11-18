@@ -42,5 +42,5 @@ test('mission 07 keeps phone rules and honest busy affordance', () => {
 });
 
 test('mission 07 matches the browser chrome to the paper background', () => {
-  assert.match(index, /<meta name="theme-color" content="#f5f7fb"\/>/);
+  assert.match(index, /<meta name="theme-color" content="#FEFDFB"\/>/);
 });

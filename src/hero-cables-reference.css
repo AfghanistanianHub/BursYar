@@ -55,7 +55,7 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   border-radius:6px;
   background:var(--bg);
   color:var(--brand);
-  font:600 12px/1 var(--font-en);
+  font:600 12px/1.4 var(--font-ui);
   cursor:pointer;
 }
 @media screen and (max-width:960px){
@@ -64,9 +64,6 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
     flex-wrap:wrap;
   }
   #by-hero-cables .by-motion{position:static}
-}
-html[dir=rtl] #by-hero-cables .by-motion{
-  font-family:var(--font-fa);
 }
 #by-hero-cables .by-motion:hover{
   background:var(--surface-2);
@@ -147,14 +144,14 @@ html[dir=rtl] #by-hero-cables .by-motion{
     color:var(--ink);
     font-family:var(--font-en);
     font-size:clamp(30px,4vw,50px);
-    font-weight:750;
+    font-weight:700;
     line-height:1.12;
     letter-spacing:-.03em;
     text-wrap:balance;
   }
   html[lang=fa] #top>.hero.hero-with-cables .hero-intro h1,
   html[lang=ps] #top>.hero.hero-with-cables .hero-intro h1{
-    font-family:var(--font-fa);
+    font-family:var(--font-ui);
     font-size:clamp(26px,3.6vw,42px);
     font-weight:700;
     line-height:1.45;

@@ -248,3 +248,10 @@
 .dashboard-privacy .dashboard-action { border: 1px solid #1a1a1a; background: #1a1a1a; color: #fefdfb; padding: .6rem 1rem; border-radius: 3px; font: inherit; cursor: pointer; }
 .privacy-status { font-size: .85rem; min-height: 1.2rem; margin: 0; }
 .privacy-note { font-size: .78rem; color: #555; margin: 0; }
+
+html[dir=rtl] :is(.verification-center h3, .dashboard-privacy h2) {
+  font-family: var(--font-ui);
+  line-height: var(--lh-head);
+}
+
+html[dir=rtl] .verification-status { letter-spacing: normal; }
