@@ -35,7 +35,7 @@ import {journeyCopy} from './journey-copy.js';
 import {translations} from './i18n.js';
 import {researchScholarships,researchLabel,researchSourceUrl} from './research-catalog.js';
 const app=document.querySelector('#app');
-const state={language:localStorage.getItem('bursyar-language')||'en',q:'',country:'all',level:'all',selected:null};
+const state={language:localStorage.getItem('bursyar-language')||'en',q:'',country:'all',level:'all'};
 if(!translations[state.language])state.language='en';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let analyzerInput={};
@@ -121,7 +121,7 @@ ${ed.pillars.map((p,i)=>`<article class="editorial-pillar"><div class="editorial
   ${pathUI.steps.map((step,i)=>`<li><a href="${['#research-explorer','#documents-mount','#eligibility-mount','#research-explorer','#next-steps'][i]}" ${i<4?`data-open="${['.resources','.workspace','#eligibility-example','.resources'][i]}"`:''}><span class="pathfinder-index">${fmt.format(i+1)}</span><span class="pathfinder-step-copy"><strong>${esc(step[0])}</strong><small>${esc(step[1])}</small></span><span class="pathfinder-step-arrow" aria-hidden="true">↗</span></a></li>`).join('')}
   </ol>
  </div>
- <div class="pathfinder-live"><p class="pathfinder-eyebrow">${esc(pathUI.barrier)}</p><section id="next-steps"><h2>${fmt.format(4)} · ${esc(j.next)}</h2><div id="next-actions"><p class="empty-note">${esc(j.nextEmpty)} <a href="#assistant">${esc(j.nextEmptyCta)}</a></p></div><p>${esc(j.nextNote)}</p></section></div></section><details class="resources"><summary>${esc(j.resources)}</summary><div id="research-explorer-mount"></div><section id="explore" class="section"><div class="section-top"><div><p class="eyebrow">BURS YAR / 01</p><h2>${esc(t.scholarships)}</h2></div><span class="sample-note">${esc(t.demo)}</span></div><div class="filters"><label><span class="sr-only">${esc(t.search)}</span><input id="search" type="search" value="${esc(state.q)}" placeholder="${esc(t.search)}" autocomplete="off"></label><label><span class="sr-only">${esc(t.country)}</span><select id="country"><option value="all">${esc(t.allCountries)}</option>${['Canada','Germany','Japan'].map(x=>`<option value="${x}" ${state.country===x?'selected':''}>${esc(localizedCountry(x,state.language))}</option>`).join('')}</select></label><label><span class="sr-only">${esc(t.degree)}</span><select id="level"><option value="all">${esc(t.allLevels)}</option>${['Undergraduate','Masters','PhD'].map(x=>`<option value="${x}" ${state.level===x?'selected':''}>${esc(localizedLevel(x,state.language))}</option>`).join('')}</select></label></div><div id="sample-results"><p class="count" role="status"></p><div id="sample-listing"></div></div><div id="detail" aria-live="polite">${state.selected?`<section class="detail" tabindex="-1"><h3>${esc(t.demoTitle)} · ${esc(localizedCountry(state.selected.country,state.language))}</h3><p>${esc(t.demo)}</p><p>${esc(t.deadline)}: ${esc(t.none)}</p><p>${esc(t.sourceMissing)}</p><button id="close-detail" type="button" aria-label="${esc(t.close)}">×</button></section>`:''}</div></section><section class="section about" id="about"><p class="eyebrow">BURS YAR / 03</p><h2>${esc(t.missionTitle)}</h2><p>${esc(t.missionCopy)}</p></section></details></main><footer><span>${esc(t.brand)} © 2026</span><span>${esc(t.footnote)}</span></footer></div><div id="student-dashboard" hidden></div>`;
+ <div class="pathfinder-live"><p class="pathfinder-eyebrow">${esc(pathUI.barrier)}</p><section id="next-steps"><h2>${fmt.format(4)} · ${esc(j.next)}</h2><div id="next-actions"><p class="empty-note">${esc(j.nextEmpty)} <a href="#assistant">${esc(j.nextEmptyCta)}</a></p></div><p>${esc(j.nextNote)}</p></section></div></section><details class="resources"><summary>${esc(j.resources)}</summary><div id="research-explorer-mount"></div><section id="explore" class="section"><div class="section-top"><div><p class="eyebrow">BURS YAR / 01</p><h2>${esc(t.scholarships)}</h2></div><span class="sample-note">${esc(t.demo)}</span></div><div class="filters"><label><span class="sr-only">${esc(t.search)}</span><input id="search" type="search" value="${esc(state.q)}" placeholder="${esc(t.search)}" autocomplete="off"></label><label><span class="sr-only">${esc(t.country)}</span><select id="country"><option value="all">${esc(t.allCountries)}</option>${['Canada','Germany','Japan'].map(x=>`<option value="${x}" ${state.country===x?'selected':''}>${esc(localizedCountry(x,state.language))}</option>`).join('')}</select></label><label><span class="sr-only">${esc(t.degree)}</span><select id="level"><option value="all">${esc(t.allLevels)}</option>${['Undergraduate','Masters','PhD'].map(x=>`<option value="${x}" ${state.level===x?'selected':''}>${esc(localizedLevel(x,state.language))}</option>`).join('')}</select></label></div><div id="sample-results"><p class="count" role="status"></p><div id="sample-listing"></div></div><div id="detail" aria-live="polite"></div></section><section class="section about" id="about"><p class="eyebrow">BURS YAR / 03</p><h2>${esc(t.missionTitle)}</h2><p>${esc(t.missionCopy)}</p></section></details></main><footer><span>${esc(t.brand)} © 2026</span><span>${esc(t.footnote)}</span></footer></div><div id="student-dashboard" hidden></div>`;
 document.querySelector('#language').addEventListener('change',e=>{state.language=e.target.value;localStorage.setItem('bursyar-language',state.language);render();document.querySelector('#student-dashboard:not([hidden]) #dashboard-language, .site:not([hidden]) #language')?.focus()});
 const sampleResults=document.querySelector('#sample-results');
 function updateSampleResults(){
@@ -130,24 +130,29 @@ function updateSampleResults(){
  sampleResults.querySelector('#sample-listing').innerHTML=`${items.length?'':`<p class="empty-note">${esc(t.noResults)}</p>`}<div class="listing">${items.map(x=>`<article class="scholarship"><p class="small-caps">${esc(localizedCountry(x.country,state.language))} · ${esc(localizedLevel(x.level,state.language))}</p><h3>${esc(t.demoTitle)} — ${esc(localizedCountry(x.country,state.language))}</h3><p class="muted">${esc(t.sourceMissing)}</p><div class="card-bottom"><span class="pill">${esc(t.unverified)}</span><button class="detail-button" data-id="${esc(x.id)}">${esc(t.details)} <span aria-hidden="true">↗</span></button></div></article>`).join('')}</div>`;
 }
 updateSampleResults();
+const sampleDetail=document.querySelector('#detail');
 document.querySelector('#search').addEventListener('input',e=>{
  state.q=e.target.value;
+ sampleDetail.replaceChildren();
  updateSampleResults();
 });
 for(const id of ['country','level'])document.querySelector('#'+id).addEventListener('change',e=>{
  state[id]=e.target.value;
- state.selected=null;
- document.querySelector('#detail').replaceChildren();
+ sampleDetail.replaceChildren();
  updateSampleResults();
 });
 sampleResults.addEventListener('click',event=>{
  const button=event.target.closest('.detail-button');
  if(!button)return;
- state.selected=sampleScholarships.find(x=>x.id===button.dataset.id);
- render();
- document.querySelector('#detail .detail')?.focus();
+ const selected=sampleScholarships.find(x=>x.id===button.dataset.id);
+ if(!selected)return;
+ sampleDetail.innerHTML=`<section class="detail" tabindex="-1"><h3>${esc(t.demoTitle)} · ${esc(localizedCountry(selected.country,state.language))}</h3><p>${esc(t.demo)}</p><p>${esc(t.deadline)}: ${esc(t.none)}</p><p>${esc(t.sourceMissing)}</p><button id="close-detail" type="button" aria-label="${esc(t.close)}">×</button></section>`;
+ sampleDetail.querySelector('#close-detail').addEventListener('click',()=>{
+  sampleDetail.replaceChildren();
+  button.focus();
+ });
+ sampleDetail.firstElementChild.focus();
 });
-document.querySelector('#close-detail')?.addEventListener('click',()=>{state.selected=null;render()});
 document.querySelectorAll('[data-open]').forEach(el=>el.addEventListener('click',()=>{const panel=document.querySelector(el.dataset.open);if(panel)panel.open=true;}));
 cleanupReferenceHero=mountReferenceHero(app,state.language,heroMotionPaused,paused=>{heroMotionPaused=paused;});
 mountHeroDocumentDemo(document.querySelector('.hero'),state.language);

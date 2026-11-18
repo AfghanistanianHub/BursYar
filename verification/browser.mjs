@@ -89,13 +89,15 @@ try {
     await expect(page.locator('#explore .scholarship')).toHaveCount(1);
     await expect(search).toBeFocused();
     expect(await searchControl.evaluate(input => input === document.activeElement)).toBe(true);
-    await searchControl.dispose();
     await page.locator('#country').selectOption('Japan');
     await expect(page.locator('#explore .scholarship')).toHaveCount(0);
     await page.locator('#country').selectOption('all');
     await page.locator('#sample-results .detail-button').click();
     await expect(page.locator('#detail .detail')).toBeFocused();
     await page.locator('#close-detail').click();
+    await expect(page.locator('#sample-results .detail-button')).toBeFocused();
+    expect(await searchControl.evaluate(input => input === document.querySelector('#search'))).toBe(true);
+    await searchControl.dispose();
     await search.fill('');
     await expect(page.locator('#explore .scholarship')).toHaveCount(3);
     expect(sampleErrors).toEqual([]);
