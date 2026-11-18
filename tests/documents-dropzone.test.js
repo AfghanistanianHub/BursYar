@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 if (typeof globalThis.document === 'undefined') {
   globalThis.document = {addEventListener() {}, dispatchEvent() {}, querySelector() { return null; }};
 }
-const {documentsCopy, documentSteps, documentStageKeys} = await import('../src/documents.js');
+const {documentsCopy, documentSteps, documentStageKeys, binaryDocumentsEnabled} = await import('../src/documents.js');
 
 const ARABIC = /[\u0600-\u06ff]/;
 
@@ -31,14 +31,18 @@ test('dropzone copy exists in en/fa/ps and never promises binary intake by itsel
   }
 });
 
-test('production binary refusal explains TXT-only without listing binaries as usable', () => {
+test('binary intake is enabled and the copy names PDF/PNG/JPEG without claiming verification', () => {
+  assert.equal(binaryDocumentsEnabled, true, 'PDF and image intake is available in production');
   for (const lang of ['en', 'fa', 'ps']) {
     const t = documentsCopy[lang];
-    assert.equal(typeof t.unsupportedFileProduction, 'string', `${lang}.unsupportedFileProduction`);
-    assert.ok(t.unsupportedFileProduction.includes('TXT'), `${lang} names TXT`);
-    assert.ok(!/PNG|JPEG/.test(t.unsupportedFileProduction), `${lang} lists no binary type as usable`);
+    assert.match(t.unsupportedFile, /PDF/, `${lang}.unsupportedFile names PDF`);
+    assert.match(t.note, /PDF/, `${lang}.note describes PDF limits`);
+    // No remaining string may tell users that production is TXT-only.
+    for (const value of Object.values(t)) {
+      if (typeof value !== 'string') continue;
+      assert.ok(!/TXT only|فقط TXT|یوازې TXT/.test(value), `${lang} has no stale TXT-only claim`);
+    }
   }
-  assert.match(documentsCopy.en.unsupportedFileProduction, /only/i, 'en says only');
 });
 
 test('extraction-method provenance covers every recorded method plus a fallback', () => {

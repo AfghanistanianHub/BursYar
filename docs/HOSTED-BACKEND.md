@@ -28,7 +28,7 @@ project, issuer, nonanonymous identity and `bursyarDemo` checks remain required.
 
 Backend code: `3e7432a0a670d884135b970bfe97c9e521e8610c`, verified live via
 `/health` reporting `capabilities.build.commit` of `3e7432a` (outside-dashboard
-check, no Render access used). The storage implementation passed 293 Node tests,
+check, no Render access used). Superseded on 2026-11-18 by `7dbd75f`, see below. The storage implementation passed 293 Node tests,
 production build and all four CI jobs. The subsequent consent wording release
 also passed all four CI jobs and is READY in production.
 
@@ -77,6 +77,31 @@ requests. Spending quotas are durable in the existing private Supabase project.
 
 
 ## Read-only release check
+
+After a backend deploy that should include the credential-verification workflow,
+run `node scripts/verify-live-verification-api.mjs --base=https://bursyar.vercel.app
+--expect-commit=<deployed sha>` (also `npm run verify:live-verification`). It
+needs no credentials for the deploy evidence: a 401 on `/api/verifications` and
+`/api/verifications/providers` proves the routes exist behind authentication, a
+404 means the deployed build predates them, and a foreign `Origin` must be
+rejected with 403. Set `BURSYAR_VERIFY_TOKEN` to a real ID token to also exercise
+create/list/withdraw with a synthetic document that it deletes again. A skipped
+check is never counted as a pass: the summary prints `N passed, M failed, K
+skipped` and names what the run did not prove. Exit status is 0 only when every
+executed check passes; add `--require-auth` to make an unverified authenticated
+leg fail instead.
+
+## Verified backend release — 2026-11-18
+
+The backend now serves `7dbd75f6889ea09e96c129831bec40c463b6e64e` on both
+`bursyar.vercel.app/health` and `bursyar-api.onrender.com/health`, which
+supersedes the `3e7432a` build recorded above. Live run of the release check:
+5 passed, 0 failed, 1 skipped — the verification routes answer `401` behind
+authentication, a foreign `Origin` gets `403`, and `/api/export` still
+authenticates through the proxy. The authenticated create/list/withdraw leg was
+**not** exercised against production (no ID token in this environment) and is
+reported as not proven; the same script passes 12/12 against a locally booted
+engine. See `docs/MISSION-42-RELEASE-CLOSURE.md` for the full evidence table.
 
 Open https://bursyar.vercel.app/health directly. Its `capabilities.build.commit` is the git SHA Render built (`RENDER_GIT_COMMIT`, override `BURSYAR_BUILD_SHA`, else `"unknown"`), so outside-dashboard deploy verification is `curl .../health` and comparing that SHA to the intended commit. The earlier authentication-only release returned `ok: true`, deterministic
 features available, storage disabled and `inferenceVerified: false`. The current
