@@ -34,6 +34,7 @@ function evaluateRequirement(requirement,profile) {
   const id=requirement?.id ?? 'invalid';
   if (!validRequirement(requirement) || requirement.ambiguous!==false || typeof requirement.sourceExcerpt!=='string' || !requirement.sourceExcerpt.trim() || typeof requirement.sourceUrl!=='string' || !sourceUrlValid(requirement.sourceUrl))
     return result(id,UNKNOWN,'unreviewed_or_unsupported_requirement');
+  if (requirement.conflicting === true) return result(id,UNKNOWN,'conflicting_or_ambiguous');
   if(requirement.type==='boolean_exclusion'){
     if(!['deferredOffer','continuingSameDegree'].includes(requirement.field)||requirement.excludedValue!==true)return result(id,UNKNOWN,'unsupported_exclusion');
     const f=fact(profile,requirement.field);if(!f||typeof f.value!=='boolean')return result(id,UNKNOWN,'missing_exclusion_evidence');

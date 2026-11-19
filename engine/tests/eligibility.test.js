@@ -40,6 +40,12 @@ test('unreviewed rules cannot yield met',()=>{
   const x=assessScholarship([{...rules[0],ambiguous:true}],{degree:f('master')});
   assert.equal(x.summary,'unknown');
 });
+test('conflicting rules remain unknown across real and hypothetical assessments',()=>{
+  const conflictingRules=[{...rules[0],conflicting:true}];
+  const scenario=simulate(conflictingRules,{degree:f('master')},{degree:'secondary'});
+  assert.equal(scenario.base.summary,'unknown');
+  assert.equal(scenario.scenario.summary,'unknown');
+});
 test('unsupported score scales remain unknown',()=>{
   const x=assessScholarship(rules,{degree:f('master'),languageTest:f({test:'TOEFL iBT',overall:5,bands:{}})});
   assert.equal(x.summary,'unknown');

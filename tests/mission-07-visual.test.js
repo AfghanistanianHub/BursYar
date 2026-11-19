@@ -33,7 +33,12 @@ test('mission 07 gives the research explorer the shared empty state', () => {
 test('mission 07 keeps RTL-safe kickers and native disclosure markers', () => {
   assert.match(theme, /\[dir=rtl\] \.workspace-kicker\{letter-spacing:0\}/);
   assert.match(theme, /summary::marker\{color:var\(--brand\)\}/);
-  assert.match(theme, /scroll-margin-top:90px/);
+});
+
+test('workspace anchors clear the mobile and desktop headers', () => {
+  const anchors = "section[id],div[id$='mount']";
+  assert.ok(theme.includes(anchors + '{scroll-margin-top:112px}'));
+  assert.ok(theme.includes('@media(min-width:701px){' + anchors + '{scroll-margin-top:92px}}'));
 });
 
 test('mission 07 keeps phone rules and honest busy affordance', () => {
