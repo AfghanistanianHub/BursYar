@@ -14,6 +14,8 @@ export const verificationCopy = {
   referenceLabel: 'Certificate or reference number (optional)',
   referenceHint: 'Only if the issuer needs it. It is stored with this request so you do not have to enter it again.',
   consent: 'I consent to BursYar storing this request, the reference number and the issuer’s decision in my account.',
+  consentRequired: 'Tick the consent box before recording a verification request.',
+  statusLegend: 'What each status means',
   submit: 'Record verification request',
   submitting: 'Recording request…',
   documentsEmpty: 'No documents saved yet. Add and review a document first.',
@@ -56,6 +58,8 @@ export const verificationCopy = {
   referenceLabel: 'شمارهٔ مدرک یا مرجع (اختیاری)',
   referenceHint: 'فقط اگر فرایند تأیید صادرکننده به آن نیاز دارد. همراه درخواست ذخیره می‌شود تا دوباره وارد نکنید.',
   consent: 'موافقم که بورس‌یار این درخواست، شمارهٔ مرجع و پاسخ صادرکننده را در حساب من ذخیره کند.',
+  consentRequired: 'پیش از ثبت درخواست تأیید، کادر رضایت را علامت بزنید.',
+  statusLegend: 'معنی هر وضعیت',
   submit: 'ثبت درخواست تأیید',
   submitting: 'در حال ثبت درخواست…',
   documentsEmpty: 'هنوز مدرکی ذخیره نشده است. ابتدا یک مدرک اضافه و بازبینی کنید.',
@@ -98,6 +102,8 @@ export const verificationCopy = {
   referenceLabel: 'د سند یا مرجع شمېره (اختیاري)',
   referenceHint: 'یوازې که د صادرونکي تایید بهیر ورته اړتیا ولري. له غوښتنې سره ساتل کېږي تر څو بیا یې ولیکئ.',
   consent: 'منم چې بورس‌یار دا غوښتنه، مرجع شمېره او د صادرونکي ځواب زما په حساب کې وساتي.',
+  consentRequired: 'د تایید غوښتنې ثبتولو مخکې د رضایت چوکاټ وټاکئ.',
+  statusLegend: 'د هر حالت مانا',
   submit: 'د تایید غوښتنه ثبت کړئ',
   submitting: 'غوښتنه ثبتېږي…',
   documentsEmpty: 'تر اوسه کوم سند نه دی ساتل شوی. لومړی سند زیات او بیاکتنه یې کړئ.',
@@ -182,7 +188,6 @@ export async function mountVerifications(root, language = 'en') {
  const consentLabel = element('label', '', form);
  const consent = document.createElement('input');
  consent.type = 'checkbox';
- consent.required = true;
  consentLabel.prepend(consent);
  consentLabel.append(t.consent);
  const submit = element('button', t.submit, form);
@@ -199,7 +204,7 @@ export async function mountVerifications(root, language = 'en') {
  list.className = 'verification-requests';
  const legend = element('details', '', listSection);
  legend.className = 'verification-legend';
- element('summary', t.requestsTitle, legend);
+ element('summary', t.statusLegend, legend);
  for (const key of verificationStatuses) element('p', t.statuses[key], legend).dataset.status = key;
 
  function paintProvider() {
@@ -300,10 +305,22 @@ export async function mountVerifications(root, language = 'en') {
   }
  }
  providerSelect.addEventListener('change', paintProvider);
+ consent.addEventListener('change', () => {
+  if (!consent.checked) return;
+  consent.removeAttribute('aria-invalid');
+  if (status.textContent === t.consentRequired) status.textContent = '';
+ });
  form.addEventListener('submit', event => {
   event.preventDefault();
   busy(async () => {
-   if (!documentSelect.value || !providerSelect.value || !consent.checked) return;
+   if (!documentSelect.value || !providerSelect.value) return;
+   if (!consent.checked) {
+    consent.setAttribute('aria-invalid', 'true');
+    status.textContent = t.consentRequired;
+    consent.focus();
+    return;
+   }
+   consent.removeAttribute('aria-invalid');
    await api('/api/verifications', 'POST', {
     documentId: documentSelect.value,
     providerId: providerSelect.value,
