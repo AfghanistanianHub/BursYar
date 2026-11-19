@@ -61,16 +61,17 @@ try {
     await expect(motion).toBeHidden();
     await expect(hero.locator('.by-arc-band')).toHaveClass(/is-paused/);
     await page.emulateMedia({reducedMotion:'no-preference'});
+    await expect(motion).toBeVisible();
   }
   if (width === 390) {
     await motion.focus();
     await page.keyboard.press('Space');
-    await expect(hero.locator('.by-arc-band')).toHaveClass(/is-paused/);
+    await expect(motion).toHaveClass(/shows-play/);
     const otherLanguage = language === 'en' ? 'fa' : 'en';
     await page.locator('#language').selectOption(otherLanguage);
-    await expect(hero.locator('.by-arc-band')).toHaveClass(/is-paused/);
+    await expect(motion).toHaveClass(/shows-play/);
     await page.locator('#language').selectOption(language);
-    await expect(hero.locator('.by-arc-band')).toHaveClass(/is-paused/);
+    await expect(motion).toHaveClass(/shows-play/);
     await motion.click();
   }
   if (width === 1280) {

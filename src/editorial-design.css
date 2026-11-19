@@ -22,7 +22,7 @@ body {background:var(--bg);color:var(--ink);font-size:14px;letter-spacing:-.005e
 .site {background:var(--bg);max-width:none}
 .site :where(article,.card,.panel,.evidence-preview,.scholarship,.detail) {box-shadow:none}
 .site :where(button,input,textarea,select) {border-radius:3px}
-.site :where(button,.primary-link,.detail-button) {transition:background-color .15s ease,border-color .15s ease,color .15s ease}
+.site :where(button,.primary-link,.detail-button) {transition:border-color .15s ease}
 .site :where(a,button,input,select,textarea,summary):focus-visible {outline:2px solid var(--brand);outline-offset:3px}
 .header {
   position:sticky;top:0;z-index:40;
