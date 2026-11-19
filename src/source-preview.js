@@ -69,6 +69,16 @@ export function mountSourcePreview(form,url,textarea,submit,language,initial={})
   }catch{if(form.isConnected)status.textContent=r.fileError;}finally{file.value='';}
  });
  if(initial.preview){render(initial.preview);textarea.readOnly=!!form.sourceReceipt;}else if(form.sourceFailure)status.textContent=form.sourceFailure==='auth'?t.auth:form.sourceFailure==='busy'?t.busy:form.sourceFailure==='challenge'?r.blocked:r.unavailable;
- document.addEventListener('bursyar:identity',()=>{if(!form.isConnected)return;invalidate();form.sourceFailure=null;form.manualMode=false;textarea.value='';sync();status.textContent='';});
+ document.addEventListener('bursyar:identity',()=>{
+  if(!form.isConnected)return;
+  url.value='';
+  textarea.value='';
+  file.value='';
+  preview.replaceChildren();
+  form.sourceFailure=null;
+  form.manualMode=false;
+  status.textContent='';
+  invalidate();
+ });
  sync();return ()=>!busy&&approval.checked;
 }

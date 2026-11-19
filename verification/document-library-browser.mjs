@@ -145,6 +145,69 @@ try {
   check('LIB-ISOLATION-ENGINE', documents.list(userB).length === 0 && documents.list(userA).length === 2, 'engine lists stay per-owner');
   await contextB.close();
 
+  // Same-tab account switching, including a response started by the old
+  // account. Drive the application's auth observers without reloading the page.
+  const switchPage = await context.newPage();
+  await switchPage.route('**/src/auth.js', route => route.fulfill({contentType:'text/javascript',body:`
+    let uid = ${JSON.stringify(userA)};
+    const observers = new Set();
+    export async function signIn(){}
+    export async function signOut(){}
+    export async function getInferenceToken(){return uid;}
+    export async function onAuthChange(observer){
+      observers.add(observer);observer({uid});return ()=>observers.delete(observer);
+    }
+    export function changeAccount(next){uid=next;for(const observer of observers)observer({uid});}
+  `}));
+  await proxyApi(switchPage);
+  await switchPage.goto(origin+'/#dashboard/documents');
+  const switchList = switchPage.locator('#document-chooser');
+  const switchOpen = switchPage.locator('#documents [data-action="open-document"]');
+  const switchSource = switchPage.locator('#documents .document-source');
+  await expect(switchList.locator('option')).toHaveCount(2);
+  await switchList.selectOption(firstId);
+  await switchOpen.click();
+  await expect(switchSource).toContainText('SYNTHETIC LIBRARY DOC ONE');
+
+  // Hold the second document until after the application has mounted B's view.
+  let release;
+  const responseHeld = new Promise(resolve => {release=resolve;});
+  await switchPage.route('**/api/documents/'+secondId, async route => {
+    const response = await fetch(apiBase+'/api/documents/'+secondId,{
+      headers:{authorization:route.request().headers().authorization,origin}
+    });
+    const body = await response.text();
+    await responseHeld;
+    await route.fulfill({status:response.status,contentType:'application/json',body});
+  },{times:1});
+  await switchList.selectOption(secondId);
+  await Promise.all([
+    switchPage.waitForRequest(request=>new URL(request.url()).pathname==='/api/documents/'+secondId),
+    switchOpen.click()
+  ]);
+  const switchTo = uid => switchPage.evaluate(async next=>{
+    (await import('/src/auth.js')).changeAccount(next);
+  },uid);
+  await Promise.all([
+    switchPage.waitForResponse(response=>new URL(response.url()).pathname==='/api/documents'
+      && response.request().headers().authorization==='Bearer '+userB && response.status()===200),
+    switchTo(userB)
+  ]);
+  await expect(switchSource).toHaveCount(0);
+  await expect(switchList).toBeDisabled();
+  const finished = switchPage.waitForEvent('requestfinished',
+    request=>new URL(request.url()).pathname==='/api/documents/'+secondId);
+  release();await finished;
+  await switchPage.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  await expect(switchSource).toHaveCount(0);
+  await expect(switchOpen).toBeDisabled();
+  await expect(switchList).toHaveValue('');
+  await switchTo(userA);
+  await expect(switchList.locator('option')).toHaveCount(2);
+  await expect(switchSource).toHaveCount(0);
+  await switchPage.close();
+  check('LIB-SAME-TAB-SWITCH',true,'account change clears open records and rejects a late prior-account response');
+
   // Deletion: review one record, then delete it; library, engine and profile agree.
   await librarySelect.selectOption(firstId);
   await openButton.click();

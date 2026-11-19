@@ -9,7 +9,7 @@ export function inventorySource(text,selected=[]){
   const tags=[];
   if(/not eligible|excluded|must not|cannot apply/i.test(excerpt))tags.push('exclusion');
   if(/\bmust\b|required|essential|need to/i.test(excerpt))tags.push('mandatory');
-  if(/deadline|apply by|December|January/i.test(excerpt))tags.push('deadline');
+  if(/deadline|apply by|application window|applications? (?:open|close)|December|January/i.test(excerpt))tags.push('deadline');
   if(/usually|guideline|preference|normally|majority|potential|motivation/i.test(excerpt))tags.push('preference');
   if(/fees|grant|stipend|funding/i.test(excerpt))tags.push('funding');
   if(!tags.length)tags.push('unknown');

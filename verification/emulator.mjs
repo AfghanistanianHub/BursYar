@@ -53,6 +53,28 @@ try {
  assert.equal((await documentRequest(a.idToken,`/api/documents/${document.id}/review`,'POST',{decisions:{[document.pending[0].id]:{action:'accept'}}})).status,200);checks++;
  assert.equal((await (await documentRequest(a.idToken,'/api/profile')).json()).degree.origin,'document_extracted');checks++;
  assert.deepEqual(await (await documentRequest(b.idToken,'/api/profile')).json(),{});checks++;
+ // Switch identities between requests to the same server and database. A
+ // signed-in student can manage only the documents owned by their Firebase UID.
+ const otherUpload=await documentRequest(b.idToken,'/api/documents','POST',{mime:'text/plain',consent:true,text:'SYNTHETIC SECOND ACCOUNT ONLY\nDegree: master'});
+ assert.equal(otherUpload.status,201);const otherDocument=await otherUpload.json();checks++;
+ async function ownerSnapshot(token,expectedId){
+  const list=await documentRequest(token,'/api/documents');
+  assert.equal(list.status,200);assert.deepEqual((await list.json()).map(item=>item.id),[expectedId]);
+  const exported=await documentRequest(token,'/api/export');assert.equal(exported.status,200);
+  const data=await exported.json();assert.deepEqual(data.documents.map(item=>item.id),[expectedId]);
+  return data;
+ }
+ const aliceBefore=await ownerSnapshot(a.idToken,document.id);
+ const bobBefore=await ownerSnapshot(b.idToken,otherDocument.id);checks+=2;
+ assert.deepEqual(bobBefore.profile,{});assert.equal(aliceBefore.profile.degree.value,'bachelor');checks+=2;
+ const foreignPath=`/api/documents/${otherDocument.id}`;
+ assert.equal((await documentRequest(a.idToken,foreignPath+'/review','POST',{decisions:{[otherDocument.pending[0].id]:{action:'accept'}}})).status,404);checks++;
+ assert.equal((await documentRequest(a.idToken,foreignPath,'DELETE')).status,404);checks++;
+ assert.deepEqual(await ownerSnapshot(b.idToken,otherDocument.id),bobBefore);checks++;
+ assert.equal((await documentRequest(b.idToken,'/api/erase','DELETE')).status,200);checks++;
+ const erased=await documentRequest(b.idToken,'/api/export');assert.equal(erased.status,200);
+ assert.deepEqual((await erased.json()).documents,[]);checks++;
+ assert.deepEqual(await ownerSnapshot(a.idToken,document.id),aliceBefore);checks++;
  assert.equal((await documentRequest(a.idToken,`/api/documents/${document.id}`,'DELETE')).status,200);checks++;
  assert.equal((await documentRequest(a.idToken,`/api/documents/${document.id}`)).status,404);checks++;
  await auth.updateUser(b.localId,{disabled:true});assert.equal((await post(b.idToken)).status,401);checks++;

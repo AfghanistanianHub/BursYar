@@ -123,10 +123,17 @@ try {
   await dashboard.getByRole('link',{name:'Dashboard',exact:true}).click();
   await expect(dashboard.getByText('Document status unavailable',{exact:true})).toBeVisible();
 
+  // Enter a source under the current account, then sign out through the dashboard.
+  await page.evaluate(()=>{location.hash='assistant';});
+  const sourceUrl = page.locator('#source-url');
+  await sourceUrl.fill('https://university.example/private-application');
+  await page.locator('#dashboard-entry').click();
   await dashboard.locator('.account summary').click();
   await dashboard.locator('#account-controls button').last().click();
   await expect(dashboard).toBeHidden();
   await expect(page.locator('#top')).toBeVisible();
+  await expect(sourceUrl).toHaveValue('');
+  await expect(page.locator('#open-source')).not.toHaveAttribute('href', /.+/);
   assert.deepEqual(errors,[]);
   console.log('Dashboard browser checks passed');
 } finally {

@@ -60,3 +60,14 @@ test('pending or contradicted profile claims cannot satisfy a rule',()=>{
  const {output}=compile([degree]);
  for(const flags of [{reviewStatus:'pending'},{contradicted:true},{verificationStatus:'rejected'}])assert.equal(assessScholarship(output.compilation.rules,{degree:{...fact('master'),...flags}}).summary,'unknown');
 });
+
+test('an unselected application window remains visible and limits the assessment',()=>{
+  const window='The application window is open Nov 1–30, 2026 for the autumn intake.';
+  const {output}=compile([degree,window],[degree]);
+  const rule=output.compilation.rules.find(r=>r.sourceExcerpt===window);
+  assert.ok(rule);
+  assert.equal(rule.category,'deadline');
+  assert.equal(rule.retainedBeyondModelSelection,true);
+  assert.equal(rule.ambiguous,true);
+  assert.equal(assessScholarship(output.compilation.rules,{degree:fact('master')}).summary,'unknown');
+});
