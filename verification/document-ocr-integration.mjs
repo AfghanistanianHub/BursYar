@@ -285,14 +285,14 @@ try {
   // 20. reload persistence
   await page.reload();
   await page.locator('#workspace-overview a[href="#profile-mount"]').click();
-  await page.locator('#documents > fieldset > button').first().click();
+  await page.locator('#documents [data-action="refresh-library"]').click();
   // Refresh is asynchronous: wait until the authenticated API has populated
   // the selector rather than checking an empty list in the same task tick.
   await expect.poll(async()=>page.locator('#documents > fieldset select option:not([value=""])').count(),{timeout:20000}).toBeGreaterThanOrEqual(3);
   const options = await page.locator('#documents > fieldset select option').allTextContents();
   check('20-library-lists', options.length >= 3, `${options.length} records`);
   await page.locator('#documents > fieldset select').selectOption({index: options.length - 1});
-  await page.locator('#documents > fieldset > button').nth(1).click();
+  await page.locator('#documents [data-action="open-document"]').click();
   await expect(page.locator('.document-source')).toContainText('SYNTHETIC RETRY ONLY', {timeout: 20000});
   check('20-reload', true, 'record persists');
 

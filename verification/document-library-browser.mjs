@@ -63,8 +63,8 @@ try {
   await page.locator('#workspace-overview a[href="#profile-mount"]').click();
   const form = page.locator('#documents > form');
   const librarySelect = page.locator('#documents > fieldset select');
-  const refreshButton = page.locator('#documents > fieldset > button').first();
-  const openButton = page.locator('#documents > fieldset > button').nth(1);
+  const refreshButton = page.locator('#documents [data-action="refresh-library"]');
+  const openButton = page.locator('#documents [data-action="open-document"]');
   await form.locator('input[type=checkbox]').check();
 
   // Two saved records through the real upload path (TXT saves directly).
@@ -136,7 +136,7 @@ try {
   const bValues = await libraryB.locator('option').evaluateAll(els => els.map(el => el.value));
   const bText = await libraryB.locator('option').allTextContents();
   check('LIB-ISOLATION-EMPTY', bValues.length === 1 && bValues[0] === '', JSON.stringify(bText[0] ?? ''));
-  check('LIB-ISOLATION-OPEN-DISABLED', await pageB.locator('#documents > fieldset > button').nth(1).isDisabled(), 'open disabled when empty');
+  check('LIB-ISOLATION-OPEN-DISABLED', await pageB.locator('#documents [data-action="open-document"]').isDisabled(), 'open disabled when empty');
   const directStatus = await pageB.evaluate(async id => {
     const res = await fetch('/api/documents/' + id, {headers: {authorization: 'Bearer library-user-b'}});
     return res.status;

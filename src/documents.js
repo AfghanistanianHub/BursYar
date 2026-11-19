@@ -85,8 +85,8 @@ export function mountDocuments(root,language='en'){
  const chooser=element('select','',chooserField);chooser.id='document-chooser';
  const emptyOption=element('option',l.empty,chooser);emptyOption.value='';chooser.disabled=true;
  const libraryActions=element('div','',library);libraryActions.className='secondary-actions';
- const refresh=element('button',l.refresh,libraryActions);refresh.type='button';refresh.className='text-button';
- const open=element('button',l.open,libraryActions);open.type='button';open.className='primary-link secondary';
+ const refresh=element('button',l.refresh,libraryActions);refresh.type='button';refresh.dataset.action='refresh-library';refresh.className='text-button';
+ const open=element('button',l.open,libraryActions);open.type='button';open.dataset.action='open-document';open.className='primary-link secondary';
  const content=element('div');
  async function api(path,method='GET',body){if(!section.isConnected||mountEpoch!==identityEpoch)throw Error();const epoch=identityEpoch;const token=await getInferenceToken();if(epoch!==identityEpoch)throw Error();const data=await documentRequest(path,{token,method,body});if(!section.isConnected||epoch!==identityEpoch)throw Error();return data;}
  const publish=profile=>document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:profile}));
