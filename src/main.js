@@ -171,14 +171,35 @@ document.addEventListener('bursyar:document-status',event=>{
  dashboard?.update();
 });
 document.addEventListener('bursyar:research-saved',()=>dashboard?.update());
-window.addEventListener('hashchange',()=>dashboard?.sync(signedIn,true));
+// A hash may point at content inside a closed disclosure (for example the
+// eligibility illustration or the profile workspace). Open it so the target the
+// user asked for is actually visible instead of landing on a collapsed summary.
+function revealHashTarget(){
+ const id=location.hash.slice(1);
+ if(!id||id.startsWith('dashboard'))return;
+ const target=document.getElementById(id);
+ if(!target)return;
+ // Open an enclosing disclosure, or the single disclosure a mount point wraps
+ // (for example #eligibility-mount → #eligibility-example). Never open
+ // unrelated disclosures that merely sit inside a large container.
+ const holders=[target.closest('details')];
+ if(target.children.length===1&&target.firstElementChild.tagName==='DETAILS')holders.push(target.firstElementChild);
+ for(const details of holders)if(details)details.open=true;
+}
+window.addEventListener('hashchange',()=>{revealHashTarget();dashboard?.sync(signedIn,true);});
+// Re-selecting a link whose hash is already current fires no hashchange, so the
+// same target must still open its disclosure instead of silently doing nothing.
+document.addEventListener('click',event=>{const link=event.target.closest?.('a[href^="#"]');if(!link)return;const href=link.getAttribute('href');if(!href||href.length<2)return;queueMicrotask(()=>{if(location.hash===href)revealHashTarget();});});
 render();
+revealHashTarget();
 onAuthChange(user=>{
  const wasSignedIn=signedIn;
  signedIn=!!user;
  if(wasSignedIn&&user?.uid!==signedInUid)document.dispatchEvent(new Event('bursyar:identity'));
  signedInUid=user?.uid;
- if(signedIn&&!wasSignedIn&&!isDashboardRoute(location.hash))location.hash='dashboard';
+ // Signing in must not throw away the work in progress: only send the user to
+ // the dashboard from the landing page, not from a section they are using.
+ if(signedIn&&!wasSignedIn&&(!location.hash||location.hash==='#top'))location.hash='#dashboard';
  if(!signedIn&&wasSignedIn&&isDashboardRoute(location.hash))history.replaceState(null,'','#top');
  dashboard.sync(signedIn,true);
 }).catch(()=>{});

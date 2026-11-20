@@ -2,6 +2,7 @@ import {documentRequest} from './document-request.js';
 import {extractDocumentText} from './document-extraction.js';
 import {publicDocumentReferenceAudit,issuerFromText} from './document-public-evidence.js';
 import {getInferenceToken} from './auth.js';
+import {mountSignInAction} from './sign-in-action.js';
 import {journeyCopy} from './journey-copy.js';
 // PDF and image intake is enabled in production too: the OCR worker, the WASM
 // core and the EN/FA/PS language data are served from this application's own
@@ -180,6 +181,7 @@ export function mountDocuments(root,language='en'){
  }
  previewConfirm.addEventListener('click',()=>{if(!pendingMethod)return;busy(async()=>{await saveExtractedText(previewText.value,pendingMethod);});});
  form.addEventListener('submit',event=>{event.preventDefault();dropReset();busy(async()=>{
+  if(requiresSignIn){status.textContent=t.signInRequired;return;}
   if(!consent.checked)return;
   const selected=paste.open?new File([pasted.value],'pasted-education.txt',{type:'text/plain'}):file.files[0];
   let extracted;
@@ -202,5 +204,13 @@ export function mountDocuments(root,language='en'){
  // Issue #91: populate the library on mount so saved records survive reload
  // without a manual refresh. Signed-out visitors skip silently; explicit
  // Refresh remains the recovery path for uncertain states.
- getInferenceToken().then(()=>{if(mountEpoch===identityEpoch)busy(refreshLibrary);},()=>{});
+ let requiresSignIn=false;
+ getInferenceToken().then(()=>{if(mountEpoch===identityEpoch)busy(refreshLibrary);},()=>{
+  if(mountEpoch!==identityEpoch)return;
+  // Signed-out visitors keep the public explanation and get an in-place way to
+  // sign in; no local extraction is spent on a record that cannot be saved.
+  requiresSignIn=true;
+  status.textContent=t.signInRequired;
+  section.insertBefore(mountSignInAction(language),figure);
+ });
 }

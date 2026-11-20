@@ -24,7 +24,9 @@ export const dashboardCopy = {
   deleted: 'Your profile, documents and verification requests were deleted.',
   exported: 'Your data file was downloaded.', privacyBusy: 'Working…',
   privacyError: 'Data request unavailable. Check your connection and sign in again.',
-  deleteLocalNote: 'Saved scholarships kept in this browser are separate from your account; clear them from the saved page.'
+  deleteLocalNote: 'Saved scholarships kept in this browser are separate from your account; clear them from the saved page.',
+  clearSaved: 'Clear saved scholarships',
+  clearedSaved: 'Saved scholarships were cleared from this browser.'
  },
  fa: {
   title: 'پیشخوان من', home: 'پیشخوان', mobileHome: 'خانه',
@@ -51,7 +53,9 @@ export const dashboardCopy = {
   deleted: 'پروفایل، مدارک و درخواست‌های تأیید شما حذف شد.',
   exported: 'فایل داده‌های شما دانلود شد.', privacyBusy: 'در حال انجام…',
   privacyError: 'درخواست داده در دسترس نیست. اتصال را بررسی و دوباره وارد شوید.',
-  deleteLocalNote: 'بورسیه‌های ذخیره‌شده در این مرورگر جدا از حساب شماست؛ از صفحهٔ ذخیره‌ها پاک کنید.'
+  deleteLocalNote: 'بورسیه‌های ذخیره‌شده در این مرورگر جدا از حساب شماست؛ از صفحهٔ ذخیره‌ها پاک کنید.',
+  clearSaved: 'پاک کردن بورسیه‌های ذخیره‌شده',
+  clearedSaved: 'بورسیه‌های ذخیره‌شده از این مرورگر پاک شدند.'
  },
  ps: {
   title: 'زما کاري پاڼه', home: 'کاري پاڼه', mobileHome: 'کور',
@@ -78,6 +82,8 @@ export const dashboardCopy = {
   deleted: 'ستاسو پروفایل، اسناد او د تایید غوښتنې حذف شوې.',
   exported: 'ستاسو معلومات فایل ډاونلوډ شو.', privacyBusy: 'کار روان دی…',
   privacyError: 'د معلوماتو غوښتنه نه ده لاسرسی وړ. اړیکه وګورئ او بیا ننوځئ.',
-  deleteLocalNote: 'په دې براوزر کې ساتل شوي بورسونه ستاسو له حسابه بېل دي؛ د ساتل شویو پاڼې څخه یې پاک کړئ.'
+  deleteLocalNote: 'په دې براوزر کې ساتل شوي بورسونه ستاسو له حسابه بېل دي؛ د ساتل شویو پاڼې څخه یې پاک کړئ.',
+  clearSaved: 'ساتل شوي بورسونه پاکول',
+  clearedSaved: 'ساتل شوي بورسونه له دې براوزر څخه پاک شول.'
  }
 };

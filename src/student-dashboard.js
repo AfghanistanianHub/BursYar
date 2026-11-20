@@ -1,7 +1,7 @@
 import {dashboardCopy} from './dashboard-copy.js';
 import {openPendingDocument} from './documents.js';
 import {researchScholarships, researchSourceUrl} from './research-catalog.js';
-import {getSavedResearchIds} from './research-explorer.js';
+import {getSavedResearchIds,clearSavedResearch} from './research-explorer.js';
 import {mountVerifications} from './verifications.js';
 import {getInferenceToken} from './auth.js';
 import {documentRequest} from './document-request.js';
@@ -45,7 +45,7 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
  const number = new Intl.NumberFormat(language);
  const count = (value, forms) => `${number.format(value)} ${forms[value === 1 ? 0 : 1]}`;
  const navigation = Object.entries(routes).map(([key,href]) => `
-  <a class="dashboard-nav-link" href="${href}">${icon(key)}
+  <a class="dashboard-nav-link" href="${href}">${icon(key === 'verifications' ? 'verified' : key)}
    <span class="dashboard-nav-full">${t[key]}</span>
    <span class="dashboard-nav-short">${t['mobile'+key[0].toUpperCase()+key.slice(1)]}</span>
   </a>`).join('');
@@ -79,6 +79,7 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
  const parked = new Map();
  let view;
  let reviewRequested = false;
+ let savedNotice = '';
  function restoreTools() {
   for (const [node, placeholder] of parked) placeholder.replaceWith(node);
   parked.clear();
@@ -126,6 +127,22 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
   browse.className = 'dashboard-action';
   browse.href = '#research-explorer';
   browse.textContent = t.browse;
+  const status = document.createElement('p');
+  status.setAttribute('role','status');
+  status.textContent = savedNotice;
+  // The privacy note tells people to clear this list here, so this view must
+  // actually offer that action.
+  const clear = document.createElement('button');
+  clear.type = 'button';
+  clear.className = 'dashboard-action';
+  clear.dataset.savedClear = '';
+  clear.textContent = t.clearSaved;
+  clear.hidden = !rows.length;
+  clear.addEventListener('click', () => {
+   savedNotice = clearSavedResearch().cleared ? t.clearedSaved : t.privacyError;
+   renderSaved();
+   panel.querySelector(rows.length ? '[data-saved-clear]' : 'a')?.focus();
+  });
   const list = document.createElement(rows.length ? 'ul' : 'p');
   if (!rows.length) list.textContent = t.noSaved;
   else {
@@ -145,7 +162,7 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
     list.append(item);
    }
   }
-  panel.replaceChildren(list,note,browse);
+  panel.replaceChildren(list,note,browse,clear,status);
  }
  function renderAccount() {
   panel.innerHTML = `<section class="dashboard-privacy">
@@ -197,6 +214,8 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
   });
  }
  function sync(signedIn, focus = false) {
+  // A private dashboard deep link is preserved while signed out: the public site
+  // is shown, and the pending route opens as soon as the visitor signs in.
   const next = signedIn && Object.keys(routes).find(key => routes[key] === location.hash);
   site.querySelector('#dashboard-entry').hidden = !signedIn;
   if (view === next) return;

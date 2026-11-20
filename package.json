@@ -11,6 +11,8 @@
     "start:engine": "node engine/server.js",
     "test:emulator": "firebase emulators:exec --config firebase.emulator.json --project demo-bursyar --only auth,firestore \"node verification/emulator.mjs\"",
     "test:browser": "node verification/browser.mjs",
+    "test:journey": "node verification/journey-audit.mjs",
+    "test:ocr": "node verification/document-ocr-integration.mjs",
     "test:live": "node verification/live-demo.mjs",
     "verify:live-verification": "node scripts/verify-live-verification-api.mjs",
     "start:demo": "node verification/start-demo.mjs",

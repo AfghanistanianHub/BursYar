@@ -1,4 +1,5 @@
 import {getInferenceToken} from './auth.js';
+import {mountSignInAction} from './sign-in-action.js';
 const coreFields=['degree','targetDegree','academicHistory','languages'];
 const optionalFields=['courseStart','testExpiry'];
 const oxfordFields=['deferredOffer','continuingSameDegree'];
@@ -47,9 +48,15 @@ export function mountProfile(root,language='en'){
  if(cached.testExpiry?.value){const p=el('p',cached.testExpiry.value<new Date().toISOString().slice(0,10)?t.expired:t.unconfirmed);p.className='status';}
  async function api(method,body){if(epoch!==startedEpoch)throw Error();const token=await getInferenceToken();if(epoch!==startedEpoch)throw Error();const response=await fetch('/api/profile',{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error();const data=await response.json();if(epoch!==startedEpoch)throw Error();return data;}
  const publish=(data,message='saved')=>{notice=message;cached=data;document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:data}));};
- async function run(action){section.setAttribute('aria-busy','true');for(const b of section.querySelectorAll('button'))b.disabled=true;status.textContent=t.loading;try{await action();if(status.isConnected)status.textContent=t.saved;}catch{if(status.isConnected)status.textContent=t.error;}finally{section.removeAttribute('aria-busy');for(const b of section.querySelectorAll('button'))b.disabled=false;}}
+ let requiresSignIn=false;
+ async function run(action){if(requiresSignIn){status.textContent=t.error;return;}section.setAttribute('aria-busy','true');for(const b of section.querySelectorAll('button'))b.disabled=true;status.textContent=t.loading;try{await action();if(status.isConnected)status.textContent=t.saved;}catch{if(status.isConnected)status.textContent=t.error;}finally{section.removeAttribute('aria-busy');for(const b of section.querySelectorAll('button'))b.disabled=false;}}
  form.addEventListener('input',()=>{draft=Object.fromEntries(Object.entries(controls).map(([k,c])=>[k,c.value]));});
  form.addEventListener('submit',event=>{event.preventDefault();run(async()=>{if(!consent.checked)throw Error();const values={};for(const [key,c]of Object.entries(controls)){if(cached[key]?.origin==='issuer_verified')continue;values[key]=c.value===''?null:['deferredOffer','continuingSameDegree'].includes(key)?c.value==='true':c.value;}publish(await api('PUT',{values,consent:true}));});});
  load.addEventListener('click',()=>run(async()=>publish(await api('GET'))));
  remove.addEventListener('click',()=>run(async()=>{await api('DELETE');publish({},'deleted');}));
+ getInferenceToken().then(()=>{},()=>{
+  if(epoch!==startedEpoch)return;
+  requiresSignIn=true;
+  section.insertBefore(mountSignInAction(language),form);
+ });
 }
