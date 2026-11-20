@@ -1,7 +1,7 @@
 /* Unified responsive Curved-Arc Hero · #FEFDFB / #1E3A5F / #1A1A1A / #D8D0C8 */
 #by-hero-cables.by-arc-band{
   width:100%;
-  max-width:1060px;
+  max-width:980px;
   margin-inline:auto;
   background:var(--bg);
 }
@@ -40,7 +40,6 @@
   justify-content:center;
   gap:10px;
   margin-top:-26px;
-  position:relative;
   z-index:3;
 }
 #by-hero-cables .by-diagram-caption{
@@ -56,7 +55,7 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
 }
 #by-hero-cables .by-motion{
   position:absolute;
-  top:6px;
+  top:0;
   inset-inline-end:0;
   z-index:5;
   min-height:32px;
@@ -68,12 +67,11 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   font:600 12px/1.4 var(--font-ui);
   cursor:pointer;
 }
-@media screen and (max-width:960px){
+@media screen and (max-width:960px) and (min-width:761px){
   #by-hero-cables .by-arc-meta{
-    margin-top:2px;
+    margin-top:-18px;
     flex-wrap:wrap;
   }
-  #by-hero-cables .by-motion{position:static}
 }
 #by-hero-cables .by-motion:hover{
   background:var(--surface-2);
@@ -121,9 +119,9 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
     align-items:start;
     align-content:start;
     column-gap:clamp(14px,2vw,24px);
-    row-gap:clamp(14px,2vw,24px);
+    row-gap:clamp(12px,1.6vw,20px);
     min-height:0;
-    padding:clamp(10px,1.8vw,22px) clamp(20px,4vw,64px) clamp(28px,4vw,52px);
+    padding:clamp(10px,1.8vw,22px) clamp(20px,4vw,64px) clamp(20px,3vw,38px);
     background:var(--bg);
     border-bottom:1px solid var(--line);
   }
@@ -153,7 +151,7 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
     margin:4px auto 0;
     color:var(--ink);
     font-family:var(--font-en);
-    font-size:clamp(30px,4vw,50px);
+    font-size:clamp(30px,4vw,46px);
     font-weight:700;
     line-height:1.12;
     letter-spacing:-.03em;
@@ -173,13 +171,13 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   }
   html #top>.hero.hero-with-cables .hero-intro .lead{
     max-width:58ch;
-    margin:12px auto 0;
+    margin:10px auto 0;
     color:var(--muted);
     font-size:clamp(14.5px,1.25vw,16.5px);
     line-height:1.65;
   }
   html #top>.hero.hero-with-cables .hero-actions{
-    margin:18px auto 0;
+    margin:14px auto 0;
     display:flex;
     flex-wrap:wrap;
     gap:12px;
@@ -214,7 +212,7 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   }
   html #top>.hero.hero-with-cables .hero-document-reader{
     grid-area:3/1;
-    margin:6px 0 0;
+    margin:4px 0 0;
     justify-self:end;
     align-self:start;
     max-width:460px;
@@ -222,7 +220,7 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   }
   html #top>.hero.hero-with-cables .document-demo-visual{
     grid-area:3/2;
-    margin-top:6px;
+    margin-top:4px;
     padding:0;
     justify-self:start;
     align-self:start;
@@ -236,8 +234,8 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   html #top>.hero.hero-with-cables{
     grid-template-columns:minmax(0,1fr);
     grid-template-rows:auto auto auto auto;
-    row-gap:10px;
-    padding:6px 14px 20px;
+    row-gap:8px;
+    padding:6px 14px 12px;
   }
   #by-hero-cables.by-arc-band{
     max-width:100%;
@@ -276,7 +274,7 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   html #top>.hero.hero-with-cables .hero-intro h1{
     font-size:clamp(24px,6.8vw,32px);
     line-height:1.15;
-    margin-top:2px;
+    margin-top:0;
   }
   html[lang=fa] #top>.hero.hero-with-cables .hero-intro h1,
   html[lang=ps] #top>.hero.hero-with-cables .hero-intro h1{
@@ -286,11 +284,11 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   html #top>.hero.hero-with-cables .hero-intro .lead{
     font-size:14px;
     line-height:1.58;
-    margin-top:8px;
+    margin-top:6px;
   }
   html #top>.hero.hero-with-cables .hero-actions{
     width:min(100%,440px);
-    margin-top:12px;
+    margin-top:10px;
     display:grid;
     grid-template-columns:repeat(2,minmax(0,1fr));
     align-items:stretch;
@@ -303,7 +301,7 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   html #top>.hero.hero-with-cables .hero-document-reader{
     grid-area:3/1;
     justify-self:center;
-    margin-top:4px;
+    margin-top:0;
   }
   html #top>.hero.hero-with-cables .document-demo-visual{
     grid-area:4/1;
@@ -317,6 +315,7 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
     grid-template-columns:1fr;
   }
 }
+
 
 @media print{
   #by-hero-cables .by-motion,

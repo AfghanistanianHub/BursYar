@@ -15,20 +15,26 @@ const DESKTOP = {
 };
 
 const MOBILE = {
-  viewBox: '0 8 560 176',
-  track: 'M22,164 Q280,-16 538,164',
-  leftWing: 'M22,164 Q142,84 240,76',
-  rightWing: 'M538,164 Q418,84 320,76',
+  viewBox: '0 0 560 216',
+  track: 'M18,206 Q280,-40 542,206',
+  leftWing: 'M18,206 Q124,96 202,132',
+  rightWing: 'M542,206 Q436,96 358,132',
   cx: 280,
-  cy: 74,
-  glowR: 62,
-  hubR: 40,
-  innerR: 35,
-  enY: 71,
-  enSize: 14.5,
-  nodeR: 17,
-  iconTransform: 'translate(-8,-8) scale(0.667)',
+  cy: 92,
+  glowR: 84,
+  hubR: 54,
+  innerR: 47,
+  enY: 89,
+  enSize: 19,
+  nodeR: 22,
+  iconTransform: 'translate(-10.8,-10.8) scale(0.9)',
 };
+
+// Exposed so geometry invariants (mobile legibility, band aspect) stay testable.
+export const referenceHeroGeometry = Object.freeze({
+  desktop: DESKTOP,
+  mobile: MOBILE,
+});
 
 const NODES = [
   // Left wing (student documents -> BursYar)

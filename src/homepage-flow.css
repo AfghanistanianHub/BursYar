@@ -50,6 +50,11 @@ html[dir=rtl] .corner-arrow{rotate:-45deg}
  #top [id]{scroll-margin-top:112px}
 }
 
+@media screen and (max-width:380px){
+ .site .header .editorial-nav{gap:2px}
+ .site .header .editorial-nav a{font-size:.6875rem;letter-spacing:-.01em}
+}
+
 @media screen and (max-width:760px){
  #top>.guided-entry{background-image:none}
  #top>.guided-entry .guided-option{
