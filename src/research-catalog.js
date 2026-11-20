@@ -36,12 +36,27 @@ export function researchLabel(value,language='en') {
 export function researchSourceUrl(value) {
  try {const url=new URL(value);return url.protocol==='https:'&&!url.username&&!url.password?url.href:null;} catch {return null;}
 }
-export function researchDeadlineState(row,now=new Date()) {
- const value=row.deadline;
- if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return 'unknown';
+const isoDay=value=>{
+ if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
  const date=new Date(value+'T00:00:00Z');
- if(!Number.isFinite(date.getTime())||date.toISOString().slice(0,10)!==value)return 'unknown';
+ return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value?value:null;
+};
+export function researchDeadlineState(row,now=new Date()) {
+ const value=isoDay(row?.deadline);
+ if(!value)return 'unknown';
  return value<now.toISOString().slice(0,10)?'past':'unconfirmed';
+}
+// A recorded check date is the export's claim about when a human last read the
+// page, never a live verification. Age it explicitly so a month-old claim is
+// not read as current: anything outside this window is labelled stale.
+export const RESEARCH_RECHECK_DAYS=30;
+export function researchCheckedOn(row){return isoDay(row?.lastCheckedAt);}
+export function researchFreshness(row,now=new Date()) {
+ const value=researchCheckedOn(row);
+ if(!value)return 'unknown';
+ const age=Math.floor((now.getTime()-Date.parse(value+'T00:00:00Z'))/86400000);
+ if(!Number.isFinite(age)||age<0)return 'unknown';
+ return age>RESEARCH_RECHECK_DAYS?'stale':'fresh';
 }
 // Normalize search only; keep displayed titles and evidence unchanged.
 const searchText=value=>value.normalize('NFKC').toLocaleLowerCase().replace(/[يى]/gu,'ی').replace(/ك/gu,'ک').replace(/[\u064b-\u065f\u0670\u0640]/gu,'').replace(/[\u200c\u200d]/gu,' ');
@@ -71,6 +86,6 @@ export function saveResearchIds(storage,ids,rows=researchScholarships) {
 export function exportResearchSaved(ids,rows=researchScholarships,now=new Date()) {
  const known=new Set(knownIds(ids,rows));
  return {format:'bursyar-public-research-v1',exportedAt:now.toISOString(),verification:'needs_reverification',entries:rows.filter(row=>known.has(row.id)).map(row=>({
-  id:row.id,title:row.title,provider:row.provider,country:row.country,degrees:[...row.degrees],sourceUrl:researchSourceUrl(row.sourceUrl),lastCheckedAt:row.lastCheckedAt??null,deadline:row.deadline??null,reviewStatus:'needs_reverification'
+  id:row.id,title:row.title,provider:row.provider,country:row.country,degrees:[...row.degrees],sourceUrl:researchSourceUrl(row.sourceUrl),lastCheckedAt:researchCheckedOn(row),deadline:row.deadline??null,reviewStatus:'needs_reverification'
  }))};
 }

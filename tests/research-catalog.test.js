@@ -56,6 +56,36 @@ test('export contains only public metadata with honest verification labels', () 
  assert.equal(data.entries[0].title,'Award');
 });
 
+test('recorded check dates expire instead of reading as current',()=>{
+ const now=new Date('2026-11-20T00:00:00Z');
+ assert.equal(catalog.RESEARCH_RECHECK_DAYS,30);
+ assert.equal(catalog.researchCheckedOn({lastCheckedAt:'2026-10-21'}),'2026-10-21');
+ assert.equal(catalog.researchFreshness({lastCheckedAt:'2026-10-21'},now),'fresh');
+ assert.equal(catalog.researchFreshness({lastCheckedAt:'2026-10-20'},now),'stale');
+ for(const value of [undefined,null,'','2026-02-30','not a date','2026-12-01'])assert.equal(catalog.researchFreshness({lastCheckedAt:value},now),'unknown',String(value));
+ assert.equal(catalog.researchCheckedOn({}),null);
+});
+
+test('the shipped export is older than the recheck window and cannot read as fresh',()=>{
+ const now=new Date('2026-11-20T00:00:00Z');
+ for(const row of catalog.researchScholarships){
+  assert.equal(catalog.researchCheckedOn(row),row.lastCheckedAt,row.id);
+  assert.equal(catalog.researchFreshness(row,now),'stale',row.id); // 33–40 days old on 2026-11-20.
+ }
+});
+
+test('stale checks are labelled in the explorer and exports keep only validated check dates',async()=>{
+ const fs=await import('node:fs');
+ const explorer=fs.readFileSync(new URL('../src/research-explorer.js',import.meta.url),'utf8');
+ assert.match(explorer,/researchCheckedOn\(row\)/);
+ assert.match(explorer,/researchFreshness\(row\)/);
+ assert.match(explorer,/data-freshness="stale"/);
+ const {researchCopy}=await import('../src/research-copy.js');
+ for(const lang of ['en','fa','ps'])assert.ok(researchCopy[lang].checkStale,lang);
+ const data=catalog.exportResearchSaved(['bad'],[listing({id:'bad',lastCheckedAt:'2026-02-30'})],NOW);
+ assert.equal(data.entries[0].lastCheckedAt,null);
+});
+
 test('country facets split destinations and keep regional descriptions out of options',()=>{
  const rows=catalog.researchScholarships;
  const countries=catalog.researchCountries(rows);

@@ -23,15 +23,16 @@ Baseline: branch `work/restore-approved-ai-studio-hero`, previously verified com
 | HERO-05 | `src/hero-document-demo.css` still carries a `min-width:761px` English grid block (rows 1/1, two columns) that is dead code overridden by `hero-cables-reference.css`. | VERIFIED | Dead block and its 761–950px heading rule removed while reworking the grid; `npm test` 431/431 and `npm run build` exit 0 confirm nothing depended on it. |
 | HERO-06 | The desktop hero stacked three full-width rows — arc band, centered statement, then the source/demo pair — so the value proposition and the interactive demo were separated by the whole statement block and the demo sat at the bottom of the fold (895.2px at 1440×900, 842.3px at 1024×768). | VERIFIED | At ≥1024px the hero is a two-column editorial band under the centered arc: statement, primary CTA and source card in column 1, the interactive demo in column 2 starting on the headline's row (`grid-area:2/2/4/3`), equal columns, both cards flush to the hero's content edges. Demo bottom **895.2 → 643.3px at 1440×900** (headroom 4.8 → 256.7), **892.4 → 641.5px at 1280×800** (−92.4 → +158.5), **842.3 → 608.7px at 1024×768** (−74.3 → +159.3), and 780.3 → 760.5px at 768×1024. Hero height 836.2 → 637.4px at 1440. The arc is preserved, not shrunk: the viewBox lost only empty band above the emblem (y 56 → 80; scale is set by the unchanged 1120 width), so the emblem measures 94.5px at 1440, 89.4px at 1024, 66.7px at 768 and 66.9px at 390 — identical before and after — and the Farsi emblem label keeps its 10.4px offset below the hub. No negative margins. Phones (390×844, 360×800) keep the stacked order and are unchanged. Reduced motion verified: pulses `display:none`, motion button hidden, tile transforms static under `prefers-reduced-motion:reduce`. Screenshots `artifacts/before-*` vs `artifacts/after-*`. |
 
-## Phase 2 — Product correctness (not yet audited)
+## Phase 2 — Product correctness
 
-| ID | Area | Status |
-| --- | --- | --- |
-| CAT-01 | Scholarship catalog provenance and freshness handling | OPEN |
-| ELIG-01 | Eligibility evaluation and Barrier PathFinder | OPEN |
-| DOC-01 | Document extraction hardening (bounded parser vs OCR claims) | OPEN |
-| AUTH-01 | Authentication and per-user data isolation | OPEN |
-| DASH-01 | Dashboard functionality | OPEN |
+| ID | Area | Status | Evidence |
+| --- | --- | --- | --- |
+| CAT-01 | Scholarship catalog provenance and freshness handling | VERIFIED | Audited 2026-11-20. 12 rows with unique IDs; every `sourceUrl` resolves through `researchSourceUrl` (https, no credentials, no other scheme); every row keeps `reviewStatus:'needs_reverification'`, `feeVerified:false` and `englishVerified:false`, so the confirmed-only fee/IELTS filters fail closed and no rules or eligibility fields exist. `data/scholarship-sources.json` ledger records are not rendered anywhere (`grep` finds them only in `tests/source-traceability.test.js`), so no unreviewed excerpt reaches the UI. One freshness defect found and fixed: CAT-01a. |
+| CAT-01a | Research cards printed `lastCheckedAt` straight from the export: the date was never aged, and a malformed value was printed as a check date, so a 33–40 day-old claim looked identical to a fresh one. | VERIFIED | `researchCheckedOn` now validates an ISO day and `researchFreshness` returns `fresh` inside `RESEARCH_RECHECK_DAYS` (30), `stale` beyond it, and `unknown` for missing, malformed or future dates; the explorer renders `t.checkStale` for stale rows and falls back to “Unknown — confirm with provider” for an invalid date; `exportResearchSaved` exports the validated date only. On 2026-11-20 all 12 shipped rows measure 33–40 days old, so all 12 render the stale label at 1440×900 in English and Farsi (`document.querySelectorAll('#research-explorer-mount [data-freshness="stale"]').length` = 12 in both). Runtime probe of the module: 2026-11-18 → `fresh`, 2026-10-01 → `stale`, 30 days → `fresh`, 31 days → `stale`, `2026-02-30`/future/non-string → `unknown`. `npm test` 434/434 and `npm run build` exit 0. Screenshot `artifacts/cat01-research-stale-1440.png`. |
+| ELIG-01 | Eligibility evaluation and Barrier PathFinder | OPEN | — |
+| DOC-01 | Document extraction hardening (bounded parser vs OCR claims) | OPEN | — |
+| AUTH-01 | Authentication and per-user data isolation | OPEN | — |
+| DASH-01 | Dashboard functionality | OPEN | — |
 
 ## Phase 3 — Product quality (not yet audited)
 
