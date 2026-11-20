@@ -24,7 +24,7 @@
 .by-arc-art{position:relative;container-type:inline-size}
 #by-hero-cables .by-hub-fa{
   position:absolute;
-  top:33.5%;
+  top:35.3%;
   left:50%;
   transform:translate(-50%,-50%);
   color:var(--brand);
@@ -119,9 +119,9 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
     align-items:start;
     align-content:start;
     column-gap:clamp(14px,2vw,24px);
-    row-gap:clamp(12px,1.6vw,20px);
+    row-gap:clamp(8px,0.8vw,10px);
     min-height:0;
-    padding:clamp(10px,1.8vw,22px) clamp(20px,4vw,64px) clamp(20px,3vw,38px);
+    padding:clamp(8px,1.2vw,14px) clamp(20px,4vw,64px) clamp(8px,1vw,10px);
     background:var(--bg);
     border-bottom:1px solid var(--line);
   }
@@ -148,7 +148,7 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   }
   html #top>.hero.hero-with-cables .hero-intro h1{
     max-width:22ch;
-    margin:4px auto 0;
+    margin:0 auto;
     color:var(--ink);
     font-family:var(--font-en);
     font-size:clamp(30px,4vw,46px);
@@ -171,13 +171,13 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   }
   html #top>.hero.hero-with-cables .hero-intro .lead{
     max-width:58ch;
-    margin:10px auto 0;
+    margin:6px auto 0;
     color:var(--muted);
     font-size:clamp(14.5px,1.25vw,16.5px);
     line-height:1.65;
   }
   html #top>.hero.hero-with-cables .hero-actions{
-    margin:14px auto 0;
+    margin:10px auto 0;
     display:flex;
     flex-wrap:wrap;
     gap:12px;
@@ -212,7 +212,7 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   }
   html #top>.hero.hero-with-cables .hero-document-reader{
     grid-area:3/1;
-    margin:4px 0 0;
+    margin:0;
     justify-self:end;
     align-self:start;
     max-width:460px;
@@ -220,7 +220,7 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
   }
   html #top>.hero.hero-with-cables .document-demo-visual{
     grid-area:3/2;
-    margin-top:4px;
+    margin-top:0;
     padding:0;
     justify-self:start;
     align-self:start;

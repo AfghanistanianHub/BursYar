@@ -1,5 +1,7 @@
+// The viewBox bottom stops just below the arc baseline (y=346): 316 left 26 units
+// of dead space that the caption's negative margin had to pull back up.
 const DESKTOP = {
-  viewBox: '0 56 1120 316',
+  viewBox: '0 56 1120 300',
   track: 'M28,346 Q560,-46 1092,346',
   leftWing: 'M28,346 Q266,168 506,152',
   rightWing: 'M1092,346 Q854,168 614,152',

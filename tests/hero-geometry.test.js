@@ -6,6 +6,7 @@ import {referenceHero, referenceHeroGeometry} from '../src/hero-cables-reference
 const css = readFileSync(new URL('../src/hero-cables-reference.css', import.meta.url), 'utf8');
 const flow = readFileSync(new URL('../src/homepage-flow.css', import.meta.url), 'utf8');
 const source = readFileSync(new URL('../src/hero-cables-reference.js', import.meta.url), 'utf8');
+const demoCss = readFileSync(new URL('../src/hero-document-demo.css', import.meta.url), 'utf8');
 const {desktop, mobile} = referenceHeroGeometry;
 
 function box(viewBox) {
@@ -47,11 +48,29 @@ test('motion control never falls back into the caption row', () => {
 
 test('hero keeps a tightened rhythm and top-aligned demonstration pair', () => {
   assert.match(css, /max-width:980px/, 'arc band width is capped so the hero does not dominate the fold');
-  assert.match(css, /row-gap:clamp\(12px,1\.6vw,20px\)/);
+  assert.match(css, /row-gap:clamp\(8px,0\.8vw,10px\)/);
+  assert.match(css, /padding:clamp\(8px,1\.2vw,14px\) clamp\(20px,4vw,64px\) clamp\(8px,1vw,10px\)/);
   assert.match(css, /padding:6px 14px 12px/);
   // Source card and demo card must share a top edge so the flow reads left to right.
   assert.match(css, /\.hero-document-reader\{[^}]*align-self:start/);
   assert.doesNotMatch(css, /\.hero-document-reader\{[^}]*align-self:center/);
+  // The demo card's padding cap is part of the 1440x900 fit budget.
+  assert.match(demoCss, /padding:clamp\(\.85rem,1\.6vw,1\.25rem\)/);
+});
+
+test('desktop band crops only the dead space below the arc baseline', () => {
+  const [, y0, , height] = desktop.viewBox.split(/\s+/).map(Number);
+  const bottom = y0 + height;
+  // Baseline sits at y=346 in the desktop geometry; keep a small stroke-safe margin
+  // but never restore the 26 units of empty space the caption used to pull back up.
+  assert.ok(bottom >= 346, `band bottom ${bottom} would clip the arc baseline`);
+  assert.ok(bottom <= 356, `band bottom ${bottom} reintroduces dead space below the arc`);
+  // Cropping the box must not rescale the emblem or the document tiles.
+  assert.equal(desktop.hubR, 54);
+  assert.equal(desktop.nodeR, 20);
+  assert.equal(desktop.enSize, 19);
+  assert.equal(desktop.cx, 560);
+  assert.equal(desktop.cy, 150);
 });
 
 test('header navigation fits four items on a 320px viewport', () => {
