@@ -46,25 +46,40 @@ test('motion control never falls back into the caption row', () => {
   assert.match(css, /\.by-motion\{[^}]*inset-inline-end:0/);
 });
 
-test('hero keeps a tightened rhythm and top-aligned demonstration pair', () => {
+test('desktop hero shares one band between the statement and the demonstration', () => {
+  const splitAt = css.indexOf('@media screen and (min-width:1024px){');
+  assert.ok(splitAt > -1, 'desktop widths need the two-column editorial band');
+  const split = css.slice(splitAt);
+  // Instead of three stacked full-width rows (arc, statement, card pair) the
+  // statement and the demo now start on the same row, so the demo clears the fold.
+  assert.match(split, /\.hero-intro\{[^}]*grid-area:2\/1\/3\/2/);
+  assert.match(split, /\.hero-document-reader\{[^}]*grid-area:3\/1\/4\/2/);
+  assert.match(split, /\.document-demo-visual\{[^}]*grid-area:2\/2\/4\/3/);
+  assert.match(split, /grid-template-columns:minmax\(0,1fr\) minmax\(0,1fr\)/, 'equal columns keep the centered arc balanced');
+  assert.match(split, /\.hero-intro\{[^}]*text-align:start/);
+  assert.match(split, /\.hero-actions\{[^}]*justify-content:flex-start/);
+  // No negative-margin pull-ins: the fold is earned by layout, not by overlap.
+  assert.doesNotMatch(css, /document-demo[^{]*\{[^}]*margin-top:-/);
   assert.match(css, /max-width:980px/, 'arc band width is capped so the hero does not dominate the fold');
-  assert.match(css, /row-gap:clamp\(8px,0\.8vw,10px\)/);
-  assert.match(css, /padding:clamp\(8px,1\.2vw,14px\) clamp\(20px,4vw,64px\) clamp\(8px,1vw,10px\)/);
-  assert.match(css, /padding:6px 14px 12px/);
-  // Source card and demo card must share a top edge so the flow reads left to right.
+  assert.match(css, /padding:6px 14px 12px/, 'phones keep the tighter stacked rhythm');
+  // The stacked fallback still top-aligns the source card with the demo card.
   assert.match(css, /\.hero-document-reader\{[^}]*align-self:start/);
-  assert.doesNotMatch(css, /\.hero-document-reader\{[^}]*align-self:center/);
   // The demo card's padding cap is part of the 1440x900 fit budget.
   assert.match(demoCss, /padding:clamp\(\.85rem,1\.6vw,1\.25rem\)/);
 });
 
-test('desktop band crops only the dead space below the arc baseline', () => {
-  const [, y0, , height] = desktop.viewBox.split(/\s+/).map(Number);
+test('desktop band crops only the dead space around the arc ink', () => {
+  const [, y0, width, height] = desktop.viewBox.split(/\s+/).map(Number);
   const bottom = y0 + height;
   // Baseline sits at y=346 in the desktop geometry; keep a small stroke-safe margin
   // but never restore the 26 units of empty space the caption used to pull back up.
   assert.ok(bottom >= 346, `band bottom ${bottom} would clip the arc baseline`);
   assert.ok(bottom <= 356, `band bottom ${bottom} reintroduces dead space below the arc`);
+  // Above the emblem (hub top y=96, halo y=42) there is 40 units of empty band.
+  assert.ok(y0 >= 72, `band top ${y0} would crop the emblem halo`);
+  assert.ok(y0 <= 88, `band top ${y0} keeps the empty strip above the emblem`);
+  // Cropping the box must never rescale: the scale comes from the viewBox width.
+  assert.equal(width, 1120);
   // Cropping the box must not rescale the emblem or the document tiles.
   assert.equal(desktop.hubR, 54);
   assert.equal(desktop.nodeR, 20);

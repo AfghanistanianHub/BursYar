@@ -1,7 +1,8 @@
-// The viewBox bottom stops just below the arc baseline (y=346): 316 left 26 units
-// of dead space that the caption's negative margin had to pull back up.
+// The viewBox is cropped to the ink: it starts below the empty band above the hub
+// (y=80) and stops just below the arc baseline (y=348). Cropping never rescales the
+// emblem because the viewBox width, which sets the scale, is unchanged.
 const DESKTOP = {
-  viewBox: '0 56 1120 300',
+  viewBox: '0 80 1120 268',
   track: 'M28,346 Q560,-46 1092,346',
   leftWing: 'M28,346 Q266,168 506,152',
   rightWing: 'M1092,346 Q854,168 614,152',

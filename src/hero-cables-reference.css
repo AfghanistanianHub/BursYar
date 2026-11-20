@@ -24,7 +24,7 @@
 .by-arc-art{position:relative;container-type:inline-size}
 #by-hero-cables .by-hub-fa{
   position:absolute;
-  top:35.3%;
+  top:30.6%;
   left:50%;
   transform:translate(-50%,-50%);
   color:var(--brand);
@@ -227,6 +227,62 @@ html[dir=rtl] #by-hero-cables .by-diagram-caption{
     max-width:540px;
     width:100%;
     border-inline-start:0;
+  }
+}
+
+/* Desktop: the statement and the live demonstration share one band, so the value
+   proposition, the primary action and the demo all land in the first screen. */
+@media screen and (min-width:1024px){
+  html #top>.hero.hero-with-cables{
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+    grid-template-rows:auto auto auto;
+    column-gap:clamp(28px,3.2vw,56px);
+    row-gap:clamp(10px,1.1vw,14px);
+    padding:clamp(10px,1.2vw,16px) clamp(24px,4vw,64px) clamp(16px,1.8vw,26px);
+  }
+  html #top>.hero.hero-with-cables .hero-intro{
+    grid-area:2/1/3/2;
+    align-items:flex-start;
+    text-align:start;
+    max-width:none;
+    margin:0;
+  }
+  html #top>.hero.hero-with-cables .hero-intro h1{
+    max-width:620px;
+    margin:0;
+    text-align:start;
+    font-size:clamp(30px,4vw,44px);
+    line-height:1.1;
+  }
+  html[lang=fa] #top>.hero.hero-with-cables .hero-intro h1,
+  html[lang=ps] #top>.hero.hero-with-cables .hero-intro h1{
+    max-width:560px;
+    font-size:clamp(26px,3.4vw,40px);
+    line-height:1.4;
+  }
+  html #top>.hero.hero-with-cables .hero-intro .lead{
+    max-width:48ch;
+    margin:8px 0 0;
+    text-align:start;
+  }
+  html #top>.hero.hero-with-cables .hero-actions{
+    margin:14px 0 0;
+    justify-content:flex-start;
+  }
+  html #top>.hero.hero-with-cables .hero-document-reader{
+    grid-area:3/1/4/2;
+    justify-self:stretch;
+    max-width:none;
+    margin:clamp(12px,1.4vw,18px) 0 0;
+  }
+  html #top>.hero.hero-with-cables .document-demo-visual{
+    grid-area:2/2/4/3;
+    justify-self:stretch;
+    max-width:none;
+    margin:0;
+  }
+  html #top>.hero.hero-with-cables .document-demo{
+    max-width:none;
   }
 }
 
