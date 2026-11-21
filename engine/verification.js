@@ -180,12 +180,14 @@ export function createVerificationService({ store, documents, clock = () => new 
   }
 
   function withdraw(uid, id) {
-    const row = store.row(uid, id);
-    if (row.status === 'VERIFIED_BY_ISSUER') throw new VerificationError(409);
-    const at = isoNow(clock);
-    store.remove(uid, id);
-    store.event(store.owner(uid), id, 'NOT_REQUESTED', at, { withdrawn: true });
-    return { id, status: 'NOT_REQUESTED', withdrawn: true };
+    return store.transaction(() => {
+      const row = store.row(uid, id);
+      if (row.status === 'VERIFIED_BY_ISSUER') throw new VerificationError(409);
+      const at = isoNow(clock);
+      store.remove(uid, id);
+      store.event(store.owner(uid), id, 'NOT_REQUESTED', at, { withdrawn: true });
+      return { id, status: 'NOT_REQUESTED', withdrawn: true };
+    });
   }
 
   // Server-internal only: called by an operator after the issuer itself
@@ -201,15 +203,22 @@ export function createVerificationService({ store, documents, clock = () => new 
     }
     const at = isoNow(clock);
     if (evidence !== undefined && !isIssuerEvidenceAllowed(row.provider_id, evidence)) throw new VerificationError(400);
-    row.status = decision.status;
-    row.updated_at = at;
-    row.evidence = evidence ? JSON.stringify({
-      kind: evidence.kind, issuer: evidence.issuer, authenticatedAt: evidence.authenticatedAt,
-      issuerStatement: evidence.issuerStatement, reference: row.reference
-    }) : null;
-    store.update(row);
-    store.event(row.owner, id, decision.status, at, { source: 'issuer_authorized' });
-    return publicRecord(row);
+    return store.transaction(() => {
+      // Re-read inside the write transaction so a concurrent withdrawal cannot
+      // leave an issuer event without a matching request.
+      const current = store.row(uid, id);
+      if (current.status === 'VERIFIED_BY_ISSUER') throw new VerificationError(409);
+      if (evidence?.reference !== undefined && evidence.reference !== null && evidence.reference !== current.reference) throw new VerificationError(400);
+      current.status = decision.status;
+      current.updated_at = at;
+      current.evidence = evidence ? JSON.stringify({
+        kind: evidence.kind, issuer: evidence.issuer, authenticatedAt: evidence.authenticatedAt,
+        issuerStatement: evidence.issuerStatement, reference: current.reference
+      }) : null;
+      store.update(current);
+      store.event(current.owner, id, decision.status, at, { source: 'issuer_authorized' });
+      return publicRecord(current);
+    });
   }
 
   return {
