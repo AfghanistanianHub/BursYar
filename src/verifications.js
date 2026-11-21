@@ -151,6 +151,12 @@ export async function mountVerifications(root, language = 'en') {
  const t = verificationCopy[language] ?? verificationCopy.en;
  const locale = localeFor(language);
  const date = new Intl.DateTimeFormat(locale, {dateStyle: 'medium'});
+ const safeDate = value => { const parsed = new Date(value); return Number.isFinite(parsed.getTime()) ? date.format(parsed) : '—'; };
+ const safeOfficialUrl = value => {
+  if (typeof value !== 'string') return null;
+  try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password ? url.href : null; }
+  catch { return null; }
+ };
  root.replaceChildren();
  const section = document.createElement('section');
  section.className = 'section verification-center';
@@ -217,8 +223,10 @@ export async function mountVerifications(root, language = 'en') {
  function paintProvider() {
   const selected = providers.find(provider => provider.id === providerSelect.value);
   if (!selected) { official.hidden = true; accessText.textContent = ''; reference.placeholder = ''; submit.disabled = true; return; }
-  official.hidden = false;
-  official.href = selected.officialUrl;
+  const officialUrl = safeOfficialUrl(selected.officialUrl);
+  official.hidden = !officialUrl;
+  if (officialUrl) official.href = officialUrl;
+  else official.removeAttribute('href');
   accessText.textContent = `${t.access[selected.access] ?? ''} `;
   reference.placeholder = selected.referenceLabel ?? '';
   submit.disabled = inFlight || !documents.length || !providers.length || !documentSelect.value;
@@ -234,12 +242,12 @@ export async function mountVerifications(root, language = 'en') {
   for (const request of requests) {
    const item = element('li', '', list);
    item.dataset.status = request.status;
-   const heading = element('p', `${request.provider.name} · ${request.provider.issuer}`, item);
+   const heading = element('p', `${request.provider?.name ?? '—'} · ${request.provider?.issuer ?? '—'}`, item);
    heading.className = 'verification-provider';
    heading.dir = 'auto';
    const badge = element('span', t.statuses[request.status] ?? request.status, item);
    badge.className = 'verification-status';
-   const meta = element('p', `${t.requested}: ${date.format(new Date(request.createdAt))}`, item);
+   const meta = element('p', `${t.requested}: ${safeDate(request.createdAt)}`, item);
    meta.className = 'verification-meta';
    if (request.reference) {
     const ref = element('p', `${request.reference}`, item);
@@ -247,7 +255,7 @@ export async function mountVerifications(root, language = 'en') {
     ref.dir = 'ltr';
    }
    if (request.issuerEvidence?.decidedAt) {
-    const decided = element('p', `${t.confirmedOn}: ${date.format(new Date(request.issuerEvidence.decidedAt))}`, item);
+    const decided = element('p', `${t.confirmedOn}: ${safeDate(request.issuerEvidence.decidedAt)}`, item);
     decided.className = 'verification-meta';
     if (request.issuerEvidence.statement) element('blockquote', request.issuerEvidence.statement, item).dir = 'auto';
    }
@@ -299,7 +307,8 @@ export async function mountVerifications(root, language = 'en') {
   documents.forEach((item, index) => {
    const option = document.createElement('option');
    option.value = item.id;
-   option.textContent = `${index + 1} · ${format.format(new Date(item.uploadedAt))}`;
+   const uploaded = new Date(item.uploadedAt);
+   option.textContent = `${index + 1} · ${Number.isFinite(uploaded.getTime()) ? format.format(uploaded) : '—'}`;
    documentSelect.append(option);
   });
   submit.disabled = !providers.length || !documentSelect.value || !providerSelect.value;
