@@ -4,6 +4,68 @@ The public frontend is https://bursyar.vercel.app. Same-origin `/api/*` and
 `/health` are proxied to https://bursyar-api.onrender.com. Authentication headers
 and the frontend Origin reach the existing gateway; no permissive CORS is added.
 
+## Configuration sources
+
+Two files and this page describe one topology; change them together.
+
+| Concern | Source |
+| --- | --- |
+| Frontend hosting, proxy target, CSP and headers | `vercel.json` |
+| Backend service definition (build, start, health check, env names) | `render.yaml` |
+| Gateway variables and limits | `.env.example`, `docs/INFERENCE-RUNBOOK.md` |
+| Verified live state | this page, in the dated sections below |
+
+The API hostname appears once in configuration: the rewrite target in
+`vercel.json`. `render.yaml` documents the `bursyar-api` service so the backend
+can be recreated from the repository; it is **not** connected as a Render
+blueprint, so syncing it never creates or replaces the live service. Automatic
+deploys are disabled: the intended, tested `main` commit is deployed explicitly
+twice (the frontend from Vercel, the backend from Render).
+
+## Current check — 2026-11-21 01:55 UTC
+
+| Check | Result |
+| --- | --- |
+| Frontend deployment | `dpl_tPWATMGR1HdpMaWqGYnjaBGinwAa`, commit `e7e35b7` (`main`), `READY` / `PROMOTED`, alias `bursyar.vercel.app` assigned, build ready in 38.9 s |
+| `GET https://bursyar.vercel.app/` | `200`, `text/html`, serving `/assets/index-DBXbGdmG.js` (263 505 B) and `/assets/index-B_4771W4.css`; CSP and `X-Content-Type-Options: nosniff` present |
+| Journey fixes in the served bundle | `Sign in to continue`, `Opening sign-in` and `bursyar:identity` present; the previously served bundle did not contain them |
+| Retired bundle | `/assets/index-DLHPgfbd.js` now `404`, retired with the previous deployment |
+| `GET https://bursyar-api.onrender.com/health` | `200`, `capabilities.build.commit` = `7dbd75f` |
+| `GET https://bursyar.vercel.app/health` | `200`, same build `7dbd75f`, same capabilities |
+| Capabilities reported | deterministic assessment and document storage available; Meta configured but gated per request; `inferenceVerified: false` |
+| `GET /api/export`, `/api/verifications`, `/api/verifications/providers` | `401 Sign in with an approved account` |
+| Foreign `Origin` on `POST /api/verifications` | `403 Origin denied` |
+| `npm run verify:live-verification --base=https://bursyar.vercel.app` | 5 passed, 0 failed, 1 skipped (authenticated create/list/withdraw not exercised) |
+
+### Deployment history — 2026-11-21
+
+| Time (UTC) | Event |
+| --- | --- |
+| 01:51 | Project `bursyar` (`prj_doNm7kwcWaHXg66t1bJOfEo3XRTQ`) found paused; every frontend route answered `503 DEPLOYMENT_PAUSED`, including `/health`. Pause cleared. |
+| 01:51:49 | Previously promoted deployment `dpl_HBW3E6KMhzwTBJH3LY8JUBMLuzLz` (`926237a`) serving again with `200`. |
+| 01:53:38 | New production deployment `dpl_tPWATMGR1HdpMaWqGYnjaBGinwAa` created from `main` @ `e7e35b7`; the paused-time build `dpl_67Hft9PTyxftx76wNAqSYgMisDmn` (`e7e35b7`) remains `BLOCKED` with `buildSkipped: true` and was not revived. |
+| 01:54:18 | Deployment `READY`, alias assigned, new bundle `index-DBXbGdmG.js` serving. |
+
+The backend was unaffected throughout and continued to serve `7dbd75f`.
+
+### Resuming and redeploying the frontend
+
+1. Vercel dashboard → team **AfghanHub's projects** → project **bursyar** →
+   **Settings → General → Pause Project**, and turn pausing off (the same state
+   is reachable through the Vercel API `unpause` action); the project's
+   `paused` flag must read `false`.
+2. Confirm the previously promoted deployment serves: `curl -I
+   https://bursyar.vercel.app/` returns `200` and `/health` returns the backend
+   build commit.
+3. Deploy `main` explicitly, because a paused-time build is skipped rather than
+   queued: either **Deployments → Redeploy** on the latest `main` entry, or
+   create a new production deployment for `main`. Vercel's git integration has
+   `createDeployments: disabled` for this project, so a merge alone does not
+   deploy.
+4. Re-run `npm run verify:live-verification -- --base=https://bursyar.vercel.app
+   --expect-commit=<backend sha>` and check `/health` `capabilities.build.commit`.
+   A `200` on `/` is not proof of sign-in, persistence or inference.
+
 The Render service is `bursyar-api` in the owner-confirmed SAM's workspace,
 on the explicit free compute plan. Node 24.22.1 is pinned. Hosted startup sets
 `BURSYAR_HOST=0.0.0.0`; local startup remains `127.0.0.1` unless explicitly changed.

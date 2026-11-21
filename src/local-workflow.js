@@ -1,4 +1,5 @@
 import {getInferenceToken} from './auth.js';
+import {mountSignInAction} from './sign-in-action.js';
 import {assessBarriers,barrierText} from './pathfinder.js';
 import {planGaps,actionText} from './gap-actions.js';
 // fa/ps strings are UNREVIEWED pending fluent human review (see docs/TRANSLATION-REVIEW.json).
@@ -25,7 +26,9 @@ export function mountLocalWorkflow(root,language='en'){
  const sourceInfo=add('div',null,panel);sourceInfo.id='local-source-info';const output=add('div',null,panel);let epoch=0;
  const clear=()=>{epoch++;for(const e of form.elements)e.disabled=false;scope.value='';degree.value='';consent.checked=false;consent.removeAttribute('aria-invalid');select.replaceChildren();const placeholder=add('option',t.empty,select);placeholder.value='';submit.disabled=true;status.textContent='';sourceInfo.replaceChildren();output.replaceChildren();};
  const publish=message=>document.dispatchEvent(new CustomEvent('bursyar:local-next',{detail:message}));
- const identity=()=>{clear();publish(null);};document.addEventListener('bursyar:identity',identity);
+ // Identity changes remount the panel so a stale sign-in prompt or a previous
+ // account's form state is never reused.
+ const identity=()=>{clear();publish(null);if(root.isConnected)mountLocalWorkflow(root,document.documentElement.lang);};document.addEventListener('bursyar:identity',identity);
  degree.addEventListener('change',()=>{output.replaceChildren();status.textContent='';publish(null);});
  // Re-rendered panels discard their handler before another identity event.
  const cleanup=()=>document.removeEventListener('bursyar:identity',identity);handlers.set(root,cleanup);
@@ -34,5 +37,9 @@ export function mountLocalWorkflow(root,language='en'){
  async function busy(action){const started=epoch;for(const e of form.elements)e.disabled=true;try{await action();}catch{if(started===epoch)status.textContent=t.error;}finally{if(started===epoch){for(const e of form.elements)e.disabled=false;submit.disabled=!select.value;}}}
  save.addEventListener('click',()=>{if(!scope.reportValidity())return;if(!consent.checked){consent.setAttribute('aria-invalid','true');status.textContent=t.consentRequired;consent.focus();return;}consent.removeAttribute('aria-invalid');busy(async()=>{await api('/profile','PUT',{consent:true,values:{degree:degree.value||null}});output.replaceChildren();publish(null);status.textContent=t.saved;});});
  refresh.addEventListener('click',()=>{if(!scope.reportValidity())return;busy(async()=>{const data=await api('/scholarships');select.replaceChildren();for(const p of data.scholarships){const o=add('option',p.id,select);o.value=p.id;}const sourceMap=new Map(data.scholarships.map(p=>[p.id,p.sourceUrl]));const showSource=()=>{sourceInfo.replaceChildren();const raw=sourceMap.get(select.value);if(!raw)return;let parsed;try{parsed=new URL(raw);}catch{return;}if(parsed.protocol!=='https:'||parsed.username||parsed.password)return;const a=add('a',t.official,sourceInfo);a.href=parsed.href;a.target='_blank';a.rel='noopener noreferrer';a.dir='auto';add('p',t.sourceNote,sourceInfo);};select.onchange=()=>{output.replaceChildren();status.textContent='';showSource();publish(null);};showSource();output.replaceChildren();publish(null);status.textContent=data.scholarships.length?'':t.empty;});});
+ getInferenceToken().then(()=>{},()=>{
+  if(!panel.isConnected)return;
+  panel.insertBefore(mountSignInAction(language),form);
+ });
  form.addEventListener('submit',event=>{event.preventDefault();busy(async()=>{const result=await api('/evaluate','POST',{scholarshipId:select.value});const barriers=assessBarriers(result.results);const gaps=new Map(planGaps(result).map(g=>[g.requirementId,g]));const actions=actionText[language]??actionText.en;output.replaceChildren();status.textContent=t[result.summary==='unknown'?'unknownResult':result.summary];for(const r of result.results){const p=add('p',`${r.requirementId}: ${t[r.status==='unknown'?'unknownResult':r.status]}`,output);p.dir='auto';const quote=add('blockquote',r.source.excerpt,output);quote.dir='auto';const barrier=barriers.find(b=>b.requirementId===r.requirementId);if(barrier){const text=barrierText(barrier,language);const item=add('p',`${text.status} — ${text.action}`,output);item.dir='auto';item.dataset.requirement=r.requirementId;}const gap=gaps.get(r.requirementId);if(gap&&actions[gap.action]){const item=add('p',actions[gap.action],output);item.dir='auto';}}const next=add('p',t[result.summary==='met'?'nextMet':result.summary==='not_met'?'nextNotMet':'nextUnknown'],output);next.setAttribute('role','note');publish(next.textContent);});});
 }

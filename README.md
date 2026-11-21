@@ -1,45 +1,144 @@
-# BursYar — scholarship clarity
+# BursYar
 
-English, Dari/Persian and Pashto scholarship reader and bounded Barrier PathFinder for Afghan applicants. No CTO dependency.
+Scholarship clarity for Afghan applicants, in **English, Dari/Persian and Pashto**.
 
-## Hackathon release candidate (Draft, unmerged)
+BursYar reads a scholarship's published requirements, shows what each rule actually asks for, and compares it with the applicant's own declared evidence. When a requirement cannot be decided from the available text, it says *unknown* instead of guessing. Every result is labelled for human review.
 
-Branch `release/hackathon-rc-2026-10-31` integrates Draft PRs #30 (secure reconciliation + GPA/TOEFL UI), #34 (Mission 02 evidence) and #33 (Mission 04 navigation) as one unmerged candidate. Source PR branches are unchanged. See [the release handoff](docs/HACKATHON-RELEASE-HANDOFF.md) for the exact commit, integration decisions, test evidence and remaining gates. Nothing here is deployed or submitted.
+- Frontend: framework-free JavaScript SPA built with Vite (`src/`).
+- Backend: Node ≥24.12 HTTP gateway (`engine/`) for authenticated analysis, quotas, source retrieval and private document/profile storage.
+- Model providers are optional. Without one, the deterministic assessment path still works.
 
-## Mission 04 — verified frontend integration checkpoint (Draft PR #33)
+**Version:** 1.0.0 · **Licence:** MIT · **Node:** ≥24.12 · **Package manager:** npm 11.9
 
-The independent frontend branch `feat/mission-04-journey-navigation` integrates English/Farsi/Pashto responsive navigation, authenticated private-profile review, evidence-focused source inspection, deterministic scholarship assessment and conservative next steps. Users can enter the deterministic path directly without Meta or switch to it if AI analysis is unavailable. This does **not** assert a fully reviewed institutional scholarship catalog or verified live inference.
+---
 
-The implementation commit `b0a8903` passed all four GitHub Actions jobs in [run 169](https://github.com/AfghanistanianHub/BursYar/actions/runs/41023801642): verify/build, emulator, Playwright browser tests and macOS helper. Tests use mocked identities and synthetic sources, **not** live Google sign-in or Meta inference.
+## Current state (verified 2026-11-21 01:55 UTC)
 
-See [Mission 04 verification and acceptance gates](docs/checkpoints/mission-04-frontend.md). Mission 03 Figma parity, human Farsi/Pashto review, official university-source approval, guardian/privacy sign-off and authorized live OAuth remain outstanding. PR #33 remains Draft; nothing was merged or deployed.
+| Surface | Status |
+| --- | --- |
+| Frontend `https://bursyar.vercel.app` | `200`; deployment `dpl_tPWATMGR1HdpMaWqGYnjaBGinwAa` at commit `e7e35b7` (`main`), READY/PROMOTED with the alias assigned; serves `index-DBXbGdmG.js` (263 KB) and `index-B_4771W4.css`, CSP and `nosniff` present |
+| Deployed bundle contents | journey fixes present: in-panel sign-in action, deep-link/hash-target handling (`Sign in to continue`, `Opening sign-in`, `bursyar:identity`) |
+| Backend `https://bursyar-api.onrender.com/health` | `200`, build `7dbd75f`, deterministic assessment and document storage available, Meta configured and gated per request, `inferenceVerified: false` |
+| Proxy `https://bursyar.vercel.app/health` | `200`, same build `7dbd75f` |
+| Protected routes | `/api/verifications`, `/api/verifications/providers`, `/api/export` → `401 Sign in with an approved account`; foreign `Origin` → `403 Origin denied` |
+| Release check | `npm run verify:live-verification` → 5 passed, 0 failed, 1 skipped (authenticated leg not exercised) |
+| Repository `main` | `e7e35b7` (post-`release/v1.0-closure` merge #122) — deployed |
+| Test suite | 419 tests pass locally (`npm test`) |
+| Production build | passes (`npm run build`) |
 
-## Historical development status (earlier PR stack)
+The Vercel project had been paused (`503 DEPLOYMENT_PAUSED`). The pause was cleared, a paused-time build of `e7e35b7` that Vercel had skipped was replaced by a fresh production deployment of `main`, and that deployment is now promoted: the journey fixes from `e7e35b7` are live. Deployment history, dates and the resume/redeploy procedure are in [docs/HOSTED-BACKEND.md](docs/HOSTED-BACKEND.md).
 
+## Scope of the 1.0 release
 
-Draft PR #9 is stacked on draft PR #8. The stack now reconciles main history while preserving the Firebase-authenticated gateway, durable quotas, Keychain configuration and spending gates. Implemented: evidence-selected conservative compiler, deterministic three-valued evaluation, source provenance, contradictory-threshold detection, isolated score/degree scenarios, multilingual UI and private local UTF-8 document review/profile storage.
+Shipped and verified:
 
-**Live Meta and human translation review remain unverified.** Document extraction is a bounded text parser, not OCR or issuer verification. The compiler supports two narrow English rule forms; real complex admissions clauses remain unknown. A user-supplied source URL is not authenticated ingestion. No public deployment or production rules changes occurred.
+- Trilingual reader with RTL layout, language persistence and a skip link.
+- Evidence-first analysis: source excerpt → criterion → three-valued verdict (`met` / `not_met` / `unknown`), with signed source receipts and per-criterion provenance.
+- Deterministic reviewed-scholarship assessment that needs no model provider.
+- Private document and profile workflow (TXT only in production), with review history, export and erase.
+- Credential-verification **requests** for 14 issuers, status tracking and withdrawal. No issuer connection exists; nothing is auto-verified.
+- Durable quotas and private storage through SQLite (local) or Supabase (hosted).
 
-Read [the current demonstration and submission runbook](docs/HACKATHON-DEMO.md) and [mission checkpoint](docs/checkpoints/11-autonomous-mission.md) for executed evidence, limits, recovery and owner gates.
+Deliberately not claimed:
 
-Current provider continuation: branch `fix/meta-truncated-completions`, stacked on the timeout fix, uses low reasoning and a compact strict response schema with the same 4000-token cap. The owner reported a real HTTP 200 / `length` reply; validated end-to-end live analysis remains pending. Read [the diagnosis and single authorized Oxford test](docs/META-TRUNCATION-INVESTIGATION.md).
+- No reviewed production scholarship catalog — listings are sample data and labelled as such.
+- No production PDF/image OCR; binary intake is rejected client-side, TXT is the supported path.
+- No issuer-authenticated credential verification.
+- Dari/Persian and Pashto strings have **not** had fluent human review.
+- No general claim of successful live model inference. One owner-approved Meta request is recorded; startup reports `inferenceVerified: false` by design.
+- No offline mode and no server-side rendering.
 
-## Setup and verification
+## Architecture
 
-Node >=24.12 required. From repository root:
+```
+Browser (Vite SPA, src/)
+  │  same-origin /api/*, Bearer Firebase ID token
+  ▼
+Vercel static hosting + rewrite (vercel.json)
+  │
+  ▼
+Render Node gateway (engine/, bursyar-api.onrender.com)
+  ├── Firebase ID-token verification (aud, iss, demo claim, account status)
+  ├── provider policy + spending/unit quotas (SQLite or Supabase)
+  ├── source retrieval (SSRF-guarded, signed receipts)
+  ├── evidence validation and three-valued evaluation
+  └── private documents / profiles / verification requests
+        │
+        └── optional model provider (Meta Muse / Gemini / self-hosted)
+```
+
+## Repository map
+
+| Path | Contents |
+| --- | --- |
+| `src/` | Frontend modules, copy tables (`i18n`, journey, dashboard, research) and styles |
+| `engine/` | HTTP gateway, auth, quota, documents, verification, provider adapters |
+| `tests/` | Node test suite (`node --test`), unit and integration |
+| `verification/` | Browser, emulator, typography, PDF/OCR and live-API evidence scripts |
+| `database/` | SQL schemas for the durable SQLite/Supabase adapters |
+| `data/` | Checked scholarship source facts |
+| `public/` | Editorial images, PDF.js licence |
+| `docs/` | Current reference docs; `docs/archive/` holds the historical mission trail |
+| `firestore.rules` | Read-only public catalog rules (not deployed) |
+
+## Local development
+
+Requires Node ≥24.12 and npm 11.9.
 
 ```bash
 npm ci
-npm test
-npm run build
-npm run dev
+npm run dev            # Vite on :5173, proxies /api to 127.0.0.1:8080
+npm run start:engine   # gateway on :8080 in a second terminal (optional)
 ```
 
-For actual inference, follow [the inference runbook](docs/INFERENCE-RUNBOOK.md): Google sign-in uses public VITE_FIREBASE_* configuration; server uses private Firebase ADC and Meta credentials plus explicit quotas and persistent SQLite path. No credentials belong in Git or browser VITE_* variables. Server binds only loopback; Vite proxies same-origin /api.
+The engine starts in deterministic-only mode when no provider configuration exists. It refuses to start with incomplete configuration rather than serving fake analyses. Copy `.env.example` to `.env` for the frontend's public `VITE_FIREBASE_*` values; server variables belong in the process environment, never in `VITE_*`.
 
-## Resume development
+Without a backend, the deterministic pages still render; analysis and document routes report that the service is unavailable.
 
-Read [checkpoint index](docs/checkpoints/README.md) and [latest regression checkpoint](docs/checkpoints/04-regression-and-resume.md). Commit SHAs, test evidence, limitations and exact next steps are recorded there and in Issue #4/PR #6.
+## Tests and checks
 
-Product scope: [requirements](docs/PRODUCT-REQUIREMENTS.md), [execution plan](docs/EXECUTION-PLAN.md). Proposed firestore.rules have not been deployed; proposed rules are exercised only against isolated emulators; no production deployment is implied.
+| Command | What it covers | Needs |
+| --- | --- | --- |
+| `npm test` | 419 unit/integration tests across `tests/` and `engine/` | Node only |
+| `npm run test:evaluation` | 60 deterministic evaluation fixtures, explicitly not live inference | Node only |
+| `npm run build` | Production bundle | Node only |
+| `npm run test:emulator` | Firestore rules + auth emulator | Java 21 |
+| `npm run test:browser` | Playwright UI, RTL, axe accessibility | Chromium |
+| `npm run verify:live-verification` | Read-only production route/origin/commit check | Network |
+| `npm run test:mac` / `check:mac` | macOS Keychain helper | macOS |
+
+CI runs the verify/build job, the emulator job, the Playwright job and the macOS helper job (`.github/workflows/web-checks.yml`).
+
+## Deployment
+
+The topology has two hosts and one origin. `docs/HOSTED-BACKEND.md` is the reference; `vercel.json` and `render.yaml` are the configuration.
+
+- **Frontend — Vercel.** Static build of `dist/`. `vercel.json` rewrites `/api/:path*` and `/health` to the backend and sets the CSP and security headers. The API hostname appears in that file and nowhere else in configuration.
+- **Backend — Render.** Node service `bursyar-api`, built from this repository with `npm ci` and started with `npm run start:engine`. `render.yaml` documents the service (build/start commands, health check, environment variable names); it is not connected as a blueprint, and automatic deploys are disabled so a tested `main` commit is deployed deliberately.
+- **Secrets** live in each host's environment settings. `.env.example` lists every variable name; no key, token or credential belongs in the repository, in `VITE_*` variables, or in a chat message.
+
+To deploy: merge to `main`, confirm CI is green, deploy the intended backend commit from Render, then check `https://bursyar.vercel.app/health` → `capabilities.build.commit` matches it.
+
+## Documentation
+
+Start with the repository map above, then:
+
+| Document | Purpose |
+| --- | --- |
+| [docs/HOSTED-BACKEND.md](docs/HOSTED-BACKEND.md) | Hosts, proxies, environment and live verification records |
+| [docs/INFERENCE-RUNBOOK.md](docs/INFERENCE-RUNBOOK.md) | Provider configuration, spending gates, local inference |
+| [docs/PRODUCT-REQUIREMENTS.md](docs/PRODUCT-REQUIREMENTS.md) | Product scope and requirements |
+| [docs/SECURITY-PRIVACY-REVIEW.md](docs/SECURITY-PRIVACY-REVIEW.md) | Data handling, auth and privacy posture |
+| [docs/DURABLE-DOCUMENTS.md](docs/DURABLE-DOCUMENTS.md) | Document storage adapters and limits |
+| [docs/CREDENTIAL-VERIFICATION.md](docs/CREDENTIAL-VERIFICATION.md) | The request-only verification workflow |
+| [docs/OCR-PIPELINE.md](docs/OCR-PIPELINE.md) | Local PDF/OCR pipeline and its release gates |
+| [docs/TRANSLATION-REVIEW-WORKSHEET.md](docs/TRANSLATION-REVIEW-WORKSHEET.md) | Outstanding Dari/Pashto review |
+| [docs/archive/](docs/archive/README.md) | Historical mission, checkpoint and release records (not current state) |
+
+## Contributing and security
+
+There is no contribution guide yet; keep changes small, keep `npm test` green, and do not weaken the authentication, origin, provider-policy, spending or evidence checks. Report security issues privately to the maintainers rather than in a public issue.
+
+## Licence
+
+MIT — see [LICENSE](LICENSE).

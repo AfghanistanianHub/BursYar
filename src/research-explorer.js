@@ -9,6 +9,12 @@ let saved=null;
 let storageFailed=false;
 const storage=()=>{try{return globalThis.localStorage;}catch{return null;}};
 export function getSavedResearchIds(){return [...(saved??loadResearchSaved(storage()))];}
+// Clear the browser-local saved list from any view (the dashboard saved page)
+// and keep this module's copy in sync with storage.
+export function clearSavedResearch(){
+ saved=[];storageFailed=!saveResearchIds(storage(),saved);notifySaved();
+ return {cleared:!storageFailed,saved:getSavedResearchIds()};
+}
 const notifySaved=()=>document.dispatchEvent(new Event('bursyar:research-saved'));
 export function mountResearchExplorer(root,language='en') {
  if(!root)return;

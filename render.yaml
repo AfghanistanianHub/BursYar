@@ -1,18 +1,60 @@
-# Render Blueprint for a static preview of the independent BursYar frontend.
-# Does not deploy automatically until explicitly connected in Render.
+# BursYar backend blueprint.
+#
+# Topology (see docs/HOSTED-BACKEND.md):
+#   - frontend: Vercel static build of this repository, which rewrites /api and
+#     /health to the service below (vercel.json)
+#   - backend:  this Render Node service, bursyar-api.onrender.com
+#
+# The frontend is not deployed from Render, so no static site is declared here.
+# This file documents the production service; connecting it as a blueprint
+# creates it. Automatic deploys stay disabled: deploy the intended, tested main
+# commit explicitly from the Render dashboard.
+#
+# Secrets are not stored here. Every `sync: false` variable must be set in the
+# Render dashboard; the names match .env.example and docs/INFERENCE-RUNBOOK.md.
 services:
   - type: web
-    name: bursyar-web-preview
-    runtime: static
-    buildCommand: npm install --no-audit --no-fund && npm run build
-    staticPublishPath: ./dist
-    headers:
-      - path: /*
-        name: X-Content-Type-Options
-        value: nosniff
-      - path: /*
-        name: Referrer-Policy
-        value: strict-origin-when-cross-origin
-      - path: /*
-        name: X-Frame-Options
-        value: DENY
+    name: bursyar-api
+    runtime: node
+    plan: free
+    autoDeploy: false
+    healthCheckPath: /health
+    buildCommand: npm ci --no-audit --no-fund
+    startCommand: npm run start:engine
+    envVars:
+      - key: NODE_VERSION
+        value: 24.22.1
+      # Hosted startup must bind the container address; the default is loopback.
+      - key: BURSYAR_HOST
+        value: 0.0.0.0
+      # Exact browser origin allowed by the gateway; no CORS is added.
+      - key: BURSYAR_ORIGIN
+        value: https://bursyar.vercel.app
+      - key: FIREBASE_PROJECT_ID
+        value: afghanistanian-scholarships
+      - key: FIREBASE_WEB_API_KEY
+        sync: false
+      # Durable storage for documents, profiles and quota reservations.
+      - key: BURSYAR_QUOTA_STORAGE
+        value: supabase
+      - key: BURSYAR_DOCUMENT_SUPABASE_URL
+        sync: false
+      - key: BURSYAR_DOCUMENT_SUPABASE_KEY
+        sync: false
+      # Quota limits; lifetime units are a conservative reservation budget.
+      - key: BURSYAR_USER_MINUTE
+        value: "2"
+      - key: BURSYAR_USER_DAY
+        value: "5"
+      - key: BURSYAR_GLOBAL_DAY
+        value: "20"
+      - key: BURSYAR_LIFETIME_UNITS
+        value: "200000"
+      # Optional model provider. Without these the service starts in
+      # deterministic-only mode and reports Meta as disabled.
+      - key: BURSYAR_PROVIDER_JSON
+        sync: false
+      - key: BURSYAR_POLICY_RECORDS_JSON
+        sync: false
+      - key: META_API_KEY
+        sync: false

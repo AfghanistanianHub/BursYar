@@ -46,4 +46,4 @@ Each record carries:
 3. Set `status` to `reviewed` with `verifiedBy: "<name>, <date>"`, or file
    corrections / mark `contradicted`.
 4. Never approve from diagnostic metadata alone; see
-   [REVIEWER-CHECKLIST.md](REVIEWER-CHECKLIST.md).
+   [REVIEWER-CHECKLIST.md](archive/REVIEWER-CHECKLIST.md).

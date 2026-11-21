@@ -1,7 +1,27 @@
 {
   "name": "bursyar-web",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Trilingual scholarship reader and evidence-first eligibility guidance for Afghan applicants.",
   "private": true,
+  "license": "MIT",
+  "author": "AfghanistanianHub and BursYar contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AfghanistanianHub/BursYar.git"
+  },
+  "homepage": "https://bursyar.vercel.app",
+  "bugs": {
+    "url": "https://github.com/AfghanistanianHub/BursYar/issues"
+  },
+  "keywords": [
+    "scholarships",
+    "afghanistan",
+    "education",
+    "dari",
+    "pashto",
+    "accessibility",
+    "firebase"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
@@ -11,6 +31,8 @@
     "start:engine": "node engine/server.js",
     "test:emulator": "firebase emulators:exec --config firebase.emulator.json --project demo-bursyar --only auth,firestore \"node verification/emulator.mjs\"",
     "test:browser": "node verification/browser.mjs",
+    "test:journey": "node verification/journey-audit.mjs",
+    "test:ocr": "node verification/document-ocr-integration.mjs",
     "test:live": "node verification/live-demo.mjs",
     "verify:live-verification": "node scripts/verify-live-verification-api.mjs",
     "start:demo": "node verification/start-demo.mjs",

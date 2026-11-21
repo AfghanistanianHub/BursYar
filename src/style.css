@@ -339,3 +339,9 @@ footer span:last-child{max-width:70ch}
 .skip-link:focus-visible{top:8px; color:#fff; outline-color:#fff}
 .hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
 @media(max-width:700px){.hero-actions>*{flex:1 1 100%}}
+/* ---- In-panel sign-in recovery (private panels) ---- */
+.sign-in-action{display:grid;gap:8px;background:var(--brand-ghost);border:1px solid var(--line);
+ border-radius:var(--r-sm);padding:12px 14px;margin-top:10px}
+.sign-in-action p{margin:0;color:var(--muted);font-size:var(--fs-small)}
+.sign-in-action button{justify-self:start}
+.sign-in-action [role=status]{color:var(--brand-dark);font-weight:700}

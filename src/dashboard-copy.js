@@ -26,8 +26,9 @@ export const dashboardCopy = {
   privacyError: 'Data request unavailable. Check your connection and sign in again.',
   deleteRetry: 'Deletion could not finish because the service is temporarily unavailable. Your data may be partially deleted; please try again later.',
   deleteUncertain: 'The connection was lost. Your deletion may have completed. Check your account before trying again.' ,
-  deleteLocalNote: 'Saved scholarships kept in this browser are separate from your account; clear them from the saved page.'
- },
+  deleteLocalNote: 'Saved scholarships kept in this browser are separate from your account; clear them from the saved page.',
+  clearSaved: 'Clear saved scholarships',
+  clearedSaved: 'Saved scholarships were cleared from this browser.' },
  fa: {
   title: 'پیشخوان من', home: 'پیشخوان', mobileHome: 'خانه',
   documents: 'مدارک و پروفایل', mobileDocuments: 'مدارک',
@@ -55,8 +56,9 @@ export const dashboardCopy = {
   privacyError: 'درخواست داده در دسترس نیست. اتصال را بررسی و دوباره وارد شوید.',
   deleteRetry: 'حذف اطلاعات به دلیل مشکل موقت سرویس کامل نشد. ممکن است بخشی از اطلاعات حذف شده باشد؛ لطفاً بعداً دوباره تلاش کنید.',
   deleteUncertain: 'ارتباط قطع شد و ممکن است حذف اطلاعات انجام شده باشد. پیش از تلاش دوباره، وضعیت حساب خود را بررسی کنید.',
-  deleteLocalNote: 'بورسیه‌های ذخیره‌شده در این مرورگر جدا از حساب شماست؛ از صفحهٔ ذخیره‌ها پاک کنید.'
- },
+  deleteLocalNote: 'بورسیه‌های ذخیره‌شده در این مرورگر جدا از حساب شماست؛ از صفحهٔ ذخیره‌ها پاک کنید.',
+  clearSaved: 'پاک کردن بورسیه‌های ذخیره‌شده',
+  clearedSaved: 'بورسیه‌های ذخیره‌شده از این مرورگر پاک شدند.' },
  ps: {
   title: 'زما کاري پاڼه', home: 'کاري پاڼه', mobileHome: 'کور',
   documents: 'اسناد او پروفایل', mobileDocuments: 'اسناد',
@@ -84,6 +86,7 @@ export const dashboardCopy = {
   privacyError: 'د معلوماتو غوښتنه نه ده لاسرسی وړ. اړیکه وګورئ او بیا ننوځئ.',
   deleteRetry: 'د خدمت د لنډمهالې ستونزې له امله حذف بشپړ نه شو. ښايي ځینې معلومات حذف شوي وي؛ مهرباني وکړئ وروسته بیا هڅه وکړئ.',
   deleteUncertain: 'اړیکه پرې شوه؛ ښايي معلومات حذف شوي وي. د بیا هڅې مخکې د خپل حساب حالت وګورئ.',
-  deleteLocalNote: 'په دې براوزر کې ساتل شوي بورسونه ستاسو له حسابه بېل دي؛ د ساتل شویو پاڼې څخه یې پاک کړئ.'
- }
+  deleteLocalNote: 'په دې براوزر کې ساتل شوي بورسونه ستاسو له حسابه بېل دي؛ د ساتل شویو پاڼې څخه یې پاک کړئ.',
+  clearSaved: 'ساتل شوي بورسونه پاکول',
+  clearedSaved: 'ساتل شوي بورسونه له دې براوزر څخه پاک شول.' }
 };
