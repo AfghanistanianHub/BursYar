@@ -78,7 +78,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
       return send(res,200,{deleted:true});
      }
      return send(res,405,{error:'Method unavailable'});
-    }catch{return send(res,422,{error:'Local processing unavailable'});}
+    }catch{return send(res,route==='/api/erase'?503:422,{error:'Local processing unavailable'});}
    }
    if(verificationRoute||verificationProviderRoute){
     if(!verifications)return send(res,503,{error:'Verification workflow unavailable'});
