@@ -142,6 +142,28 @@ test('concurrent verification submissions preserve one active request per docume
  }finally{server.close();rmSync(dir,{recursive:true,force:true});}
 });
 
+test('separate SQLite connections share the active-request idempotency guarantee',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-connections-'));
+ const documents=new DocumentStore(join(dir,'documents.db'));
+ const firstStore=new VerificationStore(join(dir,'verifications.db'));
+ const secondStore=new VerificationStore(join(dir,'verifications.db'));
+ const first=createVerificationService({store:firstStore,documents});
+ const second=createVerificationService({store:secondStore,documents});
+ try{
+  const doc=documents.upload('alice',{text:'Diploma',mime:'text/plain',consent:true});
+  const input={documentId:doc.id,providerId:'ielts',consent:true,reference:'TRF-SHARED'};
+  const original=first.create('alice',input);
+  const duplicate=second.create('alice',input);
+  assert.equal(duplicate.id,original.id);
+  assert.equal(first.list('alice').requests.length,1);
+  assert.equal(second.list('alice').requests.length,1);
+  second.withdraw('alice',original.id);
+  const next=first.create('alice',input);
+  assert.notEqual(next.id,original.id);
+  assert.equal(second.list('alice').requests.length,1);
+ }finally{first.close();second.close();rmSync(dir,{recursive:true,force:true});}
+});
+
 test('verification routes report unavailable instead of pretending to work',async()=>{
  const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-off-'));
  const documents=new DocumentStore(join(dir,'documents.db'));
