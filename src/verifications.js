@@ -144,6 +144,22 @@ export const verificationCopy = {
  }
 };
 export const verificationStatuses = ['NOT_REQUESTED', 'PENDING', 'VERIFIED_BY_ISSUER', 'REJECTED_BY_ISSUER', 'MANUAL_REVIEW_REQUIRED', 'UNAVAILABLE'];
+// Pure validation helpers also support regression tests without a browser.
+export const safeVerificationDate = (value, formatter) => {
+ const parsed = new Date(value);
+ return Number.isFinite(parsed.getTime()) ? formatter.format(parsed) : '—';
+};
+export const safeVerificationUrl = value => {
+ if (typeof value !== 'string') return null;
+ try {
+  const url = new URL(value);
+  return url.protocol === 'https:' && !url.username && !url.password ? url.href : null;
+ } catch { return null; }
+};
+export const verificationArray = (response, key) => {
+ if (!Array.isArray(response?.[key])) throw new Error('Invalid verification response');
+ return response[key];
+};
 const localeFor = language => language === 'fa' ? 'fa-AF' : language === 'ps' ? 'ps-AF' : 'en';
 
 export async function mountVerifications(root, language = 'en') {
@@ -151,12 +167,8 @@ export async function mountVerifications(root, language = 'en') {
  const t = verificationCopy[language] ?? verificationCopy.en;
  const locale = localeFor(language);
  const date = new Intl.DateTimeFormat(locale, {dateStyle: 'medium'});
- const safeDate = value => { const parsed = new Date(value); return Number.isFinite(parsed.getTime()) ? date.format(parsed) : '—'; };
- const safeOfficialUrl = value => {
-  if (typeof value !== 'string') return null;
-  try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password ? url.href : null; }
-  catch { return null; }
- };
+ const safeDate = value => safeVerificationDate(value, date);
+ const safeOfficialUrl = safeVerificationUrl;
  root.replaceChildren();
  const section = document.createElement('section');
  section.className = 'section verification-center';
@@ -273,13 +285,11 @@ export async function mountVerifications(root, language = 'en') {
  }
  async function loadRequests() {
   const data = await api('/api/verifications');
-  if (!Array.isArray(data?.requests)) throw new Error('Invalid verification response');
-  renderRequests(data.requests);
+  renderRequests(verificationArray(data, 'requests'));
  }
  async function loadProviders() {
   const data = await api('/api/verifications/providers');
-  if (!Array.isArray(data?.providers)) throw new Error('Invalid provider response');
-  providers = data.providers;
+  providers = verificationArray(data, 'providers');
   providerSelect.replaceChildren();
   for (const provider of providers) {
    const option = document.createElement('option');
@@ -291,8 +301,7 @@ export async function mountVerifications(root, language = 'en') {
  }
  async function loadDocuments() {
   const result = await api('/api/documents');
-  if (!Array.isArray(result)) throw new Error('Invalid document response');
-  documents = result;
+  documents = verificationArray({documents:result}, 'documents');
   documentSelect.replaceChildren();
   if (!documents.length) {
    const option = document.createElement('option');
