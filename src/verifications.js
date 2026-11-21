@@ -146,8 +146,11 @@ export const verificationCopy = {
 export const verificationStatuses = ['NOT_REQUESTED', 'PENDING', 'VERIFIED_BY_ISSUER', 'REJECTED_BY_ISSUER', 'MANUAL_REVIEW_REQUIRED', 'UNAVAILABLE'];
 // Pure validation helpers also support regression tests without a browser.
 export const safeVerificationDate = (value, formatter) => {
- const parsed = new Date(value);
- return Number.isFinite(parsed.getTime()) ? formatter.format(parsed) : '—';
+ if (value === null || value === undefined || value === '') return '—';
+ try {
+  const parsed = new Date(value);
+  return Number.isFinite(parsed.getTime()) ? formatter.format(parsed) : '—';
+ } catch { return '—'; }
 };
 export const safeVerificationUrl = value => {
  if (typeof value !== 'string') return null;
@@ -316,8 +319,7 @@ export async function mountVerifications(root, language = 'en') {
   documents.forEach((item, index) => {
    const option = document.createElement('option');
    option.value = item.id;
-   const uploaded = new Date(item.uploadedAt);
-   option.textContent = `${index + 1} · ${Number.isFinite(uploaded.getTime()) ? format.format(uploaded) : '—'}`;
+   option.textContent = `${index + 1} · ${safeVerificationDate(item.uploadedAt, format)}`;
    documentSelect.append(option);
   });
   submit.disabled = !providers.length || !documentSelect.value || !providerSelect.value;
