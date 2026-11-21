@@ -263,6 +263,19 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
    const index = [...panel.querySelectorAll('a')].indexOf(focused);
    renderHome();
    if (index >= 0) panel.querySelectorAll('a')[index]?.focus({preventScroll:true});
-  } else if (view === 'saved') renderSaved();
+  } else if (view === 'saved') {
+   // Saved research updates may arrive while keyboard users are browsing this panel.
+   // Preserve focus on the matching source or browse link across DOM replacement.
+   const focused = panel.contains(document.activeElement) ? document.activeElement : null;
+   const links = [...panel.querySelectorAll('a')];
+   const index = links.indexOf(focused);
+   const href = focused?.getAttribute('href');
+   renderSaved();
+   if (index >= 0) {
+    const nextLinks = [...panel.querySelectorAll('a')];
+    const matching = href ? nextLinks.find(link => link.getAttribute('href') === href) : null;
+    (matching ?? nextLinks[Math.min(index,nextLinks.length - 1)])?.focus({preventScroll:true});
+   }
+  }
  }};
 }
