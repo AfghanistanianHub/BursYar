@@ -182,6 +182,24 @@ test('withdrawal rolls back when audit event insertion fails',()=>{
  }finally{service.close();rmSync(dir,{recursive:true,force:true});}
 });
 
+test('authenticated account erasure removes documents, verification requests and audit events',async()=>{
+ const {dir,documents,verifications,server}=fixture();
+ const base=await listen(server);
+ try{
+  const doc=documents.upload('alice',{text:'Transcript',mime:'text/plain',consent:true});
+  const response=await call(base,'/api/verifications',{method:'POST',body:{documentId:doc.id,providerId:'ielts',consent:true}});
+  assert.equal(response.status,201);
+  const request=await response.json();
+  assert.equal((await call(base,'/api/erase',{method:'DELETE',token:'bob'})).status,200);
+  assert.equal(verifications.list('alice').requests.length,1,'another user cannot erase owner records');
+  assert.equal((await call(base,'/api/erase',{method:'DELETE'})).status,200);
+  assert.equal(verifications.list('alice').requests.length,0);
+  assert.equal((await call(base,`/api/verifications/${request.id}`)).status,404);
+  assert.equal((await call(base,'/api/documents')).status,200);
+  assert.equal((await (await call(base,'/api/documents')).json()).documents.length,0);
+ }finally{server.close();rmSync(dir,{recursive:true,force:true});}
+});
+
 test('verification routes report unavailable instead of pretending to work',async()=>{
  const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-off-'));
  const documents=new DocumentStore(join(dir,'documents.db'));
