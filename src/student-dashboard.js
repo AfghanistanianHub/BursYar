@@ -76,6 +76,8 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
  });
  const panel = root.querySelector('.dashboard-panel');
  const title = root.querySelector('h1');
+ // A single, always-present view title: an empty <h1> is a semantics defect.
+ title.textContent = t.title;
  const parked = new Map();
  let view;
  let reviewRequested = false;

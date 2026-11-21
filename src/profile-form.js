@@ -1,5 +1,13 @@
 import {getInferenceToken} from './auth.js';
-import {mountSignInAction} from './sign-in-action.js';
+import {documentRequest,FIRST_REQUEST_TIMEOUT_MS} from './document-request.js';
+import {mountSignInAction,signInActionCopy} from './sign-in-action.js';
+// Cold-start and access copy (BY-05, BY-02). fa/ps strings are UNREVIEWED
+// pending fluent human review (see docs/TRANSLATION-REVIEW.json).
+export const profileStatusCopy={
+ en:{requestTimedOut:'The profile service is starting. On the free tier this can take up to a minute; nothing was saved. Wait a moment, then press Save again.',requestNetworkError:'The profile server could not be reached. Check your connection, then try again.',mutationUncertain:'The response was lost. Your profile may already be saved; press “Load my saved profile” before saving again.',signInRequired:'Sign in to load or save your private profile.',limitError:'Too many attempts. Wait a minute, then try again.',unavailableError:'The profile service is temporarily unavailable. Nothing was saved; try again shortly.'},
+ fa:{requestTimedOut:'سرویس پروفایل در حال راه‌اندازی است. در طرح رایگان تا یک دقیقه طول می‌کشد و چیزی ذخیره نشده است. کمی صبر کنید و دوباره «ذخیره» را بزنید.',requestNetworkError:'ارتباط با سرور پروفایل برقرار نشد. اتصال خود را بررسی و دوباره تلاش کنید.',mutationUncertain:'پاسخ دریافت نشد. ممکن است پروفایل ذخیره شده باشد؛ پیش از ذخیرهٔ دوباره «بارگذاری پروفایل ذخیره‌شده» را بزنید.',signInRequired:'برای بارگذاری یا ذخیرهٔ پروفایل خصوصی وارد شوید.',limitError:'تلاش‌های زیاد. یک دقیقه صبر کنید و دوباره تلاش کنید.',unavailableError:'سرویس پروفایل موقتاً در دسترس نیست و چیزی ذخیره نشد؛ کمی بعد دوباره تلاش کنید.'},
+ ps:{requestTimedOut:'د پروفایل خدمت پیلېږي. په وړیا پلان کې تر یوې دقیقې پورې وخت نیسي او هېڅ شی نه دی ساتل شوی. لږ انتظار وکړئ او بیا «ساتل» وټاکئ.',requestNetworkError:'د پروفایل له سرور سره اړیکه ونه شوه. خپله اړیکه وګورئ او بیا هڅه وکړئ.',mutationUncertain:'ځواب ترلاسه نه شو. ښايي پروفایل ساتل شوی وي؛ تر بیا ساتلو مخکې «ساتل شوی پروفایل راوړل» وټاکئ.',signInRequired:'د شخصي پروفایل د راوړلو یا ساتلو لپاره ننوځئ.',limitError:'ډېرې هڅې. یوه دقیقه انتظار وکړئ او بیا هڅه وکړئ.',unavailableError:'د پروفایل خدمت لنډمهاله نه شته او هېڅ شی نه دی ساتل شوی؛ لږ وروسته بیا هڅه وکړئ.'}
+};
 const coreFields=['degree','targetDegree','academicHistory','languages'];
 const optionalFields=['courseStart','testExpiry'];
 const oxfordFields=['deferredOffer','continuingSameDegree'];
@@ -53,10 +61,14 @@ export function mountProfile(root,language='en'){
  const status=el('p','',form);status.className='form-status';
  status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');if(notice)status.textContent=t[notice];
  if(cached.testExpiry?.value){const p=el('p',cached.testExpiry.value<new Date().toISOString().slice(0,10)?t.expired:t.unconfirmed);p.className='status';}
- async function api(method,body){if(epoch!==startedEpoch)throw Error();const token=await getInferenceToken();if(epoch!==startedEpoch)throw Error();const response=await fetch('/api/profile',{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(15000)});if(!response.ok)throw Error();const data=await response.json();if(epoch!==startedEpoch)throw Error();return data;}
+ async function api(method,body){if(epoch!==startedEpoch)throw Error();const token=await getInferenceToken();if(epoch!==startedEpoch)throw Error();const data=await documentRequest('/api/profile',{token,method,body,timeoutMs:FIRST_REQUEST_TIMEOUT_MS});if(epoch!==startedEpoch)throw Error();return data;}
+ const statusCopy=profileStatusCopy[language]??profileStatusCopy.en;
+ // A timeout or an unenrolled account must never be reported as an account or
+ // storage problem: each has its own next step.
+ const failureCopy=error=>error?.code==='accountNotEnrolled'?(signInActionCopy[language]??signInActionCopy.en).notEnrolled:statusCopy[error?.code]??t.error;
  const publish=(data,message='saved')=>{notice=message;cached=data;document.dispatchEvent(new CustomEvent('bursyar:profile',{detail:data}));};
  let requiresSignIn=false;
- async function run(action){if(requiresSignIn){status.textContent=t.error;return;}section.setAttribute('aria-busy','true');for(const b of section.querySelectorAll('button'))b.disabled=true;status.textContent=t.loading;try{await action();if(status.isConnected)status.textContent=t.saved;}catch{if(status.isConnected)status.textContent=t.error;}finally{section.removeAttribute('aria-busy');for(const b of section.querySelectorAll('button'))b.disabled=false;}}
+ async function run(action){if(requiresSignIn){status.textContent=statusCopy.signInRequired;return;}section.setAttribute('aria-busy','true');for(const b of section.querySelectorAll('button'))b.disabled=true;status.textContent=t.loading;try{await action();if(status.isConnected)status.textContent=t.saved;}catch(error){if(status.isConnected)status.textContent=failureCopy(error);}finally{section.removeAttribute('aria-busy');for(const b of section.querySelectorAll('button'))b.disabled=false;}}
  form.addEventListener('input',()=>{draft=Object.fromEntries(Object.entries(controls).map(([k,c])=>[k,c.value]));});
  form.addEventListener('submit',event=>{event.preventDefault();consent.removeAttribute('aria-invalid');if(!consent.checked){status.textContent=t.consentRequired;consent.setAttribute('aria-invalid','true');consent.focus();return;}run(async()=>{const values={};for(const [key,c]of Object.entries(controls)){if(cached[key]?.origin==='issuer_verified')continue;values[key]=c.value===''?null:['deferredOffer','continuingSameDegree'].includes(key)?c.value==='true':c.value;}publish(await api('PUT',{values,consent:true}));});});
  load.addEventListener('click',()=>run(async()=>publish(await api('GET'))));

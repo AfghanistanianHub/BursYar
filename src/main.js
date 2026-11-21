@@ -221,8 +221,22 @@ window.addEventListener('hashchange',()=>{revealHashTarget();dashboard?.sync(sig
 // Re-selecting a link whose hash is already current fires no hashchange, so the
 // same target must still open its disclosure instead of silently doing nothing.
 document.addEventListener('click',event=>{const link=event.target.closest?.('a[href^="#"]');if(!link)return;const href=link.getAttribute('href');if(!href||href.length<2)return;queueMicrotask(()=>{if(location.hash===href)revealHashTarget();});});
-render();
-revealHashTarget();onAuthChange(user=>{
+function recordClientError(stage,error){
+ // Sanitised only: never the account, the token, the document text or a URL.
+ try{console.error(JSON.stringify({event:'client_error',stage,message:String(error?.message??error).slice(0,240)}));}catch{/* logging must never break the page */}
+}
+function showRecoveryCard(){
+ if(document.querySelector('.app-recovery'))return;
+ const card=document.createElement('div');card.className='app-recovery';card.setAttribute('role','alert');
+ const title=document.createElement('h1');title.textContent='BursYar could not start';
+ const body=document.createElement('p');body.textContent='Something went wrong while loading this page. Nothing you saved was changed.';
+ const retry=document.createElement('button');retry.type='button';retry.className='primary-link';retry.textContent='Reload BursYar';retry.addEventListener('click',()=>location.reload());
+ card.append(title,body,retry);document.querySelector('#app')?.append(card);
+}
+window.addEventListener('error',event=>recordClientError('uncaught',event.error??event.message));
+window.addEventListener('unhandledrejection',event=>recordClientError('unhandled_rejection',event.reason));
+try{render();revealHashTarget();}catch(error){recordClientError('render',error);showRecoveryCard();}
+onAuthChange(user=>{
  const wasSignedIn=signedIn;
  signedIn=!!user;
  if(wasSignedIn&&user?.uid!==signedInUid)document.dispatchEvent(new Event('bursyar:identity'));
@@ -232,4 +246,4 @@ revealHashTarget();onAuthChange(user=>{
  if(signedIn&&!wasSignedIn&&(!location.hash||location.hash==='#top'))location.hash='#dashboard';
  if(!signedIn&&wasSignedIn&&isDashboardRoute(location.hash))history.replaceState(null,'','#top');
  dashboard.sync(signedIn,true);
-}).catch(()=>{});
+}).catch(error=>recordClientError('auth_init',error));

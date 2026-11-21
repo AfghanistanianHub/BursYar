@@ -2,7 +2,7 @@ import {documentRequest} from './document-request.js';
 import {extractDocumentText} from './document-extraction.js';
 import {publicDocumentReferenceAudit,issuerFromText} from './document-public-evidence.js';
 import {getInferenceToken} from './auth.js';
-import {mountSignInAction} from './sign-in-action.js';
+import {mountSignInAction,signInActionCopy} from './sign-in-action.js';
 import {journeyCopy} from './journey-copy.js';
 // PDF and image intake is enabled in production too: the OCR worker, the WASM
 // core and the EN/FA/PS language data are served from this application's own
@@ -22,6 +22,14 @@ export const documentSteps={
 };
 export const documentStageKeys=['upload','extract','review','save'];
 export const libraryCopy={en:{title:'Private document library',choose:'Document',refresh:'Refresh list',open:'Open selected document',empty:'No documents saved',reviewed:'Reviewed — not verified',pending:'Pending review'},fa:{title:'کتابخانهٔ اسناد خصوصی',choose:'سند',refresh:'تازه‌سازی فهرست',open:'باز کردن سند انتخاب‌شده',empty:'سندی ذخیره نشده است',reviewed:'بازبینی‌شده؛ تأیید نشده',pending:'در انتظار بازبینی'},ps:{title:'د شخصي اسنادو زېرمتون',choose:'سند',refresh:'لړ تازه کول',open:'ټاکل شوی سند پرانیستل',empty:'هېڅ سند نه دی ساتل شوی',reviewed:'بیاکتل شوی؛ نه دی تایید شوی',pending:'د بیاکتنې په تمه'}};
+// Document capacity (BY-24): the server caps one owner at ten documents. Show
+// the remaining slots and disable upload before the API has to refuse.
+const documentLimit=10;
+const capacityCopy={
+ en:{slots:n=>`${n} document slot${n==='1'?'':'s'} remaining of ${documentLimit}.`,full:'The document limit is reached. Delete a document you no longer need before uploading another.'},
+ fa:{slots:n=>`${n} جایگاه سند از ${documentLimit} باقی مانده است.`,full:'ظرفیت اسناد پر شده است. پیش از بارگذاری سند تازه، سندی را که لازم ندارید حذف کنید.'},
+ ps:{slots:n=>`له ${documentLimit} څخه ${n} د سند ځایونه پاتې دي.`,full:'د اسنادو ظرفیت ډک شوی. تر نوي سند پورته کولو مخکې هغه سند ړنګ کړئ چې نه یې غواړئ.'}
+};
 let current=null,identityEpoch=0;
 const pendingOpeners=new WeakMap();
 export function openPendingDocument(root){pendingOpeners.get(root)?.();}
@@ -86,6 +94,7 @@ export function mountDocuments(root,language='en'){
  const chooser=element('select','',chooserField);chooser.id='document-chooser';
  const emptyOption=element('option',l.empty,chooser);emptyOption.value='';chooser.disabled=true;
  const libraryActions=element('div','',library);libraryActions.className='secondary-actions';
+ const capacity=element('p','',library);capacity.className='field-hint';capacity.setAttribute('aria-live','polite');
  const refresh=element('button',l.refresh,libraryActions);refresh.type='button';refresh.dataset.action='refresh-library';refresh.className='text-button';
  const open=element('button',l.open,libraryActions);open.type='button';open.dataset.action='open-document';open.className='primary-link secondary';
  const content=element('div');
@@ -94,8 +103,8 @@ export function mountDocuments(root,language='en'){
  let inFlight=false;
  // Preserve the request key across uncertain responses without automatic retries.
  let lastUploadText=null,lastUploadRequestId=null;
- async function busy(action){if(inFlight)return;inFlight=true;section.setAttribute('aria-busy','true');status.textContent=t.busy;for(const button of section.querySelectorAll('button'))button.disabled=true;try{await action();}catch(error){status.textContent=t[error.code]??t.error;}finally{if(status.textContent===t.busy)status.textContent='';inFlight=false;section.removeAttribute('aria-busy');for(const button of section.querySelectorAll('button'))button.disabled=false;open.disabled=!chooser.value;}}
- let pendingId;
+ async function busy(action){if(inFlight)return;inFlight=true;section.setAttribute('aria-busy','true');status.textContent=t.busy;for(const button of section.querySelectorAll('button'))button.disabled=true;try{await action();}catch(error){status.textContent=(error.code==='accountNotEnrolled'?signInActionCopy[language]?.notEnrolled:undefined)??t[error.code]??t.error;}finally{if(status.textContent===t.busy)status.textContent='';inFlight=false;section.removeAttribute('aria-busy');for(const button of section.querySelectorAll('button'))button.disabled=false;open.disabled=!chooser.value;upload.disabled=atCapacity||requiresSignIn;}}
+ let pendingId,remaining=documentLimit,atCapacity=false;
  const publishStatus=detail=>{
   if(section.isConnected&&mountEpoch===identityEpoch)
    document.dispatchEvent(new CustomEvent('bursyar:document-status',{detail}));
@@ -116,6 +125,10 @@ export function mountDocuments(root,language='en'){
    pendingId=pending[0]?.id;
    open.disabled=!chooser.value;
    publishStatus({total:items.length,pending:pending.length});
+   remaining=Math.max(0,documentLimit-items.length);atCapacity=items.length>=documentLimit;
+   capacity.textContent=(capacityCopy[language]??capacityCopy.en).slots(number.format(remaining));
+   upload.disabled=atCapacity||requiresSignIn;
+   if(atCapacity)status.textContent=(capacityCopy[language]??capacityCopy.en).full;
   }catch(error){
    pendingId=undefined;
    publishStatus(null);
@@ -197,7 +210,7 @@ export function mountDocuments(root,language='en'){
   if(consent.checked)return true;
   status.textContent=t.consentRequired;consent.setAttribute('aria-invalid','true');consent.focus();return false;
  }
- form.addEventListener('submit',event=>{event.preventDefault();dropReset();if(!requireConsent())return;busy(async()=>{
+ form.addEventListener('submit',event=>{event.preventDefault();dropReset();if(atCapacity){status.textContent=(capacityCopy[language]??capacityCopy.en).full;return;}if(!requireConsent())return;busy(async()=>{
   // Signed-out visitors get the in-place sign-in action instead of local OCR
   // work whose result could never be saved.
   if(requiresSignIn){status.textContent=t.signInRequired;return;}  const selected=paste.open?new File([pasted.value],'pasted-education.txt',{type:'text/plain'}):file.files[0];
@@ -226,7 +239,7 @@ export function mountDocuments(root,language='en'){
   if(mountEpoch!==identityEpoch)return;
   // Signed-out visitors keep the public explanation and get an in-place way to
   // sign in; no local extraction is spent on a record that cannot be saved.
-  requiresSignIn=true;
+  requiresSignIn=true;upload.disabled=true;
   status.textContent=t.signInRequired;
   section.insertBefore(mountSignInAction(language),figure);
  });

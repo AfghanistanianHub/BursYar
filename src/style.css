@@ -345,3 +345,18 @@ footer span:last-child{max-width:70ch}
 .sign-in-action p{margin:0;color:var(--muted);font-size:var(--fs-small)}
 .sign-in-action button{justify-self:start}
 .sign-in-action [role=status]{color:var(--brand-dark);font-weight:700}
+
+/* WCAG 2.2 AA SC 2.5.8: every interactive target is at least 24x24 CSS px and
+   primary actions clear 44x44 for thumbs. Tokens keep the editorial rhythm
+   adjustable without shrinking the hit area. */
+:root{--tap-min:24px;--tap-action:44px}
+.sign-in-keep{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:start;font-size:var(--fs-small)}
+.sign-in-keep input{margin-top:.2em;min-width:var(--tap-min);min-height:var(--tap-min)}
+.sign-in-keep small{grid-column:2;color:var(--muted)}
+.sign-in-enrolment{display:grid;gap:6px;padding:10px 12px;border:1px solid var(--line);background:#fff}
+.sign-in-enrolment[hidden]{display:none}
+.app-recovery{display:grid;gap:12px;max-width:42rem;margin:12vh auto;padding:24px;border:1px solid var(--line);background:#fff}
+:where(.scholarship .card-bottom a,.scholarship .card-bottom button,.secondary-actions a,.secondary-actions button,.text-button,.primary-link,.research-toggles label,input[type=checkbox],input[type=radio]){min-height:var(--tap-min);min-width:var(--tap-min)}
+:where(.card-bottom a,.card-bottom button){display:inline-flex;align-items:center;padding-block:6px}
+:where(select,summary){min-height:var(--tap-min)}
+:where(button,a,select,summary,label,input){touch-action:manipulation}
