@@ -7,7 +7,7 @@ export async function documentRequest(path,{token,method='GET',body,fetchImpl=fe
  if(typeof token!=='string'||!token.trim())throw failure('signInRequired');
  if(typeof path!=='string'||!/^\/api\/(?:[a-z0-9/_-]+)$/.test(path))throw failure('error');
  try{
-  const response=await fetchImpl(path,{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(timeoutMs)});
+  const response=await fetchImpl(path,{method,credentials:'omit',headers:{authorization:`Bearer ${token}`,'content-type':'application/json'},...(body!==undefined?{body:JSON.stringify(body)}:{}),signal:AbortSignal.timeout(timeoutMs)});
   if(!response.ok)throw failure(({401:'signInRequired',403:'signInRequired',409:'conflictError',429:'limitError',503:'unavailableError'})[response.status]??'error');
   return await response.json();
  }catch(error){
