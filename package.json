@@ -43,7 +43,7 @@
     "vite": "^6.3.5"
   },
   "engines": {
-    "node": ">=24.12"
+    "node": ">=24.12 <25"
   },
   "overrides": {
     "@grpc/grpc-js": "^1.13.6",
