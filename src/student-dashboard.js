@@ -194,7 +194,7 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
     // Documents and verifications now belong to an empty account: remount them
     // so no stale record stays visible after deletion.
     document.dispatchEvent(new CustomEvent('bursyar:identity'));
-   } catch (error) { status.textContent = t[error.code] ?? t.privacyError; }
+   } catch (error) { status.textContent = error.code === 'mutationUncertain' ? t.deleteUncertain : (t[error.code] ?? t.privacyError); }
    finally {
     deleteButton.textContent = t.deleteData;
     exportButton.disabled = deleteButton.disabled = false;
@@ -203,7 +203,8 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
  }
  function sync(signedIn, focus = false) {
   const next = signedIn && Object.keys(routes).find(key => routes[key] === location.hash);
-  site.querySelector('#dashboard-entry').hidden = !signedIn;
+  const entry = site.querySelector('#dashboard-entry');
+  if (entry) entry.hidden = !signedIn;
   if (view === next) return;
   const wasOpen = !!view;
   restoreTools();
