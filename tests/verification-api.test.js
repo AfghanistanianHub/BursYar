@@ -216,6 +216,25 @@ test('failed verification erasure preserves documents for safe account deletion 
  }finally{server.close();rmSync(dir,{recursive:true,force:true});}
 });
 
+test('document erasure failure is reported and a second attempt completes deletion',async()=>{
+ const {dir,documents,verifications,server}=fixture();
+ const base=await listen(server);
+ try{
+  const doc=documents.upload('alice',{text:'Diploma',mime:'text/plain',consent:true});
+  const created=await call(base,'/api/verifications',{method:'POST',body:{documentId:doc.id,providerId:'ielts',consent:true}});
+  assert.equal(created.status,201);
+  const original=documents.eraseOwner.bind(documents);
+  documents.eraseOwner=()=>{throw Error('document database unavailable');};
+  assert.equal((await call(base,'/api/erase',{method:'DELETE'})).status,422);
+  assert.equal(verifications.list('alice').requests.length,0,'verification records must already be erased');
+  assert.equal((await call(base,`/api/documents/${doc.id}`)).status,200,'failed document erase must be retriable');
+  documents.eraseOwner=original;
+  assert.equal((await call(base,'/api/erase',{method:'DELETE'})).status,200);
+  assert.deepEqual(await (await call(base,'/api/documents')).json(),[]);
+  assert.equal(verifications.list('alice').requests.length,0);
+ }finally{server.close();rmSync(dir,{recursive:true,force:true});}
+});
+
 test('verification routes report unavailable instead of pretending to work',async()=>{
  const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-off-'));
  const documents=new DocumentStore(join(dir,'documents.db'));
