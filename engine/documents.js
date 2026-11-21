@@ -22,13 +22,13 @@ export class DocumentStore {
  static memory(){const store=Object.create(DocumentStore.prototype);store.db=new DatabaseSync(':memory:');store.db.exec(DOCUMENT_SCHEMA);return store;}
  restore(uid,state){
   if(state===null)return;
-  if(!state||!Array.isArray(state.documents)||state.documents.length>10||!Array.isArray(state.history)||state.history.length>20||(state.profile!==null&&typeof state.profile!=='string'))throw new DocumentError(503);
+  if(!state||!Array.isArray(state.documents)||state.documents.length>10||!Array.isArray(state.history)||state.history.length>20||(state.profile!==null&&typeof state.profile!=='string')||(typeof state.profile==='string'&&Buffer.byteLength(state.profile)>131072))throw new DocumentError(503);
   const owner=this.owner(uid);
   // Validate the entire untrusted snapshot before mutating the request-scoped store.
   let documents,profile,history;
   try{
    documents=state.documents.map(row=>{
-    if(!row||typeof row.id!=='string'||!/^[a-f0-9-]{36}$/.test(row.id)||typeof row.data!=='string')throw Error('Invalid document');
+    if(!row||typeof row.id!=='string'||!/^[a-f0-9-]{36}$/.test(row.id)||typeof row.data!=='string'||Buffer.byteLength(row.data)>131072)throw Error('Invalid document');
     const value=JSON.parse(row.data);
     if(!value||typeof value!=='object'||Array.isArray(value)||value.id!==row.id||typeof value.text!=='string'||typeof value.sha256!=='string'||!Array.isArray(value.pending)||createHash('sha256').update(value.text).digest('hex')!==value.sha256)throw Error('Invalid document');
     return row;
@@ -36,7 +36,7 @@ export class DocumentStore {
    if(new Set(documents.map(row=>row.id)).size!==documents.length)throw Error('Duplicate document');
    profile=state.profile===null?null:JSON.parse(state.profile);
    if(profile!==null&&(!profile||typeof profile!=='object'||Array.isArray(profile)))throw Error('Invalid profile');
-   history=state.history.map(item=>{if(typeof item!=='string')throw Error('Invalid history');const entry=JSON.parse(item);if(!entry||typeof entry!=='object'||Array.isArray(entry)||!Array.isArray(entry.fields)||!entry.previous||typeof entry.previous!=='object'||Array.isArray(entry.previous))throw Error('Invalid history');return item;});
+   history=state.history.map(item=>{if(typeof item!=='string'||Buffer.byteLength(item)>131072)throw Error('Invalid history');const entry=JSON.parse(item);if(!entry||typeof entry!=='object'||Array.isArray(entry)||!Array.isArray(entry.fields)||!entry.previous||typeof entry.previous!=='object'||Array.isArray(entry.previous))throw Error('Invalid history');return item;});
   }catch{throw new DocumentError(503);}
   this.db.exec('BEGIN IMMEDIATE');
   try{
