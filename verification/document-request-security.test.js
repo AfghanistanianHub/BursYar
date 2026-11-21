@@ -23,3 +23,18 @@ test('authorized document requests omit cookies and include bearer token',async(
  assert.equal(options.credentials,'omit');
  assert.equal(options.headers.authorization,'Bearer test-token');
 });
+
+test('write failures never silently retry and explicitly mark outcome uncertain',async()=>{
+ let calls=0;
+ await assert.rejects(documentRequest('/api/documents',{token:'token',method:'POST',body:{consent:true},fetchImpl:async()=>{calls++;throw new TypeError('connection lost');}}),e=>e.code==='mutationUncertain');
+ assert.equal(calls,1);
+});
+test('read timeouts remain distinguishable from network failures',async()=>{
+ await assert.rejects(documentRequest('/api/documents',{token:'token',fetchImpl:async()=>{throw Object.assign(new Error('timed out'),{name:'TimeoutError'});}}),e=>e.code==='requestTimedOut');
+ await assert.rejects(documentRequest('/api/documents',{token:'token',fetchImpl:async()=>{throw new TypeError('offline');}}),e=>e.code==='requestNetworkError');
+});
+test('server rejects are reported without retrying a write',async()=>{
+ let calls=0;
+ await assert.rejects(documentRequest('/api/documents',{token:'token',method:'POST',body:{consent:true},fetchImpl:async()=>{calls++;return {ok:false,status:409};}}),e=>e.code==='conflictError');
+ assert.equal(calls,1);
+});
