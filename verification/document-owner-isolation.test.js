@@ -47,3 +47,15 @@ test('profile updates and account erasure are scoped to the authenticated owner'
   assert.notDeepEqual(store.profile('student-b'),{});
  }finally{store.close();}
 });
+
+test('document uploads require consent and cannot forge authenticity metadata',()=>{
+ const store=DocumentStore.memory();
+ try{
+  denied(()=>store.upload('student-a',{mime:'text/plain',text:'Degree: bachelor'}),400);
+  denied(()=>store.upload('student-a',{consent:true,mime:'application/pdf',text:'Degree: bachelor'}),400);
+  denied(()=>store.upload('student-a',{consent:true,mime:'text/plain',text:'Degree: bachelor',extractionMethod:'issuer_verified'}),400);
+  const document=store.upload('student-a',{consent:true,mime:'text/plain',text:'Degree: bachelor',authenticity:'verified'});
+  assert.equal(document.authenticity,'not_verified');
+  assert.equal(document.translationStatus,'not_assessed');
+ }finally{store.close();}
+});
