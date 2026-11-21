@@ -30,7 +30,7 @@ export class DocumentStore {
    documents=state.documents.map(row=>{
     if(!row||typeof row.id!=='string'||!/^[a-f0-9-]{36}$/.test(row.id)||typeof row.data!=='string')throw Error('Invalid document');
     const value=JSON.parse(row.data);
-    if(!value||typeof value!=='object'||Array.isArray(value)||value.id!==row.id||typeof value.text!=='string'||typeof value.sha256!=='string'||!Array.isArray(value.pending))throw Error('Invalid document');
+    if(!value||typeof value!=='object'||Array.isArray(value)||value.id!==row.id||typeof value.text!=='string'||typeof value.sha256!=='string'||!Array.isArray(value.pending)||createHash('sha256').update(value.text).digest('hex')!==value.sha256)throw Error('Invalid document');
     return row;
    });
    if(new Set(documents.map(row=>row.id)).size!==documents.length)throw Error('Duplicate document');
