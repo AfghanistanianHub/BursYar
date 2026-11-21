@@ -41,9 +41,10 @@ const isoDay=value=>{
  const date=new Date(value+'T00:00:00Z');
  return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value?value:null;
 };
+export function researchDeadlineOn(row){return isoDay(row?.deadline);}
 export function researchDeadlineState(row,now=new Date()) {
- const value=isoDay(row?.deadline);
- if(!value)return 'unknown';
+ const value=researchDeadlineOn(row);
+ if(!value||!Number.isFinite(now?.getTime?.()))return 'unknown';
  return value<now.toISOString().slice(0,10)?'past':'unconfirmed';
 }
 // A recorded check date is the export's claim about when a human last read the
@@ -86,6 +87,6 @@ export function saveResearchIds(storage,ids,rows=researchScholarships) {
 export function exportResearchSaved(ids,rows=researchScholarships,now=new Date()) {
  const known=new Set(knownIds(ids,rows));
  return {format:'bursyar-public-research-v1',exportedAt:now.toISOString(),verification:'needs_reverification',entries:rows.filter(row=>known.has(row.id)).map(row=>({
-  id:row.id,title:row.title,provider:row.provider,country:row.country,degrees:[...row.degrees],sourceUrl:researchSourceUrl(row.sourceUrl),lastCheckedAt:researchCheckedOn(row),deadline:row.deadline??null,reviewStatus:'needs_reverification'
+  id:row.id,title:row.title,provider:row.provider,country:row.country,degrees:[...row.degrees],sourceUrl:researchSourceUrl(row.sourceUrl),lastCheckedAt:researchCheckedOn(row),deadline:researchDeadlineOn(row),reviewStatus:'needs_reverification'
  }))};
 }
