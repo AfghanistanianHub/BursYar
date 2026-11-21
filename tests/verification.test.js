@@ -129,6 +129,24 @@ test('issuer outcome cannot be recorded after withdrawal and account erasure cle
  }finally{store.close();rmSync(dir,{recursive:true,force:true});}
 });
 
+test('request creation rolls back when audit logging fails, and retry creates one request',()=>{
+ const {dir,docs,store}=workspace();
+ try{
+  const service=createVerificationService({store,documents:docs});
+  const doc=docs.upload('alice',{text:'Transcript',mime:'text/plain',consent:true});
+  const input={documentId:doc.id,providerId:'ielts',consent:true};
+  const original=store.event.bind(store);
+  store.event=()=>{throw Error('audit storage unavailable');};
+  assert.throws(()=>service.create('alice',input),/audit storage unavailable/);
+  assert.equal(service.list('alice').requests.length,0,'failed creation must not leave an unaudited request');
+  store.event=original;
+  const request=service.create('alice',input);
+  assert.equal(request.status,'PENDING');
+  assert.equal(service.create('alice',input).id,request.id);
+  assert.equal(service.list('alice').requests.length,1);
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
+
 test('request count is bounded and private database refusals stay enforced',()=>{
  const {dir,docs,store}=workspace();
  try{
