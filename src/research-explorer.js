@@ -17,6 +17,9 @@ export function mountResearchExplorer(root,language='en') {
  const number=new Intl.NumberFormat(lang);
  const countries=researchCountries();
  function render(focusId=null,selection=null){
+  // Keep the native search element mounted while filtering. Replacing it on
+  // every keystroke breaks IME composition, mobile keyboards and focus.
+  const existingSearch=root.querySelector('#research-search');
   const rows=filterResearch(researchScholarships,state).filter(row=>!state.savedOnly||saved.includes(row.id));
   root.innerHTML=`<section id="research-explorer" class="section" aria-labelledby="research-title">
    <h2 id="research-title">${esc(t.title)}</h2>
@@ -33,7 +36,9 @@ export function mountResearchExplorer(root,language='en') {
     const source=researchSourceUrl(row.sourceUrl);const deadlineState=researchDeadlineState(row);const checkedOn=researchCheckedOn(row);const freshness=researchFreshness(row);
     return `<article class="scholarship"><p>${esc(researchLabel(row.country,lang))} · ${row.degrees.map(d=>esc(researchLabel(d,lang))).join(' / ')}</p><h3 lang="en" dir="ltr">${esc(row.title)}</h3><p lang="en" dir="ltr">${esc(row.provider)}</p><p class="pill">${esc(t.needsReview)}</p><p>${esc(t[row.funding==='full'?'fullFunding':row.funding==='partial'?'partialFunding':'unknownFunding'])}</p><p>${esc(t.checked)}: <bdi>${esc(checkedOn??t.unknown)}</bdi></p>${freshness==='stale'?`<p class="research-freshness" data-freshness="stale">${esc(t.checkStale)}</p>`:''}<p>${esc(t.deadline)}: <bdi>${esc(row.deadline??t.unknown)}</bdi> · ${esc(t[deadlineState==='past'?'past':deadlineState==='unknown'?'unknown':'unconfirmed'])}</p><div class="card-bottom">${source?`<a href="${esc(source)}" target="_blank" rel="noopener noreferrer">${esc(t.source)}</a>`:''}${source?`<button type="button" data-research-prepare="${esc(row.id)}">${esc(t.prepare)}</button>`:''}<button type="button" data-research-save="${esc(row.id)}" aria-pressed="${saved.includes(row.id)}">${esc(saved.includes(row.id)?t.remove:t.save)}</button></div></article>`;
    }).join('')}</div>${rows.length?'':`<p class="empty-note">${esc(t.empty)}</p>`}</section>`;
-  root.querySelector('#research-search').addEventListener('input',event=>{state.q=event.target.value;render('research-search',event.target.selectionStart);});
+  const newSearch=root.querySelector('#research-search');
+  if(existingSearch){newSearch.replaceWith(existingSearch);existingSearch.value=state.q;}
+  else newSearch.addEventListener('input',event=>{state.q=event.target.value;render('research-search',event.target.selectionStart);});
   for(const key of ['country','degree','funding'])root.querySelector('#research-'+key).addEventListener('change',event=>{state[key]=event.target.value;render('research-'+key);});
   for(const [id,key] of [['no-fee','noFee'],['no-ielts','noIelts'],['hide-past','hidePast'],['saved-only','savedOnly']])root.querySelector('#research-'+id).addEventListener('change',event=>{state[key]=event.target.checked;render('research-'+id);});
   root.querySelectorAll('[data-research-save]').forEach(button=>button.addEventListener('click',()=>{
