@@ -45,3 +45,24 @@ test('valid snapshot round-trip preserves documents and profile',()=>{
   assert.deepEqual(target.list('bob'),[]);
  }finally{source.close();target.close();}
 });
+
+test('snapshot restore rejects a document with missing security-critical fields',()=>{
+ const source=DocumentStore.memory(),target=DocumentStore.memory();
+ try{
+  upload(source,'alice','Degree: bachelor');
+  const state=source.snapshot('alice');
+  const corrupted=JSON.parse(state.documents[0].data);delete corrupted.text;
+  state.documents[0].data=JSON.stringify(corrupted);
+  unavailable(()=>target.restore('alice',state));
+  assert.deepEqual(target.list('alice'),[]);
+ }finally{source.close();target.close();}
+});
+test('snapshot restore rejects malformed edit history before restoring documents',()=>{
+ const source=DocumentStore.memory(),target=DocumentStore.memory();
+ try{
+  upload(source,'alice','Degree: bachelor');
+  const state=source.snapshot('alice');state.history.push('null');
+  unavailable(()=>target.restore('alice',state));
+  assert.deepEqual(target.list('alice'),[]);
+ }finally{source.close();target.close();}
+});
