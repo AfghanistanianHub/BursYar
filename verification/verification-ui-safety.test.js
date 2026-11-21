@@ -12,6 +12,9 @@ test('issuer links require HTTPS without embedded credentials', () => {
 test('invalid dates cannot crash verification rendering', () => {
  assert.equal(safeVerificationDate('not-a-date', formatter), '—');
  assert.equal(safeVerificationDate(undefined, formatter), '—');
+ assert.equal(safeVerificationDate(null, formatter), '—');
+ assert.equal(safeVerificationDate('', formatter), '—');
+ assert.equal(safeVerificationDate(Symbol('bad'), formatter), '—');
  assert.match(safeVerificationDate('2026-11-21T00:00:00Z', formatter), /2026/);
 });
 test('invalid API response shapes are rejected before rendering', () => {
