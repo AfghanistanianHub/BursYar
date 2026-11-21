@@ -70,9 +70,11 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
       return send(res,200,verifications?{...data,verificationRequests:verifications.list(storageOwner).requests}:data);
      }
      if(route==='/api/erase'&&req.method==='DELETE'){
-      await documents.eraseOwner(storageOwner);
-      // Account deletion also erases verification requests and their audit trail.
+      // Erase verification records first: if this step fails, retain the
+      // documents so the caller can safely retry without partial data loss.
+      // Both stores must complete before reporting success.
       verifications?.eraseOwner?.(storageOwner);
+      await documents.eraseOwner(storageOwner);
       return send(res,200,{deleted:true});
      }
      return send(res,405,{error:'Method unavailable'});
