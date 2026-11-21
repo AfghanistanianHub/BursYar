@@ -164,6 +164,24 @@ test('separate SQLite connections share the active-request idempotency guarantee
  }finally{first.close();second.close();rmSync(dir,{recursive:true,force:true});}
 });
 
+test('withdrawal rolls back when audit event insertion fails',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-rollback-'));
+ const documents=new DocumentStore(join(dir,'documents.db'));
+ const store=new VerificationStore(join(dir,'verifications.db'));
+ const service=createVerificationService({store,documents});
+ try{
+  const doc=documents.upload('alice',{text:'Transcript',mime:'text/plain',consent:true});
+  const request=service.create('alice',{documentId:doc.id,providerId:'ielts',consent:true});
+  const original=store.event.bind(store);
+  store.event=()=>{throw Error('audit write failed');};
+  assert.throws(()=>service.withdraw('alice',request.id),/audit write failed/);
+  assert.equal(service.list('alice').requests.length,1,'request must survive failed audit');
+  store.event=original;
+  assert.equal(service.withdraw('alice',request.id).withdrawn,true);
+  assert.equal(service.list('alice').requests.length,0);
+ }finally{service.close();rmSync(dir,{recursive:true,force:true});}
+});
+
 test('verification routes report unavailable instead of pretending to work',async()=>{
  const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-off-'));
  const documents=new DocumentStore(join(dir,'documents.db'));
