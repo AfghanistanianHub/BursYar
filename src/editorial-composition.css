@@ -135,7 +135,8 @@ html[dir=rtl] #top>.editorial-study-band>img{
  #top>#workspace-overview{break-inside:avoid!important}
  #workspace-overview .workspace-start-card{padding:3mm}
  #workspace-overview .workspace-start-card p{min-height:0}
- #workspace-overview .workspace-start-card a{min-height:0;margin-block-start:2mm}
+ /* Keep the artwork rhythm but never shrink the tap target below 24 px. */
+ #workspace-overview .workspace-start-card a{min-height:var(--tap-min,24px);margin-block-start:2mm}
  #top #analysis-workspace .aw-shell{padding:14px}
  #top>.how-it-works{padding:24px 16px}
  #top>.how-it-works ol{grid-template-columns:1fr 1fr}

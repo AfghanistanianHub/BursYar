@@ -110,8 +110,11 @@ function normalizeReference(value) {
   return text;
 }
 
-export function createVerificationService({ store, documents, clock = () => new Date() } = {}) {
-  if (!store || !documents) throw Error('Verification service requires document storage');
+export function createVerificationService({ store, documents = null, clock = () => new Date() } = {}) {
+  // Document storage is required to *create* a request (ownership is checked
+  // there) but not to record an issuer decision. The operator tool loads this
+  // service without document storage so it can never read a document.
+  if (!store) throw Error('Verification service requires a verification store');
   const known = new Set(listVerificationProviders().map(p => p.id));
   if (known.size !== listVerificationProviders().length) throw Error('Duplicate verification provider');
 
@@ -146,6 +149,7 @@ export function createVerificationService({ store, documents, clock = () => new 
   }
 
   function create(uid, input) {
+    if (!documents) throw new VerificationError(503);
     if (input?.consent !== true) throw new VerificationError(400);
     const providerId = typeof input.providerId === 'string' ? input.providerId : '';
     const provider = getVerificationProvider(providerId);

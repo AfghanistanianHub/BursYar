@@ -14,7 +14,7 @@ import {authenticate,identify} from './auth.js';
 import {QuotaExceeded} from './quota.js';
 import {validateEvidenceRequest,normalizeEvidence,evidencePrompt,EvidenceFailure} from './evidence.js';
 const MAX_BODY=56*1024;
-function send(res,status,body){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer','content-security-policy':"default-src 'none'; frame-ancestors 'none'"});res.end(JSON.stringify(body));}
+function send(res,status,body,headers={}){res.writeHead(status,{'content-type':'application/json; charset=utf-8','cache-control':'no-store','x-content-type-options':'nosniff','referrer-policy':'no-referrer','content-security-policy':"default-src 'none'; frame-ancestors 'none'",...headers});res.end(JSON.stringify(body));}
 async function readInput(req,validate=validateEvidenceRequest,maxBody=MAX_BODY){
  if(!/^application\/json(?:\s*;|$)/i.test(req.headers['content-type']??''))throw Object.assign(Error(),{status:415});
  let size=0;const chunks=[];
@@ -23,7 +23,21 @@ async function readInput(req,validate=validateEvidenceRequest,maxBody=MAX_BODY){
 }
 export function createInferenceServer({verify,projectId,quota,infer,origin,maxConcurrent=2,canInfer=()=>true,providers=null,catalog=null,loadFamilyGrant=null,policyContextForRequest=async()=>{throw Error('Provider policy unavailable');},documents=null,verifications=null,sources=createSourceFetcher(),capabilities=null,diagnose=record=>console.error(JSON.stringify(record))}){
  if(!verify || !projectId || !quota || (!infer&&!providers) || !origin || !Number.isSafeInteger(maxConcurrent) || maxConcurrent<1)throw Error('Missing gateway configuration');
- let active=0;
+ // Per-class capacity (BY-11): documents, verification, sources and local
+ // evaluation must not compete with each other or with model analysis. A short
+ // queue absorbs a burst instead of failing the third concurrent student.
+ const activeByClass=new Map();
+ const classLimit=key=>key==='analysis'?maxConcurrent:Math.max(2,Number(process.env.BURSyar_ROUTE_CONCURRENCY??4));
+ async function acquire(key,waitMs=2000){
+  const started=Date.now();
+  while((activeByClass.get(key)??0)>=classLimit(key)){
+   if(Date.now()-started>=waitMs)return false;
+   await new Promise(resolve=>setTimeout(resolve,40));
+  }
+  activeByClass.set(key,(activeByClass.get(key)??0)+1);
+  return true;
+ }
+ const release=key=>activeByClass.set(key,Math.max(0,(activeByClass.get(key)??1)-1));
  const server=createServer(async(req,res)=>{
   if(req.method==='GET' && req.url==='/health')return send(res,200,capabilities?{ok:true,capabilities}: {ok:true});
   let route=req.url;
@@ -50,8 +64,8 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
    }catch{return send(res,401,{error:'Sign in required',code:'unauthorized'});}
   }
   // No CORS headers; proxy same-origin /api to this service. No cookie authentication.
-  if(active>=maxConcurrent)return send(res,429,{error:'Busy; retry later'});
-  active++;
+  const routeClass=localRoute?'local':documentRoute?'documents':verificationRoute||verificationProviderRoute?'verifications':sourceRoute?'sources':'analysis';
+  if(!(await acquire(routeClass)))return send(res,429,{error:'Busy; retry later'},{'retry-after':'2'});
   const pending=new AbortController();
   const disconnected=()=>{if(!res.writableEnded)pending.abort();};
   res.once('close',disconnected);
@@ -70,8 +84,13 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
      if(route==='/api/scholarships'&&req.method==='GET')return send(res,200,{scholarships:catalog?.list()??[],externalInference:false});
      if(!documents)return send(res,503,{error:'Local processing unavailable'});
      if(route==='/api/evaluate'&&req.method==='POST'){
-      const body=await readInput(req,x=>x);if(!catalog||typeof body?.scholarshipId!=='string')return send(res,422,{error:'Reviewed scholarship unavailable'});
-      return send(res,200,evaluateReviewedScholarship(catalog.get(body.scholarshipId),await documents.profile(storageOwner)));
+      const body=await readInput(req,x=>x);
+      // An unknown scholarship id is a client validation error (422), never a
+      // service fault: resolve it explicitly before the evaluator runs.
+      let scholarship=null;
+      if(catalog&&typeof body?.scholarshipId==='string'){try{scholarship=catalog.get(body.scholarshipId)??null;}catch{scholarship=null;}}
+      if(!scholarship)return send(res,422,{error:'Reviewed scholarship unavailable'});
+      return send(res,200,evaluateReviewedScholarship(scholarship,await documents.profile(storageOwner)));
      }
      if(route==='/api/export'&&req.method==='GET'){
       const data=await documents.export(storageOwner);
@@ -88,7 +107,13 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
       return send(res,200,{deleted:true});
      }
      return send(res,405,{error:'Method unavailable'});
-    }catch{return send(res,route==='/api/erase'?503:422,{error:'Local processing unavailable'});}
+    }catch(error){
+     // Client-shape errors keep their own status; anything else is a retryable
+     // service fault. Bodies stay generic so no storage detail leaks.
+     const status=Number.isInteger(error?.status)?error.status:503;
+     try{diagnose({event:'local_route_failed',requestId:randomUUID(),route,status,code:error?.code??error?.name??'unknown'});}catch{/* logging must not change the response */}
+     return send(res,status,{error:'Local processing unavailable'});
+    }
    }
    if(verificationRoute||verificationProviderRoute){
     if(!verifications)return send(res,503,{error:'Verification workflow unavailable'});
@@ -179,7 +204,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
     return send(res,known?error.status:502,{error:'Analysis unavailable'});
    }
   }catch(error){return send(res,[400,413,415].includes(error.status)?error.status:500,{error:'Invalid analysis request'});}
-  finally{active--;res.off('close',disconnected);}
+  finally{release(routeClass);res.off('close',disconnected);}
  });
  server.requestTimeout=15000;server.headersTimeout=10000;server.timeout=MAX_META_TIMEOUT_MS+10000;
  return server;

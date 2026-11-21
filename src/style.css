@@ -360,3 +360,7 @@ footer span:last-child{max-width:70ch}
 :where(.card-bottom a,.card-bottom button){display:inline-flex;align-items:center;padding-block:6px}
 :where(select,summary){min-height:var(--tap-min)}
 :where(button,a,select,summary,label,input){touch-action:manipulation}
+/* Id-scoped so no legacy layer can re-inline these action links. */
+.workspace-start-card a,#app .workspace-start-card a,#app .aw-source-link,#app .empty-note a,#app .next-actions a,#app .dashboard-panel ol li a,#app ol li a{display:inline-flex;align-items:center;min-height:var(--tap-min)}
+/* A quote marked for keyboard inspection stays a real 24 px target. */
+.aw-excerpt mark[tabindex]{display:inline-block;min-height:var(--tap-min);line-height:var(--tap-min)}
