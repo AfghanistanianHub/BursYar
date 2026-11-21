@@ -79,3 +79,18 @@ test('snapshot restore rejects text tampering when SHA-256 no longer matches',()
   assert.deepEqual(target.list('alice'),[]);
  }finally{source.close();target.close();}
 });
+
+test('oversized snapshot document and profile are rejected without partial writes',()=>{
+ const source=DocumentStore.memory(),target=DocumentStore.memory();
+ try{
+  upload(source,'alice','Degree: bachelor');
+  const original=source.snapshot('alice');
+  const largeDoc=structuredClone(original);largeDoc.documents[0].data='x'.repeat(131073);
+  unavailable(()=>target.restore('alice',largeDoc));
+  const largeProfile=structuredClone(original);largeProfile.profile='x'.repeat(131073);
+  unavailable(()=>target.restore('alice',largeProfile));
+  const largeHistory=structuredClone(original);largeHistory.history=['x'.repeat(131073)];
+  unavailable(()=>target.restore('alice',largeHistory));
+  assert.deepEqual(target.list('alice'),[]);
+ }finally{source.close();target.close();}
+});
