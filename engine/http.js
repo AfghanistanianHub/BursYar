@@ -10,7 +10,7 @@ import {VerificationError} from './verification.js';
 import {createServer} from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {MetaFailure} from './meta.js';
-import {authenticate} from './auth.js';
+import {authenticate,identify} from './auth.js';
 import {QuotaExceeded} from './quota.js';
 import {validateEvidenceRequest,normalizeEvidence,evidencePrompt,EvidenceFailure} from './evidence.js';
 const MAX_BODY=56*1024;
@@ -37,8 +37,18 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
   // issuer decision (no HTTP route) can change a status to verified.
   const verificationProviderRoute=route==='/api/verifications/providers';
   const verificationRoute=/^\/api\/verifications(?:\/[a-f0-9-]{36})?$/.test(route??'');
-  if(!(req.method==='POST'&&req.url==='/api/analyze')&&!documentRoute&&!sourceRoute&&!localRoute&&!family&&!verificationRoute&&!verificationProviderRoute)return send(res,404,{error:'Not found'});
+  const accountRoute=route==='/api/me';
+  if(!(req.method==='POST'&&req.url==='/api/analyze')&&!documentRoute&&!sourceRoute&&!localRoute&&!family&&!verificationRoute&&!verificationProviderRoute&&!accountRoute)return send(res,404,{error:'Not found'});
   if(req.headers.origin && req.headers.origin!==origin)return send(res,403,{error:'Origin denied'});
+  if(accountRoute){
+   // Capability probe. It reports enrolment so the client can explain the
+   // closed pilot before a form is filled; it never authorises a private route.
+   if(req.method!=='GET')return send(res,405,{error:'Method unavailable'});
+   try{
+    const identity=await identify(req.headers.authorization,verify,projectId);
+    return send(res,200,{authenticated:true,enrolled:identity.enrolled,enrollment:'closed_pilot',capabilities:{documents:identity.enrolled,profile:identity.enrolled,verifications:identity.enrolled&&Boolean(verifications),analysis:identity.enrolled}});
+   }catch{return send(res,401,{error:'Sign in required',code:'unauthorized'});}
+  }
   // No CORS headers; proxy same-origin /api to this service. No cookie authentication.
   if(active>=maxConcurrent)return send(res,429,{error:'Busy; retry later'});
   active++;
@@ -46,7 +56,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
   const disconnected=()=>{if(!res.writableEnded)pending.abort();};
   res.once('close',disconnected);
   try {
-   let uid;try{uid=await authenticate(req.headers.authorization,verify,projectId);}catch{return send(res,401,{error:'Sign in with an approved account'});}
+   let uid;try{uid=await authenticate(req.headers.authorization,verify,projectId);}catch(error){return send(res,error?.status===403?403:401,{error:'Sign in with an approved account',code:error?.code??'unauthorized'});}
    let storageOwner=uid;
    if(family){
     // Family routes have no generative endpoint, even for an adult guardian.
@@ -89,6 +99,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
      }
      const id=route.split('/')[3];
      if(req.method==='GET'&&!id)return send(res,200,verifications.list(storageOwner));
+     if(req.method==='GET'&&id)return send(res,200,verifications.get(storageOwner,id));
      if(req.method==='POST'&&!id)return send(res,201,verifications.create(storageOwner,await readInput(req,x=>x)));
      if(req.method==='DELETE'&&id)return send(res,200,verifications.withdraw(storageOwner,id));
      return send(res,405,{error:'Method unavailable'});

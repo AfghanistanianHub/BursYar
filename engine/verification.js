@@ -179,6 +179,13 @@ export function createVerificationService({ store, documents, clock = () => new 
     return { requests: store.rows(uid).map(publicRecord), autoVerificationAvailable: false };
   }
 
+  // Owner-scoped single read so a reloaded or shared request URL shows the
+  // current status instead of the generic "method unavailable" fallback.
+  // A missing or foreign id is a 404, never a 403 that would reveal existence.
+  function get(uid, id) {
+    return publicRecord(store.row(uid, id));
+  }
+
   function withdraw(uid, id) {
     return store.transaction(() => {
       const row = store.row(uid, id);
@@ -223,6 +230,7 @@ export function createVerificationService({ store, documents, clock = () => new 
 
   return {
     create,
+    get,
     list,
     withdraw,
     recordIssuerOutcome,

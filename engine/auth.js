@@ -19,10 +19,28 @@ export function createFirebaseVerifier({projectId, credential=applicationDefault
     return decoded;
   };
 }
-export async function authenticate(header, verify, projectId) {
-  if (typeof header!=='string' || header.length>8192 || !/^Bearer [^\s]+$/.test(header)) throw new Error('Unauthorized');
+
+// Two distinct failures must stay distinct for the client:
+//   401 unauthorized       — no valid Firebase identity (sign in again)
+//   403 account_not_enrolled — valid identity, but the closed pilot has not
+//                              enrolled it yet (request access; do not sign in again)
+// Both keep the same message text so no account existence is leaked.
+export class AuthError extends Error {
+  constructor(status, code) { super('Unauthorized'); this.status = status; this.code = code; }
+}
+
+/** Verify identity only. Used by the capability probe, never to authorise data. */
+export async function identify(header, verify, projectId) {
+  if (typeof header !== 'string' || header.length > 8192 || !/^Bearer [^\s]+$/.test(header)) throw new AuthError(401, 'unauthorized');
   let user;
-  try {user=await verify(header.slice(7));} catch {throw new Error('Unauthorized');}
-  if (!user || typeof user.uid!=='string' || !user.uid || user.uid.length>128 || user.aud!==projectId || user.iss!==`https://securetoken.google.com/${projectId}` || user.bursyarDemo!==true || user.firebase?.sign_in_provider==='anonymous') throw new Error('Unauthorized');
-  return user.uid;
+  try { user = await verify(header.slice(7)); } catch { throw new AuthError(401, 'unauthorized'); }
+  if (!user || typeof user.uid !== 'string' || !user.uid || user.uid.length > 128 || user.aud !== projectId || user.iss !== `https://securetoken.google.com/${projectId}` || user.firebase?.sign_in_provider === 'anonymous') throw new AuthError(401, 'unauthorized');
+  return { uid: user.uid, enrolled: user.bursyarDemo === true };
+}
+
+export async function authenticate(header, verify, projectId) {
+  const identity = await identify(header, verify, projectId);
+  // Closed pilot: the demo claim is still required for every private route.
+  if (!identity.enrolled) throw new AuthError(403, 'account_not_enrolled');
+  return identity.uid;
 }

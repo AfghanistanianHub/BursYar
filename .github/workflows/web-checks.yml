@@ -1,8 +1,11 @@
 name: BursYar web checks
+# Every pushed branch is gated, not only main: the branch that carries the
+# product's newest work is exactly the one a main-only trigger never checks.
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: ['**']
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -15,6 +18,7 @@ jobs:
           node-version: '24'
       - run: npm install --global npm@11.9.0 --no-audit --no-fund
       - run: npm ci --no-audit --no-fund
+      - run: npm audit --omit=dev
       - run: npm test
       - run: npm run test:evaluation
       - run: npm run build
