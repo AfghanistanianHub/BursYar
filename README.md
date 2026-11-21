@@ -12,17 +12,21 @@ BursYar reads a scholarship's published requirements, shows what each rule actua
 
 ---
 
-## Current state (verified 2026-11-21)
+## Current state (verified 2026-11-21 01:55 UTC)
 
 | Surface | Status |
 | --- | --- |
-| Backend `https://bursyar-api.onrender.com/health` | `200`, build `7dbd75f`, deterministic + document storage available, `inferenceVerified: false` |
-| Frontend `https://bursyar.vercel.app` | **paused** — Vercel answers `503` with `x-vercel-error: DEPLOYMENT_PAUSED`; resume the deployment in the Vercel dashboard |
-| Repository `main` | `e7e35b7` (post-`release/v1.0-closure` merge #122) |
+| Frontend `https://bursyar.vercel.app` | `200`; deployment `dpl_tPWATMGR1HdpMaWqGYnjaBGinwAa` at commit `e7e35b7` (`main`), READY/PROMOTED with the alias assigned; serves `index-DBXbGdmG.js` (263 KB) and `index-B_4771W4.css`, CSP and `nosniff` present |
+| Deployed bundle contents | journey fixes present: in-panel sign-in action, deep-link/hash-target handling (`Sign in to continue`, `Opening sign-in`, `bursyar:identity`) |
+| Backend `https://bursyar-api.onrender.com/health` | `200`, build `7dbd75f`, deterministic assessment and document storage available, Meta configured and gated per request, `inferenceVerified: false` |
+| Proxy `https://bursyar.vercel.app/health` | `200`, same build `7dbd75f` |
+| Protected routes | `/api/verifications`, `/api/verifications/providers`, `/api/export` → `401 Sign in with an approved account`; foreign `Origin` → `403 Origin denied` |
+| Release check | `npm run verify:live-verification` → 5 passed, 0 failed, 1 skipped (authenticated leg not exercised) |
+| Repository `main` | `e7e35b7` (post-`release/v1.0-closure` merge #122) — deployed |
 | Test suite | 419 tests pass locally (`npm test`) |
 | Production build | passes (`npm run build`) |
 
-The paused frontend is a hosting state, not a code defect: the last deployment is READY and can be resumed. The backend health response above is the only live evidence recorded in this file; dated verification detail lives in [docs/HOSTED-BACKEND.md](docs/HOSTED-BACKEND.md).
+The Vercel project had been paused (`503 DEPLOYMENT_PAUSED`). The pause was cleared, a paused-time build of `e7e35b7` that Vercel had skipped was replaced by a fresh production deployment of `main`, and that deployment is now promoted: the journey fixes from `e7e35b7` are live. Deployment history, dates and the resume/redeploy procedure are in [docs/HOSTED-BACKEND.md](docs/HOSTED-BACKEND.md).
 
 ## Scope of the 1.0 release
 
