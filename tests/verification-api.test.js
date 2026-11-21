@@ -200,6 +200,22 @@ test('authenticated account erasure removes documents, verification requests and
  }finally{server.close();rmSync(dir,{recursive:true,force:true});}
 });
 
+test('failed verification erasure preserves documents for safe account deletion retry',async()=>{
+ const {dir,documents,verifications,server}=fixture();
+ const base=await listen(server);
+ try{
+  const doc=documents.upload('alice',{text:'Transcript',mime:'text/plain',consent:true});
+  const original=verifications.eraseOwner;
+  verifications.eraseOwner=()=>{throw Error('verification database unavailable');};
+  assert.equal((await call(base,'/api/erase',{method:'DELETE'})).status,422);
+  assert.equal((await call(base,`/api/documents/${doc.id}`)).status,200,'documents must survive failed verification erasure');
+  verifications.eraseOwner=original;
+  assert.equal((await call(base,'/api/erase',{method:'DELETE'})).status,200);
+  assert.equal((await call(base,'/api/documents')).status,200);
+  assert.deepEqual(await (await call(base,'/api/documents')).json(),[]);
+ }finally{server.close();rmSync(dir,{recursive:true,force:true});}
+});
+
 test('verification routes report unavailable instead of pretending to work',async()=>{
  const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-off-'));
  const documents=new DocumentStore(join(dir,'documents.db'));
