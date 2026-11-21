@@ -194,7 +194,7 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
     // Documents and verifications now belong to an empty account: remount them
     // so no stale record stays visible after deletion.
     document.dispatchEvent(new CustomEvent('bursyar:identity'));
-   } catch (error) { status.textContent = error.code === 'mutationUncertain' ? t.deleteUncertain : (t[error.code] ?? t.privacyError); }
+   } catch (error) { status.textContent = error.code === 'mutationUncertain' ? t.deleteUncertain : error.code === 'unavailableError' ? t.deleteRetry : (t[error.code] ?? t.privacyError); }
    finally {
     deleteButton.textContent = t.deleteData;
     exportButton.disabled = deleteButton.disabled = false;
