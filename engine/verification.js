@@ -77,6 +77,18 @@ export class VerificationStore {
     this.db.prepare('INSERT INTO verification_events(owner,request_id,status,at,detail) VALUES(?,?,?,?,?)').run(
       owner, requestId, status, at, JSON.stringify(detail ?? {}));
   }
+  transaction(action) {
+    // SQLite serializes writers across connections and processes sharing this database.
+    this.db.exec('BEGIN IMMEDIATE');
+    try {
+      const result = action();
+      this.db.exec('COMMIT');
+      return result;
+    } catch (error) {
+      this.db.exec('ROLLBACK');
+      throw error;
+    }
+  }
   erase(uid) {
     const owner = this.owner(uid);
     this.db.exec('BEGIN IMMEDIATE');
@@ -144,6 +156,7 @@ export function createVerificationService({ store, documents, clock = () => new 
     try { documents.get(uid, input.documentId); }
     catch (error) { throw new VerificationError(error?.status === 404 ? 404 : 400); }
     const reference = normalizeReference(input.reference);
+    return store.transaction(() => {
     const owner = store.owner(uid);
     const rows = store.rows(uid);
     // A repeated request for the same document and issuer is the same request;
@@ -159,6 +172,7 @@ export function createVerificationService({ store, documents, clock = () => new 
     store.insert(row);
     store.event(owner, id, 'PENDING', at, { consentVersion: 1, requiresIssuerAuthorization: provider.verification.requiresIssuerAuthorization });
     return publicRecord(store.row(uid, id));
+    });
   }
 
   function list(uid) {
