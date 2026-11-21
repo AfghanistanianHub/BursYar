@@ -13,7 +13,7 @@ The provider sees **only pasted public source text**. Per `engine/evidence.js`
 |---|---|---|
 | Pasted/fetched public source text | Yes | `engine/evidence.js` |
 | Source URL | No (attribution only) | `engine/evidence.js:15-17` |
-| Student UID / tokens | No | `engine/evidence.js`, [HACKATHON-READINESS](HACKATHON-READINESS-2026-10-28.md) |
+| Student UID / tokens | No | `engine/evidence.js`, [HACKATHON-READINESS](archive/HACKATHON-READINESS-2026-10-28.md) |
 | Profile / documents / quota state | No | `engine/evidence.js` |
 | Credentials / raw errors | No (allowlisted diagnostics only) | `engine/capabilities.js` |
 
@@ -62,5 +62,5 @@ The provider sees **only pasted public source text**. Per `engine/evidence.js`
 - Live document file-upload UI check unfinished.
 - Meta geo-policy flag: serving Afghan-located end users via Meta is
   restricted; deterministic/self-hosted path required unless authorized
-  ([HACKATHON-RELEASE-HANDOFF.md](HACKATHON-RELEASE-HANDOFF.md)).
-- All six [release gates](MISSION-01-RELEASE-GATES.md) remain **BLOCKED**.
+  ([HACKATHON-RELEASE-HANDOFF.md](archive/HACKATHON-RELEASE-HANDOFF.md)).
+- All six [release gates](archive/MISSION-01-RELEASE-GATES.md) recorded at the time remain **BLOCKED**.

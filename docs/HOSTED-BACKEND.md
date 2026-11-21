@@ -4,6 +4,37 @@ The public frontend is https://bursyar.vercel.app. Same-origin `/api/*` and
 `/health` are proxied to https://bursyar-api.onrender.com. Authentication headers
 and the frontend Origin reach the existing gateway; no permissive CORS is added.
 
+## Configuration sources
+
+Two files and this page describe one topology; change them together.
+
+| Concern | Source |
+| --- | --- |
+| Frontend hosting, proxy target, CSP and headers | `vercel.json` |
+| Backend service definition (build, start, health check, env names) | `render.yaml` |
+| Gateway variables and limits | `.env.example`, `docs/INFERENCE-RUNBOOK.md` |
+| Verified live state | this page, in the dated sections below |
+
+The API hostname appears once in configuration: the rewrite target in
+`vercel.json`. `render.yaml` documents the `bursyar-api` service so the backend
+can be recreated from the repository; it is **not** connected as a Render
+blueprint, so syncing it never creates or replaces the live service. Automatic
+deploys are disabled: the intended, tested `main` commit is deployed explicitly
+twice (the frontend from Vercel, the backend from Render).
+
+## Current check — 2026-11-21
+
+| Check | Result |
+| --- | --- |
+| `GET https://bursyar-api.onrender.com/health` | `200`, `capabilities.build.commit` = `7dbd75f` |
+| Capabilities reported | deterministic assessment and document storage available; Meta configured but gated per request; `inferenceVerified: false` |
+| `GET https://bursyar.vercel.app/` | `503` with `x-vercel-error: DEPLOYMENT_PAUSED` — the frontend deployment is paused in Vercel and must be resumed there |
+
+The paused frontend is a hosting state, not a build failure: the last deployment
+was READY. The deployed backend build (`7dbd75f`) is not the repository tip
+(`e7e35b7`), so resuming the frontend serves the last deployed bundle until a new
+frontend deployment is promoted.
+
 The Render service is `bursyar-api` in the owner-confirmed SAM's workspace,
 on the explicit free compute plan. Node 24.22.1 is pinned. Hosted startup sets
 `BURSYAR_HOST=0.0.0.0`; local startup remains `127.0.0.1` unless explicitly changed.

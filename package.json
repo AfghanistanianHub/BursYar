@@ -1,7 +1,27 @@
 {
   "name": "bursyar-web",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "Trilingual scholarship reader and evidence-first eligibility guidance for Afghan applicants.",
   "private": true,
+  "license": "MIT",
+  "author": "AfghanistanianHub and BursYar contributors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AfghanistanianHub/BursYar.git"
+  },
+  "homepage": "https://bursyar.vercel.app",
+  "bugs": {
+    "url": "https://github.com/AfghanistanianHub/BursYar/issues"
+  },
+  "keywords": [
+    "scholarships",
+    "afghanistan",
+    "education",
+    "dari",
+    "pashto",
+    "accessibility",
+    "firebase"
+  ],
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",

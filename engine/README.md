@@ -6,4 +6,4 @@ Use [INFERENCE-RUNBOOK.md](../docs/INFERENCE-RUNBOOK.md) for exact setup and rel
 
 The executable binds only 127.0.0.1 and fails startup if configuration is missing. No publicly deployed API. Missing credentials never produce fake analyses.
 
-`engine.js` and `engine.test.js` retain the original PR #2 baseline and are not used by the active HTTP inference path. The current regression/handoff is documented in [checkpoint 04](../docs/checkpoints/04-regression-and-resume.md).
+`engine.js` and `engine.test.js` retain the original PR #2 baseline and are not used by the active HTTP inference path. The current runbook is [INFERENCE-RUNBOOK.md](../docs/INFERENCE-RUNBOOK.md); the historical regression handoff is archived in [checkpoint 04](../docs/archive/checkpoints/04-regression-and-resume.md).
