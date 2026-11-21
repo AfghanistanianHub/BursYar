@@ -37,7 +37,7 @@ export function mountResearchExplorer(root,language='en') {
     return `<article class="scholarship"><p>${esc(researchLabel(row.country,lang))} · ${row.degrees.map(d=>esc(researchLabel(d,lang))).join(' / ')}</p><h3 lang="en" dir="ltr">${esc(row.title)}</h3><p lang="en" dir="ltr">${esc(row.provider)}</p><p class="pill">${esc(t.needsReview)}</p><p>${esc(t[row.funding==='full'?'fullFunding':row.funding==='partial'?'partialFunding':'unknownFunding'])}</p><p>${esc(t.checked)}: <bdi>${esc(checkedOn??t.unknown)}</bdi></p>${freshness==='stale'?`<p class="research-freshness" data-freshness="stale">${esc(t.checkStale)}</p>`:''}<p>${esc(t.deadline)}: <bdi>${esc(deadline??t.unknown)}</bdi> · ${esc(t[deadlineState==='past'?'past':deadlineState==='unknown'?'unknown':'unconfirmed'])}</p><div class="card-bottom">${source?`<a href="${esc(source)}" target="_blank" rel="noopener noreferrer">${esc(t.source)}</a>`:''}${source?`<button type="button" data-research-prepare="${esc(row.id)}">${esc(t.prepare)}</button>`:''}<button type="button" data-research-save="${esc(row.id)}" aria-pressed="${saved.includes(row.id)}">${esc(saved.includes(row.id)?t.remove:t.save)}</button></div></article>`;
    }).join('')}</div>${rows.length?'':`<p class="empty-note">${esc(t.empty)}</p>`}</section>`;
   const newSearch=root.querySelector('#research-search');
-  if(existingSearch){newSearch.replaceWith(existingSearch);existingSearch.value=state.q;}
+  if(existingSearch){newSearch.replaceWith(existingSearch);existingSearch.value=state.q;existingSearch.setAttribute('aria-label',t.search);}
   else {
    let composing=false;
    newSearch.addEventListener('compositionstart',()=>{composing=true;});
@@ -69,7 +69,9 @@ export function mountResearchExplorer(root,language='en') {
   root.querySelector('#research-clear').addEventListener('click',()=>{saved=[];storageFailed=!saveResearchIds(storage(),saved);render('research-saved-only');notifySaved();});
   root.querySelector('#research-export').addEventListener('click',()=>{
    const blob=new Blob([JSON.stringify(exportResearchSaved(saved),null,2)],{type:'application/json'});
-   const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='bursyar-public-references.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+   const url=URL.createObjectURL(blob);
+   try {const link=document.createElement('a');link.href=url;link.download='bursyar-public-references.json';document.body.append(link);link.click();link.remove();}
+   finally {setTimeout(()=>URL.revokeObjectURL(url),1000);}
   });
   if(focusId){const input=root.querySelector('#'+focusId);input?.focus({preventScroll:true});if(selection!==null&&typeof input?.setSelectionRange==='function')input.setSelectionRange(selection,selection);}
  }
