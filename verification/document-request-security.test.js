@@ -38,3 +38,16 @@ test('server rejects are reported without retrying a write',async()=>{
  await assert.rejects(documentRequest('/api/documents',{token:'token',method:'POST',body:{consent:true},fetchImpl:async()=>{calls++;return {ok:false,status:409};}}),e=>e.code==='conflictError');
  assert.equal(calls,1);
 });
+
+test('invalid HTTP methods and timeouts never reach the network',async()=>{
+ let calls=0;const fetchImpl=async()=>{calls++;return success();};
+ for(const method of ['get','PUT','TRACE',''])await assert.rejects(documentRequest('/api/documents',{token:'token',method,fetchImpl}),e=>e.code==='error');
+ for(const timeoutMs of [0,-1,NaN,Infinity,121000])await assert.rejects(documentRequest('/api/documents',{token:'token',timeoutMs,fetchImpl}),e=>e.code==='error');
+ assert.equal(calls,0);
+});
+test('explicit false and null JSON bodies are not silently omitted',async()=>{
+ for(const body of [false,null]){
+  let options;await documentRequest('/api/documents',{token:'token',method:'POST',body,fetchImpl:async(_path,input)=>{options=input;return success();}});
+  assert.equal(options.body,JSON.stringify(body));
+ }
+});
