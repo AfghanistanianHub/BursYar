@@ -207,7 +207,7 @@ test('failed verification erasure preserves documents for safe account deletion 
   const doc=documents.upload('alice',{text:'Transcript',mime:'text/plain',consent:true});
   const original=verifications.eraseOwner;
   verifications.eraseOwner=()=>{throw Error('verification database unavailable');};
-  assert.equal((await call(base,'/api/erase',{method:'DELETE'})).status,422);
+  assert.equal((await call(base,'/api/erase',{method:'DELETE'})).status,503);
   assert.equal((await call(base,`/api/documents/${doc.id}`)).status,200,'documents must survive failed verification erasure');
   verifications.eraseOwner=original;
   assert.equal((await call(base,'/api/erase',{method:'DELETE'})).status,200);
@@ -225,7 +225,7 @@ test('document erasure failure is reported and a second attempt completes deleti
   assert.equal(created.status,201);
   const original=documents.eraseOwner.bind(documents);
   documents.eraseOwner=()=>{throw Error('document database unavailable');};
-  assert.equal((await call(base,'/api/erase',{method:'DELETE'})).status,422);
+  assert.equal((await call(base,'/api/erase',{method:'DELETE'})).status,503);
   assert.equal(verifications.list('alice').requests.length,0,'verification records must already be erased');
   assert.equal((await call(base,`/api/documents/${doc.id}`)).status,200,'failed document erase must be retriable');
   documents.eraseOwner=original;
