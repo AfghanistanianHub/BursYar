@@ -198,6 +198,7 @@ export async function mountVerifications(root, language = 'en') {
  consentLabel.append(t.consent);
  const submit = element('button', t.submit, form);
  submit.type = 'submit';
+ submit.disabled = true; // Remain unavailable until both issuer and document lists load.
  element('p', t.autoNote, formSection).className = 'verification-auto-note';
  const status = element('p', t.loading);
  status.setAttribute('role', 'status');
@@ -220,7 +221,7 @@ export async function mountVerifications(root, language = 'en') {
   official.href = selected.officialUrl;
   accessText.textContent = `${t.access[selected.access] ?? ''} `;
   reference.placeholder = selected.referenceLabel ?? '';
-  submit.disabled = inFlight || !documents.length || !providers.length;
+  submit.disabled = inFlight || !documents.length || !providers.length || !documentSelect.value;
   referenceField.hidden = false;
  }
  async function api(path, method = 'GET', body) {
@@ -264,11 +265,13 @@ export async function mountVerifications(root, language = 'en') {
  }
  async function loadRequests() {
   const data = await api('/api/verifications');
-  renderRequests(data.requests ?? []);
+  if (!Array.isArray(data?.requests)) throw new Error('Invalid verification response');
+  renderRequests(data.requests);
  }
  async function loadProviders() {
   const data = await api('/api/verifications/providers');
-  providers = data.providers ?? [];
+  if (!Array.isArray(data?.providers)) throw new Error('Invalid provider response');
+  providers = data.providers;
   providerSelect.replaceChildren();
   for (const provider of providers) {
    const option = document.createElement('option');
@@ -279,7 +282,9 @@ export async function mountVerifications(root, language = 'en') {
   paintProvider();
  }
  async function loadDocuments() {
-  documents = await api('/api/documents');
+  const result = await api('/api/documents');
+  if (!Array.isArray(result)) throw new Error('Invalid document response');
+  documents = result;
   documentSelect.replaceChildren();
   if (!documents.length) {
    const option = document.createElement('option');
@@ -297,7 +302,7 @@ export async function mountVerifications(root, language = 'en') {
    option.textContent = `${index + 1} · ${format.format(new Date(item.uploadedAt))}`;
    documentSelect.append(option);
   });
-  submit.disabled = !providers.length;
+  submit.disabled = !providers.length || !documentSelect.value || !providerSelect.value;
  }
  async function busy(action) {
   if (inFlight) return;
@@ -310,10 +315,11 @@ export async function mountVerifications(root, language = 'en') {
    inFlight = false;
    section.removeAttribute('aria-busy');
    for (const button of section.querySelectorAll('button')) button.disabled = false;
-   submit.disabled = !documents.length || !providers.length;
+   submit.disabled = !documents.length || !providers.length || !documentSelect.value || !providerSelect.value;
   }
  }
  providerSelect.addEventListener('change', paintProvider);
+ documentSelect.addEventListener('change', () => { submit.disabled = inFlight || !documentSelect.value || !providerSelect.value; });
  consent.addEventListener('change', () => {
   if (!consent.checked) return;
   consent.removeAttribute('aria-invalid');
