@@ -20,7 +20,7 @@ export function mountWorkspaceOverview(root,language='en'){
   const h=document.createElement('h3');h.textContent=heading;
   const p=document.createElement('p');p.textContent=note;
   const a=document.createElement('a');a.href='#'+target;a.textContent=action+' ↗';
-  a.addEventListener('click',()=>{if(disclosure)document.querySelector('details.'+disclosure).open=true;const el=document.getElementById(target);if(el){if(!el.matches('input'))el.setAttribute('tabindex','-1');el.focus({preventScroll:true});}});
+  a.addEventListener('click',()=>{if(disclosure){const details=document.querySelector('details.'+disclosure);if(details)details.open=true;}const el=document.getElementById(target);if(el){if(!el.matches('input'))el.setAttribute('tabindex','-1');el.focus({preventScroll:true});}});
   panel.append(number,h,p,a);grid.append(panel);
  }
  const links=document.createElement('div');links.className='workspace-shortcuts';
