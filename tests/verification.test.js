@@ -92,6 +92,25 @@ test('verification requests are consent-gated, owner-scoped, idempotent and pers
  }finally{reopened?.close();try{store.close();}catch{/* already closed */}rmSync(dir,{recursive:true,force:true});}
 });
 
+test('issuer decision is atomic with audit and verified state is terminal',()=>{
+ const {dir,docs,store}=workspace();
+ try{
+  const service=createVerificationService({store,documents:docs});
+  const doc=docs.upload('alice',{text:'Transcript',mime:'text/plain',consent:true});
+  const request=service.create('alice',{documentId:doc.id,providerId:'ielts',consent:true});
+  const originalEvent=store.event.bind(store);
+  store.event=()=>{throw Error('audit unavailable');};
+  assert.throws(()=>service.recordIssuerOutcome('alice',request.id,{authorized:true,status:'VERIFIED_BY_ISSUER',evidence}),/audit unavailable/);
+  assert.equal(service.list('alice').requests[0].status,'PENDING');
+  assert.equal(service.list('alice').requests[0].issuerEvidence,null);
+  store.event=originalEvent;
+  const verified=service.recordIssuerOutcome('alice',request.id,{authorized:true,status:'VERIFIED_BY_ISSUER',evidence});
+  assert.equal(verified.status,'VERIFIED_BY_ISSUER');
+  assert.throws(()=>service.recordIssuerOutcome('alice',request.id,{authorized:true,status:'REJECTED_BY_ISSUER',evidence}),error=>error.status===409);
+  assert.equal(service.list('alice').requests[0].status,'VERIFIED_BY_ISSUER');
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
+
 test('request count is bounded and private database refusals stay enforced',()=>{
  const {dir,docs,store}=workspace();
  try{
