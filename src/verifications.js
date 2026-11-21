@@ -185,7 +185,7 @@ export async function mountVerifications(root, language = 'en') {
  formSection.className = 'verification-request';
  element('h3', t.requestTitle, formSection);
  const form = element('form', '', formSection);
- let documents = [], providers = [], inFlight = false;
+ let documents = [], providers = [], inFlight = false, mutationUncertain = false;
  const field = (labelText, control, parent = form) => { const label = element('label', labelText, parent); label.append(control); return label; };
  const documentSelect = document.createElement('select');
  documentSelect.required = true;
@@ -244,7 +244,7 @@ export async function mountVerifications(root, language = 'en') {
   else official.removeAttribute('href');
   accessText.textContent = `${t.access[selected.access] ?? ''} `;
   reference.placeholder = selected.referenceLabel ?? '';
-  submit.disabled = inFlight || !documents.length || !providers.length || !documentSelect.value;
+  submit.disabled = inFlight || mutationUncertain || !documents.length || !providers.length || !documentSelect.value;
   referenceField.hidden = false;
  }
  async function api(path, method = 'GET', body) {
@@ -322,7 +322,7 @@ export async function mountVerifications(root, language = 'en') {
    option.textContent = `${index + 1} · ${safeVerificationDate(item.uploadedAt, format)}`;
    documentSelect.append(option);
   });
-  submit.disabled = !providers.length || !documentSelect.value || !providerSelect.value;
+  submit.disabled = mutationUncertain || !providers.length || !documentSelect.value || !providerSelect.value;
  }
  async function busy(action) {
   if (inFlight) return;
@@ -330,16 +330,19 @@ export async function mountVerifications(root, language = 'en') {
   section.setAttribute('aria-busy', 'true');
   for (const button of section.querySelectorAll('button')) button.disabled = true;
   try { await action(); }
-  catch (error) { status.textContent = error.code === 'mutationUncertain' ? t.uncertain : (t[error.code] ?? t.error); }
+  catch (error) {
+   if (error.code === 'mutationUncertain') mutationUncertain = true;
+   status.textContent = error.code === 'mutationUncertain' ? t.uncertain : (t[error.code] ?? t.error);
+  }
   finally {
    inFlight = false;
    section.removeAttribute('aria-busy');
    for (const button of section.querySelectorAll('button')) button.disabled = false;
-   submit.disabled = !documents.length || !providers.length || !documentSelect.value || !providerSelect.value;
+   submit.disabled = mutationUncertain || !documents.length || !providers.length || !documentSelect.value || !providerSelect.value;
   }
  }
  providerSelect.addEventListener('change', paintProvider);
- documentSelect.addEventListener('change', () => { submit.disabled = inFlight || !documentSelect.value || !providerSelect.value; });
+ documentSelect.addEventListener('change', () => { submit.disabled = inFlight || mutationUncertain || !documentSelect.value || !providerSelect.value; });
  consent.addEventListener('change', () => {
   if (!consent.checked) return;
   consent.removeAttribute('aria-invalid');
@@ -379,8 +382,9 @@ export async function mountVerifications(root, language = 'en') {
   paintProvider();
   await loadDocuments();
   if (previousDocument && documents.some(item => item.id === previousDocument)) documentSelect.value = previousDocument;
-  submit.disabled = !documents.length || !providers.length || !documentSelect.value || !providerSelect.value;
   await loadRequests();
+  mutationUncertain = false;
+  submit.disabled = !documents.length || !providers.length || !documentSelect.value || !providerSelect.value;
   status.textContent = '';
  }
  refresh.addEventListener('click', () => busy(reloadAll));
