@@ -31,6 +31,7 @@ export const verificationCopy = {
   autoNote: 'This release has no authorized direct connection to issuer systems, so every request stays pending until the issuer answers.',
   official: 'Open the issuer’s official verification page',
   loading: 'Loading verification details…',
+  refreshing: 'Refreshing verification requests…',
   error: 'Verification details are unavailable. Sign in and try again.',
   signIn: 'Sign in to request credential verification.',
   access: {
@@ -76,6 +77,7 @@ export const verificationCopy = {
   autoNote: 'در این نسخه هیچ اتصال مجاز مستقیمی به سامانه‌های صادرکننده وجود ندارد؛ بنابراین هر درخواست تا پاسخ صادرکننده در حالت انتظار می‌ماند.',
   official: 'باز کردن صفحهٔ رسمی تأیید صادرکننده',
   loading: 'در حال بارگذاری جزئیات تأیید…',
+  refreshing: 'در حال تازه‌سازی درخواست‌های تأیید…',
   error: 'جزئیات تأیید در دسترس نیست. وارد حساب شوید و دوباره تلاش کنید.',
   signIn: 'برای درخواست تأیید مدرک وارد حساب شوید.',
   access: {
@@ -121,6 +123,7 @@ export const verificationCopy = {
   autoNote: 'په دې نسخه کې د صادرونکو سامانه‌و ته هېڅ مجاز مستقیم اړیکه نشته؛ نو هر ه غوښتنه تر ځواب پورې په تمه پاتې کېږي.',
   official: 'د صادرونکي رسمي تایید پاڼه پرانیزئ',
   loading: 'د تایید جزئیات راځي…',
+  refreshing: 'د تایید غوښتنې تازه کېږي…',
   error: 'د تایید جزئیات نه دي لاسرسی وړ. ننوځئ او بیا هڅه وکړئ.',
   signIn: 'د سند د تایید غوښتنې لپاره ننوځئ.',
   access: {
@@ -254,6 +257,7 @@ export async function mountVerifications(root, language = 'en') {
      await api(`/api/verifications/${encodeURIComponent(request.id)}`, 'DELETE');
      status.textContent = t.withdrawn;
      await loadRequests();
+     refresh.focus({preventScroll:true});
     }));
    }
   }
@@ -338,7 +342,11 @@ export async function mountVerifications(root, language = 'en') {
    await loadRequests();
   });
  });
- refresh.addEventListener('click', () => busy(loadRequests));
+ refresh.addEventListener('click', () => busy(async () => {
+  status.textContent = t.refreshing;
+  await loadRequests();
+  status.textContent = '';
+ }));
  try { await loadProviders(); await loadDocuments(); await loadRequests(); status.textContent = ''; }
  catch { status.textContent = t.error; }
  return {refresh: loadRequests};
