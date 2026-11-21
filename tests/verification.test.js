@@ -111,6 +111,24 @@ test('issuer decision is atomic with audit and verified state is terminal',()=>{
  }finally{store.close();rmSync(dir,{recursive:true,force:true});}
 });
 
+test('issuer outcome cannot be recorded after withdrawal and account erasure clears audit',()=>{
+ const {dir,docs,store}=workspace();
+ try{
+  const service=createVerificationService({store,documents:docs});
+  const doc=docs.upload('alice',{text:'Diploma',mime:'text/plain',consent:true});
+  const request=service.create('alice',{documentId:doc.id,providerId:'ielts',consent:true});
+  assert.equal(service.withdraw('alice',request.id).withdrawn,true);
+  assert.throws(()=>service.recordIssuerOutcome('alice',request.id,{authorized:true,status:'VERIFIED_BY_ISSUER',evidence}),error=>error.status===404);
+  assert.equal(service.list('alice').requests.length,0);
+  const next=service.create('alice',{documentId:doc.id,providerId:'ielts',consent:true});
+  assert.notEqual(next.id,request.id);
+  service.eraseOwner('alice');
+  assert.equal(service.list('alice').requests.length,0);
+  assert.equal(store.db.prepare('SELECT COUNT(*) AS count FROM verification_events WHERE owner=?').get(store.owner('alice')).count,0);
+  assert.equal(store.db.prepare('SELECT COUNT(*) AS count FROM verification_requests WHERE owner=?').get(store.owner('alice')).count,0);
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});
+
 test('request count is bounded and private database refusals stay enforced',()=>{
  const {dir,docs,store}=workspace();
  try{
