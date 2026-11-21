@@ -24,9 +24,30 @@ export class DocumentStore {
   if(state===null)return;
   if(!state||!Array.isArray(state.documents)||state.documents.length>10||!Array.isArray(state.history)||state.history.length>20||(state.profile!==null&&typeof state.profile!=='string'))throw new DocumentError(503);
   const owner=this.owner(uid);
-  for(const row of state.documents){if(!row||typeof row.id!=='string'||!/^[a-f0-9-]{36}$/.test(row.id)||typeof row.data!=='string'||JSON.parse(row.data).id!==row.id)throw new DocumentError(503);this.db.prepare('INSERT INTO documents VALUES(?,?,?)').run(row.id,owner,row.data);}
-  if(state.profile!==null){const profile=JSON.parse(state.profile);if(!profile||typeof profile!=='object'||Array.isArray(profile))throw new DocumentError(503);this.db.prepare('INSERT INTO profiles VALUES(?,?)').run(owner,state.profile);}
-  for(const item of state.history){if(typeof item!=='string')throw new DocumentError(503);JSON.parse(item);this.db.prepare('INSERT INTO profile_history VALUES(?,?)').run(owner,item);}
+  // Validate the entire untrusted snapshot before mutating the request-scoped store.
+  let documents,profile,history;
+  try{
+   documents=state.documents.map(row=>{
+    if(!row||typeof row.id!=='string'||!/^[a-f0-9-]{36}$/.test(row.id)||typeof row.data!=='string')throw Error('Invalid document');
+    const value=JSON.parse(row.data);
+    if(!value||typeof value!=='object'||Array.isArray(value)||value.id!==row.id)throw Error('Invalid document');
+    return row;
+   });
+   if(new Set(documents.map(row=>row.id)).size!==documents.length)throw Error('Duplicate document');
+   profile=state.profile===null?null:JSON.parse(state.profile);
+   if(profile!==null&&(!profile||typeof profile!=='object'||Array.isArray(profile)))throw Error('Invalid profile');
+   history=state.history.map(item=>{if(typeof item!=='string')throw Error('Invalid history');JSON.parse(item);return item;});
+  }catch{throw new DocumentError(503);}
+  this.db.exec('BEGIN IMMEDIATE');
+  try{
+   for(const row of documents)this.db.prepare('INSERT INTO documents VALUES(?,?,?)').run(row.id,owner,row.data);
+   if(profile!==null)this.db.prepare('INSERT INTO profiles VALUES(?,?)').run(owner,state.profile);
+   for(const item of history)this.db.prepare('INSERT INTO profile_history VALUES(?,?)').run(owner,item);
+   this.db.exec('COMMIT');
+  }catch{
+   this.db.exec('ROLLBACK');
+   throw new DocumentError(503);
+  }
  }
  snapshot(uid){const owner=this.owner(uid);return {documents:this.db.prepare('SELECT id,data FROM documents WHERE owner=? ORDER BY rowid').all(owner).map(r=>({...r})),profile:this.db.prepare('SELECT data FROM profiles WHERE owner=?').get(owner)?.data??null,history:this.db.prepare('SELECT data FROM profile_history WHERE owner=? ORDER BY rowid').all(owner).map(r=>r.data)};}
  export(uid){return {profile:this.profile(uid),documents:this.list(uid).map(d=>this.get(uid,d.id)),issuerAuthenticated:false};}
