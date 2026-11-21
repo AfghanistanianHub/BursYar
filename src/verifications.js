@@ -357,12 +357,23 @@ export async function mountVerifications(root, language = 'en') {
    await loadRequests();
   });
  });
- refresh.addEventListener('click', () => busy(async () => {
+ async function reloadAll() {
+  // A failed initial load may leave provider/document selectors empty; refreshing
+  // requests alone cannot recover the form after the network returns.
   status.textContent = t.refreshing;
+  const previousProvider = providerSelect.value;
+  const previousDocument = documentSelect.value;
+  await loadProviders();
+  if (previousProvider && providers.some(item => item.id === previousProvider)) providerSelect.value = previousProvider;
+  paintProvider();
+  await loadDocuments();
+  if (previousDocument && documents.some(item => item.id === previousDocument)) documentSelect.value = previousDocument;
+  submit.disabled = !documents.length || !providers.length || !documentSelect.value || !providerSelect.value;
   await loadRequests();
   status.textContent = '';
- }));
- try { await loadProviders(); await loadDocuments(); await loadRequests(); status.textContent = ''; }
+ }
+ refresh.addEventListener('click', () => busy(reloadAll));
+ try { await reloadAll(); }
  catch { status.textContent = t.error; }
  return {refresh: loadRequests};
 }
