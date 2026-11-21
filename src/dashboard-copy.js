@@ -24,6 +24,7 @@ export const dashboardCopy = {
   deleted: 'Your profile, documents and verification requests were deleted.',
   exported: 'Your data file was downloaded.', privacyBusy: 'Working…',
   privacyError: 'Data request unavailable. Check your connection and sign in again.',
+  deleteUncertain: 'The connection was lost. Your deletion may have completed. Check your account before trying again.' ,
   deleteLocalNote: 'Saved scholarships kept in this browser are separate from your account; clear them from the saved page.'
  },
  fa: {
@@ -51,6 +52,7 @@ export const dashboardCopy = {
   deleted: 'پروفایل، مدارک و درخواست‌های تأیید شما حذف شد.',
   exported: 'فایل داده‌های شما دانلود شد.', privacyBusy: 'در حال انجام…',
   privacyError: 'درخواست داده در دسترس نیست. اتصال را بررسی و دوباره وارد شوید.',
+  deleteUncertain: 'ارتباط قطع شد و ممکن است حذف اطلاعات انجام شده باشد. پیش از تلاش دوباره، وضعیت حساب خود را بررسی کنید.',
   deleteLocalNote: 'بورسیه‌های ذخیره‌شده در این مرورگر جدا از حساب شماست؛ از صفحهٔ ذخیره‌ها پاک کنید.'
  },
  ps: {
