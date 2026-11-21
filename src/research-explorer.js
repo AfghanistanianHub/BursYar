@@ -1,5 +1,5 @@
 import {checkedPrograms,programWindow,verifiedProgramCopy} from './verified-programs.js';
-import {researchScholarships,researchCountries,filterResearch,researchLabel,researchDeadlineState,researchCheckedOn,researchFreshness,researchSourceUrl,loadResearchSaved,saveResearchIds,exportResearchSaved} from './research-catalog.js';
+import {researchScholarships,researchCountries,filterResearch,researchLabel,researchDeadlineState,researchDeadlineOn,researchCheckedOn,researchFreshness,researchSourceUrl,loadResearchSaved,saveResearchIds,exportResearchSaved} from './research-catalog.js';
 import {researchCopy} from './research-copy.js';
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 // Discovery state contains no profile or document data. Keep it across shell
@@ -33,8 +33,8 @@ export function mountResearchExplorer(root,language='en') {
    <div class="research-actions secondary-actions"><button class="text-button" id="research-export" type="button" ${saved.length?'':'disabled'}>${esc(t.export)}</button><button class="text-button danger" id="research-clear" type="button" ${saved.length?'':'disabled'}>${esc(t.clear)}</button></div>
    <p role="status">${storageFailed?esc(t.storageError):''}</p><p role="status">${esc(t.count)}: ${number.format(rows.length)} · ${esc(t.savedCount)}: ${number.format(saved.length)}</p>
    <div class="listing">${rows.map(row=>{
-    const source=researchSourceUrl(row.sourceUrl);const deadlineState=researchDeadlineState(row);const checkedOn=researchCheckedOn(row);const freshness=researchFreshness(row);
-    return `<article class="scholarship"><p>${esc(researchLabel(row.country,lang))} · ${row.degrees.map(d=>esc(researchLabel(d,lang))).join(' / ')}</p><h3 lang="en" dir="ltr">${esc(row.title)}</h3><p lang="en" dir="ltr">${esc(row.provider)}</p><p class="pill">${esc(t.needsReview)}</p><p>${esc(t[row.funding==='full'?'fullFunding':row.funding==='partial'?'partialFunding':'unknownFunding'])}</p><p>${esc(t.checked)}: <bdi>${esc(checkedOn??t.unknown)}</bdi></p>${freshness==='stale'?`<p class="research-freshness" data-freshness="stale">${esc(t.checkStale)}</p>`:''}<p>${esc(t.deadline)}: <bdi>${esc(row.deadline??t.unknown)}</bdi> · ${esc(t[deadlineState==='past'?'past':deadlineState==='unknown'?'unknown':'unconfirmed'])}</p><div class="card-bottom">${source?`<a href="${esc(source)}" target="_blank" rel="noopener noreferrer">${esc(t.source)}</a>`:''}${source?`<button type="button" data-research-prepare="${esc(row.id)}">${esc(t.prepare)}</button>`:''}<button type="button" data-research-save="${esc(row.id)}" aria-pressed="${saved.includes(row.id)}">${esc(saved.includes(row.id)?t.remove:t.save)}</button></div></article>`;
+    const source=researchSourceUrl(row.sourceUrl);const deadline=researchDeadlineOn(row);const deadlineState=researchDeadlineState(row);const checkedOn=researchCheckedOn(row);const freshness=researchFreshness(row);
+    return `<article class="scholarship"><p>${esc(researchLabel(row.country,lang))} · ${row.degrees.map(d=>esc(researchLabel(d,lang))).join(' / ')}</p><h3 lang="en" dir="ltr">${esc(row.title)}</h3><p lang="en" dir="ltr">${esc(row.provider)}</p><p class="pill">${esc(t.needsReview)}</p><p>${esc(t[row.funding==='full'?'fullFunding':row.funding==='partial'?'partialFunding':'unknownFunding'])}</p><p>${esc(t.checked)}: <bdi>${esc(checkedOn??t.unknown)}</bdi></p>${freshness==='stale'?`<p class="research-freshness" data-freshness="stale">${esc(t.checkStale)}</p>`:''}<p>${esc(t.deadline)}: <bdi>${esc(deadline??t.unknown)}</bdi> · ${esc(t[deadlineState==='past'?'past':deadlineState==='unknown'?'unknown':'unconfirmed'])}</p><div class="card-bottom">${source?`<a href="${esc(source)}" target="_blank" rel="noopener noreferrer">${esc(t.source)}</a>`:''}${source?`<button type="button" data-research-prepare="${esc(row.id)}">${esc(t.prepare)}</button>`:''}<button type="button" data-research-save="${esc(row.id)}" aria-pressed="${saved.includes(row.id)}">${esc(saved.includes(row.id)?t.remove:t.save)}</button></div></article>`;
    }).join('')}</div>${rows.length?'':`<p class="empty-note">${esc(t.empty)}</p>`}</section>`;
   const newSearch=root.querySelector('#research-search');
   if(existingSearch){newSearch.replaceWith(existingSearch);existingSearch.value=state.q;}
@@ -71,7 +71,7 @@ export function mountResearchExplorer(root,language='en') {
    const blob=new Blob([JSON.stringify(exportResearchSaved(saved),null,2)],{type:'application/json'});
    const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download='bursyar-public-references.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
-  if(focusId){const input=root.querySelector('#'+focusId);input?.focus();if(selection!==null)input?.setSelectionRange(selection,selection);}
+  if(focusId){const input=root.querySelector('#'+focusId);input?.focus({preventScroll:true});if(selection!==null&&typeof input?.setSelectionRange==='function')input.setSelectionRange(selection,selection);}
  }
  render();
 }
