@@ -196,7 +196,7 @@ test('authenticated account erasure removes documents, verification requests and
   assert.equal(verifications.list('alice').requests.length,0);
   assert.equal((await call(base,`/api/verifications/${request.id}`)).status,404);
   assert.equal((await call(base,'/api/documents')).status,200);
-  assert.equal((await (await call(base,'/api/documents')).json()).documents.length,0);
+  assert.equal((await (await call(base,'/api/documents')).json()).length,0);
  }finally{server.close();rmSync(dir,{recursive:true,force:true});}
 });
 
