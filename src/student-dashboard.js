@@ -87,11 +87,15 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
   for (const selector of toolsByRoute[view] ?? []) {
    const node = site.querySelector(selector);
    const placeholder = document.createComment('Dashboard tool');
+   if (!node) continue;
    node.replaceWith(placeholder);
    parked.set(node, placeholder);
    panel.append(node);
   }
-  if (view === 'assessments') panel.querySelector('.local-workflow').open = true;
+  if (view === 'assessments') {
+   const workflow = panel.querySelector('.local-workflow');
+   if (workflow) workflow.open = true;
+  }
  }
  function renderHome() {
   const {documents, assessment} = getStatus();
@@ -168,8 +172,9 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
     const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
     const link = document.createElement('a');
     link.href = url; link.download = 'bursyar-my-data.json';
-    link.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    document.body.append(link);
+    try { link.click(); }
+    finally { link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
     status.textContent = t.exported;
    } catch (error) { status.textContent = t[error.code] ?? t.privacyError; }
    finally { exportButton.disabled = false; }
@@ -210,11 +215,13 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
    originalAccount.append(accountControls);
    if (wasOpen) {
     const target = document.getElementById(location.hash.slice(1)) ?? site.querySelector('#top');
-    const disclosure = target.closest('details');
-    if (disclosure) disclosure.open = true;
-    target.tabIndex = -1;
-    target.focus({preventScroll:true});
-    target.scrollIntoView({block:'start'});
+    if (target) {
+     const disclosure = target.closest('details');
+     if (disclosure) disclosure.open = true;
+     target.tabIndex = -1;
+     target.focus({preventScroll:true});
+     target.scrollIntoView({block:'start'});
+    }
    }
    return;
   }
@@ -244,8 +251,10 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
   if (link.hash === '#dashboard-title' || (view === 'assessments' && link.hash === '#eligibility-mount')) {
    event.preventDefault();
    const target = root.querySelector(link.hash);
-   target.tabIndex = -1;
-   target.focus();
+   if (target) {
+    target.tabIndex = -1;
+    target.focus({preventScroll:true});
+   }
   }
  });
  return {sync, update() {
