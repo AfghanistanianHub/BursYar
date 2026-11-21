@@ -24,6 +24,7 @@ export const verificationCopy = {
   empty: 'No verification requests yet.',
   withdraw: 'Withdraw',
   withdrawn: 'Request withdrawn.',
+  uncertain: 'The response was lost. Your request may have been recorded. Refresh the list before trying again.',
   verifiedLocked: 'A result confirmed by the issuer cannot be withdrawn.',
   requested: 'Requested',
   confirmedOn: 'Confirmed on',
@@ -68,6 +69,7 @@ export const verificationCopy = {
   empty: 'هنوز درخواست تأییدی ثبت نشده است.',
   withdraw: 'انصراف از درخواست',
   withdrawn: 'درخواست لغو شد.',
+  uncertain: 'پاسخ سرور دریافت نشد؛ ممکن است درخواست ثبت شده باشد. پیش از تلاش دوباره، فهرست را تازه کنید.',
   verifiedLocked: 'نتیجهٔ تأییدشده توسط صادرکننده قابل لغو نیست.',
   requested: 'تاریخ درخواست',
   confirmedOn: 'تاریخ تأیید',
@@ -112,6 +114,7 @@ export const verificationCopy = {
   empty: 'تر اوسه د تایید غوښتنه نشته.',
   withdraw: 'غوښتنه پرېږدئ',
   withdrawn: 'غوښتنه لغوه شوه.',
+  uncertain: 'د سرور ځواب ترلاسه نه شو؛ ښايي غوښتنه ثبت شوې وي. تر بیا هڅې مخکې لړ تازه کړئ.',
   verifiedLocked: 'د صادرونکي تاییدشوی پایله لغوه کېدلی نشي.',
   requested: 'د غوښتنې نېټه',
   confirmedOn: 'د تایید نېټه',
@@ -209,11 +212,12 @@ export async function mountVerifications(root, language = 'en') {
 
  function paintProvider() {
   const selected = providers.find(provider => provider.id === providerSelect.value);
-  if (!selected) { official.hidden = true; accessText.textContent = ''; return; }
+  if (!selected) { official.hidden = true; accessText.textContent = ''; reference.placeholder = ''; submit.disabled = true; return; }
   official.hidden = false;
   official.href = selected.officialUrl;
   accessText.textContent = `${t.access[selected.access] ?? ''} `;
   reference.placeholder = selected.referenceLabel ?? '';
+  submit.disabled = inFlight || !documents.length || !providers.length;
   referenceField.hidden = false;
  }
  async function api(path, method = 'GET', body) {
@@ -289,6 +293,7 @@ export async function mountVerifications(root, language = 'en') {
    option.textContent = `${index + 1} · ${format.format(new Date(item.uploadedAt))}`;
    documentSelect.append(option);
   });
+  submit.disabled = !providers.length;
  }
  async function busy(action) {
   if (inFlight) return;
@@ -296,12 +301,12 @@ export async function mountVerifications(root, language = 'en') {
   section.setAttribute('aria-busy', 'true');
   for (const button of section.querySelectorAll('button')) button.disabled = true;
   try { await action(); }
-  catch (error) { status.textContent = t[error.code] ?? t.error; }
+  catch (error) { status.textContent = error.code === 'mutationUncertain' ? t.uncertain : (t[error.code] ?? t.error); }
   finally {
    inFlight = false;
    section.removeAttribute('aria-busy');
    for (const button of section.querySelectorAll('button')) button.disabled = false;
-   submit.disabled = !documents.length;
+   submit.disabled = !documents.length || !providers.length;
   }
  }
  providerSelect.addEventListener('change', paintProvider);
@@ -313,7 +318,7 @@ export async function mountVerifications(root, language = 'en') {
  form.addEventListener('submit', event => {
   event.preventDefault();
   busy(async () => {
-   if (!documentSelect.value || !providerSelect.value) return;
+   if (!documentSelect.value || !providerSelect.value) { status.textContent = t.error; return; }
    if (!consent.checked) {
     consent.setAttribute('aria-invalid', 'true');
     status.textContent = t.consentRequired;
