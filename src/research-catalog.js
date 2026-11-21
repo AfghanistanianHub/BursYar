@@ -54,13 +54,13 @@ export const RESEARCH_RECHECK_DAYS=30;
 export function researchCheckedOn(row){return isoDay(row?.lastCheckedAt);}
 export function researchFreshness(row,now=new Date()) {
  const value=researchCheckedOn(row);
- if(!value)return 'unknown';
+ if(!value||!Number.isFinite(now?.getTime?.()))return 'unknown';
  const age=Math.floor((now.getTime()-Date.parse(value+'T00:00:00Z'))/86400000);
  if(!Number.isFinite(age)||age<0)return 'unknown';
  return age>RESEARCH_RECHECK_DAYS?'stale':'fresh';
 }
 // Normalize search only; keep displayed titles and evidence unchanged.
-const searchText=value=>value.normalize('NFKC').toLocaleLowerCase().replace(/[يى]/gu,'ی').replace(/ك/gu,'ک').replace(/[\u064b-\u065f\u0670\u0640]/gu,'').replace(/[\u200c\u200d]/gu,' ');
+const searchText=value=>String(value??'').normalize('NFKC').toLocaleLowerCase().replace(/[يى]/gu,'ی').replace(/ك/gu,'ک').replace(/[\u064b-\u065f\u0670\u0640]/gu,'').replace(/[\u200c\u200d]/gu,' ');
 // Pure discovery filters; no student data, eligibility score, or exclusion for
 // missing credentials. "No IELTS" never means no English requirement.
 export function filterResearch(rows,{q='',country='all',degree='all',funding='all',noFee=false,noIelts=false,hidePast=false}={},now=new Date()) {
