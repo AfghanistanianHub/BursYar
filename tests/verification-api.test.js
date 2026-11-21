@@ -128,6 +128,20 @@ test('lost response retry returns the existing request, not a duplicate',async()
  }finally{server.close();rmSync(dir,{recursive:true,force:true});}
 });
 
+test('concurrent verification submissions preserve one active request per document and issuer',async()=>{
+ const {dir,documents,verifications,server}=fixture();
+ const base=await listen(server);
+ try{
+  const doc=documents.upload('alice',{text:'Transcript',mime:'text/plain',consent:true});
+  const body={documentId:doc.id,providerId:'ielts',consent:true,reference:'TRF-CONCURRENT'};
+  const responses=await Promise.all(Array.from({length:8},()=>call(base,'/api/verifications',{method:'POST',body})));
+  for(const response of responses) assert.ok([200,201].includes(response.status),`Unexpected HTTP status ${response.status}`);
+  const records=await Promise.all(responses.map(response=>response.json()));
+  assert.equal(new Set(records.map(record=>record.id)).size,1);
+  assert.equal(verifications.list('alice').requests.length,1);
+ }finally{server.close();rmSync(dir,{recursive:true,force:true});}
+});
+
 test('verification routes report unavailable instead of pretending to work',async()=>{
  const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-off-'));
  const documents=new DocumentStore(join(dir,'documents.db'));
