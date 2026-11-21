@@ -8,12 +8,12 @@ import {VerificationStore,createVerificationService} from '../engine/verificatio
 import {createInferenceServer} from '../engine/http.js';
 
 const origin='http://localhost';
-function fixture(){
+function fixture({maxConcurrent=2}={}){
  const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-api-'));
  const documents=new DocumentStore(join(dir,'documents.db'));
  const verifications=createVerificationService({store:new VerificationStore(join(dir,'verifications.db')),documents});
  const server=createInferenceServer({
-  projectId:'demo-bursyar',origin,documents,verifications,
+  projectId:'demo-bursyar',origin,documents,verifications,maxConcurrent,
   quota:{reserve(){throw Error('verification routes must never reserve inference');}},
   infer:async()=>{throw Error('verification routes must never call a model');},
   verify:async token=>{
@@ -129,7 +129,7 @@ test('lost response retry returns the existing request, not a duplicate',async()
 });
 
 test('concurrent verification submissions preserve one active request per document and issuer',async()=>{
- const {dir,documents,verifications,server}=fixture();
+ const {dir,documents,verifications,server}=fixture({maxConcurrent:16});
  const base=await listen(server);
  try{
   const doc=documents.upload('alice',{text:'Transcript',mime:'text/plain',consent:true});
