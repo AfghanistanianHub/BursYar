@@ -38,7 +38,20 @@ export function mountResearchExplorer(root,language='en') {
    }).join('')}</div>${rows.length?'':`<p class="empty-note">${esc(t.empty)}</p>`}</section>`;
   const newSearch=root.querySelector('#research-search');
   if(existingSearch){newSearch.replaceWith(existingSearch);existingSearch.value=state.q;}
-  else newSearch.addEventListener('input',event=>{state.q=event.target.value;render('research-search',event.target.selectionStart);});
+  else {
+   let composing=false;
+   newSearch.addEventListener('compositionstart',()=>{composing=true;});
+   newSearch.addEventListener('compositionend',event=>{
+    composing=false;
+    state.q=event.target.value;
+    render('research-search',event.target.selectionStart);
+   });
+   newSearch.addEventListener('input',event=>{
+    state.q=event.target.value;
+    if(composing||event.isComposing)return;
+    render('research-search',event.target.selectionStart);
+   });
+  }
   for(const key of ['country','degree','funding'])root.querySelector('#research-'+key).addEventListener('change',event=>{state[key]=event.target.value;render('research-'+key);});
   for(const [id,key] of [['no-fee','noFee'],['no-ielts','noIelts'],['hide-past','hidePast'],['saved-only','savedOnly']])root.querySelector('#research-'+id).addEventListener('change',event=>{state[key]=event.target.checked;render('research-'+id);});
   root.querySelectorAll('[data-research-save]').forEach(button=>button.addEventListener('click',()=>{
