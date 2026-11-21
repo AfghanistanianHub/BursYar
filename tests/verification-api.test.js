@@ -99,6 +99,35 @@ test('verification API is authenticated, consent-gated and cannot self-verify',a
  }finally{server.close();rmSync(dir,{recursive:true,force:true});}
 });
 
+test('lost response retry returns the existing request, not a duplicate',async()=>{
+ const {dir,documents,verifications,server}=fixture();
+ const base=await listen(server);
+ try{
+  const doc=documents.upload('alice',{text:'Transcript for verification',mime:'text/plain',consent:true});
+  const body={documentId:doc.id,providerId:'ielts',consent:true,reference:'TRF-2026'};
+  const first=await call(base,'/api/verifications',{method:'POST',body});
+  assert.equal(first.status,201);
+  const firstRecord=await first.json();
+  // Simulate a lost client response by repeating the exact POST.
+  const retry=await call(base,'/api/verifications',{method:'POST',body});
+  assert.ok([200,201].includes(retry.status));
+  const retried=await retry.json();
+  assert.equal(retried.id,firstRecord.id);
+  assert.equal(verifications.list('alice').requests.length,1);
+  // A different issuer must remain an independent request.
+  const other=await call(base,'/api/verifications',{method:'POST',body:{...body,providerId:'toefl'}});
+  assert.equal(other.status,201);
+  assert.notEqual((await other.json()).id,firstRecord.id);
+  assert.equal(verifications.list('alice').requests.length,2);
+  // Once withdrawn, a new request is permitted and gets a new identity.
+  assert.equal((await call(base,`/api/verifications/${firstRecord.id}`,{method:'DELETE'})).status,200);
+  const replacement=await call(base,'/api/verifications',{method:'POST',body});
+  assert.equal(replacement.status,201);
+  assert.notEqual((await replacement.json()).id,firstRecord.id);
+  assert.equal(verifications.list('alice').requests.length,2);
+ }finally{server.close();rmSync(dir,{recursive:true,force:true});}
+});
+
 test('verification routes report unavailable instead of pretending to work',async()=>{
  const dir=mkdtempSync(join(tmpdir(),'bursyar-verify-off-'));
  const documents=new DocumentStore(join(dir,'documents.db'));
