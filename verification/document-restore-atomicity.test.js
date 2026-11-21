@@ -66,3 +66,16 @@ test('snapshot restore rejects malformed edit history before restoring documents
   assert.deepEqual(target.list('alice'),[]);
  }finally{source.close();target.close();}
 });
+
+test('snapshot restore rejects text tampering when SHA-256 no longer matches',()=>{
+ const source=DocumentStore.memory(),target=DocumentStore.memory();
+ try{
+  upload(source,'alice','Degree: bachelor');
+  const state=source.snapshot('alice');
+  const changed=JSON.parse(state.documents[0].data);
+  changed.text='Degree: doctorate';
+  state.documents[0].data=JSON.stringify(changed);
+  unavailable(()=>target.restore('alice',state));
+  assert.deepEqual(target.list('alice'),[]);
+ }finally{source.close();target.close();}
+});
