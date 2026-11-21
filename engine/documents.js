@@ -30,13 +30,13 @@ export class DocumentStore {
    documents=state.documents.map(row=>{
     if(!row||typeof row.id!=='string'||!/^[a-f0-9-]{36}$/.test(row.id)||typeof row.data!=='string')throw Error('Invalid document');
     const value=JSON.parse(row.data);
-    if(!value||typeof value!=='object'||Array.isArray(value)||value.id!==row.id)throw Error('Invalid document');
+    if(!value||typeof value!=='object'||Array.isArray(value)||value.id!==row.id||typeof value.text!=='string'||typeof value.sha256!=='string'||!Array.isArray(value.pending))throw Error('Invalid document');
     return row;
    });
    if(new Set(documents.map(row=>row.id)).size!==documents.length)throw Error('Duplicate document');
    profile=state.profile===null?null:JSON.parse(state.profile);
    if(profile!==null&&(!profile||typeof profile!=='object'||Array.isArray(profile)))throw Error('Invalid profile');
-   history=state.history.map(item=>{if(typeof item!=='string')throw Error('Invalid history');JSON.parse(item);return item;});
+   history=state.history.map(item=>{if(typeof item!=='string')throw Error('Invalid history');const entry=JSON.parse(item);if(!entry||typeof entry!=='object'||Array.isArray(entry)||!Array.isArray(entry.fields)||!entry.previous||typeof entry.previous!=='object'||Array.isArray(entry.previous))throw Error('Invalid history');return item;});
   }catch{throw new DocumentError(503);}
   this.db.exec('BEGIN IMMEDIATE');
   try{
