@@ -4,6 +4,18 @@ Source audit: `BursYar — Independent Expert Audit` (21 November 2026), 25 find
 Working branch: `work/restore-approved-ai-studio-hero`. Production is **unchanged**
 by this work: nothing has been merged, promoted or redeployed.
 
+## Deployment reality (verified 21 November 2026)
+
+| Artefact | Commit | Evidence |
+|---|---|---|
+| Working branch `work/restore-approved-ai-studio-hero` | `6a20b1f` | `git log` after the push |
+| Production frontend `bursyar.vercel.app` | `2162be3` (deployment `dpl_7DaAvqwXK5JaMyhvjnE7gm1FH9b8`) | last promoted Vercel deployment record; the hostname still answers `302` to `vercel.com/sso-api`, so its content cannot be inspected |
+| Backend `bursyar-api.onrender.com` | `7dbd75f` | `GET /health` → `capabilities.build.commit = 7dbd75f6889ea09e96c129831bec40c463b6e64e` |
+
+Three different commits. Code on the branch is not a release, so every finding
+whose acceptance depends on a deployment or an access-policy change is recorded
+as **BLOCKED** here, whatever its code state.
+
 Status vocabulary: `OPEN → IN PROGRESS → IMPLEMENTED → VERIFIED`, plus `BLOCKED`.
 `VERIFIED` requires a reproduced check, not a code change.
 
@@ -12,7 +24,7 @@ Status vocabulary: `OPEN → IN PROGRESS → IMPLEMENTED → VERIFIED`, plus `BL
 | BY-01 | P0 | **BLOCKED** (owner) | Deployment protection is a Vercel project setting; this worktree has no credentials and changing it needs explicit owner approval. A release smoke check was added so a release fails if `/` is not 200 without cookies. | `scripts/release-smoke.mjs` |
 | BY-02 | P0 | IMPLEMENTED | `GET /api/me` capability probe; `403 {code:'account_not_enrolled'}` distinct from `401`; sign-in block explains the closed pilot, offers “Check again”, and an optional `VITE_ACCESS_REQUEST_URL`. The `bursyarDemo` gate was **not** removed. | `engine/auth.js`, `engine/http.js`, `src/auth.js`, `src/sign-in-action.js`, `tests/account-capability.test.js` |
 | BY-03 | P0 | **VERIFIED** | Stale timeout tests aligned to the hardened contract; falsy-body test added; missing `GET /api/verifications/:id` implemented (was the 405); CI runs on every branch and runs `npm audit --omit=dev`. | `npm test` exit 0; `npm run test:evaluation` exit 0; `.github/workflows/web-checks.yml` |
-| BY-04 | P0 | IMPLEMENTED | `main` merged into the branch (0 behind / 93 ahead); three behavioural conflicts resolved; one release candidate commit; `RELEASE.md` manifest. | merge commit, `RELEASE.md` |
+| BY-04 | P0 | **BLOCKED** (deployment) | Repository side is reconciled: `main` merged into the branch (`0b62a79`), branch 0 behind / 96 ahead of `main`, one candidate (`6a20b1f`) and a `RELEASE.md` manifest. The finding is **not** resolved: the deployed artefacts still differ — branch `6a20b1f`, Production frontend `2162be3`, backend `7dbd75f`. Merging to `main`, promoting Production and redeploying the backend all require owner approval, so acceptance (“Production and `/health` report the same commit”) cannot be met here. | `git rev-list --left-right --count`, `RELEASE.md`, `curl /health`, `scripts/release-smoke.mjs` |
 | BY-05 | P1 | IMPLEMENTED | First-request budget 60 s; timeouts and 503s map to “service is starting / temporarily unavailable”, never to an account diagnosis; profile uses the same bounded request path. | `src/document-request.js`, `src/profile-form.js` |
 | BY-06 | P1 | **VERIFIED** | Signed-out document panel mounts the in-panel sign-in action before any upload; file input and upload are disabled; extraction cannot start. | browser: `.sign-in-action` present, upload `disabled` |
 | BY-07 | P1 | IMPLEMENTED | Browser-session persistence by default, explicit “Keep me signed in” opt-in to local persistence, redirect fallback for blocked popups, redirect result consumed on load, sign-out clears the preference. | `src/auth.js`, `src/sign-in-action.js` |
@@ -33,7 +45,7 @@ Status vocabulary: `OPEN → IN PROGRESS → IMPLEMENTED → VERIFIED`, plus `BL
 | BY-22 | P2 | IMPLEMENTED | `<noscript>` explains the JavaScript requirement and offers a help path. | `index.html` (markup verified; visual rendering not) |
 | BY-23 | P2 | OPEN | Dashboard still teleports panel nodes. | — |
 | BY-24 | P2 | IMPLEMENTED | Remaining document slots shown, upload disabled at the limit with an explicit message. | `src/documents.js` |
-| BY-25 | P2 | **VERIFIED** | `render.yaml` already describes the API service (build/start command, health check, every secret `sync: false`); `RELEASE.md` records the deployed backend SHA separate from the frontend. | `render.yaml`, `RELEASE.md` |
+| BY-25 | P2 | **BLOCKED** (deployment) | Repository side is done: `render.yaml` already describes the API service (build/start command, health check, every secret `sync: false`) and `RELEASE.md` records the frontend and backend SHAs separately. Reproducibility is still unproven, because the running backend is `7dbd75f` deployed by hand — no deploy has yet been made *from* this manifest, so the procedure is untested rather than verified. | `render.yaml`, `RELEASE.md`, `curl /health` |
 
 ## Checks run for this register
 
@@ -43,5 +55,8 @@ Status vocabulary: `OPEN → IN PROGRESS → IMPLEMENTED → VERIFIED`, plus `BL
 - Browser (Cloud browser, dev server): target sizes, duplicate destinations,
   `<h1>` count, signed-out document gate, Farsi RTL, axe WCAG 2.0/2.1/2.2 A+AA
   (0 violations in English and Farsi), horizontal overflow at 320/390/768/1440.
+- Deployment facts re-checked on 21 November 2026 after the push: the branch is
+  `6a20b1f`, `/health` still reports `7dbd75f`, and the production hostname still
+  redirects to SSO. No deployment was performed in this batch.
 - Not verified: signed-in journeys (no enrolled account), Production behaviour
   (still behind SSO), real OCR quality, native translation quality, thumb test.
