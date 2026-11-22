@@ -48,6 +48,7 @@ export function mountJourney(root,language='en'){
    return true;
   };
   if(reveal())return;
+  document.dispatchEvent(new Event('bursyar:open-offline-workflow'));
   // Opening the workspace triggers its lazy module loader. Without this,
   // the shortcut can wait forever when the workspace is below the viewport.
   const workspace=document.querySelector('details.workspace');
