@@ -42,7 +42,7 @@ try {
  server=createInferenceServer({policyContextForRequest,documents,projectId,origin:'http://localhost:5173',verify:token=>auth.verifyIdToken(token,true),quota,infer:async()=>{calls++;return JSON.stringify(inference);},maxConcurrent:10});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const post=(token,extra={})=>fetch(`http://127.0.0.1:${server.address().port}/api/analyze`,{method:'POST',headers:{'content-type':'application/json',...(token?{authorization:`Bearer ${token}`}:{})},body:JSON.stringify({text:source,sourceUrl:'https://example.edu/scholarship',language:'ps',...extra})});
- assert.equal((await post()).status,401);assert.equal((await post(unapproved.idToken)).status,401);checks+=2;
+ assert.equal((await post()).status,401);assert.equal((await post(unapproved.idToken)).status,403,'valid but unenrolled pilot accounts must be forbidden');checks+=2;
  const responses=await Promise.all([post(a.idToken),post(a.idToken,{uid:b.localId}),post(a.idToken,{quota:{used:0}})]);
  assert.equal(responses.filter(r=>r.status===200).length,1);assert.equal(responses.filter(r=>r.status===429).length,2);assert.equal(calls,1);checks+=3;
  assert.equal((await post(b.idToken)).status,200);assert.equal(calls,2);checks++;
