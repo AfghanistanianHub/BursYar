@@ -206,10 +206,12 @@ unreachable `/health` says nothing about whether commits agree. The SSO line
 still fails, so a hidden production cannot be reported as parity. Likewise a
 missing stamp fails with the rebuild instruction rather than passing.
 
-**Known rough edge.** The `/health` probe has no client timeout, and the free
-Render plan sleeps. Warm the service first
-(`curl -m 75 https://bursyar-api.onrender.com/health`), then run the smoke; a
-bounded timeout in the script would be a small follow-up, not a release blocker.
+**Bounded probe.** The `/health` probe gives up after 45 seconds
+(`BURSYAR_SMOKE_HEALTH_TIMEOUT_MS` changes it) and fails with `no answer within …
+ms` instead of blocking on a sleeping free-plan instance; a timed-out probe is
+reported as unmeasurable parity, never as a commit mismatch. Warming the service
+with `curl -m 75 https://bursyar-api.onrender.com/health` before a release is
+still worth the ten seconds.
 
 ## 6. Pre-flight blockers before any release window
 

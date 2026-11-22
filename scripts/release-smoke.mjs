@@ -18,6 +18,9 @@
 // whether the commits agree. The SSO redirect itself is still a failure (BY-01),
 // so the exit code stays honest.
 //
+// The /health probe is bounded (BURSYAR_SMOKE_HEALTH_TIMEOUT_MS, default 45 s), so
+// a sleeping free-plan instance fails the check instead of hanging it.
+//
 // No secret is printed. Exit code 0 only when every check passes.
 import {readFileSync} from 'node:fs';
 
@@ -26,6 +29,8 @@ const base=(process.argv[2]??process.env.BURSYAR_RELEASE_URL??DEFAULT_BASE).repl
 const isProduction=base===DEFAULT_BASE;
 const bypass=process.env.BURSYAR_BYPASS_TOKEN;
 const headers=bypass?{'x-vercel-protection-bypass':bypass}:{};
+const healthTimeoutMs=Number(process.env.BURSYAR_SMOKE_HEALTH_TIMEOUT_MS??45000);
+const isTimeout=error=>error?.name==='TimeoutError'||/timed?\s?out|abort/i.test(error?.message??'');
 const failures=[];
 const unmeasurable=[];
 const record=(ok,message)=>{console.log(`${ok?'PASS':'FAIL'} ${message}`);if(!ok)failures.push(message);};
@@ -43,8 +48,8 @@ function readManifest(){
  }
 }
 
-async function get(path){
- const response=await fetch(base+path,{redirect:'manual',headers});
+async function get(path,{timeoutMs}={}){
+ const response=await fetch(base+path,{redirect:'manual',headers,...(timeoutMs?{signal:AbortSignal.timeout(timeoutMs)}:{})});
  return {status:response.status,location:response.headers.get('location')??'',type:response.headers.get('content-type')??'',text:path==='/'?await response.text():''};
 }
 
@@ -71,15 +76,24 @@ try{
  }
 
  let backendCommit='';
- const health=await get('/health');
- record(health.status===200,`GET /health → ${health.status}`);
- if(health.status===200){
-  const body=await fetch(base+'/health',{headers}).then(r=>r.json()).catch(()=>null);
-  backendCommit=body?.capabilities?.build?.commit??body?.commit??'';
-  record(typeof backendCommit==='string'&&Boolean(backendCommit),`backend reports a build commit (${backendCommit||'none'})`);
-  if(backendCommit)console.log(`INFO backend commit ${backendCommit}`);
- }else{
-  skip('/health unmeasurable: the first request may be a cold start; retry once before failing a release.');
+ let health=null;
+ try{
+  health=await get('/health',{timeoutMs:healthTimeoutMs});
+ }catch(error){
+  if(!isTimeout(error))throw error;
+  record(false,`GET /health → no answer within ${healthTimeoutMs} ms`);
+  skip(`/health unmeasurable: the probe timed out after ${healthTimeoutMs} ms, so the backend commit cannot be read. The free Render plan sleeps; warm the service and re-run before reading this as a commit mismatch.`);
+ }
+ if(health){
+  record(health.status===200,`GET /health → ${health.status}`);
+  if(health.status===200){
+   const body=await fetch(base+'/health',{headers,signal:AbortSignal.timeout(healthTimeoutMs)}).then(r=>r.json()).catch(()=>null);
+   backendCommit=body?.capabilities?.build?.commit??body?.commit??'';
+   record(typeof backendCommit==='string'&&Boolean(backendCommit),`backend reports a build commit (${backendCommit||'none'})`);
+   if(backendCommit)console.log(`INFO backend commit ${backendCommit}`);
+  }else{
+   skip('/health unmeasurable: the first request may be a cold start; retry once before failing a release.');
+  }
  }
 
  if(frontendCommit&&backendCommit){
