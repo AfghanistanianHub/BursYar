@@ -346,6 +346,15 @@ function revealHashTarget(){
  const holders=[target.closest('details')];
  if(target.children.length===1&&target.firstElementChild.tagName==='DETAILS')holders.push(target.firstElementChild);
  for(const details of holders)if(details)details.open=true;
+ // A hashchange can target an already-mounted section; native anchor scrolling
+ // happens before a closed disclosure is revealed, leaving its heading off-screen.
+ if(id==='eligibility-mount'){
+  requestAnimationFrame(()=>{
+   if(location.hash==='#eligibility-mount'){
+    document.querySelector('#eligibility-heading')?.scrollIntoView({behavior:'instant',block:'start'});
+   }
+  });
+ }
 }
 window.addEventListener('hashchange',()=>{applyTaskRoute();revealHashTarget();if(isDashboardRoute(location.hash))ensureMount('dashboard');dashboard?.sync(signedIn,true);});
 // Re-selecting a link whose hash is already current fires no hashchange, so the
