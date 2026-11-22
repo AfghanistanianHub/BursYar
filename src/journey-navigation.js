@@ -37,7 +37,30 @@ export function mountJourney(root,language='en'){
   for(const [,id] of links){const section=document.getElementById(id);if(section)spy.observe(section);}
  }
  nav.append(list);
- const offline=document.createElement('button');offline.type='button';offline.className='journey-offline';offline.textContent=t.offline;offline.addEventListener('click',()=>{const panel=document.querySelector('.local-workflow');if(!panel)return;for(const [a] of links)a.removeAttribute('aria-current');panel.open=true;panel.scrollIntoView({block:'start'});panel.querySelector('summary')?.focus();});nav.append(offline);
+ const offline=document.createElement('button');offline.type='button';offline.className='journey-offline';offline.textContent=t.offline;offline.addEventListener('click',()=>{
+  const reveal=()=>{
+   const panel=document.querySelector('.local-workflow');
+   if(!panel)return false;
+   for(const [a] of links)a.removeAttribute('aria-current');
+   panel.open=true;
+   panel.scrollIntoView({block:'start'});
+   panel.querySelector('summary')?.focus();
+   return true;
+  };
+  if(reveal())return;
+  // Workspace modules mount asynchronously. Preserve an early user click rather
+  // than silently discarding it while the offline workflow is still loading.
+  offline.disabled=true;
+  const observer=new MutationObserver(()=>{
+   if(!reveal())return;
+   observer.disconnect();
+   clearTimeout(timeout);
+   offline.disabled=false;
+  });
+  observer.observe(document.querySelector('#local-workflow-mount')??document.body,{childList:true,subtree:true});
+  const timeout=setTimeout(()=>{observer.disconnect();offline.disabled=false;},8000);
+  if(reveal()){observer.disconnect();clearTimeout(timeout);offline.disabled=false;}
+ });nav.append(offline);
  const note=document.createElement('p');note.textContent=t.note;note.className='journey-note';nav.append(note);
  root.replaceChildren(nav);
 }
