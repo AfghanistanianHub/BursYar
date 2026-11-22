@@ -88,6 +88,8 @@ function mountEligibilityNow(){
  }).catch(error=>recordClientError('mount_eligibility',error));
  return eligibilityQueue;
 }
+// The offline CTA lives above the fold while its workflow is lazy-loaded.
+document.addEventListener('bursyar:open-offline-workflow',()=>{void ensureMount('workspace');});
 function wireLazyMounts(){
  mountObserver?.disconnect();
  const regions=[['#workspace-overview','overview'],['#local-workflow-mount','workspace'],['#eligibility-mount','eligibility'],['#assistant','analysis']];
