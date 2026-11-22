@@ -46,6 +46,9 @@ try {
     export async function signIn(){update({uid:${JSON.stringify(student)}});}
     export async function signOut(){update(null);}
     export async function getInferenceToken(){if(!user)throw Error('Sign in required');return user.uid;}
+    export async function getAccountCapability(){return {authenticated:!!user,enrolled:!!user,enrollment:user?'pilot':'closed_pilot'};}
+    export function keepSignedIn(){return false;}
+    export function setKeepSignedIn(){}
   `}));
   await page.route('**/api/**',async route=>{
     const request = route.request();
