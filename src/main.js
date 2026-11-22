@@ -334,7 +334,7 @@ function revealHashTarget(){
    // Scroll again only for the still-active destination after content is inserted.
    requestAnimationFrame(()=>{
     if(location.hash==='#eligibility-mount'){
-     document.querySelector('#eligibility-heading')?.scrollIntoView({block:'start'});
+     document.querySelector('#eligibility-heading')?.scrollIntoView({behavior:'instant',block:'start'});
     }
    });
   });
