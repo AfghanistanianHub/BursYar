@@ -52,6 +52,10 @@ export function researchDeadlineState(row,now=new Date()) {
 // not read as current: anything outside this window is labelled stale.
 export const RESEARCH_RECHECK_DAYS=30;
 export function researchCheckedOn(row){return isoDay(row?.lastCheckedAt);}
+// Who read the source is part of the claim: an automated fetch must never be
+// presented as a human check. Unknown provenance is dropped, not guessed.
+export const RESEARCH_CHECK_SOURCES=Object.freeze(['human_source_check','automated_source_read']);
+export function researchCheckedBy(row){const value=row?.lastCheckedBy;return RESEARCH_CHECK_SOURCES.includes(value)?value:null;}
 export function researchFreshness(row,now=new Date()) {
  const value=researchCheckedOn(row);
  if(!value||!Number.isFinite(now?.getTime?.()))return 'unknown';
@@ -87,6 +91,6 @@ export function saveResearchIds(storage,ids,rows=researchScholarships) {
 export function exportResearchSaved(ids,rows=researchScholarships,now=new Date()) {
  const known=new Set(knownIds(ids,rows));
  return {format:'bursyar-public-research-v1',exportedAt:Number.isFinite(now?.getTime?.())?now.toISOString():null,verification:'needs_reverification',entries:rows.filter(row=>known.has(row.id)).map(row=>({
-  id:row.id,title:row.title,provider:row.provider,country:row.country,degrees:[...row.degrees],sourceUrl:researchSourceUrl(row.sourceUrl),lastCheckedAt:researchCheckedOn(row),deadline:researchDeadlineOn(row),reviewStatus:'needs_reverification'
+  id:row.id,title:row.title,provider:row.provider,country:row.country,degrees:[...row.degrees],sourceUrl:researchSourceUrl(row.sourceUrl),lastCheckedAt:researchCheckedOn(row),lastCheckedBy:researchCheckedBy(row),deadline:researchDeadlineOn(row),reviewStatus:'needs_reverification'
  }))};
 }

@@ -5,10 +5,11 @@ Scope: the 12 public leads in `src/research-data.js` (BY-08). Each row's
 programme description recorded in the catalog were compared with what the
 official page states on that date.
 
-This record is evidence of a **source read**, not a refresh of the export's
-provenance. `lastCheckedAt` is labelled in the interface (`checked`) as the
-“export's recorded check date” in English, Dari and Pashto, so it is left
-unchanged: an automated fetch must not be recorded as a human check.
+This record is evidence of a **source read**, not a live verification or an
+eligibility decision. Each row now carries `lastCheckedBy: 'automated_source_read'`
+alongside `lastCheckedAt: '2026-11-22'`, so the interface can show what kind of
+check produced the date; no row is presented as a human check or as currently
+verified.
 
 | ID | Catalog deadline | What the official page states | Verdict |
 |---|---|---|---|
@@ -34,11 +35,16 @@ unchanged: an automated fetch must not be recorded as a human check.
   deadline (6 January 2027), and NYU Abu Dhabi's dates are printed without a cycle
   year. Neither is recorded as a fact.
 
-## What this does not change
+## Provenance of the refreshed dates
 
-The catalog's check dates stay at October 2026, so every row continues to render
-the “check date is older than the recheck window” label. Clearing that label
-requires the owner to accept a check date whose provenance is explicitly
-automated, for example by adding a `lastCheckedBy` field and refreshing
-`lastCheckedAt` together, plus the interface copy that explains it in en/fa/ps.
-That is a product decision, not a data edit.
+`lastCheckedAt` now reads `2026-11-22` for all 12 rows, and `lastCheckedBy`
+records `automated_source_read` for each one. The card labels the date “Last
+checked” and adds an automated-read warning in en, fa and ps; the JSON export
+carries the validated provenance next to the date. Rows keep
+`reviewStatus: needs_reverification`, and the 30-day freshness window still
+marks every check stale after 21 December 2026, so the date cannot read as a
+permanent clearance.
+
+What is still not claimed: the automated read did not assess eligibility,
+funding conditions or language requirements, and the fa/ps provenance strings
+remain UNREVIEWED pending a fluent reviewer (BY-21).

@@ -54,6 +54,7 @@ test('export contains only public metadata with honest verification labels', () 
  assert.equal(data.entries.length,1);
  assert.ok(!JSON.stringify(data).includes('SECRET'));
  assert.equal(data.entries[0].title,'Award');
+ assert.equal(data.entries[0].lastCheckedBy,null); // Unknown provenance is dropped, never guessed.
 });
 
 test('recorded check dates expire instead of reading as current',()=>{
@@ -64,13 +65,19 @@ test('recorded check dates expire instead of reading as current',()=>{
  assert.equal(catalog.researchFreshness({lastCheckedAt:'2026-10-20'},now),'stale');
  for(const value of [undefined,null,'','2026-02-30','not a date','2026-12-01'])assert.equal(catalog.researchFreshness({lastCheckedAt:value},now),'unknown',String(value));
  assert.equal(catalog.researchCheckedOn({}),null);
+ assert.equal(catalog.researchCheckedBy({lastCheckedBy:'human_source_check'}),'human_source_check');
+ assert.equal(catalog.researchCheckedBy({lastCheckedBy:'automated_source_read'}),'automated_source_read');
+ for(const value of [undefined,null,'','someone','AUTOMATED_SOURCE_READ',42])assert.equal(catalog.researchCheckedBy({lastCheckedBy:value}),null,String(value));
 });
 
-test('the shipped export is older than the recheck window and cannot read as fresh',()=>{
- const now=new Date('2026-11-20T00:00:00Z');
+test('the shipped export records an automated re-check that still ages out',()=>{
+ const now=new Date('2026-11-22T00:00:00Z');
  for(const row of catalog.researchScholarships){
   assert.equal(catalog.researchCheckedOn(row),row.lastCheckedAt,row.id);
-  assert.equal(catalog.researchFreshness(row,now),'stale',row.id); // 33–40 days old on 2026-11-20.
+  assert.equal(row.lastCheckedAt,'2026-11-22',row.id);
+  assert.equal(catalog.researchCheckedBy(row),'automated_source_read',row.id);
+  assert.equal(catalog.researchFreshness(row,now),'fresh',row.id);
+  assert.equal(catalog.researchFreshness(row,new Date('2026-12-23T00:00:00Z')),'stale',row.id); // 31 days.
  }
 });
 
@@ -80,8 +87,10 @@ test('stale checks are labelled in the explorer and exports keep only validated 
  assert.match(explorer,/researchCheckedOn\(row\)/);
  assert.match(explorer,/researchFreshness\(row\)/);
  assert.match(explorer,/data-freshness="stale"/);
+ assert.match(explorer,/researchCheckedBy\(row\)/);
+ assert.match(explorer,/data-checked-by=/);
  const {researchCopy}=await import('../src/research-copy.js');
- for(const lang of ['en','fa','ps'])assert.ok(researchCopy[lang].checkStale,lang);
+ for(const lang of ['en','fa','ps']){assert.ok(researchCopy[lang].checkStale,lang);assert.ok(researchCopy[lang].checkAutomated,lang);assert.ok(researchCopy[lang].checkHuman,lang);}
  const data=catalog.exportResearchSaved(['bad'],[listing({id:'bad',lastCheckedAt:'2026-02-30'})],NOW);
  assert.equal(data.entries[0].lastCheckedAt,null);
 });

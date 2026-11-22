@@ -1,7 +1,10 @@
 // Historical CTO discovery metadata. Not a reviewed eligibility catalog.
 // Funding labels summarize the historical export titles, not confirmed coverage.
-// Checked dates are claims in the supplied export, not current verification.
-// Source re-check of 2026-11-22: docs/RESEARCH-RECHECK-2026-11-22.md.
+// Check dates record the source read logged in
+// docs/RESEARCH-RECHECK-2026-11-22.md and lastCheckedBy names its provenance,
+// so an automated read is never displayed as a human check. They are still not
+// a live verification: every row stays needs_reverification and ages out of the
+// freshness window.
 export const researchData = [
   {
     "id": "chevening-2027",
@@ -13,7 +16,8 @@ export const researchData = [
       "master"
     ],
     "sourceUrl": "https://www.chevening.org/scholarships/application-timeline/",
-    "lastCheckedAt": "2026-10-12",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": null,
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
@@ -30,7 +34,8 @@ export const researchData = [
       "phd"
     ],
     "sourceUrl": "https://www.gatescambridge.org/apply/timeline/",
-    "lastCheckedAt": "2026-10-11",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": "2026-12-08",
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
@@ -45,7 +50,8 @@ export const researchData = [
       "bachelor"
     ],
     "sourceUrl": "https://nyuad.nyu.edu/en/admissions/undergraduate/apply.html",
-    "lastCheckedAt": "2026-10-11",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": null,
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
@@ -60,7 +66,8 @@ export const researchData = [
       "bachelor"
     ],
     "sourceUrl": "https://auaf.edu.af/",
-    "lastCheckedAt": "2026-10-11",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": null,
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
@@ -75,7 +82,8 @@ export const researchData = [
       "bachelor"
     ],
     "sourceUrl": "https://asian-university.org/admissions/",
-    "lastCheckedAt": "2026-10-11",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": null,
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
@@ -90,7 +98,8 @@ export const researchData = [
       "master"
     ],
     "sourceUrl": "https://www.mespom.eu/application-deadlines-and-admissions-calendar",
-    "lastCheckedAt": "2026-10-11",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": "2027-01-07",
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
@@ -107,7 +116,8 @@ export const researchData = [
       "phd"
     ],
     "sourceUrl": "https://admissions.kaust.edu.sa/how-to-apply/admission-timelines",
-    "lastCheckedAt": "2026-10-11",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": "2027-01-03",
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
@@ -122,7 +132,8 @@ export const researchData = [
       "master"
     ],
     "sourceUrl": "https://yenchingacademy.pku.edu.cn/ADMISSIONS.htm",
-    "lastCheckedAt": "2026-10-12",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": "2026-11-30",
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
@@ -135,7 +146,8 @@ export const researchData = [
     "country": "United States or Canada",
     "degrees": [],
     "sourceUrl": "https://www.mmeg.org/apply/",
-    "lastCheckedAt": "2026-10-18",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": "2027-01-15",
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
@@ -151,7 +163,8 @@ export const researchData = [
       "master"
     ],
     "sourceUrl": "https://www.utwente.nl/en/education/scholarship-finder/university-of-twente-scholarship/",
-    "lastCheckedAt": "2026-10-18",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": "2027-04-01",
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
@@ -167,7 +180,8 @@ export const researchData = [
       "master"
     ],
     "sourceUrl": "https://www.adb.org/work-with-us/careers/japan-scholarship-program",
-    "lastCheckedAt": "2026-10-18",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": null,
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
@@ -183,7 +197,8 @@ export const researchData = [
       "master"
     ],
     "sourceUrl": "https://www.ru.nl/en/education/scholarships/radboud-scholarship-programme",
-    "lastCheckedAt": "2026-10-18",
+    "lastCheckedAt": "2026-11-22",
+    "lastCheckedBy": "automated_source_read",
     "deadline": "2027-01-31",
     "reviewStatus": "needs_reverification",
     "feeVerified": false,
