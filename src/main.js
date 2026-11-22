@@ -316,6 +316,14 @@ function revealHashTarget(){
  if(!id||id.startsWith('dashboard')||id.startsWith('/'))return;
  const target=document.getElementById(id);
  if(!target)return;
+ // Hash navigation can run before the lazy eligibility module has populated its mount.
+ // Resolve the module first, then reveal the disclosure for the same hash only.
+ if(id==='eligibility-mount'&&!target.querySelector('#eligibility-demo')){
+  void ensureMount('eligibility').then(()=>{
+   if(location.hash==='#eligibility-mount')revealHashTarget();
+  });
+  return;
+ }
  // Open an enclosing disclosure, or the single disclosure a mount point wraps
  // (for example #eligibility-mount → #eligibility-example). Never open
  // unrelated disclosures that merely sit inside a large container.
