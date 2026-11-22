@@ -5,7 +5,7 @@ const failure=code=>Object.assign(new Error('Document request unavailable'),{cod
 // reported as "starting", never as a broken account.
 export const FIRST_REQUEST_TIMEOUT_MS=60000;
 export async function documentRequest(path,{token,method='GET',body,fetchImpl=fetch,timeoutMs=FIRST_REQUEST_TIMEOUT_MS}={}){
- if(!['GET','HEAD','POST','PATCH','DELETE'].includes(method))throw failure('error');
+ if(!['GET','HEAD','POST','PUT','PATCH','DELETE'].includes(method))throw failure('error');
  if(!Number.isSafeInteger(timeoutMs)||timeoutMs<1000||timeoutMs>120000)throw failure('error');
  const write=!['GET','HEAD'].includes(method);
  if(typeof token!=='string'||!token.trim())throw failure('signInRequired');
