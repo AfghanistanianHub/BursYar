@@ -1,3 +1,4 @@
+import {mountPuterQuestion} from './puter-question.js';
 import {recoveryCopy} from './recovery-copy.js';
 import {journeyCopy} from './journey-copy.js';
 import {mountSourcePreview} from './source-preview.js';
@@ -80,6 +81,8 @@ export function mountAnalyzer(form,language,esc,initial={}){
  setSignedIn(false);
  onAuthChange(user=>{if(!form.isConnected)return;setSignedIn(!!user);if(user)authStatus.textContent=t.signedIn;else if(authStatus.textContent===t.signedIn)authStatus.textContent=t.signedOut;}).catch(()=>{});
  const approved=mountSourcePreview(form,url,textarea,submit,language,initial);
+ // Standalone opt-in Puter Q&A; never receives form, source text, identity or documents.
+ mountPuterQuestion(form.parentElement??form,language);
  form.addEventListener('bursyar:sourcechanged',()=>{controller?.abort();form.barrierAnswers={};form.analysis=undefined;form.querySelector('#requirements-step').hidden=true;result.replaceChildren();result.hidden=true;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
  login.addEventListener('click',async()=>{login.disabled=true;try{await signIn();document.dispatchEvent(new Event('bursyar:identity'));setSignedIn(true);authStatus.textContent=t.signedIn;}catch(error){authStatus.textContent=signInFailureMessage(error,language);}finally{login.disabled=false;}});
  logout.addEventListener('click',async()=>{document.dispatchEvent(new Event('bursyar:identity'));controller?.abort();form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));try{await signOut();result.replaceChildren();result.hidden=true;setSignedIn(false);authStatus.textContent=t.signedOut;}catch{authStatus.textContent=t.authError;}});
