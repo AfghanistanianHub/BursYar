@@ -1,6 +1,7 @@
 // Historical CTO discovery metadata. Not a reviewed eligibility catalog.
 // Funding labels summarize the historical export titles, not confirmed coverage.
 // Checked dates are claims in the supplied export, not current verification.
+// Source re-check of 2026-11-22: docs/RESEARCH-RECHECK-2026-11-22.md.
 export const researchData = [
   {
     "id": "chevening-2027",
