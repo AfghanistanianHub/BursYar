@@ -60,7 +60,10 @@ The full per-finding status is in [`docs/AUDIT-REMEDIATION.md`](docs/AUDIT-REMED
    `lastCheckedAt` and `lastCheckedBy` in `src/research-data.js`, and record the
    evidence in a dated `docs/RESEARCH-RECHECK-<date>.md`; then re-run the gates.
    Never skip, silence or re-date the check to unblock a release — the dates on
-   the cards are the only freshness claim the product makes. As of 22 November
+   the cards are the only freshness claim the product makes. To see what needs
+   re-reading without running the suite, use `npm run check:research` (add
+   `--now=YYYY-MM-DD` to preview a future date); it exits non-zero while any row
+   is overdue. As of 22 November
    2026 all 12 rows are automated reads dated 2026-11-22, so the gate blocks
    releases from 7 December 2026 until they are re-read.
 3. Deploy the backend from this same commit, then record its `/health` commit
