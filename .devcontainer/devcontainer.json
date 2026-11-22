@@ -1,6 +1,6 @@
 {
   "name": "BursYar Cloud Workspace",
-  "remoteUser": "node",
+  "remoteUser": "vscode",
   "updateContentCommand": "npm ci --ignore-scripts --no-audit --no-fund && npm run prepare:ocr",
   "postAttachCommand": "printf '\\nBursYar cloud workspace ready. Check docs/CLOUD-WORKSPACE.md before starting an agent.\\n'",
   "customizations": {
