@@ -192,8 +192,23 @@ try {
   await expect(steps).toHaveCount(4);
   // The shortcut must itself trigger the lazy workspace mount, even when
   // the local assessment has not been loaded by viewport observation.
+  const offlineErrors=[];
+  const recordOfflineError=error=>offlineErrors.push(error.message);
+  page.on('pageerror',recordOfflineError);
   await page.locator('.journey-offline').click();
-  await expect(page.locator('.local-workflow')).toBeAttached({timeout:10000});
+  try {
+    await expect(page.locator('.local-workflow')).toBeAttached({timeout:10000});
+  } catch(error) {
+    const diagnostics=await page.evaluate(()=>({
+      mountRoot:!!document.querySelector('#local-workflow-mount'),
+      mountChildren:document.querySelector('#local-workflow-mount')?.childElementCount,
+      workspaceOpen:document.querySelector('details.workspace')?.open,
+      offlineButtonDisabled:document.querySelector('.journey-offline')?.disabled,
+      clientErrors:document.querySelectorAll('[role="alert"]').length,
+      language:document.documentElement.lang
+    }));
+    throw new Error('Offline workflow failed to mount: '+JSON.stringify({diagnostics,offlineErrors})+'; '+error.message);
+  } finally {page.off('pageerror',recordOfflineError);}
   await expect(page.locator('.local-workflow')).toHaveAttribute('open','');
   await expect(page.locator('#local-assessment')).toBeVisible();
   await expect(steps.nth(0)).toHaveAttribute('href','#profile-mount');
