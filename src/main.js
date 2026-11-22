@@ -99,6 +99,12 @@ function mountEligibilityNow(){
   if(gen!==mountGeneration)return;
   mountEligibility(document.querySelector('#eligibility-mount'),state.language,latestCompilation??document.querySelector('#analyze-form')?.analysis?.data?.compilation);
   mountedAt.set('eligibility',gen);
+  // The hash may already be active before a lazy mount or subsequent evidence refresh.
+  // Reveal and position the actual content after every completed render.
+  if(location.hash==='#eligibility-mount'){
+   document.querySelector('#eligibility-mount > #eligibility-example')?.setAttribute('open','');
+   document.querySelector('#eligibility-heading')?.scrollIntoView({behavior:'instant',block:'start'});
+  }
  }).catch(error=>recordClientError('mount_eligibility',error));
  return eligibilityQueue;
 }
