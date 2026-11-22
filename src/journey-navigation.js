@@ -48,6 +48,10 @@ export function mountJourney(root,language='en'){
    return true;
   };
   if(reveal())return;
+  // Opening the workspace triggers its lazy module loader. Without this,
+  // the shortcut can wait forever when the workspace is below the viewport.
+  const workspace=document.querySelector('details.workspace');
+  if(workspace&&!workspace.open)workspace.open=true;
   // Workspace modules mount asynchronously. Preserve an early user click rather
   // than silently discarding it while the offline workflow is still loading.
   offline.disabled=true;
