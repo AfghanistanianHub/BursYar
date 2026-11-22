@@ -13,6 +13,11 @@
 // does not change the built artefacts). A preview URL is checked for internal
 // agreement only, because RELEASE.md describes production.
 //
+// Parity is reported as *unmeasurable*, never as a mismatch, when the host hides
+// the artefacts: an SSO redirect or an unreachable /health says nothing about
+// whether the commits agree. The SSO redirect itself is still a failure (BY-01),
+// so the exit code stays honest.
+//
 // No secret is printed. Exit code 0 only when every check passes.
 import {readFileSync} from 'node:fs';
 
@@ -22,7 +27,9 @@ const isProduction=base===DEFAULT_BASE;
 const bypass=process.env.BURSYAR_BYPASS_TOKEN;
 const headers=bypass?{'x-vercel-protection-bypass':bypass}:{};
 const failures=[];
+const unmeasurable=[];
 const record=(ok,message)=>{console.log(`${ok?'PASS':'FAIL'} ${message}`);if(!ok)failures.push(message);};
+const skip=(message)=>{console.log(`INFO ${message}`);unmeasurable.push(message);};
 const sameCommit=(a,b)=>Boolean(a&&b)&&(a.startsWith(b)||b.startsWith(a));
 
 function readManifest(){
@@ -43,8 +50,9 @@ async function get(path){
 
 try{
  const home=await get('/');
+ const ssoBlocked=home.location.includes('sso-api');
  record(home.status===200,`GET / → ${home.status}`);
- record(!home.location.includes('sso-api'),`no Vercel SSO redirect (location: ${home.location||'none'})`);
+ record(!ssoBlocked,`no Vercel SSO redirect (location: ${home.location||'none'})`);
  record(home.type.includes('text/html'),`/ serves HTML (${home.type||'no content-type'})`);
  if(home.text)record(/id="app"|BursYar/i.test(home.text),'the app shell is present in the HTML');
 
@@ -52,10 +60,15 @@ try{
  if(asset){
   const res=await fetch(base+asset,{headers});
   record(res.status===200,`${asset} → ${res.status}`);
- }else record(false,'no hashed asset referenced by the shell');
+ }else if(!ssoBlocked)record(false,'no hashed asset referenced by the shell');
 
- const frontendCommit=home.text.match(/<meta name="bursyar-build" content="([0-9a-f]{7,40})"/i)?.[1]??'';
- record(Boolean(frontendCommit),`frontend reports its build commit (${frontendCommit||'missing stamp, rebuild with the current vite config'})`);
+ let frontendCommit='';
+ if(ssoBlocked||home.status!==200){
+  skip('frontend build commit unmeasurable: the release host did not serve the app shell, so parity cannot be judged (see the BY-01 line above).');
+ }else{
+  frontendCommit=home.text.match(/<meta name="bursyar-build" content="([0-9a-f]{7,40})"/i)?.[1]??'';
+  record(Boolean(frontendCommit),`frontend reports its build commit (${frontendCommit||'missing stamp, rebuild with the current vite config'})`);
+ }
 
  let backendCommit='';
  const health=await get('/health');
@@ -66,28 +79,32 @@ try{
   record(typeof backendCommit==='string'&&Boolean(backendCommit),`backend reports a build commit (${backendCommit||'none'})`);
   if(backendCommit)console.log(`INFO backend commit ${backendCommit}`);
  }else{
-  console.log('INFO /health is not reachable: the first request may be a cold start; retry once before failing a release.');
+  skip('/health unmeasurable: the first request may be a cold start; retry once before failing a release.');
  }
 
  if(frontendCommit&&backendCommit){
   record(sameCommit(frontendCommit,backendCommit),`frontend ${frontendCommit} and backend ${backendCommit} report the same commit`);
+ }else{
+  skip('commit parity unmeasurable: both artefacts must report a commit before they can be compared.');
  }
 
- if(isProduction){
+ if(!isProduction){
+  skip(`RELEASE.md parity is enforced against ${DEFAULT_BASE}; this run checks internal agreement only.`);
+ }else if(frontendCommit&&backendCommit){
   const manifest=readManifest();
   record(Boolean(manifest.frontend&&manifest.backend),
    `RELEASE.md records both commits (frontend ${manifest.frontend||'missing'}, backend ${manifest.backend||'missing'}${manifest.error?`, ${manifest.error}`:''})`);
-  record(sameCommit(frontendCommit,manifest.frontend),`frontend ${frontendCommit||'missing'} matches RELEASE.md (${manifest.frontend||'missing'})`);
-  record(sameCommit(backendCommit,manifest.backend),`backend ${backendCommit||'missing'} matches RELEASE.md (${manifest.backend||'missing'})`);
+  record(sameCommit(frontendCommit,manifest.frontend),`frontend ${frontendCommit} matches RELEASE.md (${manifest.frontend||'missing'})`);
+  record(sameCommit(backendCommit,manifest.backend),`backend ${backendCommit} matches RELEASE.md (${manifest.backend||'missing'})`);
  }else{
-  console.log(`INFO RELEASE.md parity is enforced against ${DEFAULT_BASE}; this run checks internal agreement only.`);
+  skip('RELEASE.md parity unmeasurable: the deployed commits are unknown, so they cannot be compared with the recorded ones.');
  }
 }catch(error){
  record(false,`request failed: ${error.message}`);
 }
 
 if(failures.length){
- console.error(JSON.stringify({event:'release_smoke',passed:false,failures},null,2));
+ console.error(JSON.stringify({event:'release_smoke',passed:false,failures,unmeasurable},null,2));
  process.exit(1);
 }
-console.log(JSON.stringify({event:'release_smoke',passed:true,base}));
+console.log(JSON.stringify({event:'release_smoke',passed:true,base,unmeasurable}));

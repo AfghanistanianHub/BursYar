@@ -28,8 +28,9 @@ verified.
 
 ## Result
 
-- 8 of 8 recorded deadlines are still published, unchanged, by the official page.
-- 4 rows publish no fixed deadline and correctly keep `null`.
+- The automated re-read reproduced 5 of the 7 recorded deadlines; the per-row verdicts above are the human reading.
+- 2 recorded deadlines could not be confirmed by the automated pass: KAUST served only 897 characters of readable text, and MMEG's page did not print the recorded date. Both stay unresolved until the pages are read again.
+- 5 rows publish no fixed deadline and correctly keep `null`.
 - No row's title, provider, degree level or funding label contradicts its page.
 - Two known precision limits remain: Gates Cambridge has a second course-dependent
   deadline (6 January 2027), and NYU Abu Dhabi's dates are printed without a cycle
@@ -54,6 +55,11 @@ recorded details but judges nothing, so the weaker claim is re-read more often.
 the real clock, and the failure message names each overdue row with its date and
 window. These 12 automated rows therefore fail CI from 7 December 2026 until a
 re-read re-dates them; a stale badge can no longer be the only consequence.
+
+The next re-read can be drafted with `npm run research:recheck`, which fetches
+each source and reports per row whether the recorded deadline is still printed,
+with an excerpt. It writes a draft and nothing else: the dates below were set by
+hand after reading, and a draft carries no authority to move them.
 
 `tests/research-evidence.test.js` closes the obvious shortcut: a date must be
 backed by this kind of dated record. For every `lastCheckedAt` in the catalogue

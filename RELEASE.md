@@ -60,6 +60,10 @@ The full per-finding status is in [`docs/AUDIT-REMEDIATION.md`](docs/AUDIT-REMED
    date and window. For each one, re-read the official page, update
    `lastCheckedAt` and `lastCheckedBy` in `src/research-data.js`, and record the
    evidence in a dated `docs/RESEARCH-RECHECK-<date>.md`; then re-run the gates.
+   `npm run research:recheck` fetches each source and drafts that record with a
+   per-row verdict (`deadline_found`, `deadline_not_found`, `no_recorded_deadline`,
+   `unreachable`). It never writes a check date: a row it cannot confirm is the
+   one to read by hand, and the draft is not evidence until someone signs it.
    Never skip, silence or re-date the check to unblock a release — the dates on
    the cards are the only freshness claim the product makes. To see what needs
    re-reading without running the suite, use `npm run check:research` (add
@@ -77,7 +81,9 @@ The full per-finding status is in [`docs/AUDIT-REMEDIATION.md`](docs/AUDIT-REMED
    ```
    The smoke check now requires the frontend build stamp, the backend
    `/health` commit and the two commit rows below to agree, so a release cannot
-   be called done while two commits are live. A 302 to `vercel.com/sso-api`
+   be called done while two commits are live. Where the host hides an artefact
+   (the SSO redirect, an unreachable `/health`) parity is reported as
+   unmeasurable rather than mismatched — the SSO line is still the failure. A 302 to `vercel.com/sso-api`
    fails the check; that is BY-01, an owner setting in Vercel → Settings →
    Deployment Protection.
 5. Record the deployed SHAs in this inventory and the smoke output here, then

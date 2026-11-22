@@ -16,7 +16,7 @@ export async function resolvePublic(host,resolve=lookup){
  if(!addresses.length||addresses.some(a=>!publicAddress(a.address)))fail('blocked_address');
  return addresses[0];
 }
-export function extractArticle(html,url){
+export function extractArticle(html,url,{maxLength=12000}={}){
  if(/<title[^>]*>\s*Just a moment/i.test(html)&&/cf-chl-|cdn-cgi\/challenge-platform/i.test(html))fail('challenge');
  const root=parse(html),blocked=new Set(['script','style','noscript','template','nav','header','footer','aside','form','svg','iframe','object','embed','meta','link','base','button']);
  const attr=(n,k)=>n.attrs?.find(a=>a.name===k)?.value;
@@ -30,7 +30,7 @@ export function extractArticle(html,url){
  function read(n){if(ignored(n))return '';if(n.nodeName==='#text')return n.value;if(n.tagName==='a'){try{const u=sourceURL(new URL(attr(n,'href'),url).href);if(u.origin===new URL(url).origin&&!links.includes(u.href)&&links.length<20)links.push(u.href);}catch{}}
  const value=(n.childNodes??[]).map(read).join('');return boundaries.has(n.tagName)?`\n${value}\n`:value;}
  const text=read(scope).split('\n').map(s=>s.replace(/\s+/gu,' ').trim()).filter(Boolean).join('\n');
- if(text.length<30)fail('empty_content');if(text.length>12000)fail('content_too_large');
+ if(text.length<30)fail('empty_content');if(text.length>maxLength)fail('content_too_large');
  return {text,links,extraction:chosen?'semantic_article':'body_without_navigation'};
 }
 export function createSourceTransport(requestImpl=request){return (url,address,signal)=>new Promise((resolve,reject)=>{
