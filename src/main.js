@@ -1,4 +1,4 @@
-import {onAuthChange} from './auth.js';
+import {onAuthChange,signIn,signOut} from './auth.js';
 import {dashboardCopy} from './dashboard-copy.js';
 import {isDashboardRoute} from './dashboard-route.js';
 import {mountJourney,journeyNavCopy} from './journey-navigation.js';
@@ -360,6 +360,22 @@ window.addEventListener('hashchange',()=>{applyTaskRoute();revealHashTarget();if
 // Re-selecting a link whose hash is already current fires no hashchange, so the
 // same target must still open its disclosure instead of silently doing nothing.
 document.addEventListener('click',event=>{const link=event.target.closest?.('a[href^="#"]');if(!link)return;const href=link.getAttribute('href');if(!href||href.length<2)return;queueMicrotask(()=>{if(location.hash===href){applyTaskRoute();revealHashTarget();}});});
+function renderAccountControls(){
+ const root=document.querySelector('#account-controls');
+ if(!root)return;
+ root.replaceChildren();
+ const button=document.createElement('button');
+ button.type='button';
+ button.textContent=signedIn
+  ?(state.language==='fa'?'خروج از حساب':state.language==='ps'?'له حسابه وتل':'Sign out')
+  :(state.language==='fa'?'ورود با گوگل':state.language==='ps'?'له ګوګل سره ننوتل':'Sign in with Google');
+ button.addEventListener('click',async()=>{
+  button.disabled=true;
+  try{if(signedIn)await signOut();else await signIn();}
+  catch(error){recordClientError('account_action',error);button.disabled=false;}
+ });
+ root.append(button);
+}
 function recordClientError(stage,error){
  // Sanitised only: never the account, the token, the document text or a URL.
  try{console.error(JSON.stringify({event:'client_error',stage,message:String(error?.message??error).slice(0,240)}));}catch{/* logging must never break the page */}
@@ -374,12 +390,13 @@ function showRecoveryCard(){
 }
 window.addEventListener('error',event=>recordClientError('uncaught',event.error??event.message));
 window.addEventListener('unhandledrejection',event=>recordClientError('unhandled_rejection',event.reason));
-try{render();applyTaskRoute(location.hash,{focus:false});revealHashTarget();}catch(error){recordClientError('render',error);showRecoveryCard();}
+try{render();renderAccountControls();applyTaskRoute(location.hash,{focus:false});revealHashTarget();}catch(error){recordClientError('render',error);showRecoveryCard();}
 onAuthChange(user=>{
  const wasSignedIn=signedIn;
  signedIn=!!user;
  if(wasSignedIn&&user?.uid!==signedInUid)document.dispatchEvent(new Event('bursyar:identity'));
  signedInUid=user?.uid;
+ renderAccountControls();
  // Signing in must not throw away the work in progress: only send the user to
  // the dashboard from the landing page, not from a section they are using.
  if(signedIn&&!wasSignedIn&&(!location.hash||location.hash==='#top'))location.hash='#dashboard';
