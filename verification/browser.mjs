@@ -407,7 +407,23 @@ try {
     await page.reload();
     const eligibility = page.locator('#eligibility-example');
     await expect(eligibility).toHaveAttribute('open', '');
-    await expect(page.locator('#eligibility-heading')).toBeInViewport();
+    // Capture useful evidence if the initial deep-link scroll regresses again.
+    const heading = page.locator('#eligibility-heading');
+    if (!(await heading.isVisible()) || !(await heading.evaluate(el => {
+      const r = el.getBoundingClientRect();
+      return r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth;
+    }))) {
+      const geometry = await page.evaluate(() => {
+        const ids = ['eligibility-mount', 'eligibility-example', 'eligibility-heading'];
+        return {hash:location.hash,scrollY,innerHeight,items:ids.map(id => {
+          const el=document.getElementById(id),r=el?.getBoundingClientRect();
+          return {id,exists:!!el,open:el?.open,top:r?.top,bottom:r?.bottom,height:r?.height};
+        })};
+      });
+      console.error('Eligibility deep-link viewport diagnostics:',JSON.stringify(geometry));
+      await page.screenshot({path:`verification/artifacts/${language}-eligibility-deeplink-${width}.png`,fullPage:true});
+    }
+    await expect(heading).toBeInViewport();
     await page.locator('#eligibility-example > summary').click();
     await page.evaluate(() => { location.hash = 'top'; });
     await expect(page).toHaveURL(/#top$/);
