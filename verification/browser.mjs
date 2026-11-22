@@ -194,7 +194,11 @@ try {
   // the local assessment has not been loaded by viewport observation.
   const offlineErrors=[];
   const recordOfflineError=error=>offlineErrors.push(error.message);
+  const recordOfflineConsole=message=>{if(message.type()==='error')offlineErrors.push('console: '+message.text());};
+  const recordOfflineRequest=request=>offlineErrors.push('request: '+request.url()+' '+request.failure()?.errorText);
   page.on('pageerror',recordOfflineError);
+  page.on('console',recordOfflineConsole);
+  page.on('requestfailed',recordOfflineRequest);
   await page.locator('.journey-offline').click();
   try {
     await expect(page.locator('.local-workflow')).toBeAttached({timeout:10000});
@@ -208,7 +212,7 @@ try {
       language:document.documentElement.lang
     }));
     throw new Error('Offline workflow failed to mount: '+JSON.stringify({diagnostics,offlineErrors})+'; '+error.message);
-  } finally {page.off('pageerror',recordOfflineError);}
+  } finally {page.off('pageerror',recordOfflineError);page.off('console',recordOfflineConsole);page.off('requestfailed',recordOfflineRequest);}
   await expect(page.locator('.local-workflow')).toHaveAttribute('open','');
   await expect(page.locator('#local-assessment')).toBeVisible();
   await expect(steps.nth(0)).toHaveAttribute('href','#profile-mount');
