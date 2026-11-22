@@ -74,11 +74,21 @@ const lazyMounts={
   dashboard.sync(signedIn);
  }
 };
+const mountPending=new Map();
 function ensureMount(name){
  const gen=mountGeneration;
  if(mountedAt.get(name)===gen)return Promise.resolve();
- mountedAt.set(name,gen);
- return Promise.resolve(lazyMounts[name](gen)).catch(error=>{if(mountedAt.get(name)===gen)mountedAt.delete(name);recordClientError('mount_'+name,error);});
+ const pending=mountPending.get(name);
+ if(pending?.generation===gen)return pending.promise;
+ const promise=Promise.resolve().then(()=>lazyMounts[name](gen)).then(()=>{
+  if(gen===mountGeneration)mountedAt.set(name,gen);
+ }).catch(error=>{
+  recordClientError('mount_'+name,error);
+ }).finally(()=>{
+  if(mountPending.get(name)?.promise===promise)mountPending.delete(name);
+ });
+ mountPending.set(name,{generation:gen,promise});
+ return promise;
 }
 // The assessed-eligibility view is remounted whenever a compilation arrives, so it
 // queues its own updates instead of racing the first lazy mount.
