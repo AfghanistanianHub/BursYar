@@ -49,6 +49,12 @@ claim a human reading. These automated dates therefore go stale after 6 December
 was too generous here: an automated fetch proves the page still prints the
 recorded details but judges nothing, so the weaker claim is re-read more often.
 
+`researchNeedsRecheck` turns that expiry into work rather than decoration:
+`npm test` asserts that every shipped row is still inside its own window using
+the real clock, and the failure message names each overdue row with its date and
+window. These 12 automated rows therefore fail CI from 7 December 2026 until a
+re-read re-dates them; a stale badge can no longer be the only consequence.
+
 What is still not claimed: the automated read did not assess eligibility,
 funding conditions or language requirements, and the fa/ps provenance strings
 remain UNREVIEWED pending a fluent reviewer (BY-21).

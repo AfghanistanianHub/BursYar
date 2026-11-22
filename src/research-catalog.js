@@ -67,6 +67,9 @@ export function researchFreshness(row,now=new Date()) {
  if(age<0)return 'unknown';
  return age>researchRecheckDays(row)?'stale':'fresh';
 }
+// Expiry must force work, not just paint a badge: anything not provably fresh
+// (stale, unknown or undateable) is returned so a caller can block on it.
+export function researchNeedsRecheck(rows,now=new Date()){return rows.filter(row=>researchFreshness(row,now)!=='fresh');}
 // Normalize search only; keep displayed titles and evidence unchanged.
 const searchText=value=>String(value??'').normalize('NFKC').toLocaleLowerCase().replace(/[يى]/gu,'ی').replace(/ك/gu,'ک').replace(/[\u064b-\u065f\u0670\u0640]/gu,'').replace(/[\u200c\u200d]/gu,' ');
 // Pure discovery filters; no student data, eligibility score, or exclusion for
