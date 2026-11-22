@@ -1,0 +1,83 @@
+name: BursYar Cloud Audit (zero AI tokens)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bursyar-cloud-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    if: github.ref == 'refs/heads/work/restore-approved-ai-studio-hero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: "true"
+      NO_COLOR: "1"
+    steps:
+      - name: Checkout approved working branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Node 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prepare offline OCR assets
+        run: npm run prepare:ocr
+      - name: Run tests, evaluation and build with captured results
+        shell: bash
+        run: |
+          mkdir -p audit-results
+          set +e
+          npm test >audit-results/tests.log 2>&1
+          echo $? >audit-results/tests.exit
+          npm run test:evaluation >audit-results/evaluation.log 2>&1
+          echo $? >audit-results/evaluation.exit
+          npm run build >audit-results/build.log 2>&1
+          echo $? >audit-results/build.exit
+          set -e
+      - name: Create cloud audit summary
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p audit-results
+          {
+            echo "# BursYar cloud audit"
+            echo
+            echo "Commit: \`$GITHUB_SHA\`"
+            echo "Branch: \`$GITHUB_REF_NAME\`"
+            echo "AI inference: none. Deployment: none. Repository writes: none."
+            echo
+            for task in tests evaluation build; do
+              if [ -f "audit-results/$task.exit" ]; then
+                status=$(cat "audit-results/$task.exit")
+                if [ "$status" = "0" ]; then echo "- $task: PASS"; else echo "- $task: FAIL (exit $status)"; fi
+              else
+                echo "- $task: NOT RUN"
+              fi
+            done
+            echo
+            echo "Review the attached logs for failures. This is deterministic verification, not an AI code review."
+          } | tee audit-results/SUMMARY.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload audit logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bursyar-cloud-audit
+          path: audit-results/
+          retention-days: 3
+          if-no-files-found: warn
+      - name: Fail if any verification failed
+        run: |
+          for task in tests evaluation build; do
+            test -f "audit-results/$task.exit" || exit 1
+            test "$(cat "audit-results/$task.exit")" = "0" || exit 1
+          done
