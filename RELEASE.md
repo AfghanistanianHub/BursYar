@@ -52,15 +52,26 @@ The full per-finding status is in [`docs/AUDIT-REMEDIATION.md`](docs/AUDIT-REMED
    npm run build
    BASE_URL=http://127.0.0.1:3006 node verification/audit-remediation-browser.mjs
    ```
-2. Deploy the backend from this same commit, then record its `/health` commit
+2. Confirm the research freshness gate. `npm test` fails when any shipped
+   scholarship row is outside the recheck window its provenance earns: 14 days
+   for an automated source read, 30 days for a human source check (unknown
+   provenance gets 14). The failure names every overdue row with its recorded
+   date and window. For each one, re-read the official page, update
+   `lastCheckedAt` and `lastCheckedBy` in `src/research-data.js`, and record the
+   evidence in a dated `docs/RESEARCH-RECHECK-<date>.md`; then re-run the gates.
+   Never skip, silence or re-date the check to unblock a release — the dates on
+   the cards are the only freshness claim the product makes. As of 22 November
+   2026 all 12 rows are automated reads dated 2026-11-22, so the gate blocks
+   releases from 7 December 2026 until they are re-read.
+3. Deploy the backend from this same commit, then record its `/health` commit
    here. Frontend and backend must match before the release is called done.
-3. Deploy the frontend, then:
+4. Deploy the frontend, then:
    ```bash
    node scripts/release-smoke.mjs https://bursyar.vercel.app
    ```
    A 302 to `vercel.com/sso-api` fails the check; that is BY-01, an owner
    setting in Vercel → Settings → Deployment Protection.
-4. Record the deployed SHA and the smoke output in this file.
+5. Record the deployed SHA and the smoke output in this file.
 
 ## Rollback
 
@@ -76,7 +87,8 @@ The full per-finding status is in [`docs/AUDIT-REMEDIATION.md`](docs/AUDIT-REMED
 
 - BY-01: Production is still behind Vercel Authentication (owner action).
 - BY-02: the pilot stays closed; accounts must be enrolled by an operator.
-- BY-08: scholarship dates are still stale and visibly marked; a human must
-  re-check each official page.
+- BY-08: the 12 scholarship check dates are automated source reads dated
+  2026-11-22 and expire on 6 December 2026. Expiry fails `npm test` (release
+  step 2), so a human must re-read each official page before the next release.
 - BY-12: documents without recognisable labels still need manual transcription.
 - BY-21: new Farsi/Pashto strings await native review.

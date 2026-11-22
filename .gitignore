@@ -10,3 +10,8 @@ dist/
 *-debug.log*
 verification/artifacts/
 public/ocr/
+# Local-only working data: preview server helper, scratch workspace, evidence images.
+# Kept on disk and referenced by the audit docs, never committed.
+.preview/
+.work/
+artifacts/
