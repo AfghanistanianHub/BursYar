@@ -12,7 +12,11 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
+      # Full history: the release pre-flight proves the recorded frontend commit
+      # exists and is an ancestor of its branch, which a shallow clone cannot.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -21,10 +25,11 @@ jobs:
       - run: npm audit --omit=dev
       - run: npm test
       - run: npm run test:evaluation
-      - run: npm run build
-      # Rehearses the release smoke against the build just produced, so a red
-      # rehearsal fails this run instead of being noticed during a promotion.
-      - run: npm run rehearsal:smoke
+      # The release pre-flight, in the packet's order: clean tree, RELEASE.md
+      # rows, hostname agreement, research freshness, a build stamped with HEAD,
+      # then the rehearsal against that build. A red pre-flight fails this run
+      # instead of being noticed during a promotion.
+      - run: npm run release:check
   emulator:
     runs-on: ubuntu-latest
     steps:
