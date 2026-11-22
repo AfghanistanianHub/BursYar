@@ -20,12 +20,12 @@ const integer=name=>{const n=Number(env[name]);if(!Number.isSafeInteger(n)||n<1)
 const config=(await readPrivateSetting(env,'BURSYAR_PROVIDER_CONFIG','BURSYAR_PROVIDER_JSON'))??{};
 if(!config||typeof config!=='object'||Array.isArray(config))throw Error('Provider configuration object required');
 const providers={},quotas=[];
-for(const provider of ['meta','gemini','self_hosted']){
+for(const provider of ['meta','gemini','self_hosted','experiential']){
  const p=config[provider]??{};
  // Family service is a separate product boundary. Meta/Gemini are disabled in
  // any deployment that provisions guardian grants, irrespective of caller age.
  const enabled=p.enabled===true&&(!env.BURSYAR_FAMILY_GRANTS||provider==='self_hosted');
- const adapter=createProvider({...p,provider,enabled,key:provider==='meta'?env.META_API_KEY:provider==='gemini'?env.GEMINI_API_KEY:env.QWEN_API_KEY,model:p.model??(provider==='meta'?'muse-spark-1.3':undefined)});
+ const adapter=createProvider({...p,provider,enabled,key:provider==='meta'?env.META_API_KEY:provider==='gemini'?env.GEMINI_API_KEY:provider==='experiential'?env.EXPLABS_API_KEY:env.QWEN_API_KEY,model:p.model??(provider==='meta'?'muse-spark-1.3':undefined)});
  if(adapter.available){
   if(p.costReviewed!==true||!(p.worstCaseUsdPerUnit>0)||!Number.isFinite(p.worstCaseUsdPerUnit)||!(p.spendLimitUSD>0)||!Number.isFinite(p.spendLimitUSD))throw Error('Reviewed provider spending bound required');
   const lifetimeUnits=Math.min(integer('BURSYAR_LIFETIME_UNITS'),Math.floor(p.spendLimitUSD/p.worstCaseUsdPerUnit));
