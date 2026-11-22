@@ -113,7 +113,11 @@ function wireLazyMounts(){
   if(details.open)ensureMount(name);
   details.addEventListener('toggle',()=>{if(details.open)ensureMount(name);});
  }
- if(mountedAt.has('dashboard')||signedIn||isDashboardRoute(location.hash))ensureMount('dashboard');
+ // A re-render rebuilds the shell, so every chunk that was already mounted must be
+ // mounted again into the fresh DOM: otherwise a language switch leaves a panel the
+ // reader had opened (or a loaded document list) empty until it is reopened.
+ for(const name of mountedAt.keys())ensureMount(name);
+ if(signedIn||isDashboardRoute(location.hash))ensureMount('dashboard');
 }
 function dashboardOptions(){
  const t=translations[state.language];
@@ -126,7 +130,7 @@ function dashboardOptions(){
 let dashboard, signedIn=false, signedInUid, documentStatus, hasLocalAssessment=false;
 let cleanupReferenceHero;
 let heroMotionPaused=false;
-function render(){mountGeneration++;cleanupReferenceHero?.();const disclosures=Object.fromEntries(['workspace','resources','scenarios','guided-demo'].map(key=>[key,document.querySelector('.'+key)?.open]));const old=document.querySelector('#analyze-form');if(old)analyzerInput={text:old.querySelector('textarea').value,sourceUrl:old.querySelector('[name=sourceUrl]')?.value||'',analysis:old.analysis,receipt:old.sourceReceipt,sourceApproved:old.sourceApproved,preview:old.sourcePreview,barrierAnswers:old.barrierAnswers,manualMode:old.manualMode,sourceFailure:old.sourceFailure};const t=translations[state.language],rtl=state.language!=='en';document.documentElement.lang=state.language;document.documentElement.dir=rtl?'rtl':'ltr';document.title=`${t.brand} | ${t.missionTitle}`;document.querySelector('meta[name="description"]')?.setAttribute('content',t.description);const fmt=new Intl.NumberFormat(state.language);
+function render(){mountGeneration++;cleanupReferenceHero?.();const disclosures=Object.fromEntries(['workspace','resources','scenarios','guided-demo'].map(key=>[key,document.querySelector('.'+key)?.open]));const old=document.querySelector('#analyze-form');if(old)analyzerInput={text:old.querySelector('textarea').value,sourceUrl:old.querySelector('[name=sourceUrl]')?.value||'',analysis:old.analysis,receipt:old.sourceReceipt,sourceApproved:old.sourceApproved,preview:old.sourcePreview,barrierAnswers:old.barrierAnswers,manualMode:old.manualMode,sourceFailure:old.sourceFailure};latestCompilation=analyzerInput.analysis?.data?.compilation;const t=translations[state.language],rtl=state.language!=='en';document.documentElement.lang=state.language;document.documentElement.dir=rtl?'rtl':'ltr';document.title=`${t.brand} | ${t.missionTitle}`;document.querySelector('meta[name="description"]')?.setAttribute('content',t.description);const fmt=new Intl.NumberFormat(state.language);
 const j=journeyCopy[state.language];
 const ed={
 en:{platform:"Platform",scholarships:"Scholarships",resources:"Resources",about:"About",headlineHtml:'Start with the <span class="by-hero-accent">documents you have.</span>',lead:"Build a profile from your transcript, review what was extracted, and check it against scholarship requirements.",explore:"Explore Scholarships",pillars:[["Start with what you have","Review your information and documents when you are ready."],["Understand each requirement","See what is met, not met, or still unknown — without guessing."],["Find your next step","Turn missing evidence and unanswered questions into a practical plan."]],curated:"A place to begin.",selected:"Opportunities to explore",note:"Browse opportunities with source and verification status. Sample data is always identified.",view:"Browse scholarships"},
