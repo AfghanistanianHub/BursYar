@@ -53,11 +53,13 @@ The full per-finding status is in [`docs/AUDIT-REMEDIATION.md`](docs/AUDIT-REMED
    npm run build
    BASE_URL=http://127.0.0.1:3006 node verification/audit-remediation-browser.mjs
    ```
-2. Confirm the research freshness gate. `npm test` fails when any shipped
-   scholarship row is outside the recheck window its provenance earns: 14 days
-   for an automated source read, 30 days for a human source check (unknown
-   provenance gets 14). The failure names every overdue row with its recorded
-   date and window. For each one, re-read the official page, update
+2. Confirm the research freshness gate. `npm test` runs the unit suite and then
+   `scripts/check-research.mjs`, so the suite itself is date-independent while
+   the gate fails when any shipped scholarship row is outside the recheck window
+   its provenance earns: 14 days for an automated source read, 30 days for a
+   human source check (unknown provenance gets 14). The gate prints its own
+   report — every overdue row with its recorded date, provenance window and how
+   far past it is — so the failure is not another anonymous unit test. For each one, re-read the official page, update
    `lastCheckedAt` and `lastCheckedBy` in `src/research-data.js`, and record the
    evidence in a dated `docs/RESEARCH-RECHECK-<date>.md`; then re-run the gates.
    `npm run research:recheck` fetches each source and drafts that record with a

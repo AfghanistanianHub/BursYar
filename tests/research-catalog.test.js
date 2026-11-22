@@ -91,11 +91,10 @@ test('the shipped export records an automated re-check that ages out inside the 
  }
 });
 
-test('every shipped row is inside the recheck window its provenance earns',()=>{
- // Deliberately the real clock: once a source passes its window this test fails
- // and the suite cannot pass again until the row is re-read and re-dated.
- const overdue=catalog.researchNeedsRecheck(catalog.researchScholarships,new Date());
- assert.deepEqual(overdue.map(row=>row.id),[],`Re-read these sources and set lastCheckedAt to today: ${overdue.map(row=>`${row.id} (lastCheckedAt ${row.lastCheckedAt??'missing'}, ${catalog.researchRecheckDays(row)}-day ${catalog.researchCheckedBy(row)??'unknown-provenance'} window)`).join('; ')}`);
+test('researchNeedsRecheck returns exactly the rows that cannot prove freshness at a given date',()=>{
+ // Every date here is fixed, so the deterministic suite behaves the same on any
+ // day. The real-clock release gate is `check:research`, which `npm test` runs
+ // after this suite and which names the stale rows itself.
  assert.deepEqual(catalog.researchNeedsRecheck([listing({lastCheckedAt:'2026-11-01'})],new Date('2026-11-22T00:00:00Z')).map(row=>row.id),['test']);
  assert.deepEqual(catalog.researchNeedsRecheck([listing({lastCheckedAt:'2026-11-19',lastCheckedBy:'human_source_check'})],new Date('2026-11-22T00:00:00Z')),[]);
  assert.deepEqual(catalog.researchNeedsRecheck([listing({lastCheckedAt:'2026-02-30'})],new Date('2026-11-22T00:00:00Z')).map(row=>row.id),['test']);

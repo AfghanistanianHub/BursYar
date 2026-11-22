@@ -41,6 +41,7 @@ const rows=researchScholarships.map(row=>{
 });
 
 const overdue=rows.filter(row=>row.freshness!=='fresh');
+console.log('Research freshness gate: every shipped check date must still be inside the recheck window its provenance earns (RELEASE.md step 2).');
 console.log(`Research check as of ${today}: ${rows.length} shipped rows, ${overdue.length} overdue`);
 console.log('');
 for(const row of rows){

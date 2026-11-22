@@ -37,6 +37,16 @@ test('check:research exits 1 and names each overdue row with its date and window
  assert.match(result.out,/- chevening-2027: /);
 });
 
+test('npm test runs this gate, so a green unit suite cannot hide stale check dates',async()=>{
+ // The unit suite is date-independent by design; the real clock lives here.
+ // If the gate is dropped from `npm test`, nothing else stops a release with
+ // expired scholarship dates, so the wiring itself is asserted.
+ const {readFile}=await import('node:fs/promises');
+ const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
+ assert.match(pkg.scripts.test,/node --test/);
+ assert.match(pkg.scripts.test,/scripts\/check-research\.mjs/);
+});
+
 test('check:research exits 2 for a bad --now so a typo is never read as overdue',()=>{
  const result=run('nope');
  assert.equal(result.code,2);
