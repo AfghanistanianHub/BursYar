@@ -320,7 +320,10 @@ function revealHashTarget(){
  // Resolve the module first, then reveal the disclosure for the same hash only.
  if(id==='eligibility-mount'&&!target.querySelector('#eligibility-demo')){
   void ensureMount('eligibility').then(()=>{
-   if(location.hash==='#eligibility-mount')revealHashTarget();
+   // A failed import must not recursively schedule unbounded mount attempts.
+   if(location.hash!=='#eligibility-mount')return;
+   const disclosure=document.querySelector('#eligibility-mount > #eligibility-example');
+   if(disclosure)disclosure.open=true;
   });
   return;
  }
