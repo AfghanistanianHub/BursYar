@@ -36,6 +36,7 @@ try {
   const page = await browser.newPage({viewport:{width:1280,height:900}});
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if(message.type()==='error')errors.push(message.text()); });
   let unavailable = false;
   await page.route('**/src/auth.js', route => route.fulfill({contentType:'text/javascript',body:`
     let user = null;
