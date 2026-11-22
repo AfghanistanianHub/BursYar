@@ -16,3 +16,17 @@ test('Gemini and Qwen adapters validate wire responses, model, deadline and boun
  }
  assert.throws(()=>createProvider({provider:'self_hosted',enabled:true,model:'qwen3-local',endpoint:'https://evil.example'}));
 });
+
+test('Experiential adapter uses exact gateway and retains evidence contract',async()=>{
+ const adapter=createProvider({provider:'experiential',enabled:true,key:'test-key',model:'claude-opus-5.5',fetchImpl:async(url,options)=>{
+  assert.equal(url,'https://api.experientiallabs.ai/v1/chat/completions');
+  assert.equal(options.headers.authorization,'Bearer test-key');
+  const body=JSON.parse(options.body);
+  assert.equal(body.model,'claude-opus-5.5');
+  assert.equal(body.stream,false);
+  return Response.json({choices:[{finish_reason:'stop',message:{content:'{"criteria":[]}'}}],usage:{prompt_tokens:2,completion_tokens:3,total_tokens:5}});
+ }});
+ assert.equal(adapter.available,true);
+ assert.equal(await adapter.infer([{role:'user',content:'test'}]),'{"criteria":[]}');
+ assert.throws(()=>createProvider({provider:'experiential',enabled:true,key:'test-key',model:'other'}));
+});
