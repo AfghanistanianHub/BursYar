@@ -34,6 +34,119 @@ let current=null,identityEpoch=0;
 const pendingOpeners=new WeakMap();
 export function openPendingDocument(root){pendingOpeners.get(root)?.();}
 document.addEventListener('bursyar:identity',()=>{current=null;identityEpoch++;const root=document.querySelector('#documents-mount');if(root)mountDocuments(root,document.documentElement.lang);});
+// BY-12 guided field mapping. fa/ps strings are UNREVIEWED pending fluent human
+// review (see docs/TRANSLATION-REVIEW.json).
+export const mappingCopy={
+ en:{title:'Guided field mapping',note:'The parser recognises only exact English labels. If your own document uses another layout, language or order, pick the line that states a value and enter what it says. A field is only saved when you choose the line that states it; nothing is inferred.',line:'Document line that states this',chooseLine:'Choose the line',degree:'Degree',gpa:'GPA',scale:'Official GPA scale',test:'Language test',overall:'Overall',bands:'Bands: listening, reading, writing, speaking',courseStart:'Course start date',testExpiry:'Test expiry date',none:'Not provided',save:'Save mapped fields',saved:'Mapped fields saved as your own declarations; not issuer verified.',required:'Choose the document line that states each value you entered.',empty:'Enter at least one field, with its document line, before saving.',invalid:'Check the values: scores must be numbers within the stated scale.',error:'Could not save the mapped fields. Check the values and the selected lines.'},
+ fa:{title:'نقشه‌برداری راهنمایی‌شدهٔ فیلدها',note:'ابزار استخراج فقط برچسب‌های دقیق انگلیسی را می‌شناسد. اگر سند شما چیدمان، زبان یا ترتیب دیگری دارد، خطی را که یک مقدار را بیان می‌کند انتخاب کنید و همان مقدار را وارد کنید. هر فیلد فقط وقتی ذخیره می‌شود که خط بیان‌کنندهٔ آن را انتخاب کنید؛ هیچ چیزی حدس زده نمی‌شود.',line:'خط سند که این مقدار را بیان می‌کند',chooseLine:'خط را انتخاب کنید',degree:'مدرک تحصیلی',gpa:'معدل (GPA)',scale:'مقیاس رسمی معدل',test:'آزمون زبان',overall:'نمرهٔ مجموع',bands:'نمره‌های بخش‌ها: شنیدن، خواندن، نوشتن، صحبت کردن',courseStart:'تاریخ شروع دوره',testExpiry:'تاریخ انقضای آزمون',none:'ارائه نشده',save:'ذخیرهٔ فیلدهای نقشه‌برداری‌شده',saved:'فیلدها به‌عنوان اظهارات خود شما ذخیره شدند؛ تأیید صادرکننده نیستند.',required:'برای هر مقدار واردشده، خط سند را انتخاب کنید.',empty:'پیش از ذخیره، دست‌کم یک فیلد همراه با خط سند وارد کنید.',invalid:'مقادیر را بررسی کنید: نمره‌ها باید عددی در محدودهٔ مقیاس اعلام‌شده باشند.',error:'ذخیرهٔ فیلدهای نقشه‌برداری‌شده ممکن نشد. مقادیر و خطوط انتخاب‌شده را بررسی کنید.'},
+ ps:{title:'د ساحو لارښوود نقشه',note:'د متن ایستونکی یوازې کره انګلیسي نښې پېژني. که ستاسو سند بل ترتیب، ژبه یا بڼه ولري، هغه کرښه وټاکئ چې یو ارزښت ښيي او هماغه ارزښت ولیکئ. هر ساحه یوازې هغه وخت ساتل کېږي چې د هغې کرښه وټاکئ؛ هېڅ شی اټکل نه کېږي.',line:'د سند کرښه چې دا ارزښت ښيي',chooseLine:'کرښه وټاکئ',degree:'تحصیلي کچه',gpa:'اوسط نمره (GPA)',scale:'د اوسط رسمي مقیاس',test:'د ژبې ازموینه',overall:'ټولیزه نمره',bands:'د برخو نمرې: اورېدل، لوستل، لیکل، خبرې کول',courseStart:'د کورس پیل نېټه',testExpiry:'د ازموینې پای نېټه',none:'نه ده ورکړل شوې',save:'نقشه شوې ساحې وساتئ',saved:'ساحې ستاسو د اظهار په توګه وساتل شوې؛ د صادرونکي تایید نه دي.',required:'د هر لیکل شوي ارزښت لپاره د سند کرښه وټاکئ.',empty:'تر ساتلو مخکې لږ تر لږه یوه ساحه د سند کرښې سره ولیکئ.',invalid:'ارزښتونه وګورئ: نمرې باید په ټاکلي مقیاس کې عدد وي.',error:'نقشه شوې ساحې ونه ساتل شوې. ارزښتونه او ټاکل شوې کرښې وګورئ.'}
+};
+
+// Renders the mapping form for an already-saved document. Every value must be
+// tied to a line selected from the stored text, so the review can never look
+// like extraction the parser did not perform.
+export function renderGuidedMapping(container,doc,language,save){
+ if(!container)return;
+ const t=mappingCopy[language]??mappingCopy.en;
+ container.replaceChildren();
+ const add=(tag,text,parent=container)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;parent.append(el);return el;};
+ const section=add('section','');section.className='document-mapping';
+ add('h3',t.title,section);add('p',t.note,section);
+ const lines=[...new Set(String(doc?.text??'').split(/\r?\n/).map(line=>line.trim()).filter(Boolean))];
+ const pending=new Map((Array.isArray(doc?.pending)?doc.pending:[]).filter(claim=>claim&&claim.field).map(claim=>[claim.field,claim]));
+ const form=add('form','',section);form.className='document-mapping-form';
+ const status=add('p','',section);status.className='form-status';status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.setAttribute('aria-atomic','true');
+ const groups=[];
+ const textInput=(parent,id,labelText,type='text')=>{const wrap=add('div','',parent);wrap.className='field';const label=add('label',labelText,wrap);label.htmlFor=id;const input=document.createElement('input');input.id=id;input.name=id;input.type=type;wrap.append(input);return input;};
+ const selectInput=(parent,id,labelText,options)=>{const wrap=add('div','',parent);wrap.className='field';const label=add('label',labelText,wrap);label.htmlFor=id;const select=document.createElement('select');select.id=id;select.name=id;for(const [value,text] of options){const option=add('option',text,select);option.value=value;}wrap.append(select);select.value='';return select;};
+ const numberInput=(parent,id,labelText,{min,max,step})=>{const input=textInput(parent,id,labelText,'number');input.min=String(min);input.max=String(max);input.step=String(step);input.inputMode='decimal';return input;};
+ const lineFor=(fieldset,field)=>{
+  const wrap=add('div','',fieldset);wrap.className='field document-map-line';
+  const id='map-line-'+field,label=add('label',t.line,wrap);label.htmlFor=id;
+  const select=document.createElement('select');select.id=id;select.name=id;
+  const placeholder=add('option',t.chooseLine,select);placeholder.value='';
+  for(const line of lines){const option=add('option',line.length>120?line.slice(0,117)+'…':line,select);option.value=line;}
+  wrap.append(select);
+  // Prefill only where a rule matched: the claim's own quoted line, never a guess.
+  const claim=pending.get(field);
+  const excerpt=claim?.sourceExcerpt?.trim();
+  if(excerpt){if(!lines.includes(excerpt)){const option=add('option',excerpt,select);option.value=excerpt;}select.value=excerpt;}
+  return select;
+ };
+ const group=(field,legendText)=>{
+  const fieldset=add('fieldset','',form);fieldset.className='document-map-group';
+  add('legend',legendText,fieldset);
+  const row=add('div','',fieldset);row.className='field-row';
+  return {fieldset,row};
+ };
+ const register=(field,built,read)=>{const line=lineFor(built.fieldset,field);groups.push({field,line,read});};
+ const degreeClaim=pending.get('degree')?.value;
+ // Localised degree words are not invented here: the stored value stays canonical.
+ const degreeGroup=group('degree',t.degree);
+ const degree=selectInput(degreeGroup.row,'map-degree',t.degree,[['','—'],['secondary','secondary'],['bachelor','bachelor'],['master','master'],['doctorate','doctorate']]);
+ if(['secondary','bachelor','master','doctorate'].includes(degreeClaim))degree.value=degreeClaim;
+ register('degree',degreeGroup,()=>degree.value||null);
+
+ const gpaGroup=group('gpa',t.gpa);
+ const gpaClaim=pending.get('gpa')?.value;
+ const gpa=numberInput(gpaGroup.row,'map-gpa',t.gpa,{min:0,max:5,step:'any'});
+ const scale=selectInput(gpaGroup.row,'map-scale',t.scale,[['4','4'],['5','5']]);
+ if(gpaClaim&&Number.isFinite(gpaClaim.gpa)){gpa.value=String(gpaClaim.gpa);scale.value=String(gpaClaim.scale);}else scale.value='4';
+ gpa.max=scale.value;scale.addEventListener('change',()=>{gpa.max=scale.value;});
+ const readGpa=()=>{if(gpa.value.trim()==='')return null;const value=Number(gpa.value),scaleValue=Number(scale.value);if(!Number.isFinite(value)||value<0||value>scaleValue)throw Error('Invalid GPA');return {gpa:value,scale:scaleValue};};
+ register('gpa',gpaGroup,readGpa);
+
+ const testGroup=group('languageTest',t.test);
+ const testClaim=pending.get('languageTest')?.value;
+ const test=selectInput(testGroup.row,'map-test',t.test,[['','—'],['IELTS Academic','IELTS Academic'],['TOEFL iBT','TOEFL iBT']]);
+ const overall=numberInput(testGroup.row,'map-overall',t.overall,{min:0,max:120,step:'0.5'});
+ const bandLabels={listening:'listening',reading:'reading',writing:'writing',speaking:'speaking'};
+ const bands=Object.fromEntries(Object.keys(bandLabels).map(key=>[key,numberInput(testGroup.row,'map-'+key,key,{min:0,max:30,step:'0.5'})]));
+ if(testClaim&&['IELTS Academic','TOEFL iBT'].includes(testClaim.test)){
+  test.value=testClaim.test;overall.value=String(testClaim.overall);
+  const source=testClaim.sections??testClaim.bands??{};
+  for(const key of Object.keys(bands))if(Number.isFinite(source[key]))bands[key].value=String(source[key]);
+ }
+ const readTest=()=>{
+  if(!test.value)return null;
+  const read=(input,min,max)=>{const value=Number(input.value);if(input.value.trim()===''||!Number.isFinite(value)||value<min||value>max)throw Error('Invalid score');return value;};
+  const ielts=test.value==='IELTS Academic';
+  const scores=Object.fromEntries(Object.entries(bands).map(([key,input])=>[key,read(input,0,ielts?9:30)]));
+  const total=read(overall,0,ielts?9:120);
+  return ielts?{test:'IELTS Academic',overall:total,bands:scores}:{test:'TOEFL iBT',overall:total,sections:scores};
+ };
+ const syncTest=()=>{const ielts=test.value==='IELTS Academic';overall.max=ielts?'9':'120';overall.step=ielts?'0.5':'1';for(const input of Object.values(bands)){input.max=ielts?'9':'30';input.step=ielts?'0.5':'1';}for(const input of [overall,...Object.values(bands)])input.disabled=!test.value;};
+ test.addEventListener('change',syncTest);syncTest();
+ register('languageTest',testGroup,readTest);
+
+ const startGroup=group('courseStart',t.courseStart);
+ const start=textInput(startGroup.row,'map-course-start',t.courseStart,'date');
+ register('courseStart',startGroup,()=>start.value||null);
+ const expiryGroup=group('testExpiry',t.testExpiry);
+ const expiry=textInput(expiryGroup.row,'map-test-expiry',t.testExpiry,'date');
+ register('testExpiry',expiryGroup,()=>expiry.value||null);
+
+ const saveButton=add('button',t.save,form);saveButton.type='submit';saveButton.className='primary-link';
+ form.addEventListener('submit',event=>{
+  event.preventDefault();
+  status.textContent='';
+  const fields=[];let missing=null,invalid=false;
+  for(const item of groups){
+   let value;try{value=item.read();}catch{invalid=true;continue;}
+   if(value===null)continue;
+   if(!item.line.value){missing=item.line;continue;}
+   fields.push({field:item.field,value,sourceLine:item.line.value});
+  }
+  for(const item of groups)item.line.removeAttribute('aria-invalid');
+  if(invalid){status.textContent=t.invalid;return;}
+  if(missing){missing.setAttribute('aria-invalid','true');missing.focus();status.textContent=t.required;return;}
+  if(!fields.length){status.textContent=t.empty;return;}
+  status.textContent='…';
+  Promise.resolve().then(()=>save(fields)).then(()=>{if(status.isConnected)status.textContent=t.saved;},()=>{if(status.isConnected)status.textContent=t.error;});
+ });
+ return {form,status,groups};
+}
+
 export function mountDocuments(root,language='en'){
  if(!root)return;
  const mountEpoch=identityEpoch;
@@ -193,6 +306,12 @@ export function mountDocuments(root,language='en'){
    const decisions=Object.fromEntries(editors.map(({claim,decision,inputs})=>{const values=inputs.map(input=>input.type==='number'?Number(input.value):input.value);const kind=claim.field==='degree'?'degree':claim.field==='gpa'?'gpa':claim.value?.test==='TOEFL iBT'?'toefl':'ielts';const value=kind==='degree'?values[0]:kind==='gpa'?{gpa:values[0],scale:values[1]}:kind==='toefl'?{test:'TOEFL iBT',overall:values[0],sections:Object.fromEntries(['listening','reading','writing','speaking'].map((key,i)=>[key,values[i+1]]))}:{test:'IELTS Academic',overall:values[0],bands:Object.fromEntries(['listening','reading','writing','speaking'].map((key,i)=>[key,values[i+1]]))};return [claim.id,{action:decision.value,...(decision.value==='correct'?{value}:{})}];}));
    publish(await api(`/api/documents/${doc.id}/review`,'POST',{decisions}));doc.reviewedAt=true;doc.pending=[];current=doc;status.textContent=t.done;documentNotice.textContent=t.done;review.remove();setDocumentStage('save');await refreshLibrary();
   });});
+  const mappingHost=element('section','',content);mappingHost.className='document-mapping-host';
+  renderGuidedMapping(mappingHost,doc,language,async fields=>{
+   const profile=await api(`/api/documents/${doc.id}/map`,'POST',{fields});
+   publish(profile);
+   status.textContent=(mappingCopy[language]??mappingCopy.en).saved;
+  });
   const remove=element('button',t.remove,content);remove.type='button';remove.className='text-button danger';remove.addEventListener('click',()=>busy(async()=>{await api(`/api/documents/${doc.id}`,'DELETE');current=null;content.replaceChildren();publish(await api('/api/profile'));status.textContent=t.deleted;await refreshLibrary();}));
  }
  async function saveExtractedText(text,method){

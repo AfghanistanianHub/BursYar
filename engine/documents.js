@@ -160,6 +160,52 @@ export class DocumentStore {
    this.db.exec('COMMIT');return profile;
   }catch(e){this.db.exec('ROLLBACK');throw e;}
  }
+ // Guided field mapping (BY-12). The bounded parser recognises only exact
+ // labels, so a real transcript may produce no claims at all. The student may
+ // map a value by hand, but only from a line that exists verbatim in the stored
+ // text. The value is their assertion (user_declared); the quoted document line
+ // is the evidence it cites. Nothing is inferred, and every mapped fact stays
+ // explicitly not verified.
+ map(uid,id,input){
+  this.assertWritable(uid);
+  if(!input||typeof input!=='object'||Array.isArray(input)||!Array.isArray(input.fields)||!input.fields.length||input.fields.length>8)throw new DocumentError(400);
+  // Only fields a guided form can label unambiguously; never free-form profile edits.
+  const mappedFields=['degree','gpa','languageTest','courseStart','testExpiry'];
+  this.db.exec('BEGIN IMMEDIATE');
+  try{
+   this.assertWritable(uid);
+   const record=this.get(uid,id);
+   const lines=new Set();
+   for(const line of record.text.split(/\r?\n/)){const value=line.trim();if(value)lines.add(value);}
+   const seen=new Set(),updates={};
+   for(const entry of input.fields){
+    if(!entry||typeof entry!=='object'||!mappedFields.includes(entry.field)||seen.has(entry.field))throw new DocumentError(400);
+    seen.add(entry.field);
+    if(typeof entry.sourceLine!=='string'||!entry.sourceLine.trim()||entry.sourceLine.length>500||!lines.has(entry.sourceLine.trim()))throw new DocumentError(400);
+    if(!validProfileValue(entry.field,entry.value))throw new DocumentError(400);
+    updates[entry.field]={
+     value:structuredClone(entry.value),
+     origin:'user_declared',
+     claimIds:[],
+     verificationStatus:'not_verified',
+     sourceDocumentId:id,
+     sourceExcerpt:entry.sourceLine.trim(),
+     reviewStatus:'mapped_from_document'
+    };
+   }
+   const current=this.profile(uid);
+   for(const key of Object.keys(updates))if(current[key]?.origin==='issuer_verified')throw new DocumentError(409);
+   let profile;try{profile=mergeProfile(current,updates);}catch{throw new DocumentError(409);}
+   const mappedAt=new Date().toISOString();
+   record.mapping=[...(record.mapping??[]),...input.fields.map(entry=>({field:entry.field,sourceExcerpt:entry.sourceLine.trim(),mappedAt}))];
+   record.mappedAt=mappedAt;
+   this.db.prepare('INSERT INTO profile_history VALUES(?,?)').run(this.owner(uid),JSON.stringify({updatedAt:mappedAt,previous:current,fields:Object.keys(updates)}));
+   this.db.prepare('DELETE FROM profile_history WHERE owner=? AND rowid NOT IN (SELECT rowid FROM profile_history WHERE owner=? ORDER BY rowid DESC LIMIT 20)').run(this.owner(uid),this.owner(uid));
+   this.db.prepare('INSERT INTO profiles VALUES(?,?) ON CONFLICT(owner) DO UPDATE SET data=excluded.data').run(this.owner(uid),JSON.stringify(profile));
+   this.db.prepare('UPDATE documents SET data=? WHERE id=? AND owner=?').run(JSON.stringify(record),id,this.owner(uid));
+   this.db.exec('COMMIT');return profile;
+  }catch(e){this.db.exec('ROLLBACK');throw e;}
+ }
  delete(uid,id){
   this.assertWritable(uid);
   this.db.exec('BEGIN IMMEDIATE');

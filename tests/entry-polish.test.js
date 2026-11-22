@@ -27,7 +27,7 @@ test('hero action targets and disclosures exist in the shell', () => {
   assert.match(main, /id="research-explorer-mount"/);
   assert.match(main, /<details class="workspace">[\s\S]*?id="documents-mount"/);
   assert.match(main, /<details class="workspace">/);
-  assert.match(main, /<details class="resources">/);
+  assert.match(main, /<details class="resources" id="resources">/);
   assert.match(style, /\.hero-actions\{display:flex;flex-wrap:wrap/);
   assert.match(style, /max-width:700px\)\{\.hero-actions>\*\{flex:1 1 100%\}/);
 });

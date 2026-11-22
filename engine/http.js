@@ -46,7 +46,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
   const localRoute=['/api/evaluate','/api/scholarships','/api/export','/api/erase'].includes(route);
   const sourceRoute=!family&&req.method==='POST'&&['/api/source','/api/source/import'].includes(route);
   const importRoute=route==='/api/source/import';
-  const documentRoute=/^\/api\/(?:documents(?:\/[a-f0-9-]{36}(?:\/review)?)?|profile)$/.test(route??'');
+  const documentRoute=/^\/api\/(?:documents(?:\/[a-f0-9-]{36}(?:\/(?:review|map))?)?|profile)$/.test(route??'');
   // Credential verification: students may record a request; only a server-side
   // issuer decision (no HTTP route) can change a status to verified.
   const verificationProviderRoute=route==='/api/verifications/providers';
@@ -146,6 +146,7 @@ export function createInferenceServer({verify,projectId,quota,infer,origin,maxCo
      if(req.method==='GET'&&id)return send(res,200,await documents.get(storageOwner,id));
      if(req.method==='DELETE'&&id)return send(res,200,await documents.delete(storageOwner,id));
      if(req.method==='POST'&&id&&route.endsWith('/review'))return send(res,200,await documents.review(storageOwner,id,(await readInput(req,x=>x))?.decisions));
+     if(req.method==='POST'&&id&&route.endsWith('/map'))return send(res,200,await documents.map(storageOwner,id,await readInput(req,x=>x)));
      return send(res,405,{error:'Method unavailable'});
     }catch(error){return send(res,error instanceof DocumentError?error.status:[400,413,415].includes(error.status)?error.status:503,{error:'Document request unavailable'});}
    }
