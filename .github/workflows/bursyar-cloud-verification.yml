@@ -1,0 +1,46 @@
+name: BursYar Cloud Verification
+
+on:
+  push:
+    branches:
+      - work/restore-approved-ai-studio-hero
+    paths:
+      - .github/workflows/bursyar-cloud-verification.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bursyar-cloud-verification-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Offline tests and build (no deployment)
+    if: github.ref == 'refs/heads/work/restore-approved-ai-studio-hero'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: "true"
+      NO_COLOR: "1"
+    steps:
+      - name: Checkout selected branch
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Prepare local OCR assets
+        run: npm run prepare:ocr
+      - name: Run offline unit and research checks
+        run: npm test
+      - name: Run offline evaluation
+        run: npm run test:evaluation
+      - name: Build frontend without deploying
+        run: npm run build
