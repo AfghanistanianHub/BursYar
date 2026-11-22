@@ -1,0 +1,113 @@
+name: Research source freshness
+# BY-08 surfaces on a schedule, before it reddens every branch. Each run checks
+# today and again one week ahead, because a weekly job that only reports what is
+# already overdue would first speak on the same day the suite turns red: on
+# 2026-11-30 the rows are still inside their 14-day window, and they expire on
+# 2026-12-07. The check reads the shipped rows only, so it needs no `npm ci` and
+# cannot be blocked by a dependency or registry failure; the job fails only when
+# the tool itself is broken (exit 2), never because sources are due a re-read.
+on:
+  schedule:
+    - cron: '0 6 * * 1'   # Mondays 06:00 UTC
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: research-freshness
+  cancel-in-progress: false
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Run the research freshness check for today and one week ahead
+        id: check
+        run: |
+          set +e
+          npm run --silent check:research > "$RUNNER_TEMP/research-today.txt" 2>&1
+          today=$?
+          ahead_date=$(date -u -d "+7 days" +%F)
+          node scripts/check-research.mjs --now="$ahead_date" > "$RUNNER_TEMP/research-ahead.txt" 2>&1
+          ahead=$?
+          set -e
+          echo "Today ($(date -u +%F)):"
+          cat "$RUNNER_TEMP/research-today.txt"
+          echo
+          echo "One week ahead ($ahead_date):"
+          cat "$RUNNER_TEMP/research-ahead.txt"
+          {
+            echo "today=$today"
+            echo "ahead=$ahead"
+            echo "ahead_date=$ahead_date"
+          } >> "$GITHUB_OUTPUT"
+          for status in "$today" "$ahead"; do
+            case "$status" in
+              0|1) ;;
+              *)
+                echo "::error::check:research failed unexpectedly (exit $status); fix the workflow rather than the data."
+                exit 1
+                ;;
+            esac
+          done
+          if [ "$today" -eq 1 ]; then
+            echo "::warning::Some shipped research rows are past their window; the tracking issue has the list."
+          elif [ "$ahead" -eq 1 ]; then
+            echo "::notice::Some shipped research rows expire by $ahead_date; the tracking issue has the list."
+          fi
+      - name: Open or update the tracking issue
+        if: steps.check.outputs.today == '1' || steps.check.outputs.ahead == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.check.outputs.today }}" = "1" ]; then
+            file="$RUNNER_TEMP/research-today.txt"
+            when="are past the window their provenance earns"
+          else
+            file="$RUNNER_TEMP/research-ahead.txt"
+            when="will be past the window their provenance earns by ${{ steps.check.outputs.ahead_date }}"
+          fi
+          count=$(grep -oE '[0-9]+ overdue' "$file" | grep -oE '[0-9]+' | head -1 || true)
+          {
+            echo "The scheduled research freshness check found **${count:-some} scholarship rows** that ${when}."
+            echo
+            echo "A look-ahead report means the rows are still inside their window today, so no build has failed yet: act before the date above rather than after a red build."
+            echo
+            echo 'This is BY-08: the dates on the scholarship cards are the only freshness claim the product makes. For each row below, open its source, confirm the recorded details still hold, then set `lastCheckedAt` and `lastCheckedBy` in `src/research-data.js` and record the evidence in `docs/RESEARCH-RECHECK-<date>.md` — see `RELEASE.md` step 2. Do not re-date a row that was not re-read.'
+            echo
+            echo "Checked $(date -u +%F) by [${{ github.workflow }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}). This weekly job closes the issue once no row is overdue today or a week ahead."
+            echo
+            echo '<details><summary>check:research output</summary>'
+            echo
+            echo '```'
+            cat "$file"
+            echo '```'
+            echo
+            echo '</details>'
+          } > "$RUNNER_TEMP/issue.md"
+          number=$(gh issue list --state open --search 'in:title "Research source checks need a re-read"' --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --body-file "$RUNNER_TEMP/issue.md"
+            echo "Updated issue #$number"
+          else
+            gh issue create --title 'Research source checks need a re-read' --body-file "$RUNNER_TEMP/issue.md"
+            echo 'Opened the tracking issue'
+          fi
+          test -s "$RUNNER_TEMP/issue.md"
+      - name: Close the tracking issue when nothing is due
+        if: steps.check.outputs.today == '0' && steps.check.outputs.ahead == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          number=$(gh issue list --state open --search 'in:title "Research source checks need a re-read"' --json number --jq '.[0].number // empty')
+          if [ -n "$number" ]; then
+            gh issue close "$number" --comment "No shipped research row is overdue today or within the next week as of $(date -u +%F); the scheduled check is clean."
+            echo "Closed issue #$number"
+          else
+            echo 'Nothing to close'
+          fi
