@@ -41,7 +41,7 @@ test('server rejects are reported without retrying a write',async()=>{
 
 test('invalid HTTP methods and timeouts never reach the network',async()=>{
  let calls=0;const fetchImpl=async()=>{calls++;return success();};
- for(const method of ['get','PUT','TRACE',''])await assert.rejects(documentRequest('/api/documents',{token:'token',method,fetchImpl}),e=>e.code==='error');
+ for(const method of ['get','TRACE',''])await assert.rejects(documentRequest('/api/documents',{token:'token',method,fetchImpl}),e=>e.code==='error');
  for(const timeoutMs of [0,-1,NaN,Infinity,121000])await assert.rejects(documentRequest('/api/documents',{token:'token',timeoutMs,fetchImpl}),e=>e.code==='error');
  assert.equal(calls,0);
 });
@@ -50,4 +50,14 @@ test('explicit false and null JSON bodies are not silently omitted',async()=>{
   let options;await documentRequest('/api/documents',{token:'token',method:'POST',body,fetchImpl:async(_path,input)=>{options=input;return success();}});
   assert.equal(options.body,JSON.stringify(body));
  }
+});
+
+test('profile PUT is permitted and sends one authenticated request',async()=>{
+ let calls=0;let options;
+ const result=await documentRequest('/api/profile',{token:'token',method:'PUT',body:{consent:true},fetchImpl:async(_path,input)=>{calls++;options=input;return success();}});
+ assert.deepEqual(result,{ok:true});
+ assert.equal(calls,1);
+ assert.equal(options.method,'PUT');
+ assert.equal(options.headers.authorization,'Bearer token');
+ assert.equal(JSON.parse(options.body).consent,true);
 });
