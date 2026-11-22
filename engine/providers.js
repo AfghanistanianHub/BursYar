@@ -1,10 +1,29 @@
+import {createExperientialClient,EXPERIENTIAL_MODEL} from './experiential-client.js';
 import {createMetaInference,MetaFailure} from './meta.js';
 import {metaTimeout} from './provider-config.js';
 // No fallback, retries, or credential discovery. Configuration is server-owned.
 export function createProvider({provider,enabled=false,key,model,endpoint,timeoutMs=60000,fetchImpl=fetch}) {
- if(!['meta','gemini','self_hosted'].includes(provider))throw Error('Unsupported provider');
+ if(!['meta','gemini','self_hosted','experiential'].includes(provider))throw Error('Unsupported provider');
  const unavailable=Object.freeze({provider,model:model??null,available:false});
  if(enabled!==true||!model||provider!=='self_hosted'&&!key)return unavailable;
+ if(provider==='experiential'){
+  if(model!==EXPERIENTIAL_MODEL)throw Error('Invalid Experiential model');
+  const client=createExperientialClient({apiKey:key,fetchImpl});
+  const reservationUnits=messages=>Buffer.byteLength(JSON.stringify({model,messages,max_tokens:4000})) + 4000;
+  const infer=async(messages,{signal}={})=>{
+   if(!Array.isArray(messages)||!messages.length||messages.some(m=>!['developer','system','user'].includes(m?.role)||typeof m.content!=='string'))throw new MetaFailure('provider_input',400);
+   try{
+    const response=await client.createChatCompletion({messages,max_tokens:4000,response_format:{type:'json_object'},stream:false},{signal});
+    const choice=response?.choices?.[0];
+    if(response?.choices?.length!==1||choice?.finish_reason!=='stop'||choice?.message?.refusal||typeof choice?.message?.content!=='string')throw Error('Invalid gateway response');
+    const raw=choice.message.content;
+    if(!raw.trim()||raw.length>48000)throw Error('Invalid gateway content');
+    JSON.parse(raw);
+    return raw;
+   }catch{throw new MetaFailure('provider_invalid');}
+  };
+  return Object.freeze({provider,model,available:true,infer,reservationUnits});
+ }
  if(provider==='meta'){
   const infer=createMetaInference({key,model,timeoutMs,fetchImpl});
   return Object.freeze({provider,model,available:true,infer,reservationUnits:infer.reservationUnits});
