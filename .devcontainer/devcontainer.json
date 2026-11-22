@@ -1,6 +1,5 @@
 {
   "name": "BursYar Cloud Workspace",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-24-bookworm",
   "remoteUser": "node",
   "updateContentCommand": "npm ci --ignore-scripts --no-audit --no-fund && npm run prepare:ocr",
   "postAttachCommand": "printf '\\nBursYar cloud workspace ready. Check docs/CLOUD-WORKSPACE.md before starting an agent.\\n'",
@@ -9,6 +8,12 @@
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash"
       }
+    }
+  },
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
     }
   }
 }
