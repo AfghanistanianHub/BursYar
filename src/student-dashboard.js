@@ -42,7 +42,7 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
  const number = new Intl.NumberFormat(language);
  const count = (value, forms) => `${number.format(value)} ${forms[value === 1 ? 0 : 1]}`;
  const navigation = Object.entries(routes).map(([key,href]) => `
-  <a class="dashboard-nav-link" href="${href}">${icon(key === 'verifications' ? 'verified' : key)}
+  <a class="dashboard-nav-link" href="${href}">${icon(key)}
    <span class="dashboard-nav-full">${t[key]}</span>
    <span class="dashboard-nav-short">${t['mobile'+key[0].toUpperCase()+key.slice(1)]}</span>
   </a>`).join('');
