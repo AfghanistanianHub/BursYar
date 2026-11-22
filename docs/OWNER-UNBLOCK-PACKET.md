@@ -213,6 +213,47 @@ reported as unmeasurable parity, never as a commit mismatch. Warming the service
 with `curl -m 75 https://bursyar-api.onrender.com/health` before a release is
 still worth the ten seconds.
 
+### Rehearsing the sequence before the promotion
+
+`verification/rehearsal-smoke.mjs` serves the built `dist/` with a backend whose
+`/health` commit you control, then runs the real `scripts/release-smoke.mjs`
+against it in three situations plus the post-promotion re-run. It is the same
+sequence as Production, minus Vercel and Render.
+
+```bash
+npm run build                      # the stamp in dist/index.html must equal the commit you intend to promote
+node verification/rehearsal-smoke.mjs
+```
+
+| Run | Backend commit | `RELEASE.md` rows | Expected |
+|---|---|---|---|
+| 1 | equals the frontend stamp | not read (off-production) | exit 0, one `unmeasurable`: `RELEASE.md parity is enforced against …` |
+| 2 | `deadbeef…` | not read | exit 1, the only failure is `frontend … and backend … report the same commit` |
+| 3 | equals the frontend stamp | the recorded production pair (or `REHEARSAL_STALE_FRONTEND` / `REHEARSAL_STALE_BACKEND`) | exit 1, the only failures are the two `matches RELEASE.md (…)` lines, while `RELEASE.md records both commits` still passes |
+| 4 | equals the frontend stamp | the tested commit in both rows | exit 0, `unmeasurable:[]` |
+
+Run on 22 November 2026 against `a816591` (`dist` stamped with the same commit),
+all four behaved exactly as the table says, and the script's own exit was 0 with
+`{"event":"rehearsal_smoke","passed":true,…,"failures":[]}`. In run 3 the two
+failures printed the pair recorded in this repository at the time,
+`frontend … matches RELEASE.md (2162be3…)` and `backend … matches RELEASE.md
+(7dbd75f…)`, next to a passing `frontend … and backend … report the same commit`.
+
+**Read run 3 before you deploy.** The first smoke after a correct promotion will
+fail those same two lines by design, because `RELEASE.md` still describes the
+previous release. Update the two machine-read rows (the frontend one under
+`Production frontend branch and commit`, the backend one under `Backend
+production SHA`) to the full promoted SHAs, re-run, and expect run 4's shape:
+`passed:true`, `unmeasurable:[]`. A failure that includes anything other than
+those two rows is not bookkeeping — stop and diagnose it.
+
+**What it cannot rehearse, and what only the real hostname can tell you:**
+Deployment Protection (BY-01 — the one line a promotion cannot make green), the
+`vercel.json` rewrite of `/health` to Render, the commit Render itself publishes,
+the `VERCEL_GIT_COMMIT_SHA` a promoted build was stamped with, and cold-start
+timing. Treat a green rehearsal as "the check behaves as designed", never as
+"Production is released".
+
 ## 6. Pre-flight blockers before any release window
 
 - **Research freshness (BY-08).** All 12 rows are automated reads dated
@@ -269,6 +310,7 @@ For each item, the evidence is the command output, not a description.
 - [ ] `curl -sS -o /dev/null -w '%{http_code}\n' https://bursyar.vercel.app/health` → `200`
 - [ ] `curl -m 75 https://bursyar-api.onrender.com/health` → commit equals the approved SHA
 - [ ] `curl -sS https://bursyar.vercel.app/ | grep -o '<meta name="bursyar-build" content="[0-9a-f]*"'` → same SHA
+- [ ] `npm run build && node verification/rehearsal-smoke.mjs` → exit 0 on the commit you intend to promote
 - [ ] `node scripts/release-smoke.mjs https://bursyar.vercel.app` → `passed:true`, `unmeasurable:[]`
 - [ ] `RELEASE.md` records both full SHAs in the two machine-read rows
 - [ ] Register: BY-01 VERIFIED, BY-04 VERIFIED, BY-25 VERIFIED (or the failure recorded as BLOCKED with its output)
