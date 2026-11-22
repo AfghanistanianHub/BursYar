@@ -42,6 +42,7 @@
     "diagnose:mac": "node verification/macos-start.mjs diagnose",
     "test:evaluation": "node verification/evaluate.mjs",
     "rehearsal:smoke": "node verification/rehearsal-smoke.mjs",
+    "release:check": "node scripts/release-check.mjs",
     "check:research": "node scripts/check-research.mjs",
     "research:recheck": "node scripts/research-recheck.mjs",
     "diagnose:meta-network": "node verification/meta-network.mjs",

@@ -232,6 +232,12 @@ The branch workflow runs the same alias immediately after `npm run build`, so a
 red rehearsal fails the pushed branch's checks rather than waiting to be found
 during a promotion.
 
+`npm run release:check` runs the whole pre-flight in the order below — clean
+tree, `RELEASE.md` rows, hostname agreement, freshness, a build stamped with
+HEAD, then the rehearsal — and prints the two rows to paste once the smoke
+confirms the deployed SHAs. Pass `-- --backend=<sha>` with the commit `/health`
+reported to get both rows complete.
+
 | Run | Backend commit | `RELEASE.md` rows | Expected |
 |---|---|---|---|
 | 1 | equals the frontend stamp | not read (off-production) | exit 0, one `unmeasurable`: `RELEASE.md parity is enforced against …` |
@@ -317,6 +323,7 @@ For each item, the evidence is the command output, not a description.
 - [ ] `curl -sS -o /dev/null -w '%{http_code}\n' https://bursyar.vercel.app/health` → `200`
 - [ ] `curl -m 75 https://bursyar-api.onrender.com/health` → commit equals the approved SHA
 - [ ] `curl -sS https://bursyar.vercel.app/ | grep -o '<meta name="bursyar-build" content="[0-9a-f]*"'` → same SHA
+- [ ] `npm run release:check` → exit 0 on the commit you intend to promote, and the two rows it prints match the SHAs the smoke reports
 - [ ] `npm run build && npm run rehearsal:smoke` → exit 0 on the commit you intend to promote
 - [ ] `node scripts/release-smoke.mjs https://bursyar.vercel.app` → `passed:true`, `unmeasurable:[]`
 - [ ] `RELEASE.md` records both full SHAs in the two machine-read rows
