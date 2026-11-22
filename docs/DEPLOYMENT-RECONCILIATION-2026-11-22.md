@@ -27,3 +27,12 @@
 - Production release and any public protection changes require explicit owner approval.
 
 **Status: HOLD.** No production deployment or provider spending authorized.
+
+## Verified follow-up — CI and quota evidence
+
+- GitHub Actions run [44987879435](https://github.com/AfghanistanianHub/BursYar/actions/runs/44987879435) completed **success** for `58c0c3b57ffc36c96a9910569ad17314b2395ec6`; the workflow executes `npm test` and `npm run build`.
+- Vercel preview for that commit: `https://bursyar-1gwlfztdm-afghan-hub-s-projects.vercel.app` (READY). This is not the production domain.
+- Supabase BursYar project `rurgmyiiytesknsfwjjl` has quota RPC functions with `service_role` EXECUTE privileges. Existing registered `meta` limits: `userMinute=2`, `userDay=5`, `globalDay=20`, `lifetimeUnits=10000000`.
+- Correlated Supabase logs at 2026-11-21 01:57 UTC show RPC HTTP 400 with **Registered quota limits differ; administrative review required**. This is the specific cause of the failed backend deploy; a subsequent HTTP 200 was also logged, so do not assume the mismatch is persistent for every startup.
+- Do **not** reset quota budgets, increase limits, or weaken access control. Align Render requested quota limits with the registered budget only after reviewing current private configuration and approved spend limits. No environment variables were changed in this investigation.
+- The code fix on `58c0c3b` prevents an unavailable quota provider from crashing the entire API, while refusing AI inference for that provider. It has not been deployed to Render production.
