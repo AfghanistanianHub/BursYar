@@ -34,3 +34,12 @@ test('self-hosted model requires explicit legal and security reviews',()=>{
  assert.equal(decideProviderRoute({...local,selfHostedLegalReview:true}).allowed,false);
  assert.equal(decideProviderRoute({...local,selfHostedLegalReview:true,selfHostedSecurityReview:true}).route,'self_hosted');
 });
+
+test('Experiential requires explicit no-training contract and adult-only consent',()=>{
+ const context={...adult,provider:'experiential',model:'claude-opus-5.5'};
+ assert.equal(decideProviderRoute(context).allowed,false);
+ assert.equal(decideProviderRoute({...context,noTrainingContract:true}).route,'experiential_eligible');
+ assert.equal(decideProviderRoute({...context,noTrainingContract:true,subjectAgeBand:'under_18'}).allowed,false);
+ assert.equal(decideProviderRoute({...context,noTrainingContract:true,locationDecision:'unknown'}).allowed,false);
+ assert.equal(decideProviderRoute({...context,noTrainingContract:true,model:'claude-opus-5.4'}).allowed,false);
+});
