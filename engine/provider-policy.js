@@ -9,7 +9,7 @@ export function decideProviderRoute(context) {
  // Backward compatibility for the initial provider-policy test contract.
  if (context.model === 'deterministic' && context.provider === undefined) return allowed('deterministic');
  const provider = context.provider ?? 'meta';
- if (!['meta','gemini','self_hosted'].includes(provider)) return denied('unsupported_provider');
+ if (!['meta','gemini','self_hosted','experiential'].includes(provider)) return denied('unsupported_provider');
  if (!['adult_18_plus','under_18'].includes(context.subjectAgeBand) || !['adult_only','minor_targeted'].includes(context.audience)) return denied('unknown_subject_or_audience');
  if (context.userAgeBand !== 'adult_18_plus') return denied('caller_age_not_cleared');
  if (context.audience === 'minor_targeted' && provider !== 'self_hosted') return denied('minor_audience');
@@ -23,6 +23,11 @@ export function decideProviderRoute(context) {
   // Contributor IDs deliberately not accepted for application traffic.
   if (!metaStandard.has(context.model)) return denied('unsupported_model');
   return allowed('meta_standard');
+ }
+ if (provider === 'experiential') {
+  if(context.model!=='claude-opus-5.5')return denied('unsupported_model');
+  if(context.noTrainingContract!==true)return denied('privacy_terms_not_cleared');
+  return allowed('experiential_eligible');
  }
  if (provider === 'gemini') {
   // Google free tier may use content for product improvement; user-origin data
