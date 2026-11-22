@@ -41,9 +41,13 @@ verified.
 records `automated_source_read` for each one. The card labels the date “Last
 checked” and adds an automated-read warning in en, fa and ps; the JSON export
 carries the validated provenance next to the date. Rows keep
-`reviewStatus: needs_reverification`, and the 30-day freshness window still
-marks every check stale after 21 December 2026, so the date cannot read as a
-permanent clearance.
+`reviewStatus: needs_reverification`, and the recheck window now matches the
+provenance: an automated read earns 14 days, a human source check 30, and a
+check with no recorded provenance inherits the 14-day window because it cannot
+claim a human reading. These automated dates therefore go stale after 6 December
+2026, so the date cannot read as a permanent clearance. The single 30-day window
+was too generous here: an automated fetch proves the page still prints the
+recorded details but judges nothing, so the weaker claim is re-read more often.
 
 What is still not claimed: the automated read did not assess eligibility,
 funding conditions or language requirements, and the fa/ps provenance strings

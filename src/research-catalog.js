@@ -47,21 +47,25 @@ export function researchDeadlineState(row,now=new Date()) {
  if(!value||!Number.isFinite(now?.getTime?.()))return 'unknown';
  return value<now.toISOString().slice(0,10)?'past':'unconfirmed';
 }
-// A recorded check date is the export's claim about when a human last read the
-// page, never a live verification. Age it explicitly so a month-old claim is
-// not read as current: anything outside this window is labelled stale.
-export const RESEARCH_RECHECK_DAYS=30;
+// A recorded check date is the export's claim about when a source was last
+// read, never a live verification, so it ages out explicitly.
 export function researchCheckedOn(row){return isoDay(row?.lastCheckedAt);}
 // Who read the source is part of the claim: an automated fetch must never be
-// presented as a human check. Unknown provenance is dropped, not guessed.
-export const RESEARCH_CHECK_SOURCES=Object.freeze(['human_source_check','automated_source_read']);
+// presented as a human check. This one table is the list of accepted
+// provenance values and the recheck window each one earns. An automated read
+// only proves the page was reachable and still printed the recorded details,
+// while a human read also judged them, so the weaker claim expires sooner.
+// Unknown provenance is dropped, not guessed, and inherits the shorter window.
+export const RESEARCH_RECHECK_DAYS=Object.freeze({human_source_check:30,automated_source_read:14});
+export const RESEARCH_CHECK_SOURCES=Object.freeze(Object.keys(RESEARCH_RECHECK_DAYS));
 export function researchCheckedBy(row){const value=row?.lastCheckedBy;return RESEARCH_CHECK_SOURCES.includes(value)?value:null;}
+export function researchRecheckDays(row){return RESEARCH_RECHECK_DAYS[researchCheckedBy(row)]??RESEARCH_RECHECK_DAYS.automated_source_read;}
 export function researchFreshness(row,now=new Date()) {
  const value=researchCheckedOn(row);
  if(!value||!Number.isFinite(now?.getTime?.()))return 'unknown';
  const age=Math.floor((now.getTime()-Date.parse(value+'T00:00:00Z'))/86400000);
- if(!Number.isFinite(age)||age<0)return 'unknown';
- return age>RESEARCH_RECHECK_DAYS?'stale':'fresh';
+ if(age<0)return 'unknown';
+ return age>researchRecheckDays(row)?'stale':'fresh';
 }
 // Normalize search only; keep displayed titles and evidence unchanged.
 const searchText=value=>String(value??'').normalize('NFKC').toLocaleLowerCase().replace(/[يى]/gu,'ی').replace(/ك/gu,'ک').replace(/[\u064b-\u065f\u0670\u0640]/gu,'').replace(/[\u200c\u200d]/gu,' ');

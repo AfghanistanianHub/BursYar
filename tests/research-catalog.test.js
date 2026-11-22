@@ -57,12 +57,22 @@ test('export contains only public metadata with honest verification labels', () 
  assert.equal(data.entries[0].lastCheckedBy,null); // Unknown provenance is dropped, never guessed.
 });
 
-test('recorded check dates expire instead of reading as current',()=>{
+test('an automated read expires sooner than a human check and unknown provenance gets no human window',()=>{
  const now=new Date('2026-11-20T00:00:00Z');
- assert.equal(catalog.RESEARCH_RECHECK_DAYS,30);
+ assert.equal(catalog.RESEARCH_RECHECK_DAYS.human_source_check,30);
+ assert.equal(catalog.RESEARCH_RECHECK_DAYS.automated_source_read,14);
+ assert.deepEqual(catalog.RESEARCH_CHECK_SOURCES,[...Object.keys(catalog.RESEARCH_RECHECK_DAYS)]);
  assert.equal(catalog.researchCheckedOn({lastCheckedAt:'2026-10-21'}),'2026-10-21');
- assert.equal(catalog.researchFreshness({lastCheckedAt:'2026-10-21'},now),'fresh');
- assert.equal(catalog.researchFreshness({lastCheckedAt:'2026-10-20'},now),'stale');
+ const human={lastCheckedAt:'2026-10-21',lastCheckedBy:'human_source_check'};
+ assert.equal(catalog.researchFreshness(human,now),'fresh'); // 30 days.
+ assert.equal(catalog.researchFreshness({...human,lastCheckedAt:'2026-10-20'},now),'stale'); // 31 days.
+ const automated={lastCheckedAt:'2026-11-06',lastCheckedBy:'automated_source_read'};
+ assert.ok(catalog.researchRecheckDays(automated)<catalog.researchRecheckDays(human));
+ assert.equal(catalog.researchFreshness(automated,now),'fresh'); // 14 days.
+ assert.equal(catalog.researchFreshness({...automated,lastCheckedAt:'2026-11-05'},now),'stale'); // 15 days.
+ // A check with no recorded provenance is never granted the longer human window.
+ assert.equal(catalog.researchRecheckDays({lastCheckedAt:'2026-10-21'}),14);
+ assert.equal(catalog.researchFreshness({lastCheckedAt:'2026-10-21'},now),'stale');
  for(const value of [undefined,null,'','2026-02-30','not a date','2026-12-01'])assert.equal(catalog.researchFreshness({lastCheckedAt:value},now),'unknown',String(value));
  assert.equal(catalog.researchCheckedOn({}),null);
  assert.equal(catalog.researchCheckedBy({lastCheckedBy:'human_source_check'}),'human_source_check');
@@ -70,14 +80,14 @@ test('recorded check dates expire instead of reading as current',()=>{
  for(const value of [undefined,null,'','someone','AUTOMATED_SOURCE_READ',42])assert.equal(catalog.researchCheckedBy({lastCheckedBy:value}),null,String(value));
 });
 
-test('the shipped export records an automated re-check that still ages out',()=>{
- const now=new Date('2026-11-22T00:00:00Z');
+test('the shipped export records an automated re-check that ages out inside the shorter window',()=>{
  for(const row of catalog.researchScholarships){
-  assert.equal(catalog.researchCheckedOn(row),row.lastCheckedAt,row.id);
   assert.equal(row.lastCheckedAt,'2026-11-22',row.id);
   assert.equal(catalog.researchCheckedBy(row),'automated_source_read',row.id);
-  assert.equal(catalog.researchFreshness(row,now),'fresh',row.id);
-  assert.equal(catalog.researchFreshness(row,new Date('2026-12-23T00:00:00Z')),'stale',row.id); // 31 days.
+  assert.equal(catalog.researchRecheckDays(row),14,row.id);
+  assert.equal(catalog.researchFreshness(row,new Date('2026-11-22T00:00:00Z')),'fresh',row.id);
+  assert.equal(catalog.researchFreshness(row,new Date('2026-12-06T00:00:00Z')),'fresh',row.id); // 14 days.
+  assert.equal(catalog.researchFreshness(row,new Date('2026-12-07T00:00:00Z')),'stale',row.id); // 15 days, before a human check would expire.
  }
 });
 
