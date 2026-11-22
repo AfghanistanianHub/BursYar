@@ -54,10 +54,14 @@ const lazyMounts={
   mountAnalyzer(document.querySelector('#analyze-form'),state.language,esc,analyzerInput);
   mountAnalysisWorkspace(document.querySelector('#analysis-workspace'),state.language);
  },
- async workspace(gen){
-  const [{mountLocalWorkflow},{mountProfile},{mountAcademicEvidence},{mountDocuments}]=await Promise.all([import('./local-workflow.js'),import('./profile-form.js'),import('./academic-evidence-form.js'),import('./documents.js')]);
+ async offline(gen){
+  const {mountLocalWorkflow}=await import('./local-workflow.js');
   if(gen!==mountGeneration)return;
   mountLocalWorkflow(document.querySelector('#local-workflow-mount'),state.language);
+ },
+ async workspace(gen){
+  const [{mountProfile},{mountAcademicEvidence},{mountDocuments}]=await Promise.all([import('./profile-form.js'),import('./academic-evidence-form.js'),import('./documents.js')]);
+  if(gen!==mountGeneration)return;
   mountProfile(document.querySelector('#profile-mount'),state.language);
   mountAcademicEvidence(document.querySelector('#academic-evidence-mount'),state.language);
   mountDocuments(document.querySelector('#documents-mount'),state.language);
@@ -89,10 +93,10 @@ function mountEligibilityNow(){
  return eligibilityQueue;
 }
 // The offline CTA lives above the fold while its workflow is lazy-loaded.
-document.addEventListener('bursyar:open-offline-workflow',()=>{void ensureMount('workspace');});
+document.addEventListener('bursyar:open-offline-workflow',()=>{void ensureMount('offline');});
 function wireLazyMounts(){
  mountObserver?.disconnect();
- const regions=[['#workspace-overview','overview'],['#local-workflow-mount','workspace'],['#eligibility-mount','eligibility'],['#assistant','analysis']];
+ const regions=[['#workspace-overview','overview'],['#local-workflow-mount','offline'],['#eligibility-mount','eligibility'],['#assistant','analysis']];
  if(typeof IntersectionObserver==='function'){
   const observer=new IntersectionObserver(entries=>{
    for(const entry of entries){
