@@ -190,6 +190,8 @@ try {
   await expect(page.locator('.journey-more')).toHaveAttribute('open','');
   const steps=page.locator('.journey-nav ol a');
   await expect(steps).toHaveCount(4);
+  // The local assessment mounts asynchronously; wait for its real panel before using the shortcut.
+  await expect(page.locator('.local-workflow')).toBeAttached();
   await page.locator('.journey-offline').click();
   await expect(page.locator('.local-workflow')).toHaveAttribute('open','');
   await expect(page.locator('#local-assessment')).toBeVisible();
