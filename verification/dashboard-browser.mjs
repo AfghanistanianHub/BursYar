@@ -66,7 +66,18 @@ try {
   await page.locator('.site .account summary').click();
   await page.locator('#account-controls button').first().click();
   const dashboard = page.locator('#student-dashboard');
-  await expect(dashboard.getByRole('heading',{name:'Documents & profile',exact:true})).toBeVisible();
+  try {
+    await expect(dashboard.getByRole('heading',{name:'Documents & profile',exact:true})).toBeVisible();
+  } catch(error) {
+    const state = await page.evaluate(()=>({
+      hash:location.hash,
+      dashboardPresent:!!document.querySelector('#student-dashboard'),
+      dashboardText:document.querySelector('#student-dashboard')?.textContent?.slice(0,500),
+      accountControls:document.querySelector('#account-controls')?.textContent,
+      alerts:[...document.querySelectorAll('[role=alert]')].map(el=>el.textContent?.slice(0,250))
+    }));
+    throw new Error('Dashboard did not open after mock sign-in: '+JSON.stringify({state,errors})+'; '+error.message);
+  }
   await expect(dashboard.locator('#documents-mount')).toBeVisible();
 
   await dashboard.getByRole('link',{name:'Dashboard',exact:true}).click();
