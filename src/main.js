@@ -265,7 +265,7 @@ sampleResults.addEventListener('click',event=>{
  });
  sampleDetail.firstElementChild.focus();
 });
-document.querySelectorAll('[data-open]').forEach(el=>el.addEventListener('click',()=>{const panel=document.querySelector(el.dataset.open);if(panel)panel.open=true;}));
+document.querySelectorAll('[data-open]').forEach(el=>el.addEventListener('click',()=>{const panel=document.querySelector(el.dataset.open);if(panel)panel.open=true;if(el.dataset.open==='#eligibility-example')void ensureMount('eligibility').then(()=>{document.querySelector('#eligibility-example')?.setAttribute('open','');});}));
 cleanupReferenceHero=mountReferenceHero(app,state.language,heroMotionPaused,paused=>{heroMotionPaused=paused;});
 mountHeroDocumentDemo(document.querySelector('.hero'),state.language);
 mountJourney(document.querySelector('#journey-nav-mount'),state.language);
