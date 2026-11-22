@@ -12,6 +12,7 @@ the frontend, the backend and the evidence can be checked against each other.
 | Development preview | `dpl_4fqwHfH6H1f7ZZyckyjjgeqhv2Pa` — READY; `https://bursyar-pn491xkbk-afghan-hub-s-projects.vercel.app` |
 | Production frontend branch and commit | `main` — `2162be3e21962db23bdb022586bdf0e491ffaa96` |
 | Production frontend deployment | `bursyar-otgc3du9d-afghan-hub-s-projects.vercel.app` — READY |
+| Frontend build stamp | `<meta name="bursyar-build">`, written by `vite.config.js` from `VERCEL_GIT_COMMIT_SHA`, `GITHUB_SHA` or `git rev-parse HEAD`; `unknown` fails the smoke check |
 | Branch relationship | 120 commits ahead, 0 behind at `3a5b493` |
 | GitHub combined commit status | Vercel success only; does not prove unit, evaluation, browser, or backend integration tests |
 | Backend production SHA | Not independently reverified in this inventory; previous report in this file was `7dbd75f` |
@@ -74,9 +75,14 @@ The full per-finding status is in [`docs/AUDIT-REMEDIATION.md`](docs/AUDIT-REMED
    ```bash
    node scripts/release-smoke.mjs https://bursyar.vercel.app
    ```
-   A 302 to `vercel.com/sso-api` fails the check; that is BY-01, an owner
-   setting in Vercel → Settings → Deployment Protection.
-5. Record the deployed SHA and the smoke output in this file.
+   The smoke check now requires the frontend build stamp, the backend
+   `/health` commit and the two commit rows below to agree, so a release cannot
+   be called done while two commits are live. A 302 to `vercel.com/sso-api`
+   fails the check; that is BY-01, an owner setting in Vercel → Settings →
+   Deployment Protection.
+5. Record the deployed SHAs in this inventory and the smoke output here, then
+   re-run the smoke check. This file is bookkeeping: updating it adds a commit
+   but changes no artefact, so the deployed pair stays what step 4 verified.
 
 ## Rollback
 

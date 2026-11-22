@@ -55,6 +55,12 @@ the real clock, and the failure message names each overdue row with its date and
 window. These 12 automated rows therefore fail CI from 7 December 2026 until a
 re-read re-dates them; a stale badge can no longer be the only consequence.
 
+`tests/research-evidence.test.js` closes the obvious shortcut: a date must be
+backed by this kind of dated record. For every `lastCheckedAt` in the catalogue
+the test requires `docs/RESEARCH-RECHECK-<date>.md` to exist, to name the date,
+and to name every row that carries it — so a future re-read cannot be recorded
+as a date bump with nothing read.
+
 What is still not claimed: the automated read did not assess eligibility,
 funding conditions or language requirements, and the fa/ps provenance strings
 remain UNREVIEWED pending a fluent reviewer (BY-21).
