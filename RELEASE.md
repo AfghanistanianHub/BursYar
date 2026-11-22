@@ -3,18 +3,30 @@
 One commit, one product. This file records exactly what a release contains so
 the frontend, the backend and the evidence can be checked against each other.
 
-## Release candidate
+## Verified deployment inventory (2026-11-22)
 
-| Item | Value |
+| Item | Verified value |
 |---|---|
-| Frontend commit | `b3947e5` on `work/restore-approved-ai-studio-hero` (merge of `main` + remediation batches 0–2) |
-| Branch relation to `main` | `main` is an ancestor; the branch is 95 commits ahead, 0 behind |
-| Backend commit deployed today | `7dbd75f` (reported by `GET /health`) — **not** this commit |
-| Production deployment | unchanged (`dpl_7DaAvqwXK5JaMyhvjnE7gm1FH9b8`, commit `2162be3`) |
-| Preview | not created for this candidate yet (a push to the branch produces one) |
-| Database migrations | none in this batch: no schema change in `engine/documents.js` or `engine/verification.js` |
-| Accessibility gate | 0 controls below 24×24 px at 320/390/768/1440; axe 0 violations (EN expanded, FA RTL) |
-| Quality gate | `npm test` exit 0, `npm run test:evaluation` 60/60, `npm run build` exit 0 |
+| Canonical development branch | `work/restore-approved-ai-studio-hero` |
+| Last verified development commit before this documentation update | `3a5b493385360b858baf49da2959358ddf2beca8` |
+| Development preview | `dpl_4fqwHfH6H1f7ZZyckyjjgeqhv2Pa` — READY; `https://bursyar-pn491xkbk-afghan-hub-s-projects.vercel.app` |
+| Production frontend branch and commit | `main` — `2162be3e21962db23bdb022586bdf0e491ffaa96` |
+| Production frontend deployment | `bursyar-otgc3du9d-afghan-hub-s-projects.vercel.app` — READY |
+| Branch relationship | 120 commits ahead, 0 behind at `3a5b493` |
+| GitHub combined commit status | Vercel success only; does not prove unit, evaluation, browser, or backend integration tests |
+| Backend production SHA | Not independently reverified in this inventory; previous report in this file was `7dbd75f` |
+| 9Router | Separate free Render experimental service, not part of production application |
+| Release decision | HOLD — no production deployment authorized |
+
+**This inventory supersedes older candidate and production SHA statements below.** A successful Vercel build is not a release acceptance test. Do not infer that AI Studio / Freebuff workspaces are synchronized; compare their actual exports before claiming full reconciliation.
+
+### Required pre-release reconciliation
+
+1. Export and diff any outstanding Google AI Studio and Freebuff changes against the canonical development branch; do not overwrite approved Hero or newer work.
+2. Verify current development HEAD and run unit, evaluation, build, browser, accessibility, RTL, authentication, document-processing, scholarship, and security checks on the **same** commit.
+3. Verify Render backend deployment SHA and API health against the release candidate. Align frontend/backend contracts without changing production prematurely.
+4. Resolve Vercel SSO/protection and pilot enrolment policy intentionally; never disable protection silently.
+5. Obtain explicit owner approval to deploy both components, verify production SHAs, and run post-release smoke tests.
 
 ## What is in this candidate
 
