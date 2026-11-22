@@ -8,12 +8,12 @@ the frontend, the backend and the evidence can be checked against each other.
 | Item | Verified value |
 |---|---|
 | Canonical development branch | `work/restore-approved-ai-studio-hero` |
-| Last verified development commit before this documentation update | `3a5b493385360b858baf49da2959358ddf2beca8` |
+| Last verified development commit before this documentation update | `3191b1662420e229421f492f6c7a0f0311efba39` — measured on the remote branch, 2026-11-22 |
 | Development preview | `dpl_4fqwHfH6H1f7ZZyckyjjgeqhv2Pa` — READY; `https://bursyar-pn491xkbk-afghan-hub-s-projects.vercel.app` |
 | Production frontend branch and commit | `main` — `2162be3e21962db23bdb022586bdf0e491ffaa96` |
 | Production frontend deployment | `bursyar-otgc3du9d-afghan-hub-s-projects.vercel.app` — READY |
 | Frontend build stamp | `<meta name="bursyar-build">`, written by `vite.config.js` from `VERCEL_GIT_COMMIT_SHA`, `GITHUB_SHA` or `git rev-parse HEAD`; `unknown` fails the smoke check |
-| Branch relationship | 120 commits ahead, 0 behind at `3a5b493` |
+| Branch relationship | 156 commits ahead, 0 behind `main` at `3191b16` — measured 2026-11-22 |
 | GitHub combined commit status | Vercel success only; does not prove unit, evaluation, browser, or backend integration tests |
 | Backend production SHA | `7dbd75f6889ea09e96c129831bec40c463b6e64e` — read from `/health` `capabilities.build.commit` on 2026-11-22 |
 | 9Router | Separate free Render experimental service, not part of production application |
@@ -87,7 +87,10 @@ The full per-finding status is in [`docs/AUDIT-REMEDIATION.md`](docs/AUDIT-REMED
    (the SSO redirect, an unreachable `/health`) parity is reported as
    unmeasurable rather than mismatched — the SSO line is still the failure. A 302 to `vercel.com/sso-api`
    fails the check; that is BY-01, an owner setting in Vercel → Settings →
-   Deployment Protection.
+   Deployment Protection. The `/health` probe is bounded at 45 s
+   (`BURSYAR_SMOKE_HEALTH_TIMEOUT_MS` overrides it), so a sleeping free-plan
+   backend fails the run with `no answer within … ms` instead of hanging it,
+   and the parity lines stay unmeasurable.
 5. Record the deployed SHAs in this inventory and the smoke output here, then
    re-run the smoke check. This file is bookkeeping: updating it adds a commit
    but changes no artefact, so the deployed pair stays what step 4 verified.
