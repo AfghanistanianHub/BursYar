@@ -114,8 +114,17 @@ try {
   await expect(page.locator('.trust-verdict[data-status=unknown]')).toBeVisible();
   await page.locator('#trust-explainer > summary').click();
   await expect(page.locator('#trust-explainer')).not.toHaveAttribute('open','');
-  await expect(page.locator('.guided-option[href="#research-explorer"]')).toHaveAttribute('data-open','.resources');
-  await expect(page.locator('.guided-option[href="#profile-mount"]')).toHaveAttribute('data-open','.workspace');
+  // Guided entry now uses dedicated hash routes, not legacy anchor/data-open pairs.
+  await expect(page.locator('.guided-option[data-task-route="find"]')).toHaveAttribute('href','#/find');
+  await expect(page.locator('.guided-option[data-task-route="prepare"]')).toHaveAttribute('href','#/prepare');
+  await page.locator('.guided-option[data-task-route="find"]').click();
+  await expect(page).toHaveURL(/#\/find$/);
+  await expect(page.locator('.resources')).toHaveAttribute('open','');
+  await expect(page.locator('.guided-option[data-task-route="find"]')).toHaveAttribute('aria-current','page');
+  await page.locator('.guided-option[data-task-route="prepare"]').click();
+  await expect(page).toHaveURL(/#\/prepare$/);
+  await expect(page.locator('.workspace')).toHaveAttribute('open','');
+  await expect(page.locator('.guided-option[data-task-route="prepare"]')).toHaveAttribute('aria-current','page');
   await expect(page.locator('#guided-demo')).not.toHaveAttribute('open','');
   if(language==='en'&&width===1280){
     await page.locator('#guided-demo > summary').click();
