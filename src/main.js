@@ -1,17 +1,9 @@
 import {onAuthChange} from './auth.js';
 import {dashboardCopy} from './dashboard-copy.js';
-import {isDashboardRoute,mountStudentDashboard} from './student-dashboard.js';
-import {mountWorkspaceOverview} from './workspace-overview.js';
-import {mountResearchExplorer} from './research-explorer.js';
-import {mountLocalWorkflow} from './local-workflow.js';
+import {isDashboardRoute} from './dashboard-route.js';
 import {mountJourney,journeyNavCopy} from './journey-navigation.js';
 import {applyTaskRoute,taskRouteHref} from './task-routes.js';
-import {mountProfile} from './profile-form.js';
-import {mountAcademicEvidence} from './academic-evidence-form.js';
-import {mountDocuments} from './documents.js';
-import {mountAnalyzer} from './analyzer.js';
-import {mountEligibility} from './eligibility-demo.js';
-import {mountAnalysisWorkspace,analysisWorkspaceCopy} from './analysis-workspace.js';
+import {analysisWorkspaceCopy} from './analysis-workspace-copy.js';
 import './fonts.css';
 import './style.css';
 import './journey-navigation.css';
@@ -40,10 +32,101 @@ const state={language:localStorage.getItem('bursyar-language')||'en',q:'',countr
 if(!translations[state.language])state.language='en';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let analyzerInput={};
+// BY-17: the entry chunk is the shell plus the above-the-fold hero. Each workflow
+// below is a separate chunk fetched when its region approaches the viewport or its
+// disclosure opens, so a landing-page visit does not download every feature.
+let latestCompilation, mountGeneration=0, mountObserver, eligibilityQueue=Promise.resolve();
+const mountedAt=new Map();
+const lazyMounts={
+ async overview(gen){
+  const {mountWorkspaceOverview}=await import('./workspace-overview.js');
+  if(gen!==mountGeneration)return;
+  mountWorkspaceOverview(document.querySelector('#workspace-overview'),state.language);
+ },
+ async research(gen){
+  const {mountResearchExplorer}=await import('./research-explorer.js');
+  if(gen!==mountGeneration)return;
+  mountResearchExplorer(document.querySelector('#research-explorer-mount'),state.language);
+ },
+ async analysis(gen){
+  const [{mountAnalyzer},{mountAnalysisWorkspace}]=await Promise.all([import('./analyzer.js'),import('./analysis-workspace.js')]);
+  if(gen!==mountGeneration)return;
+  mountAnalyzer(document.querySelector('#analyze-form'),state.language,esc,analyzerInput);
+  mountAnalysisWorkspace(document.querySelector('#analysis-workspace'),state.language);
+ },
+ async workspace(gen){
+  const [{mountLocalWorkflow},{mountProfile},{mountAcademicEvidence},{mountDocuments}]=await Promise.all([import('./local-workflow.js'),import('./profile-form.js'),import('./academic-evidence-form.js'),import('./documents.js')]);
+  if(gen!==mountGeneration)return;
+  mountLocalWorkflow(document.querySelector('#local-workflow-mount'),state.language);
+  mountProfile(document.querySelector('#profile-mount'),state.language);
+  mountAcademicEvidence(document.querySelector('#academic-evidence-mount'),state.language);
+  mountDocuments(document.querySelector('#documents-mount'),state.language);
+ },
+ eligibility(){return mountEligibilityNow();},
+ async dashboard(gen){
+  const {mountStudentDashboard}=await import('./student-dashboard.js');
+  if(gen!==mountGeneration)return;
+  dashboard=mountStudentDashboard(document.querySelector('#student-dashboard'),dashboardOptions());
+  dashboard.sync(signedIn);
+ }
+};
+function ensureMount(name){
+ const gen=mountGeneration;
+ if(mountedAt.get(name)===gen)return Promise.resolve();
+ mountedAt.set(name,gen);
+ return Promise.resolve(lazyMounts[name](gen)).catch(error=>{if(mountedAt.get(name)===gen)mountedAt.delete(name);recordClientError('mount_'+name,error);});
+}
+// The assessed-eligibility view is remounted whenever a compilation arrives, so it
+// queues its own updates instead of racing the first lazy mount.
+function mountEligibilityNow(){
+ const gen=mountGeneration;
+ eligibilityQueue=eligibilityQueue.then(async()=>{
+  const {mountEligibility}=await import('./eligibility-demo.js');
+  if(gen!==mountGeneration)return;
+  mountEligibility(document.querySelector('#eligibility-mount'),state.language,latestCompilation??document.querySelector('#analyze-form')?.analysis?.data?.compilation);
+  mountedAt.set('eligibility',gen);
+ }).catch(error=>recordClientError('mount_eligibility',error));
+ return eligibilityQueue;
+}
+function wireLazyMounts(){
+ mountObserver?.disconnect();
+ const regions=[['#workspace-overview','overview'],['#local-workflow-mount','workspace'],['#eligibility-mount','eligibility'],['#assistant','analysis']];
+ if(typeof IntersectionObserver==='function'){
+  const observer=new IntersectionObserver(entries=>{
+   for(const entry of entries){
+    if(!entry.isIntersecting)continue;
+    observer.unobserve(entry.target);
+    ensureMount(entry.target.dataset.lazyMount);
+   }
+  },{rootMargin:'400px 0px'});
+  mountObserver=observer;
+  for(const [selector,name] of regions){
+   const target=document.querySelector(selector);
+   if(!target)continue;
+   target.dataset.lazyMount=name;
+   observer.observe(target);
+  }
+ }else for(const [,name] of regions)ensureMount(name);
+ for(const [selector,name] of [['.workspace','workspace'],['.resources','research'],['.guided-demo','analysis'],['.account','dashboard']]){
+  const details=document.querySelector(selector);
+  if(!details)continue;
+  if(details.open)ensureMount(name);
+  details.addEventListener('toggle',()=>{if(details.open)ensureMount(name);});
+ }
+ if(mountedAt.has('dashboard')||signedIn||isDashboardRoute(location.hash))ensureMount('dashboard');
+}
+function dashboardOptions(){
+ const t=translations[state.language];
+ return {language:state.language,brand:t.brand,languageLabel:t.language,skipLabel:t.skipToContent,
+  getStatus:()=>({
+   documents:documentStatus,
+   assessment:hasLocalAssessment||!!document.querySelector('#analyze-form')?.analysis?.data?.compilation?.rules?.length
+  })};
+}
 let dashboard, signedIn=false, signedInUid, documentStatus, hasLocalAssessment=false;
 let cleanupReferenceHero;
 let heroMotionPaused=false;
-function render(){cleanupReferenceHero?.();const disclosures=Object.fromEntries(['workspace','resources','scenarios','guided-demo'].map(key=>[key,document.querySelector('.'+key)?.open]));const old=document.querySelector('#analyze-form');if(old)analyzerInput={text:old.querySelector('textarea').value,sourceUrl:old.querySelector('[name=sourceUrl]')?.value||'',analysis:old.analysis,receipt:old.sourceReceipt,sourceApproved:old.sourceApproved,preview:old.sourcePreview,barrierAnswers:old.barrierAnswers,manualMode:old.manualMode,sourceFailure:old.sourceFailure};const t=translations[state.language],rtl=state.language!=='en';document.documentElement.lang=state.language;document.documentElement.dir=rtl?'rtl':'ltr';document.title=`${t.brand} | ${t.missionTitle}`;document.querySelector('meta[name="description"]')?.setAttribute('content',t.description);const fmt=new Intl.NumberFormat(state.language);
+function render(){mountGeneration++;cleanupReferenceHero?.();const disclosures=Object.fromEntries(['workspace','resources','scenarios','guided-demo'].map(key=>[key,document.querySelector('.'+key)?.open]));const old=document.querySelector('#analyze-form');if(old)analyzerInput={text:old.querySelector('textarea').value,sourceUrl:old.querySelector('[name=sourceUrl]')?.value||'',analysis:old.analysis,receipt:old.sourceReceipt,sourceApproved:old.sourceApproved,preview:old.sourcePreview,barrierAnswers:old.barrierAnswers,manualMode:old.manualMode,sourceFailure:old.sourceFailure};const t=translations[state.language],rtl=state.language!=='en';document.documentElement.lang=state.language;document.documentElement.dir=rtl?'rtl':'ltr';document.title=`${t.brand} | ${t.missionTitle}`;document.querySelector('meta[name="description"]')?.setAttribute('content',t.description);const fmt=new Intl.NumberFormat(state.language);
 const j=journeyCopy[state.language];
 const ed={
 en:{platform:"Platform",scholarships:"Scholarships",resources:"Resources",about:"About",headlineHtml:'Start with the <span class="by-hero-accent">documents you have.</span>',lead:"Build a profile from your transcript, review what was extracted, and check it against scholarship requirements.",explore:"Explore Scholarships",pillars:[["Start with what you have","Review your information and documents when you are ready."],["Understand each requirement","See what is met, not met, or still unknown — without guessing."],["Find your next step","Turn missing evidence and unanswered questions into a practical plan."]],curated:"A place to begin.",selected:"Opportunities to explore",note:"Browse opportunities with source and verification status. Sample data is always identified.",view:"Browse scholarships"},
@@ -165,27 +248,11 @@ sampleResults.addEventListener('click',event=>{
 document.querySelectorAll('[data-open]').forEach(el=>el.addEventListener('click',()=>{const panel=document.querySelector(el.dataset.open);if(panel)panel.open=true;}));
 cleanupReferenceHero=mountReferenceHero(app,state.language,heroMotionPaused,paused=>{heroMotionPaused=paused;});
 mountHeroDocumentDemo(document.querySelector('.hero'),state.language);
-mountWorkspaceOverview(document.querySelector('#workspace-overview'),state.language);
-mountAnalysisWorkspace(document.querySelector('#analysis-workspace'),state.language);
-mountResearchExplorer(document.querySelector('#research-explorer-mount'),state.language);
 mountJourney(document.querySelector('#journey-nav-mount'),state.language);
-mountAnalyzer(document.querySelector('#analyze-form'),state.language,esc,analyzerInput);
 hasLocalAssessment=false;
-mountLocalWorkflow(document.querySelector('#local-workflow-mount'),state.language);
-mountProfile(document.querySelector('#profile-mount'),state.language);
-mountAcademicEvidence(document.querySelector('#academic-evidence-mount'),state.language);
 documentStatus=undefined;
-mountDocuments(document.querySelector('#documents-mount'),state.language);
-mountEligibility(document.querySelector('#eligibility-mount'),state.language,document.querySelector('#analyze-form')?.analysis?.data?.compilation);
 for(const [key,open]of Object.entries(disclosures))if(open!==undefined&&document.querySelector('.'+key))document.querySelector('.'+key).open=open;
-dashboard=mountStudentDashboard(document.querySelector('#student-dashboard'),{
- language:state.language,brand:t.brand,languageLabel:t.language,skipLabel:t.skipToContent,
- getStatus:()=>({
-  documents:documentStatus,
-  assessment:hasLocalAssessment||!!document.querySelector('#analyze-form')?.analysis?.data?.compilation?.rules?.length
- })
-});
-dashboard.sync(signedIn);
+wireLazyMounts();
 }
 // Only a localized action message is propagated; never broadcast private profile data.
 function paintNextEmpty(){const actions=document.querySelector('#next-actions');if(!actions)return;const t=journeyCopy[state.language];actions.innerHTML=`<p class="empty-note">${esc(t.nextEmpty)} <a href="#assistant">${esc(t.nextEmptyCta)}</a></p>`;}
@@ -201,7 +268,16 @@ document.addEventListener('bursyar:local-next',event=>{
   paintNextEmpty();
  }
 });
-document.addEventListener('bursyar:compilation',event=>{dashboard?.update();mountEligibility(document.querySelector('#eligibility-mount'),state.language,event.detail);queueMicrotask(()=>{const active=!!event.detail;document.querySelector('#requirements-step').hidden=!active&&document.querySelector('#analysis-result').hidden;if(!active)paintNextEmpty();if(active){const result=document.querySelector('#analysis-result');const fields=result.querySelector('fieldset'),guidance=result.querySelector('#barrier-guidance');if(fields)document.querySelector('#next-actions').replaceChildren(fields,guidance);}});});
+document.addEventListener('bursyar:compilation',event=>{
+ dashboard?.update();
+ latestCompilation=event.detail;
+ const active=!!event.detail;
+ mountEligibilityNow().then(()=>{
+  document.querySelector('#requirements-step').hidden=!active&&document.querySelector('#analysis-result').hidden;
+  if(!active)paintNextEmpty();
+  if(active){const result=document.querySelector('#analysis-result');const fields=result.querySelector('fieldset'),guidance=result.querySelector('#barrier-guidance');if(fields)document.querySelector('#next-actions').replaceChildren(fields,guidance);}
+ });
+});
 document.addEventListener('bursyar:identity',()=>{
  documentStatus=undefined;
  dashboard?.update();
@@ -227,7 +303,7 @@ function revealHashTarget(){
  if(target.children.length===1&&target.firstElementChild.tagName==='DETAILS')holders.push(target.firstElementChild);
  for(const details of holders)if(details)details.open=true;
 }
-window.addEventListener('hashchange',()=>{applyTaskRoute();revealHashTarget();dashboard?.sync(signedIn,true);});
+window.addEventListener('hashchange',()=>{applyTaskRoute();revealHashTarget();if(isDashboardRoute(location.hash))ensureMount('dashboard');dashboard?.sync(signedIn,true);});
 // Re-selecting a link whose hash is already current fires no hashchange, so the
 // same target must still open its disclosure instead of silently doing nothing.
 document.addEventListener('click',event=>{const link=event.target.closest?.('a[href^="#"]');if(!link)return;const href=link.getAttribute('href');if(!href||href.length<2)return;queueMicrotask(()=>{if(location.hash===href){applyTaskRoute();revealHashTarget();}});});
@@ -255,5 +331,6 @@ onAuthChange(user=>{
  // the dashboard from the landing page, not from a section they are using.
  if(signedIn&&!wasSignedIn&&(!location.hash||location.hash==='#top'))location.hash='#dashboard';
  if(!signedIn&&wasSignedIn&&isDashboardRoute(location.hash))history.replaceState(null,'','#top');
- dashboard.sync(signedIn,true);
+ dashboard?.sync(signedIn,true);
+ if(signedIn)ensureMount('dashboard');
 }).catch(error=>recordClientError('auth_init',error));

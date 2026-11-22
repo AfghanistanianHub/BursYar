@@ -27,15 +27,12 @@ const illustration = `<svg class="dashboard-illustration" aria-hidden="true" vie
  <path d="m167 115 22 22a4 4 0 0 0 6-6l-22-22M136 91h24m-24 8h18m-18 8h12"/>
  </svg>`;
 
-const routes = {home:'#dashboard', documents:'#dashboard/documents',
- saved:'#dashboard/saved', assessments:'#dashboard/assessments',
- verifications:'#dashboard/verifications', account:'#dashboard/account'};
+import {dashboardRoutes as routes, isDashboardRoute} from './dashboard-route.js';
+export {isDashboardRoute};
 const toolsByRoute = {
  documents:['#documents-mount','#profile-mount','#academic-evidence-mount'],
  assessments:['#assistant','#local-workflow-mount','#eligibility-mount','#next-steps']
 };
-export const isDashboardRoute = hash => Object.values(routes).includes(hash);
-
 export function mountStudentDashboard(root, {language, brand, languageLabel, skipLabel, getStatus}) {
  const t = dashboardCopy[language] ?? dashboardCopy.en;
  const site = root.previousElementSibling;
