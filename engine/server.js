@@ -30,7 +30,17 @@ for(const provider of ['meta','gemini','self_hosted','experiential']){
   if(p.costReviewed!==true||!(p.worstCaseUsdPerUnit>0)||!Number.isFinite(p.worstCaseUsdPerUnit)||!(p.spendLimitUSD>0)||!Number.isFinite(p.spendLimitUSD))throw Error('Reviewed provider spending bound required');
   const lifetimeUnits=Math.min(integer('BURSYAR_LIFETIME_UNITS'),Math.floor(p.spendLimitUSD/p.worstCaseUsdPerUnit));
   if(!Number.isSafeInteger(lifetimeUnits)||lifetimeUnits<1)throw Error('Invalid provider spending bound');
-  const quota=await createQuotaStorage(env,{provider,limits:{userMinute:integer('BURSYAR_USER_MINUTE'),userDay:integer('BURSYAR_USER_DAY'),globalDay:integer('BURSYAR_GLOBAL_DAY'),lifetimeUnits}});quotas.push(quota);providers[provider]=Object.freeze({...adapter,quota});
+  let quota;
+  try{
+   quota=await createQuotaStorage(env,{provider,limits:{userMinute:integer('BURSYAR_USER_MINUTE'),userDay:integer('BURSYAR_USER_DAY'),globalDay:integer('BURSYAR_GLOBAL_DAY'),lifetimeUnits}});
+  }catch{
+   // Fail closed: an unavailable or mismatched quota must NEVER enable inference.
+   // Keep deterministic scholarship/document endpoints available instead of crashing.
+   console.error(`Provider ${provider} disabled: quota initialization failed; review registered limits and storage configuration`);
+   providers[provider]=Object.freeze({...adapter,available:false});
+   continue;
+  }
+  quotas.push(quota);providers[provider]=Object.freeze({...adapter,quota});
  }else providers[provider]=adapter;
 }
 const policyContextForRequest=createTrustedPolicyResolver({providers:config,loadRecord:async uid=>{
