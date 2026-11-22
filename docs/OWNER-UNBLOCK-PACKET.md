@@ -225,8 +225,12 @@ that will run against Production.
 
 ```bash
 npm run build                      # the stamp in dist/index.html must equal the commit you intend to promote
-node verification/rehearsal-smoke.mjs
+npm run rehearsal:smoke
 ```
+
+The branch workflow runs the same alias immediately after `npm run build`, so a
+red rehearsal fails the pushed branch's checks rather than waiting to be found
+during a promotion.
 
 | Run | Backend commit | `RELEASE.md` rows | Expected |
 |---|---|---|---|
@@ -313,7 +317,7 @@ For each item, the evidence is the command output, not a description.
 - [ ] `curl -sS -o /dev/null -w '%{http_code}\n' https://bursyar.vercel.app/health` → `200`
 - [ ] `curl -m 75 https://bursyar-api.onrender.com/health` → commit equals the approved SHA
 - [ ] `curl -sS https://bursyar.vercel.app/ | grep -o '<meta name="bursyar-build" content="[0-9a-f]*"'` → same SHA
-- [ ] `npm run build && node verification/rehearsal-smoke.mjs` → exit 0 on the commit you intend to promote
+- [ ] `npm run build && npm run rehearsal:smoke` → exit 0 on the commit you intend to promote
 - [ ] `node scripts/release-smoke.mjs https://bursyar.vercel.app` → `passed:true`, `unmeasurable:[]`
 - [ ] `RELEASE.md` records both full SHAs in the two machine-read rows
 - [ ] Register: BY-01 VERIFIED, BY-04 VERIFIED, BY-25 VERIFIED (or the failure recorded as BLOCKED with its output)

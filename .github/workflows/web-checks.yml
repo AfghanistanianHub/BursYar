@@ -22,6 +22,9 @@ jobs:
       - run: npm test
       - run: npm run test:evaluation
       - run: npm run build
+      # Rehearses the release smoke against the build just produced, so a red
+      # rehearsal fails this run instead of being noticed during a promotion.
+      - run: npm run rehearsal:smoke
   emulator:
     runs-on: ubuntu-latest
     steps:
