@@ -47,7 +47,6 @@ html[dir=rtl] .corner-arrow{rotate:-45deg}
   justify-content:center;min-height:44px;font-size:.75rem;
   text-transform:none;letter-spacing:0;text-align:center;white-space:normal;line-height:1.2;
  }
- #top [id]{scroll-margin-top:112px}
 }
 
 @media screen and (max-width:380px){

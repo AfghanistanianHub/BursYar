@@ -36,9 +36,12 @@ test('mission 07 keeps RTL-safe kickers and native disclosure markers', () => {
 });
 
 test('workspace anchors clear the mobile and desktop headers', () => {
-  const anchors = "section[id],div[id$='mount']";
-  assert.ok(theme.includes(anchors + '{scroll-margin-top:112px}'));
-  assert.ok(theme.includes('@media(min-width:701px){' + anchors + '{scroll-margin-top:92px}}'));
+  // Header clearance now comes from the single document-level scroll padding.
+  // A second per-element scroll margin stacked on top of it and doubled the gap.
+  const style = readFileSync(new URL('../src/style.css', import.meta.url), 'utf8');
+  assert.match(style, /html\{scroll-padding-top:112px\}/);
+  assert.match(style, /@media\(min-width:701px\)\{html\{scroll-padding-top:92px\}\}/);
+  assert.doesNotMatch(theme, /scroll-margin-top/);
 });
 
 test('mission 07 keeps phone rules and honest busy affordance', () => {

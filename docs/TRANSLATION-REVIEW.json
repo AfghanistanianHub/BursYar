@@ -20,7 +20,8 @@
     "Review blocked-page recovery, original URL retention and supplied-versus-fetched labels in English/Dari/Pashto",
     "Review source approval, saved HTML/TXT privacy wording and Other options at 320/390/768/1280/1440 px",
     "Bind semantic approval of the verified live output to actual source/output digests; never approve diagnostic metadata alone",
-    "Review credential-verification request, status and privacy export/deletion wording in English, Dari and Pashto; never imply issuer confirmation without an issuer record"
+    "Review credential-verification request, status and privacy export/deletion wording in English, Dari and Pashto; never imply issuer confirmation without an issuer record",
+    "Review the BY-12 guided field-mapping strings (title, explanation, source-line labels, degree/GPA/test/date labels, refusals and errors) in Dari and Pashto; they stay UNREVIEWED until a fluent reviewer signs them off"
   ],
   "approvalRule": "An authorized fluent human must supply reviewer identity, timestamp and specific output digest before marking reviewed. Automated tests never approve translations."
 }

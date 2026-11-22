@@ -1,6 +1,6 @@
 /* Calm, task-first onboarding. The controls are ordinary links to the
  * real production surfaces; no wizard state, personal data or fake progress. */
-#top>.guided-entry{display:block;margin:0;padding:clamp(34px,4.5vw,64px) clamp(20px,5vw,78px);background:#F6F4F0;border-bottom:1px solid var(--line);scroll-margin-top:110px}
+#top>.guided-entry{display:block;margin:0;padding:clamp(34px,4.5vw,64px) clamp(20px,5vw,78px);background:#F6F4F0;border-bottom:1px solid var(--line);}
 .guided-entry-head{max-width:780px;margin-bottom:27px}
 .guided-kicker{font-size:11px;text-transform:uppercase;letter-spacing:.13em;color:#595653;font-weight:600;margin:0 0 12px}
 .guided-entry-head h2{font-family:var(--editorial-serif);font-weight:400;letter-spacing:-.04em;font-size:clamp(30px,3vw,46px);line-height:1.15;margin:0 0 13px}

@@ -117,8 +117,6 @@
 [aria-busy=true]{cursor:progress}
 /* ---- Footer: two-part row on wide screens ---- */
 @media(min-width:701px){footer{justify-content:space-between;align-items:baseline}}
-section[id],div[id$='mount']{scroll-margin-top:112px}
-@media(min-width:701px){section[id],div[id$='mount']{scroll-margin-top:92px}}
 @media(min-width:1024px){#journey-nav-mount{grid-row:3/span 8}#workspace-overview{grid-column:2}.journey-nav{border:0;background:transparent;box-shadow:none;padding-inline:0}.journey-nav li{margin-block:4px}.journey-nav li:has(a:hover){background:var(--surface)}}
 @media(max-width:700px){.workspace-overview-grid{grid-template-columns:1fr}.workspace-start-card{padding:18px}.workspace-start-card p{min-height:0}#workspace-overview{padding:18px}.workspace-shortcuts{gap:8px 20px}.scholarship{padding:16px}.scholarship::before{margin-block-start:-16px;margin-inline:-16px;margin-block-end:8px}}
 #research-explorer .research-filters{grid-template-columns:repeat(3,minmax(0,1fr))}#research-explorer .research-filters>label:first-child{grid-column:1/-1}

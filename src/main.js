@@ -123,7 +123,15 @@ ${ed.pillars.map((p,i)=>`<article class="editorial-pillar"><div class="editorial
   </ol>
  </div>
  <div class="pathfinder-live"><p class="pathfinder-eyebrow">${esc(pathUI.barrier)}</p><section id="next-steps"><h2>${fmt.format(4)} · ${esc(j.next)}</h2><div id="next-actions"><p class="empty-note">${esc(j.nextEmpty)} <a href="#assistant">${esc(j.nextEmptyCta)}</a></p></div><p>${esc(j.nextNote)}</p></section></div></section><details class="resources" id="resources"><summary>${esc(j.resources)}</summary><div id="research-explorer-mount"></div><section id="explore" class="section"><div class="section-top"><div><p class="eyebrow">BURS YAR / 01</p><h2>${esc(t.scholarships)}</h2></div><span class="sample-note">${esc(t.demo)}</span></div><div class="filters"><label><span class="sr-only">${esc(t.search)}</span><input id="search" type="search" value="${esc(state.q)}" placeholder="${esc(t.search)}" autocomplete="off"></label><label><span class="sr-only">${esc(t.country)}</span><select id="country"><option value="all">${esc(t.allCountries)}</option>${['Canada','Germany','Japan'].map(x=>`<option value="${x}" ${state.country===x?'selected':''}>${esc(localizedCountry(x,state.language))}</option>`).join('')}</select></label><label><span class="sr-only">${esc(t.degree)}</span><select id="level"><option value="all">${esc(t.allLevels)}</option>${['Undergraduate','Masters','PhD'].map(x=>`<option value="${x}" ${state.level===x?'selected':''}>${esc(localizedLevel(x,state.language))}</option>`).join('')}</select></label></div><div id="sample-results"><p class="count" role="status"></p><div id="sample-listing"></div></div><div id="detail" aria-live="polite"></div></section><section class="section about" id="about"><p class="eyebrow">BURS YAR / 03</p><h2>${esc(t.missionTitle)}</h2><p>${esc(t.missionCopy)}</p></section></details></main><footer><span>${esc(t.brand)} © 2026</span><span>${esc(t.footnote)}</span></footer></div><div id="student-dashboard" hidden></div>`;
-document.querySelector('#language').addEventListener('change',e=>{state.language=e.target.value;localStorage.setItem('bursyar-language',state.language);render();document.querySelector('#student-dashboard:not([hidden]) #dashboard-language, .site:not([hidden]) #language')?.focus()});
+// A language switch still re-localises the shell, but it must not throw the
+// reader to the top: keep the scroll offset and focus the picker in place.
+document.querySelector('#language').addEventListener('change',e=>{
+ const y=window.scrollY;
+ state.language=e.target.value;localStorage.setItem('bursyar-language',state.language);
+ render();
+ window.scrollTo({top:y,behavior:'instant'});
+ document.querySelector('#student-dashboard:not([hidden]) #dashboard-language, .site:not([hidden]) #language')?.focus({preventScroll:true});
+});
 const sampleResults=document.querySelector('#sample-results');
 function updateSampleResults(){
  const items=filterScholarships(sampleScholarships,state);
