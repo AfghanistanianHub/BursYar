@@ -15,7 +15,7 @@ the frontend, the backend and the evidence can be checked against each other.
 | Frontend build stamp | `<meta name="bursyar-build">`, written by `vite.config.js` from `VERCEL_GIT_COMMIT_SHA`, `GITHUB_SHA` or `git rev-parse HEAD`; `unknown` fails the smoke check |
 | Branch relationship | 120 commits ahead, 0 behind at `3a5b493` |
 | GitHub combined commit status | Vercel success only; does not prove unit, evaluation, browser, or backend integration tests |
-| Backend production SHA | Not independently reverified in this inventory; previous report in this file was `7dbd75f` |
+| Backend production SHA | `7dbd75f6889ea09e96c129831bec40c463b6e64e` — read from `/health` `capabilities.build.commit` on 2026-11-22 |
 | 9Router | Separate free Render experimental service, not part of production application |
 | Release decision | HOLD — no production deployment authorized |
 
