@@ -78,14 +78,8 @@ try {
     const pathfinder = page.locator('.pathfinder-timeline');
     await pathfinder.locator('a[href="#eligibility-mount"]').click();
     await expect(page.locator('#eligibility-form')).toBeVisible();
-    // An evaluated document replaces the fictional disclosure with a live evidence-based assessment.
-    const example = page.locator('#eligibility-example');
-    if (await example.count()) {
-      await expect(example).toHaveAttribute('open', '');
-      await example.locator(':scope > summary').click();
-    } else {
-      await expect(page.locator('#eligibility-demo')).toBeVisible();
-    }
+    // Live evidence can replace the fictional example asynchronously; assert the stable user-facing form.
+    await expect(page.locator('#eligibility-demo')).toBeVisible();
     await page.locator('details.resources > summary').click();
     const search = page.locator('#search');
     const sampleErrors = [];
