@@ -7,15 +7,15 @@
 .editorial-nav{display:flex;gap:clamp(13px,2.4vw,37px);margin-inline:auto;align-items:center}
 .editorial-nav a{font-size:10px;line-height:1.5;text-transform:uppercase;letter-spacing:.1em;text-decoration:none;color:#4D4B49;font-weight:550;white-space:nowrap}
 .editorial-nav a:hover{color:var(--brand);text-decoration:underline;text-underline-offset:6px}
-.site .hero{min-height:clamp(500px,49vw,670px);grid-template-columns:minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid #D8D0C8}
-.site .hero-copy{justify-content:center;padding:clamp(30px,5vw,82px) clamp(24px,5vw,85px);gap:0}
+.site .hero{grid-template-columns:minmax(0,1fr) minmax(0,1fr);border-bottom:1px solid #D8D0C8}
+.site .hero-copy{justify-content:center;gap:0}
 .site .hero-kicker{display:none}
 .site .hero h1{font-family:"Newsreader",Georgia,"Times New Roman",serif;font-size:clamp(55px,6.2vw,90px);font-weight:300;line-height:1.04;max-width:660px;margin:0 0 29px;letter-spacing:-.055em}
 .site .editorial-divider{width:100%;height:1px;background:#D8D0C8;margin:0 0 25px}
 .site .hero .lead{font-size:clamp(13px,1vw,15px);line-height:1.85;max-width:540px;color:#66615A}
 .site .hero-actions{margin-top:22px}
 .site .hero-actions .primary-link{font-size:12px;font-weight:550;padding:13px 19px}
-.site .hero-visual{background:#FAF8F4;border-inline-start:1px solid #D8D0C8}
+.site .hero-visual{border-inline-start:1px solid #D8D0C8}
 .site .hero-visual::before{opacity:.18}
 .site .hero-visual::after{content:"BURS YAR / DOCUMENT FIRST"}
 .site .evidence-preview{max-width:410px;border:1px solid #D8D0C8;padding:30px;background:#FEFDFB;box-shadow:16px 16px 0 -15px #BFB8AF}
@@ -50,7 +50,7 @@ html[lang=fa] .hero h1,html[lang=ps] .hero h1{font-family:var(--font-ui);letter-
  .site .hero{grid-template-columns:1fr;min-height:0}
  .site .hero-copy{padding:48px 22px 43px}
  .site .hero h1{font-size:clamp(49px,10vw,72px)}
- .site .hero-visual{border-inline-start:0;border-top:1px solid #D8D0C8;min-height:325px}
+ .site .hero-visual{border-inline-start:0;border-top:1px solid #D8D0C8;}
  .editorial-pillars{grid-template-columns:1fr}
  .editorial-pillar{min-height:0;padding:26px 24px;border-inline-end:0;border-bottom:1px solid #D8D0C8}
  .editorial-pillar:last-child{border-bottom:0}
@@ -61,9 +61,9 @@ html[lang=fa] .hero h1,html[lang=ps] .hero h1{font-family:var(--font-ui);letter-
 @media(prefers-reduced-motion:reduce){.editorial-nav a,.editorial-selected-link{transition:none}}
 
 /* Original user-provided editorial illustrations are bundled under public/editorial/. */
-.site .hero-visual{display:flex;align-items:center;justify-content:center;padding:0;min-height:470px;background:#FEFDFB}
+.site .hero-visual{display:flex;align-items:center;justify-content:center;}
 .site .hero-visual::before,.site .hero-visual::after{display:none}
-.site .editorial-hero-illustration{display:block;width:100%;height:100%;max-height:700px;object-fit:contain;object-position:center;background:#FEFDFB}
+.site .editorial-hero-illustration{display:block;width:100%;height:100%;max-height:700px;background:#FEFDFB}
 .site .hero-visual .evidence-preview{display:none}
 .editorial-study-band{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;border-bottom:1px solid #D8D0C8;min-height:390px;background:#FEFDFB}
 .editorial-study-copy{padding:clamp(28px,5vw,78px);display:flex;flex-direction:column;justify-content:center;align-items:flex-start}

@@ -4,6 +4,7 @@ import {readFileSync} from 'node:fs';
 import {translations} from '../src/i18n.js';
 const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 const style = readFileSync(new URL('../src/style.css', import.meta.url), 'utf8');
+const design = readFileSync(new URL('../src/editorial-design.css', import.meta.url), 'utf8');
 const explorer = readFileSync(new URL('../src/research-explorer.js', import.meta.url), 'utf8');
 const ARABIC = /[\u0600-\u06ff]/;
 
@@ -28,7 +29,9 @@ test('hero action targets and disclosures exist in the shell', () => {
   assert.match(main, /<details class="workspace">[\s\S]*?id="documents-mount"/);
   assert.match(main, /<details class="workspace">/);
   assert.match(main, /<details class="resources" id="resources">/);
-  assert.match(style, /\.hero-actions\{display:flex;flex-wrap:wrap/);
+  // The editorial layer is the rule that actually lays out the hero actions;
+  // the superseded base copy was removed in the CSS consolidation (BY-15).
+  assert.match(design, /\.hero-actions \{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap\}/);
   assert.match(style, /max-width:700px\)\{\.hero-actions>\*\{flex:1 1 100%\}/);
 });
 

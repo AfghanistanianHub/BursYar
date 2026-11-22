@@ -36,13 +36,12 @@ button,a,input,select,textarea,summary{-webkit-tap-highlight-color:transparent}
 /* An empty live region stays in the accessibility tree but paints nothing. */
 [role=status]:empty{position:absolute; width:1px; height:1px; padding:0; margin:-1px; border:0; overflow:hidden; clip-path:inset(50%); white-space:nowrap}
 /* ---- Top bar ---- */
-.site{max-width:1280px; margin:0 auto; padding:0 clamp(14px,3vw,32px) 32px; min-width:0}
-.header{position:sticky; top:0; z-index:30; display:flex; align-items:center; gap:10px;
- padding-block:10px; margin-inline:calc(clamp(14px,3vw,32px) * -1); padding-inline:clamp(14px,3vw,32px);
- background:rgba(255,255,255,.97); border-bottom:1px solid var(--line)}
+.site{margin:0 auto; min-width:0}
+.header{display:flex; align-items:center; gap:10px;
+ padding-block:10px; margin-inline:calc(clamp(14px,3vw,32px) * -1); }
 .logo{display:flex; align-items:center; gap:8px; text-decoration:none; font-size:19px;
  font-weight:800; line-height:1.2; margin-inline-end:auto; color:var(--ink); white-space:nowrap}
-.logo-mark{color:var(--accent); font-size:22px; line-height:1}
+.logo-mark{font-size:22px; line-height:1}
 .logo small{display:none}
 .language select{border:1px solid transparent; background:var(--surface-2); border-radius:var(--r-sm);
  max-width:160px; padding:8px 10px; min-height:44px; font-weight:600}
@@ -62,9 +61,8 @@ button,a,input,select,textarea,summary{-webkit-tap-highlight-color:transparent}
  .account[open] #account-controls{inset-inline-end:12px; top:calc(100% + 8px); width:min(300px,82vw)}
 }
 /* ---- Compact page header ---- */
-.hero{margin-block:20px 16px; max-width:70ch}
-.hero h1{font-size:var(--fs-title); line-height:var(--lh-tight); letter-spacing:-.01em;
- margin:0 0 6px; text-wrap:balance}
+
+.hero h1{margin:0 0 6px; }
 .lead{font-size:var(--fs-lead); color:var(--muted); margin:0}
 /* ---- Sidebar workspace layout ---- */
 main{max-width:none}
@@ -74,7 +72,7 @@ main{max-width:none}
 .assistant,.workspace,#next-steps,.resources,#eligibility-mount,#local-workflow-mount{min-width:0}
 @media(min-width:1024px){
  #top{grid-template-columns:250px minmax(0,1fr); align-items:start; gap:20px}
- #journey-nav-mount{grid-column:1; grid-row:2/span 6; position:sticky; top:76px; align-self:start; max-height:calc(100vh - 92px); overflow:auto}
+ #journey-nav-mount{grid-column:1; position:sticky; top:76px; align-self:start; max-height:calc(100vh - 92px); overflow:auto}
  .assistant,.local-workflow,#eligibility-mount,.workspace,#next-steps,.resources{grid-column:2}
 }
 /* ---- Panels and cards ---- */
@@ -121,7 +119,7 @@ button:hover,.primary-link:hover{border-color:var(--brand)}
 .primary-link{display:inline-flex; justify-content:center; align-items:center; color:var(--brand-ink);
  background:var(--brand); border-color:var(--brand); gap:8px}
 .primary-link:hover{background:var(--brand-dark); border-color:var(--brand-dark)}
-.primary-link.secondary{background:transparent; color:var(--brand); border-color:#9db3a4}
+.primary-link.secondary{border-color:#9db3a4}
 #fetch-source{justify-self:start; margin-top:2px}
 #manual-source{margin-top:2px}
 .text-button{border:0; box-shadow:none; justify-self:start; padding-inline:0; background:transparent;
@@ -174,9 +172,9 @@ blockquote{margin:10px 0; padding:8px 12px; background:#fff; border:1px solid va
 .source-inventory ol{padding-inline-start:22px}
 .source-inventory li{margin-block:8px}
 .source-digest,.evidence-chain{font-family:var(--font-mono); font-size:var(--fs-caption)}
-#barrier-guidance p{position:relative; padding-inline-start:26px; margin-block:8px}
+#barrier-guidance p{position:relative; padding-inline-start:26px; }
 #barrier-guidance p::before{content:""; position:absolute; inset-inline-start:4px; top:.55em;
- width:10px; height:10px; border-radius:50%; background:var(--accent)}
+ border-radius:50%; background:var(--accent)}
 #barrier-guidance{border-inline-start:2px solid var(--line); padding-inline-start:6px; margin-top:10px}
 /* ---- Eligibility tri-state ---- */
 #eligibility-demo form,#documents form,#profile form,#academic-evidence form{display:grid; gap:12px}
@@ -216,11 +214,11 @@ fieldset label{display:block; margin-block:6px}
 #eligibility-details li>p:first-child{display:flex; align-items:center; gap:10px; font-weight:800; margin:0 0 4px}
 #eligibility-details li>p:first-child::before{content:""; flex:none; width:10px; height:10px; border-radius:50%;
  background:var(--faint)}
-#eligibility-details li[data-status=met]>p:first-child{color:var(--ok)}
+
 #eligibility-details li[data-status=met]>p:first-child::before{background:var(--ok)}
-#eligibility-details li[data-status=not_met]>p:first-child{color:var(--bad)}
+
 #eligibility-details li[data-status=not_met]>p:first-child::before{background:var(--bad)}
-#eligibility-details li[data-status=unknown]>p:first-child{color:var(--warn)}
+
 #eligibility-details li[data-status=unknown]>p:first-child::before{background:var(--warn)}
 .scenarios{margin-top:12px; background:var(--surface-2); border:1px dashed #9db3a4; border-radius:var(--r-md);
  padding:4px 14px 10px}
@@ -235,26 +233,26 @@ fieldset label{display:block; margin-block:6px}
 .local-workflow [role=note]{background:var(--brand-ghost); border:1px solid var(--line);
  border-radius:var(--r-md); padding:8px 12px}
 /* ---- Documents and profile status ---- */
-.document-claim{border-inline-start:4px solid var(--brand)}
+
 .document-claim legend{font-weight:800; padding-inline:6px}
 #documents pre{white-space:pre-wrap; overflow-wrap:anywhere; background:var(--surface-2);
  border:1px solid var(--line-soft); border-radius:var(--r-sm); padding:8px 10px}
-#documents input[type=file]{width:100%; min-width:0}
+#documents input[type=file]{width:100%; }
 #documents button,#profile button,#academic-evidence button{margin-block:4px; justify-self:start}
 #documents select,#profile select{width:100%}
 #profile form>button{justify-self:start}
-#profile .status{font-weight:700}
+
 .academic-scores{display:grid; gap:10px}
 .evidence-chain{color:var(--muted)}
 .workspace small{color:var(--muted)}
 /* ---- Next actions journey ---- */
-#next-actions{display:grid; gap:8px; border-inline-start:2px solid var(--brand);
- padding-inline-start:14px; margin-block:10px}
+#next-actions{display:grid; border-inline-start:2px solid var(--brand);
+ margin-block:10px}
 #next-actions>p{margin:0}
 #next-actions fieldset{margin:0}
 #next-steps>p:last-child{color:var(--muted); font-size:var(--fs-small)}
 /* ---- Explorer opportunity cards ---- */
-.section{padding-block:16px}
+
 .section h2{font-size:var(--fs-h2)}
 .section-top{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap}
 .sample-note{font-size:12px; color:#665033; background:var(--accent-bg); padding:4px 10px;
@@ -263,7 +261,7 @@ fieldset label{display:block; margin-block:6px}
 .filters>label{margin:0; display:grid; gap:6px; min-width:0}
 .filters select,.filters input{width:100%}
 .listing{display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr)); gap:12px; margin-top:4px}
-.scholarship{padding:14px 16px; display:flex; flex-direction:column; gap:4px}
+.scholarship{display:flex; flex-direction:column; }
 .scholarship h3{margin-block:0 2px}
 .scholarship .muted{margin:0}
 .card-bottom{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:auto;
@@ -276,8 +274,8 @@ fieldset label{display:block; margin-block:6px}
  background:transparent; font-size:22px; line-height:1; padding:8px 12px}
 .about p{max-width:65ch}
 /* ---- Footer ---- */
-footer{margin-top:24px; border-top:1px solid var(--line); padding-block:16px;
- font-size:13px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6px 20px}
+footer{margin-top:24px; padding-block:16px;
+ display:flex; flex-wrap:wrap; gap:6px 20px}
 footer span:last-child{max-width:70ch}
 /* ---- RTL ---- */
 [dir=rtl]{line-height:var(--lh-arabic)}
@@ -295,17 +293,17 @@ footer span:last-child{max-width:70ch}
  .language select{max-width:118px; font-size:14px; padding:8px 6px}
  .account{font-size:13px}
  .account summary{padding:6px 8px}
- .hero{margin-block:14px 12px}
+ 
  #fetch-source{width:100%; justify-content:center}
  .section-top{align-items:flex-start; flex-direction:column}
  footer{flex-direction:column; gap:4px}
 }
 @media(prefers-reduced-motion:no-preference){html{scroll-behavior:smooth}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
 /* Research references are public metadata, distinct from reviewed eligibility. */
 #research-explorer{border-block-end:1px solid var(--line,#d8d7cf); padding-block-end:1.5rem}
 #research-explorer .research-notice{padding:.875rem 1rem; border-inline-start:3px solid currentColor; background:var(--surface-2)}
-#research-explorer .research-filters{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr)}
+
 #research-explorer label{min-width:0}
 #research-explorer select,#research-explorer input[type=search]{width:100%; min-width:0; max-width:100%}
 #research-explorer .research-toggles,#research-explorer .research-actions{display:flex; flex-wrap:wrap; gap:.75rem 1rem; margin-block:.75rem}
@@ -313,7 +311,7 @@ footer span:last-child{max-width:70ch}
 #research-explorer .research-toggles label>input{margin-block-start:.15em}
 #research-explorer .scholarship{overflow-wrap:anywhere; min-width:0}
 #research-explorer .card-bottom{flex-wrap:wrap; gap:.5rem 1rem}
-@media(max-width:700px){#research-explorer .research-filters{grid-template-columns:minmax(0,1fr)}}
+
 /* ---- Workspace polish: visual PathFinder, status, cards ---- */
 #barrier-guidance .barrier-summary{font-weight:800; color:var(--ink); padding-inline-start:0; margin-bottom:10px}
 #barrier-guidance .barrier-summary::before{display:none}
@@ -324,7 +322,7 @@ footer span:last-child{max-width:70ch}
 #profile .status{font-weight:800}
 .empty-note{background:var(--surface-2); border:1px dashed #9db3a4; border-radius:var(--r-md);
  padding:12px 14px; color:var(--muted); margin-top:8px}
-.scholarship h3{font-size:.9375rem}
+
 .scholarship:hover{border-color:#9db3a4}
 .card-bottom .pill{flex:none}
 .section{padding-block:14px}
@@ -337,7 +335,7 @@ footer span:last-child{max-width:70ch}
 /* ---- Mission 06 entry polish: skip link + hero actions ---- */
 .skip-link{position:fixed; inset-inline-start:12px; top:-64px; z-index:50; background:var(--brand-dark); color:#fff; font-weight:800; font-size:var(--fs-small); padding:10px 16px; border-radius:var(--r-sm); text-decoration:none}
 .skip-link:focus-visible{top:8px; color:#fff; outline-color:#fff}
-.hero-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+
 @media(max-width:700px){.hero-actions>*{flex:1 1 100%}}
 /* ---- In-panel sign-in recovery (private panels) ---- */
 .sign-in-action{display:grid;gap:8px;background:var(--brand-ghost);border:1px solid var(--line);

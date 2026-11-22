@@ -180,7 +180,7 @@ html[dir=rtl] #top>.editorial-study-band>img{
  #top>.how-it-works ol{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important}
  #top>.how-it-works ol li{break-inside:avoid!important;padding:2mm!important}
  #top>.how-it-works .step-num{color:#fff;font-size:14px;width:24px;height:24px}
- #top>.editorial-study-band{min-height:0!important;display:block!important;break-inside:avoid}
+ #top>.editorial-study-band{display:block!important;}
  #top>#workspace-overview,#top>#analysis-workspace,
  #top>.assistant,#top>.workspace,#top>.resources,#top>#eligibility-mount,
  #top>#local-workflow-mount{margin:0 0 5mm!important;padding:4mm!important;break-inside:auto!important}

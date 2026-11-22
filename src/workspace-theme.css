@@ -12,15 +12,15 @@
  * SVG glyph (no new assets), empty-state glyph, box-first consent
  * checkboxes, stronger PathFinder rails and eligibility verdict weight. */
 :root{--bg:#f5f7fb;--surface-2:#f4f6fa;--surface-3:#e9edf5;--ink:#26364a;--muted:#52647a;--faint:#718198;--line:#dce3ed;--line-soft:#e8edf4;--brand:#385675;--brand-dark:#243f5b;--brand-soft:#e3ebf4;--brand-ghost:#eff4f9;--accent:#865e32;--accent-bg:#fbf1e0;--r-lg:14px;--shadow-sm:0 2px 6px #243f5b05;--topbar-bg:rgba(255,255,255,.97);--glyph-doc:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-opacity='.45'%20stroke-width='1.6'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M6%203h8l4%204v14H6V3z'/%3E%3Cpath%20d='M14%203v5h4'/%3E%3Cpath%20d='M9%2013h6M9%2017h6'/%3E%3C/svg%3E");--glyph-search:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='30'%20height='30'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-opacity='.5'%20stroke-width='1.8'%20stroke-linecap='round'%3E%3Ccircle%20cx='11'%20cy='11'%20r='6'/%3E%3Cpath%20d='m20%2020-4.2-4.2'/%3E%3C/svg%3E")}
-.site{max-width:1480px}
+
 /* ---- Top bar: calm, aligned, generous touch targets ---- */
-.header{background:var(--topbar-bg)}
+
 @media(min-width:701px){.header{padding-block:12px}}
 .logo{letter-spacing:-.01em}
 /* ---- Compact page header (the overview panel carries the headline) ---- */
-.hero{margin-block:24px 0}
-.hero h1{font-size:1.1rem;color:var(--muted)}
-.hero .lead{max-width:78ch;font-size:.875rem}
+
+
+
 /* ---- Workspace overview: solid paper panel, eyebrow + start cards ---- */
 #workspace-overview{grid-column:1/-1;padding:clamp(18px,3vw,32px);background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
 .workspace-kicker{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 8px}
@@ -130,7 +130,7 @@
  * Flat shapes only: no gradients, no glow, no glass, no motion. */
 :root{--glyph-quote:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-width='1.7'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M4%205h16v10H9l-5%204z'/%3E%3Cpath%20d='M8%209h8M8%2012h5'/%3E%3C/svg%3E");--glyph-shield:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-width='1.7'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Cpath%20d='M12%203l7%203v6c0%205-3.5%208-7%209-3.5-1-7-4-7-9V6z'/%3E%3Cpath%20d='m9%2012%202%202%204-4'/%3E%3C/svg%3E");--glyph-chart:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-width='1.7'%20stroke-linecap='round'%3E%3Cpath%20d='M4%2020h16'/%3E%3Cpath%20d='M7%2020v-6M12%2020V6M17%2020v-9'/%3E%3C/svg%3E");--glyph-route:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-width='1.7'%20stroke-linecap='round'%3E%3Ccircle%20cx='6'%20cy='18'%20r='2.5'/%3E%3Ccircle%20cx='18'%20cy='6'%20r='2.5'/%3E%3Cpath%20d='M8%2018h6a4%204%200%200%200%204-4V9'/%3E%3C/svg%3E");--glyph-profile:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%23385675'%20stroke-width='1.7'%20stroke-linecap='round'%3E%3Ccircle%20cx='12'%20cy='8'%20r='3.5'/%3E%3Cpath%20d='M5%2020a7%207%200%200%201%2014%200'/%3E%3C/svg%3E");--glyph-check:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='26'%20height='26'%20viewBox='0%200%2024%2024'%20fill='none'%20stroke='%231f6b41'%20stroke-width='1.8'%20stroke-linecap='round'%20stroke-linejoin='round'%3E%3Ccircle%20cx='12'%20cy='12'%20r='9'/%3E%3Cpath%20d='m8%2012%203%203%206-6'/%3E%3C/svg%3E")}
 /* ---- Hero: asymmetric composition with product visual ---- */
-.hero{display:grid;gap:28px;margin-block:32px 8px;align-items:center;max-width:none}
+.hero{margin-block:32px 8px;}
 .hero-kicker{font-size:.78rem;letter-spacing:.09em;text-transform:uppercase;color:var(--brand);font-weight:800;margin:0 0 12px}
 [dir=rtl] .hero-kicker{letter-spacing:0}
 .hero-copy h1{font-size:clamp(2rem,4.2vw,3rem);line-height:1.14;letter-spacing:-.025em;color:var(--ink);margin:0 0 14px;max-width:19ch}
@@ -138,7 +138,7 @@
 .hero-copy .lead{font-size:1.03rem;line-height:1.65;color:var(--muted);max-width:52ch;margin:0 0 22px}
 @media(min-width:1024px){.hero{grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:44px;margin-block:40px 12px}}
 /* Evidence-chain product composition (illustrative, sample-tagged) */
-.evidence-preview{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--brand);border-radius:16px;box-shadow:var(--shadow-sm);padding:18px 20px 20px}
+.evidence-preview{border-top:3px solid var(--brand);}
 .preview-tag{display:inline-block;font-size:.72rem;font-weight:700;color:var(--muted);background:var(--surface-2);border:1px solid var(--line);padding:4px 12px;border-radius:999px;margin:0 0 6px}
 .chain{list-style:none;margin:0;padding:0}
 .chain li{display:flex;gap:14px;align-items:flex-start;padding:14px 2px}
@@ -160,14 +160,14 @@
 @media(min-width:1024px){.how-it-works{grid-column:1/-1}}
 .how-it-works h2{font-size:1.3rem;letter-spacing:-.02em;margin:0 0 16px}
 [dir=rtl] .how-it-works h2{letter-spacing:0}
-.how-it-works ol{list-style:none;margin:0;padding:0;display:grid;gap:14px;position:relative}
+.how-it-works ol{list-style:none;margin:0;padding:0;display:grid;position:relative}
 @media(min-width:700px) and (max-width:1023px){.how-it-works ol{grid-template-columns:repeat(2,1fr)}}
 @media(min-width:1024px){.how-it-works ol{grid-template-columns:repeat(4,1fr)}}
 @media(min-width:1024px){.how-it-works ol::before{content:"";position:absolute;top:35px;inset-inline:56px;height:2px;background:var(--line);z-index:0}}
 .how-it-works li{position:relative;z-index:1}
-.how-it-works li a{display:block;height:100%;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px 16px 16px;text-decoration:none;color:inherit}
+.how-it-works li a{display:block;height:100%;background:var(--surface);border-radius:12px;padding:18px 16px 16px;text-decoration:none;color:inherit}
 .how-it-works li a:hover{border-color:var(--brand)}
-.step-num{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--brand);color:#fff;font-weight:700;font-size:.9rem;margin-bottom:12px}
+.step-num{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--brand);margin-bottom:12px}
 .how-it-works strong{display:block;font-size:.93rem;margin-bottom:6px}
 .how-it-works li a>span:last-child{font-size:.81rem;color:var(--muted);line-height:1.55}
 /* ---- Journey icons (decorative, numerals kept) ---- */
