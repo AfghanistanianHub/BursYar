@@ -324,6 +324,13 @@ function revealHashTarget(){
    if(location.hash!=='#eligibility-mount')return;
    const disclosure=document.querySelector('#eligibility-mount > #eligibility-example');
    if(disclosure)disclosure.open=true;
+   // The browser's initial anchor scroll may have run while the mount was empty.
+   // Scroll again only for the still-active destination after content is inserted.
+   requestAnimationFrame(()=>{
+    if(location.hash==='#eligibility-mount'){
+     document.querySelector('#eligibility-heading')?.scrollIntoView({block:'start'});
+    }
+   });
   });
   return;
  }
