@@ -218,7 +218,10 @@ still worth the ten seconds.
 `verification/rehearsal-smoke.mjs` serves the built `dist/` with a backend whose
 `/health` commit you control, then runs the real `scripts/release-smoke.mjs`
 against it in three situations plus the post-promotion re-run. It is the same
-sequence as Production, minus Vercel and Render.
+sequence as Production, minus Vercel and Render. Runs 3 and 4 patch nothing:
+they call that same script with `BURSYAR_SMOKE_PRODUCTION_SCOPE=1` and
+`BURSYAR_SMOKE_MANIFEST=<temp file>`, so the code being rehearsed is the code
+that will run against Production.
 
 ```bash
 npm run build                      # the stamp in dist/index.html must equal the commit you intend to promote

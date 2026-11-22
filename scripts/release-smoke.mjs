@@ -11,7 +11,10 @@
 // recorded SHAs in RELEASE.md must also match what is actually deployed; after a
 // release, update those rows and re-run (the recording commit is bookkeeping and
 // does not change the built artefacts). A preview URL is checked for internal
-// agreement only, because RELEASE.md describes production.
+// agreement only, because RELEASE.md describes production. A caller can hold
+// another host to the same standard with BURSYAR_SMOKE_PRODUCTION_SCOPE=1 and
+// compare against a different manifest with BURSYAR_SMOKE_MANIFEST=<path>; the
+// rehearsal in verification/ uses both rather than editing this file.
 //
 // Parity is reported as *unmeasurable*, never as a mismatch, when the host hides
 // the artefacts: an SSO redirect or an unreachable /health says nothing about
@@ -26,7 +29,7 @@ import {readFileSync} from 'node:fs';
 
 const DEFAULT_BASE='https://bursyar.vercel.app';
 const base=(process.argv[2]??process.env.BURSYAR_RELEASE_URL??DEFAULT_BASE).replace(/\/$/,'');
-const isProduction=base===DEFAULT_BASE;
+const isProduction=base===DEFAULT_BASE||/^(?:1|true|yes)$/i.test((process.env.BURSYAR_SMOKE_PRODUCTION_SCOPE??'').trim());
 const bypass=process.env.BURSYAR_BYPASS_TOKEN;
 const headers=bypass?{'x-vercel-protection-bypass':bypass}:{};
 const healthTimeoutMs=Number(process.env.BURSYAR_SMOKE_HEALTH_TIMEOUT_MS??45000);
@@ -39,7 +42,7 @@ const sameCommit=(a,b)=>Boolean(a&&b)&&(a.startsWith(b)||b.startsWith(a));
 
 function readManifest(){
  try{
-  const text=readFileSync(new URL('../RELEASE.md',import.meta.url),'utf8');
+  const text=readFileSync(process.env.BURSYAR_SMOKE_MANIFEST??new URL('../RELEASE.md',import.meta.url),'utf8');
   const frontend=text.match(/Production frontend branch and commit[^\n]*?`([0-9a-f]{7,40})`/i)?.[1]??'';
   const backend=text.match(/Backend production SHA[^\n]*?`([0-9a-f]{7,40})`/i)?.[1]??'';
   return {frontend,backend};

@@ -13,7 +13,10 @@
 //
 // Run `npm run build` first: the frontend commit is read from the
 // `<meta name="bursyar-build">` stamp in `dist/index.html`, exactly as the real
-// check reads it. Scenario 3 uses a temporary manifest holding the recorded
+// check reads it. Scenarios 3 and 4 run that same unmodified script with
+// BURSYAR_SMOKE_PRODUCTION_SCOPE=1 and BURSYAR_SMOKE_MANIFEST pointing at a
+// temporary manifest, so nothing is patched and the code rehearsed is the code
+// that will run against Production. Scenario 3's manifest holds the recorded
 // production pair, so the expected failure stays reproducible after the real
 // RELEASE.md is updated; override it with REHEARSAL_STALE_FRONTEND and
 // REHEARSAL_STALE_BACKEND.
@@ -31,7 +34,7 @@
 import {createServer} from 'node:http';
 import {spawn} from 'node:child_process';
 import {execFileSync} from 'node:child_process';
-import {mkdtemp, mkdir, readFile, rm, stat, writeFile} from 'node:fs/promises';
+import {mkdtemp, readFile, rm, stat, writeFile} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {extname, join, resolve, sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -77,9 +80,9 @@ const server=createServer(async (req,res)=>{
  }
 });
 
-function runSmoke(script,base){
+function runSmoke(script,base,extraEnv={}){
  return new Promise(resolveRun=>{
-  const child=spawn(process.execPath,[script,base],{cwd:root,env:{...process.env,BURSYAR_SMOKE_HEALTH_TIMEOUT_MS:process.env.BURSYAR_SMOKE_HEALTH_TIMEOUT_MS??'5000'}});
+  const child=spawn(process.execPath,[script,base],{cwd:root,env:{...process.env,BURSYAR_SMOKE_HEALTH_TIMEOUT_MS:process.env.BURSYAR_SMOKE_HEALTH_TIMEOUT_MS??'5000',...extraEnv}});
   let out='',err='';
   child.stdout.on('data',chunk=>{out+=chunk;});
   child.stderr.on('data',chunk=>{err+=chunk;});
@@ -100,17 +103,6 @@ function show(run){
   const lines=`${run.out}${run.err}`.split('\n').filter(line=>/^(PASS|FAIL|INFO) /.test(line));
   for(const line of lines)console.log(`       ${line}`);
  }
-}
-
-// A copy of the real smoke whose DEFAULT_BASE is this rehearsal host, so the
-// production-only RELEASE.md comparison runs. It reads `../RELEASE.md` relative
-// to its own path, which lets each scenario supply its own manifest.
-async function productionCopy(directory,base){
- await mkdir(join(directory,'scripts'),{recursive:true});
- const source=await readFile(smokeScript,'utf8');
- const patched=source.replace(/^const DEFAULT_BASE=.*$/m,`const DEFAULT_BASE='${base}';`);
- await writeFile(join(directory,'scripts','release-smoke.mjs'),patched);
- return join(directory,'scripts','release-smoke.mjs');
 }
 
 function manifest(frontend,backend){
@@ -156,9 +148,9 @@ async function main(){
   // 3. Production enforcement with the manifest still holding the old pair.
   backendCommit=stamp;
   const staleDir=await mkdtemp(join(temporary,'stale-'));
-  const staleSmoke=await productionCopy(staleDir,base);
-  await writeFile(join(staleDir,'RELEASE.md'),manifest(staleFrontend,staleBackend));
-  run=await runSmoke(staleSmoke,base);
+  const staleManifest=join(staleDir,'RELEASE.md');
+  await writeFile(staleManifest,manifest(staleFrontend,staleBackend));
+  run=await runSmoke(smokeScript,base,{BURSYAR_SMOKE_PRODUCTION_SCOPE:'1',BURSYAR_SMOKE_MANIFEST:staleManifest});
   result=report(run);
   show(run);
   const staleFailures=result.failures??[];
@@ -168,9 +160,9 @@ async function main(){
 
   // 4. The same run after the rows are updated to the promoted commits.
   const freshDir=await mkdtemp(join(temporary,'fresh-'));
-  const freshSmoke=await productionCopy(freshDir,base);
-  await writeFile(join(freshDir,'RELEASE.md'),manifest(stamp,stamp));
-  run=await runSmoke(freshSmoke,base);
+  const freshManifest=join(freshDir,'RELEASE.md');
+  await writeFile(freshManifest,manifest(stamp,stamp));
+  run=await runSmoke(smokeScript,base,{BURSYAR_SMOKE_PRODUCTION_SCOPE:'1',BURSYAR_SMOKE_MANIFEST:freshManifest});
   result=report(run);
   show(run);
   check(run.code===0,'updated RELEASE.md rows pass with nothing unmeasurable');
