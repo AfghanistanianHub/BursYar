@@ -40,7 +40,7 @@ try {
   const motion = hero.locator('.by-motion');
   await expect(hero.getByRole('heading', {level:1})).toBeVisible();
   await expect(arc).toBeVisible();
-  await expect(arc).toHaveAttribute('viewBox', width <= 760 ? '0 8 560 176' : '0 56 1120 316');
+  await expect(arc).toHaveAttribute('viewBox', width <= 760 ? '0 0 560 216' : '0 80 1120 268');
   await expect(arc.locator('.by-tile:visible')).toHaveCount(width <= 760 ? 8 : 12);
   await hero.locator('a[href="#documents-mount"]').click();
   await expect(page.locator('details.workspace')).toHaveAttribute('open', '');
