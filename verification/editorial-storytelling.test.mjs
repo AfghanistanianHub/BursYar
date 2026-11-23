@@ -99,3 +99,10 @@ test('PathFinder uses logical indentation in both text directions',()=>{
  assert.match(pathfinderCss,/html\[dir=rtl\]/);
  assert.match(pathfinderCss,/padding-inline:20px 0/);
 });
+
+
+test('language rerenders restore active lazy deep links',()=>{
+ assert.match(main,/Language changes replace the entire DOM without changing location\.hash/);
+ assert.match(main,/queueMicrotask\(\(\)=>\{/);
+ assert.match(main,/location\.hash&&!location\.hash\.startsWith\('#\/'\)\)revealHashTarget\(\)/);
+});
