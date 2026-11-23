@@ -73,3 +73,13 @@ test('landing narrative does not repeat the navigation or explanatory card grids
  assert.match(main,/class="pathfinder-dashboard"/);
  assert.match(main,/class="journey-more"/);
 });
+
+
+test('PathFinder links to real research destinations and uses a connected editorial layout',()=>{
+ assert.match(main,/\['#research-explorer-mount','#documents-mount','#eligibility-mount','#research-explorer-mount','#next-steps'\]/);
+ assert.ok(!main.includes("['#research-explorer','#documents-mount'"));
+ assert.match(css,/Mission 51 — PathFinder/);
+ assert.match(css,/pathfinder-timeline li::before/);
+ assert.match(css,/pathfinder-live/);
+ assert.match(css,/max-width:390px/);
+});
