@@ -780,3 +780,49 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
 @media print{
  #top>.pathfinder-dashboard .pathfinder-timeline li::before{print-color-adjust:exact}
 }
+
+
+/* Mission 52 — responsive Hero containment. Preserve the approved visual
+   composition while preventing long localized copy from widening the page. */
+@media screen and (max-width:1023px){
+ html #top>.hero.hero-with-cables,
+ html #top>.hero.hero-with-cables .hero-copy,
+ html #top>.hero.hero-with-cables .hero-intro,
+ html #top>.hero.hero-with-cables .document-demo-visual{
+  min-width:0;
+  max-width:100%;
+ }
+ html #top>.hero.hero-with-cables .hero-intro h1,
+ html #top>.hero.hero-with-cables .hero-intro .lead{
+  max-width:100%;
+  overflow-wrap:break-word;
+ }
+ html #top>.hero.hero-with-cables .hero-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+ }
+ html #top>.hero.hero-with-cables .hero-actions>a{
+  min-width:0;
+  max-width:100%;
+  overflow-wrap:anywhere;
+ }
+}
+@media screen and (max-width:390px){
+ html #top>.hero.hero-with-cables .hero-intro h1{
+  font-size:clamp(31px,8.5vw,37px);
+  line-height:1.15;
+ }
+ html[lang=fa] #top>.hero.hero-with-cables .hero-intro h1,
+ html[lang=ps] #top>.hero.hero-with-cables .hero-intro h1{
+  font-size:clamp(29px,7.8vw,35px);
+  line-height:1.55;
+  letter-spacing:0;
+ }
+ html #top>.hero.hero-with-cables .hero-actions>a{
+  flex:1 1 100%;
+  justify-content:center;
+  text-align:center;
+  min-height:44px;
+ }
+}
