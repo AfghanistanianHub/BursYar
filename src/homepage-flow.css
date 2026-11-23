@@ -680,9 +680,31 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
   color:#fefdfb;
   border:0;
  }
- #top>.by-discovery-scene :is(h2,.by-story-eyebrow,.by-story-footnote){
-  color:inherit;
+ #top>.by-discovery-scene :is(h2,.by-story-eyebrow,.by-story-footnote),
+ #top>.by-discovery-scene .by-discovery-heading>p:not(.by-story-eyebrow){
+  color:#fefdfb;
  }
+ #top>.by-discovery-scene .by-discovery-art::before{
+  background:radial-gradient(ellipse,#52709266 0%,#1e3a5f00 68%);
+ }
+ #top>.by-discovery-scene .by-discovery-map,
+ #top>.by-discovery-scene .by-discovery-map .by-discovery-trail{
+  stroke:#dce8f5;
+ }
+ #top>.by-discovery-scene .by-discovery-map .by-discovery-orbit{
+  stroke:#dce8f588;
+ }
+ #top>.by-discovery-scene .by-discovery-map .by-discovery-orbit-alt{
+  stroke:#dce8f555;
+ }
+ #top>.by-discovery-scene .by-discovery-map circle{
+  fill:#1e3a5f;stroke:#dce8f5;
+ }
+ #top>.by-discovery-scene .by-discovery-core{
+  background:#fefdfb;color:#1e3a5f;
+  box-shadow:0 0 0 13px #fefdfb20;
+ }
+ #top>.by-discovery-scene .by-discovery-core-ring{border-color:#fefdfb66}
  #top>.by-discovery-scene .by-story-link{
   color:#fefdfb;
   border-color:rgba(254,253,251,.6);
