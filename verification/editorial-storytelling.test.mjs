@@ -154,3 +154,12 @@ test('ordinary deep links scroll after opening their disclosure',()=>{
  assert.match(main,/if\(location\.hash!=='#'\+id\|\|!target\.isConnected\)return/);
  assert.match(main,/destination\.scrollIntoView\(\{behavior:'instant',block:'start'\}\)/);
 });
+
+
+test('language rerenders preserve live document and assessment progress',()=>{
+ assert.match(main,/let dashboard, signedIn=false, signedInUid, documentStatus, hasLocalAssessment=false/);
+ assert.ok(!main.includes('mountJourney(document.querySelector(\'#journey-nav-mount\'),state.language);\nhasLocalAssessment=false;'));
+ assert.ok(!main.includes('mountJourney(document.querySelector(\'#journey-nav-mount\'),state.language);\nhasLocalAssessment=false;\ndocumentStatus=undefined;'));
+ assert.match(main,/document\.addEventListener\('bursyar:document-status'/);
+ assert.match(main,/document\.addEventListener\('bursyar:local-next'/);
+});
