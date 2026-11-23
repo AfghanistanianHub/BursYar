@@ -759,7 +759,8 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
   min-width:0;
  }
  #top>.pathfinder-dashboard .pathfinder-timeline{
-  margin:clamp(26px,3vw,48px) 0 0;
+  margin-block:clamp(26px,3vw,48px) 0;
+  margin-inline:0;
   padding-block:0;
   padding-inline:clamp(20px,2.3vw,32px) 0;
   border-inline-start:1px solid #b6c3cf;
@@ -781,6 +782,8 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
   position:absolute;
   inset-inline-start:calc(-1 * clamp(26px,2.3vw,38px));
   inset-block-start:clamp(23px,2vw,31px);
+  top:auto;
+  transform:none;
   width:10px;height:10px;
   border:2px solid #1e3a5f;
   background:#fefdfb;
