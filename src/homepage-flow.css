@@ -605,13 +605,22 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
 /* Mission 49 / polish: lazy mount shells must not masquerade as empty cards.
    When content arrives, the region resumes its authored layout automatically. */
 @media screen{
+ /* Keep observed lazy mounts in layout: display:none prevents IntersectionObserver
+    from ever observing them, leaving the workspace permanently blank. */
  #top>#workspace-overview:empty,
- #top>#research-explorer-mount:empty,
  #top>#local-workflow-mount:empty,
  #top>#eligibility-mount:empty{
-  display:none!important;
-  min-height:0!important;
-  margin:0!important;
+  display:block!important;
+  min-height:1px!important;
+  height:1px!important;
+  margin-block:0!important;
+  padding:0!important;
+  border:0!important;
+  box-shadow:none!important;
+  overflow:hidden;
+ }
+ #top>#research-explorer-mount:empty{
+  min-height:1px!important;
   padding:0!important;
   border:0!important;
   box-shadow:none!important;
