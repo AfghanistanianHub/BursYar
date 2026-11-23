@@ -9,7 +9,7 @@ test('editorial scenes appear once and preserve the approved hero',()=>{
  for(const id of ['by-story-heading','by-discovery-heading']){
   assert.equal(main.split('id="'+id+'"').length-1,1,id);
  }
- assert.match(main,/referenceHero\(state\.language\)/);
+ assert.match(main,/mountReferenceHero\(app,state\.language/);
  assert.ok(main.indexOf('by-story-scene')<main.indexOf('editorial-selected'));
  assert.ok(main.indexOf('editorial-selected')<main.indexOf('by-discovery-scene'));
  assert.ok(main.indexOf('by-discovery-scene')<main.indexOf('how-it-works'));
@@ -20,7 +20,7 @@ test('story scenes provide three languages and meaningful routes',()=>{
   assert.ok(main.includes(phrase),phrase);
  }
  assert.match(main,/class="by-story-link" href="#guided-demo" data-open="#guided-demo"/);
- assert.match(main,/class="by-story-link" href="#research-explorer" data-open="\.resources"/);
+ assert.match(main,/class="by-story-link" href="#research-explorer-mount" data-open="\.resources"/);
  assert.match(main,/Concept illustration/);
 });
 
@@ -44,4 +44,11 @@ test('workspace shortcuts point to mounted destinations and hash routing waits f
  assert.match(main,/ensureMount\(lazyShortcut\)\.then/);
  assert.match(main,/target\.scrollIntoView/);
  assert.match(main,/location\.hash!=='#'\+id/);
+});
+
+test('all discovery CTAs resolve to the actual research explorer mount',()=>{
+ const anchors=[...main.matchAll(/href="#research-explorer[^"]*" data-open="\\.resources"/g)];
+ assert.ok(anchors.length>0,'at least one research CTA is present');
+ assert.ok(anchors.every(([anchor])=>anchor.includes('#research-explorer-mount')),'no CTA uses the missing research-explorer id');
+ assert.match(main,/id="research-explorer-mount"/);
 });
