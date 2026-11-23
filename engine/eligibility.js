@@ -71,6 +71,9 @@ function evaluateRequirement(requirement,profile) {
       return result(id,UNKNOWN,'unsupported_or_incomplete_test');
     const names=['reading','listening','speaking','writing'];
     if (!names.every(n=>boundedToeflSection(v.sections[n]))) return result(id,UNKNOWN,'missing_or_invalid_section');
+    // TOEFL iBT total on the 0–120 scale is the sum of four 0–30 sections.
+    // A mismatched report is inconsistent evidence, not a failed threshold.
+    if(names.reduce((sum,n)=>sum+v.sections[n],0)!==v.overall)return result(id,UNKNOWN,'inconsistent_test_scores');
     const pass=v.overall>=requirement.overallMin && names.every(n=>v.sections[n]>=requirement.eachSectionMin);
     return result(id,pass?'met':'not_met',pass?'test_thresholds_met':'test_thresholds_not_met',f.claimIds??[]);
   }
