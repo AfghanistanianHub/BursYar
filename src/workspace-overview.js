@@ -13,20 +13,33 @@ export function mountWorkspaceOverview(root,language='en'){
  const grid=document.createElement('div');grid.className='workspace-overview-grid';
  for(const [icon,heading,note,action,target,disclosure] of [
  ['01',t.profile,t.profileNote,t.profileAction,'profile-mount','workspace'],
- ['02',t.source,t.sourceNote,t.sourceAction,'source-url',null]
+ ['02',t.source,t.sourceNote,t.sourceAction,'assistant',null]
  ]){
   const panel=document.createElement('section');panel.className='workspace-start-card';
   const number=document.createElement('span');number.className='workspace-card-number';number.textContent=icon;number.setAttribute('aria-hidden','true');
   const h=document.createElement('h3');h.textContent=heading;
   const p=document.createElement('p');p.textContent=note;
   const a=document.createElement('a');a.href='#'+target;a.textContent=action+' ↗';
-  a.addEventListener('click',()=>{if(disclosure){const details=document.querySelector('details.'+disclosure);if(details)details.open=true;}const el=document.getElementById(target);if(el){if(!el.matches('input'))el.setAttribute('tabindex','-1');el.focus({preventScroll:true});}});
+  a.addEventListener('click',()=>{
+   if(disclosure){const details=document.querySelector('details.'+disclosure);if(details)details.open=true;}
+   // Focus after the native hash navigation and any disclosure state change.
+   queueMicrotask(()=>{
+    const el=document.getElementById(target);
+    if(!el)return;
+    if(!el.matches('input,textarea,select,button,a[href]'))el.setAttribute('tabindex','-1');
+    el.focus({preventScroll:true});
+   });
+  });
   panel.append(number,h,p,a);grid.append(panel);
  }
  const links=document.createElement('div');links.className='workspace-shortcuts';
- for(const [text,id,selector] of [[t.discover,'research-explorer','.resources'],[t.local,'local-assessment','.local-workflow']]){
+ for(const [text,id,selector] of [[t.discover,'research-explorer-mount','.resources'],[t.local,'local-workflow-mount',null]]){
   const a=document.createElement('a');a.href='#'+id;a.textContent=text+' ↗';
-  a.addEventListener('click',()=>{const panel=document.querySelector(selector);if(panel)panel.open=true;});links.append(a);
+  a.addEventListener('click',()=>{
+   if(selector){const panel=document.querySelector(selector);if(panel)panel.open=true;}
+   if(id==='local-workflow-mount')document.dispatchEvent(new Event('bursyar:open-offline-workflow'));
+  });
+  links.append(a);
  }
  const note=document.createElement('p');note.className='workspace-overview-note';note.textContent=t.note;
  root.replaceChildren(label,title,intro,grid,links,note);
