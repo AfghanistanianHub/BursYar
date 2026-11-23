@@ -150,6 +150,7 @@ function dashboardOptions(){
   })};
 }
 let dashboard, signedIn=false, signedInUid, documentStatus, hasLocalAssessment=false;
+let lastLocalNextAction=null;
 let cleanupReferenceHero;
 let heroMotionPaused=false;
 function render(){mountGeneration++;cleanupReferenceHero?.();const disclosures=Object.fromEntries(['workspace','resources','scenarios','guided-demo'].map(key=>[key,document.querySelector('.'+key)?.open]));const old=document.querySelector('#analyze-form');if(old)analyzerInput={text:old.querySelector('textarea').value,sourceUrl:old.querySelector('[name=sourceUrl]')?.value||'',analysis:old.analysis,receipt:old.sourceReceipt,sourceApproved:old.sourceApproved,preview:old.sourcePreview,barrierAnswers:old.barrierAnswers,manualMode:old.manualMode,sourceFailure:old.sourceFailure};latestCompilation=analyzerInput.analysis?.data?.compilation;const t=translations[state.language],rtl=state.language!=='en';document.documentElement.lang=state.language;document.documentElement.dir=rtl?'rtl':'ltr';document.title=`${t.brand} | ${t.missionTitle}`;document.querySelector('meta[name="description"]')?.setAttribute('content',t.description);const fmt=new Intl.NumberFormat(state.language);
@@ -315,6 +316,12 @@ document.querySelectorAll('[data-open]').forEach(el=>el.addEventListener('click'
 cleanupReferenceHero=mountReferenceHero(app,state.language,heroMotionPaused,paused=>{heroMotionPaused=paused;});
 mountHeroDocumentDemo(document.querySelector('.hero'),state.language);
 mountJourney(document.querySelector('#journey-nav-mount'),state.language);
+// Rebuild the result panel after the shell is replaced by a language switch.
+// User-specific next-step text is kept verbatim, never machine-translated.
+if(lastLocalNextAction){
+ const actions=document.querySelector('#next-actions');
+ if(actions){const p=document.createElement('p');p.textContent=lastLocalNextAction.text;p.lang=lastLocalNextAction.language;actions.replaceChildren(p);}
+}
 // Preserve the current assessment and document state across language rerenders.
 // The lazy modules will remount into the new shell; clearing their shared state
 // here incorrectly resets dashboard progress and the user's next-step status.
@@ -330,6 +337,7 @@ queueMicrotask(()=>{
 function paintNextEmpty(){const actions=document.querySelector('#next-actions');if(!actions)return;const t=journeyCopy[state.language];actions.innerHTML=`<p class="empty-note">${esc(t.nextEmpty)} <a href="#assistant">${esc(t.nextEmptyCta)}</a></p>`;}
 document.addEventListener('bursyar:local-next',event=>{
  hasLocalAssessment=typeof event.detail==='string'&&!!event.detail;
+ lastLocalNextAction=hasLocalAssessment?{text:event.detail,language:state.language}:null;
  dashboard?.update();
  const actions=document.querySelector('#next-actions');
  if(!actions)return;
@@ -346,7 +354,7 @@ document.addEventListener('bursyar:compilation',event=>{
  const active=!!event.detail;
  mountEligibilityNow().then(()=>{
   document.querySelector('#requirements-step').hidden=!active&&document.querySelector('#analysis-result').hidden;
-  if(!active)paintNextEmpty();
+  if(!active){lastLocalNextAction=null;paintNextEmpty();}
   if(active){const result=document.querySelector('#analysis-result');const fields=result.querySelector('fieldset'),guidance=result.querySelector('#barrier-guidance');if(fields)document.querySelector('#next-actions').replaceChildren(fields,guidance);}
  });
 });
