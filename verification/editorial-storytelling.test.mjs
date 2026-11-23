@@ -47,7 +47,7 @@ test('workspace shortcuts point to mounted destinations and hash routing waits f
 });
 
 test('all discovery CTAs resolve to the actual research explorer mount',()=>{
- const anchors=[...main.matchAll(/href="#research-explorer[^"]*" data-open="\\.resources"/g)];
+ const anchors=[...main.matchAll(/href="#research-explorer[^"]*" data-open="\.resources"/g)];
  assert.ok(anchors.length>0,'at least one research CTA is present');
  assert.ok(anchors.every(([anchor])=>anchor.includes('#research-explorer-mount')),'no CTA uses the missing research-explorer id');
  assert.match(main,/id="research-explorer-mount"/);
