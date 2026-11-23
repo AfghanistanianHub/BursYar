@@ -567,7 +567,6 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
   box-shadow:none!important;
  }
 
- #top>.how-it-works ol li a:focus-visible,
  #top>.by-story-scene a:focus-visible,
  #top>.by-discovery-scene a:focus-visible{
   outline:2px solid #1e3a5f;
