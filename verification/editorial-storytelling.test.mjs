@@ -123,3 +123,13 @@ test('obsolete PathFinder timeline offsets are removed rather than overwritten',
  assert.ok(!css.includes('inset-inline-start:-31px;top:50%'));
  assert.match(css,/Mission 51 — PathFinder/);
 });
+
+
+test('removed landing sections do not retain dead homepage CSS',()=>{
+ for(const dead of ['#top>.how-it-works','#top>.editorial-pillars','.editorial-study-band']){
+  assert.ok(!css.includes(dead),'obsolete CSS target: '+dead);
+ }
+ assert.match(css,/#top>\.pathfinder-dashboard/);
+ assert.match(css,/#top>\.by-story-scene/);
+ assert.match(css,/#top>\.by-discovery-scene/);
+});
