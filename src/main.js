@@ -366,6 +366,22 @@ function revealHashTarget(){
  if(!id||id.startsWith('dashboard')||id.startsWith('/'))return;
  const target=document.getElementById(id);
  if(!target)return;
+ // Shortcuts may land on a currently empty lazy-mount node. Populate it
+ // before scrolling so a visually hidden placeholder never becomes a dead end.
+ const lazyShortcut={ 'local-workflow-mount':'offline', 'research-explorer-mount':'research', 'workspace-overview':'overview' }[id];
+ if(lazyShortcut){
+  if(id==='research-explorer-mount'){
+   const disclosure=target.closest('details.resources');
+   if(disclosure)disclosure.open=true;
+  }
+  void ensureMount(lazyShortcut).then(()=>{
+   if(location.hash!=='#'+id||!target.isConnected||!target.childElementCount)return;
+   requestAnimationFrame(()=>{
+    if(location.hash==='#'+id)target.scrollIntoView({behavior:'instant',block:'start'});
+   });
+  });
+  return;
+ }
  // Hash navigation can run before the lazy eligibility module has populated its mount.
  // Resolve the module first, then reveal the disclosure for the same hash only.
  if(id==='eligibility-mount'&&!target.querySelector('#eligibility-demo')){
