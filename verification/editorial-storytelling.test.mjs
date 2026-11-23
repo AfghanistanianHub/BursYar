@@ -233,3 +233,16 @@ test('TOEFL iBT totals must equal the sum of four sections',async()=>{
  assert.equal(assess(101,sections).results[0].reason,'inconsistent_test_scores');
  assert.equal(assess(80,{reading:20,listening:20,speaking:20,writing:20}).summary,'not_met');
 });
+
+
+test('IELTS overall respects quarter-band rounding and rejects inconsistent reports',async()=>{
+ const {assessScholarship}=await import('../engine/eligibility.js');
+ const rule={id:'ielts',type:'ielts_academic',test:'IELTS Academic',overallMin:6.5,eachBandMin:6,ambiguous:false,sourceUrl:'https://example.org/requirements',sourceExcerpt:'IELTS Academic 6.5 overall and 6 in each band'};
+ const assess=(overall,bands)=>assessScholarship([rule],{languageTest:{origin:'user_declared',value:{test:'IELTS Academic',overall,bands:{listening:bands[0],reading:bands[1],writing:bands[2],speaking:bands[3]}}}});
+ assert.equal(assess(6.5,[6,6.5,6.5,6]).summary,'met'); // 6.25 rounds up
+ assert.equal(assess(7,[6.5,7,7,6.5]).summary,'met'); // 6.75 rounds up
+ assert.equal(assess(6,[6,6,6,6.5]).summary,'not_met'); // 6.125 rounds down
+ assert.equal(assess(6,[6,6.5,6.5,6]).summary,'unknown'); // inconsistent overall
+ assert.equal(assess(6.5,[6,6.5,6.5,6]).results[0].reason,'test_thresholds_met');
+ assert.equal(assess(6,[6,6.5,6.5,6.5]).summary,'unknown'); // 6.375 rounds to 6.5
+});
