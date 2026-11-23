@@ -355,13 +355,15 @@ document.addEventListener('bursyar:compilation',event=>{
  latestCompilation=event.detail;
  const active=!!event.detail;
  const revision=++nextActionsRevision;
+ const generation=mountGeneration;
  // A new compilation supersedes guidance generated from the previous one.
  lastLocalNextAction=null;
+ document.querySelector('#next-actions')?.replaceChildren();
  if(!active)hasLocalAssessment=false;
  void mountEligibilityNow().then(()=>{
   // An older async eligibility mount must never overwrite newer advice,
   // nor mutate a shell replaced by a language change.
-  if(revision!==nextActionsRevision)return;
+  if(revision!==nextActionsRevision||generation!==mountGeneration)return;
   const requirements=document.querySelector('#requirements-step');
   const result=document.querySelector('#analysis-result');
   const actions=document.querySelector('#next-actions');
