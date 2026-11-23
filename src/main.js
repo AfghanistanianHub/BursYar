@@ -315,8 +315,9 @@ document.querySelectorAll('[data-open]').forEach(el=>el.addEventListener('click'
 cleanupReferenceHero=mountReferenceHero(app,state.language,heroMotionPaused,paused=>{heroMotionPaused=paused;});
 mountHeroDocumentDemo(document.querySelector('.hero'),state.language);
 mountJourney(document.querySelector('#journey-nav-mount'),state.language);
-hasLocalAssessment=false;
-documentStatus=undefined;
+// Preserve the current assessment and document state across language rerenders.
+// The lazy modules will remount into the new shell; clearing their shared state
+// here incorrectly resets dashboard progress and the user's next-step status.
 for(const [key,open]of Object.entries(disclosures))if(open!==undefined&&document.querySelector('.'+key))document.querySelector('.'+key).open=open;
 wireLazyMounts();
 // Language changes replace the entire DOM without changing location.hash.
