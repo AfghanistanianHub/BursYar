@@ -384,3 +384,78 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
  #top>.pathfinder-dashboard .pathfinder-intro::before,
  #top>.pathfinder-dashboard .pathfinder-timeline li::before{display:none!important}
 }
+
+
+/* Mission 48 / integration pass: a continuous reading rhythm between scenes.
+   CSS scroll progress is decorative only; all navigation works without it. */
+@media screen {
+ #top>.by-story-scene,
+ #top>.by-discovery-scene{
+  scroll-margin-top:80px;
+  min-width:0;
+ }
+ #top>.by-story-scene::after,
+ #top>.by-discovery-scene::after{
+  content:"";position:absolute;inset-inline-start:50%;
+  bottom:0;width:1px;height:clamp(20px,3vw,40px);
+  background:linear-gradient(transparent,#1e3a5f55);
+  pointer-events:none;
+ }
+ #top>.by-story-scene .by-story-link,
+ #top>.by-discovery-scene .by-story-link{
+  max-width:100%;overflow-wrap:anywhere;
+ }
+ #top>.by-story-scene .by-story-visual,
+ #top>.by-discovery-scene .by-discovery-art{
+  min-width:0;overflow:visible;
+ }
+ #top>.by-discovery-scene .by-discovery-heading{
+  position:relative;z-index:1;
+ }
+ #top>.editorial-selected .editorial-opportunities{
+  position:relative;
+ }
+ #top>.editorial-selected .editorial-opportunities::before{
+  content:"";position:absolute;inset-block:0;inset-inline-start:-24px;
+  width:1px;background:linear-gradient(#1e3a5f00,#1e3a5f40 30%,#1e3a5f40 70%,#1e3a5f00);
+  pointer-events:none;
+ }
+ #top>.by-story-scene .by-story-route path,
+ #top>.by-discovery-scene .by-discovery-trail{
+  vector-effect:non-scaling-stroke;
+ }
+}
+@media screen and (prefers-reduced-motion:no-preference){
+ @supports(animation-timeline:view()){
+  #top>.by-story-scene .by-story-route path,
+  #top>.by-discovery-scene .by-discovery-trail{
+   animation:by-narrative-line 1ms linear both;
+   animation-timeline:view();
+   animation-range:entry 0% cover 70%;
+  }
+ }
+}
+@keyframes by-narrative-line{
+ from{stroke-dashoffset:90;opacity:.35}
+ to{stroke-dashoffset:0;opacity:1}
+}
+@media screen and (max-width:760px){
+ #top>.by-story-scene::after,
+ #top>.by-discovery-scene::after{height:18px}
+ #top>.editorial-selected .editorial-opportunities::before{display:none}
+ #top>.by-story-scene .by-story-visual,
+ #top>.by-discovery-scene .by-discovery-art{max-width:100%}
+}
+@media screen and (max-width:390px){
+ #top>.by-story-scene,
+ #top>.by-discovery-scene{padding-inline:16px}
+ #top>.by-story-scene .by-story-scene-copy,
+ #top>.by-discovery-scene .by-discovery-heading{min-width:0}
+ #top>.by-story-scene .by-story-link,
+ #top>.by-discovery-scene .by-story-link{min-height:44px}
+}
+@media print{
+ #top>.by-story-scene::after,
+ #top>.by-discovery-scene::after,
+ #top>.editorial-selected .editorial-opportunities::before{display:none!important}
+}
