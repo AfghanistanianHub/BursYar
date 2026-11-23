@@ -190,3 +190,10 @@ test('cleared eligibility results cannot be restored from stale analyzer DOM',()
  assert.match(main,/analyzerInput\.analysis=null/);
  assert.match(main,/if\(form\)form\.analysis=null/);
 });
+
+
+test('eligibility never substitutes fictional rules for malformed live compilations',()=>{
+ const eligibility=readFileSync(new URL('../src/eligibility-demo.js',import.meta.url),'utf8');
+ assert.match(eligibility,/compilation==null\?fixture:\(Array\.isArray\(compilation\.rules\)\?compilation\.rules:\[\]\)/);
+ assert.match(eligibility,/document\.addEventListener\('bursyar:compilation',\(\)=>\{lastScenario=false;lastExclusion=null;\}\)/);
+});
