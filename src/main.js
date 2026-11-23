@@ -356,7 +356,11 @@ document.addEventListener('bursyar:compilation',event=>{
  const active=!!event.detail;
  // Do not allow the analyzer's previous compilation to be resurrected by
  // a later lazy eligibility mount after the current result was cleared.
- if(!active)analyzerInput.analysis=null;
+ if(!active){
+  analyzerInput.analysis=null;
+  const form=document.querySelector('#analyze-form');
+  if(form)form.analysis=null;
+ }
  const revision=++nextActionsRevision;
  const generation=mountGeneration;
  // A new compilation supersedes guidance generated from the previous one.
