@@ -31,3 +31,17 @@ test('story motion has static fallback and responsive layouts',()=>{
  assert.match(css, /by-discovery-scene/);
  assert.match(css, /by-story-scene/);
 });
+
+
+test('workspace shortcuts point to mounted destinations and hash routing waits for lazy content',()=>{
+ const overview=readFileSync(new URL('../src/workspace-overview.js',import.meta.url),'utf8');
+ for(const target of ["'assistant'","'research-explorer-mount'","'local-workflow-mount'","'profile-mount'"]){
+  assert.ok(overview.includes(target),target);
+ }
+ assert.ok(!overview.includes("'source-url'"));
+ assert.ok(!overview.includes("'local-assessment'"));
+ assert.match(main,/const lazyShortcut=\{/);
+ assert.match(main,/ensureMount\(lazyShortcut\)\.then/);
+ assert.match(main,/target\.scrollIntoView/);
+ assert.match(main,/location\.hash!=='#'\+id/);
+});
