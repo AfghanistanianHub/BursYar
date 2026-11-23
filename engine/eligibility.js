@@ -17,7 +17,12 @@ function fact(profile,key) {
   if (!f || typeof f!=='object' || !own(f,'value') || f.value===null || f.value===undefined) return null;
   // Explicitly refuse facts without provenance, including hypothetical data accidentally placed in the real profile.
   if (!['user_declared','document_extracted','issuer_verified'].includes(f.origin)) return null;
-  if(f.reviewStatus==='pending'||f.verificationStatus==='rejected'||f.contradicted===true) return null;
+  // A disputed, rejected or unresolved extracted fact cannot establish either
+ // eligibility or ineligibility. Keep the requirement UNKNOWN until reviewed.
+ if(['pending','rejected','conflicting','disputed'].includes(f.reviewStatus)
+  ||['rejected','conflicting','disputed'].includes(f.verificationStatus)
+  ||f.contradicted===true||f.conflicting===true
+  ||(Array.isArray(f.conflicts)&&f.conflicts.length>0)) return null;
   return f;
 }
 function sourceUrlValid(value){try{const u=new URL(value);return u.protocol==='https:'&&!u.username&&!u.password;}catch{return false;}}
