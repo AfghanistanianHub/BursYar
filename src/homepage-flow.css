@@ -459,3 +459,144 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
  #top>.by-discovery-scene::after,
  #top>.editorial-selected .editorial-opportunities::before{display:none!important}
 }
+
+
+/* Mission 49 — editorial quality pass, based on the four-page full-page capture.
+   One source of final overrides, deliberately limited to the landing page. */
+@media screen and (min-width:1024px){
+  html #top>.hero.hero-with-cables{
+    grid-template-columns:minmax(0,.93fr) minmax(0,1.07fr);
+    column-gap:clamp(36px,4vw,72px);
+    padding-inline:clamp(36px,4.2vw,80px);
+    padding-block-end:clamp(32px,3vw,56px);
+  }
+  html #top>.hero.hero-with-cables .by-arc-band{
+    max-width:860px;
+  }
+  html #top>.hero.hero-with-cables .hero-intro{
+    padding-block-start:clamp(10px,1.5vw,28px);
+  }
+  html #top>.hero.hero-with-cables .hero-intro h1{
+    font-size:clamp(38px,3.6vw,56px);
+    font-weight:650;
+    letter-spacing:-.045em;
+    line-height:1.075;
+    max-width:15ch;
+  }
+  html[lang=fa] #top>.hero.hero-with-cables .hero-intro h1,
+  html[lang=ps] #top>.hero.hero-with-cables .hero-intro h1{
+    max-width:22ch;
+    font-size:clamp(32px,3vw,47px);
+    letter-spacing:0;
+    line-height:1.48;
+  }
+  html #top>.hero.hero-with-cables .hero-intro .lead{
+    font-size:clamp(15px,1.15vw,18px);
+    max-width:46ch;
+    line-height:1.7;
+    margin-block-start:16px;
+  }
+  html #top>.hero.hero-with-cables .hero-actions{
+    margin-block-start:24px;
+    gap:12px;
+  }
+  html #top>.hero.hero-with-cables .hero-document-reader{
+    margin-block-start:26px;
+    border-color:#d8d0c8;
+  }
+  html #top>.hero.hero-with-cables .document-demo-visual{
+    align-self:center;
+    padding-block-start:8px;
+  }
+}
+@media screen{
+  #top>.how-it-works{
+    padding-block:clamp(34px,4vw,64px);
+    background:#fefdfb;
+  }
+  #top>.how-it-works>h2{
+    font-family:var(--editorial-serif,Georgia,serif);
+    font-weight:400;
+    letter-spacing:-.035em;
+    font-size:clamp(28px,2.5vw,42px);
+    margin-block-end:24px;
+  }
+  #top>.how-it-works ol{
+    border:0;
+    border-block-start:1px solid #d8d0c8;
+    border-block-end:1px solid #d8d0c8;
+    background:transparent;
+  }
+  #top>.how-it-works ol li{
+    background:transparent;
+    padding:clamp(16px,2vw,28px);
+  }
+  #top>.how-it-works ol a{
+    min-height:100%;
+    text-decoration:none;
+    color:inherit;
+    transition:color .18s ease;
+  }
+  #top>.how-it-works ol a:hover,
+  #top>.how-it-works ol a:focus-visible{color:#1e3a5f}
+  #top>.how-it-works ol a:focus-visible{
+    outline:2px solid #1e3a5f;outline-offset:5px;
+  }
+  #top>.how-it-works .step-num{
+    display:grid;place-items:center;
+    width:38px;height:38px;border-radius:50%;
+    background:#1e3a5f;color:#fff;font-size:14px;
+    font-variant-numeric:tabular-nums;
+  }
+  #top>.how-it-works ol li strong{
+    font-size:clamp(14px,1.15vw,17px);
+    line-height:1.4;font-weight:600;
+  }
+  #top>.how-it-works ol li span:last-child{
+    font-size:13px;line-height:1.75;
+    max-width:32ch;
+  }
+  #top>.pathfinder-dashboard .pathfinder-intro h2{
+    text-wrap:balance;
+  }
+  #top>.pathfinder-dashboard .pathfinder-timeline a{
+    grid-template-columns:48px minmax(0,1fr) 28px;
+    gap:clamp(12px,1.6vw,24px);
+  }
+  #top>.pathfinder-dashboard .pathfinder-step-copy strong{
+    font-size:clamp(20px,1.8vw,29px);
+  }
+  #top>.pathfinder-dashboard .pathfinder-step-copy small{
+    font-size:12px;line-height:1.7;
+  }
+  #top>.pathfinder-dashboard .pathfinder-live{
+    min-width:0;
+    overflow-wrap:anywhere;
+  }
+  #top>.pathfinder-dashboard .pathfinder-live #next-actions{
+    min-height:0;
+  }
+  #top>.pathfinder-dashboard .pathfinder-live .empty-note{
+    max-width:42ch;
+    line-height:1.75;
+  }
+}
+@media screen and (min-width:851px){
+  #top>.pathfinder-dashboard{
+    grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr);
+    align-items:stretch;
+  }
+  #top>.pathfinder-dashboard .pathfinder-live{
+    display:flex;flex-direction:column;justify-content:center;
+  }
+}
+@media screen and (max-width:760px){
+  #top>.how-it-works{padding:34px 20px}
+  #top>.how-it-works ol li{padding:18px 14px}
+  #top>.pathfinder-dashboard .pathfinder-timeline a{
+    grid-template-columns:42px minmax(0,1fr) 24px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #top>.how-it-works ol a{transition:none!important}
+}
