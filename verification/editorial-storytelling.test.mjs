@@ -197,3 +197,12 @@ test('eligibility never substitutes fictional rules for malformed live compilati
  assert.match(eligibility,/compilation==null\?fixture:\(Array\.isArray\(compilation\.rules\)\?compilation\.rules:\[\]\)/);
  assert.match(eligibility,/document\.addEventListener\('bursyar:compilation',\(\)=>\{lastScenario=false;lastExclusion=null;\}\)/);
 });
+
+
+test('disputed or contradictory profile evidence is not accepted for eligibility',()=>{
+ const engine=readFileSync(new URL('../engine/eligibility.js',import.meta.url),'utf8');
+ assert.match(engine,/\['pending','rejected','conflicting','disputed'\]\.includes\(f\.reviewStatus\)/);
+ assert.match(engine,/\['rejected','conflicting','disputed'\]\.includes\(f\.verificationStatus\)/);
+ assert.match(engine,/f\.contradicted===true\|\|f\.conflicting===true/);
+ assert.match(engine,/Array\.isArray\(f\.conflicts\)&&f\.conflicts\.length>0/);
+});
