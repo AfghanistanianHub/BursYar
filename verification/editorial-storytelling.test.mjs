@@ -146,3 +146,11 @@ test('responsive Hero contains localized copy and keeps CTAs reachable',()=>{
  assert.match(heroCss,/min-height:44px/);
  assert.match(main,/class="hero hero-with-cables"/);
 });
+
+
+test('ordinary deep links scroll after opening their disclosure',()=>{
+ assert.match(main,/const opened=holders\.some\(details=>details&&!details\.open\)/);
+ assert.match(main,/if\(opened\|\|id==='eligibility-mount'\)/);
+ assert.match(main,/if\(location\.hash!=='#'\+id\|\|!target\.isConnected\)return/);
+ assert.match(main,/destination\.scrollIntoView\(\{behavior:'instant',block:'start'\}\)/);
+});
