@@ -307,3 +307,80 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
  .by-discovery-art{min-height:40mm;max-height:55mm}
  .by-discovery-heading h2{font-size:23px!important}
 }
+
+
+/* Mission 48 / visual continuity: opportunity list and PathFinder form one journey. */
+@media screen{
+ #top>.editorial-selected{
+  position:relative;
+  background:linear-gradient(125deg,#faf8f4 0%,#fefdfb 76%);
+ }
+ #top>.editorial-selected .editorial-selected-heading{
+  padding-inline-start:clamp(0px,1vw,14px);
+  border-inline-start:3px solid #1e3a5f;
+ }
+ #top>.editorial-selected .editorial-opportunity{
+  position:relative;
+  transition:background-color .2s ease,padding-inline .2s ease;
+ }
+ #top>.editorial-selected .editorial-opportunity::before{
+  content:"";position:absolute;inset-block:18%;inset-inline-start:-12px;
+  width:2px;background:#1e3a5f;scale:1 0;transform-origin:center;
+  transition:scale .2s ease;
+ }
+ #top>.editorial-selected .editorial-opportunity:hover,
+ #top>.editorial-selected .editorial-opportunity:focus-within{
+  background:#f2f5f7;padding-inline:12px;
+ }
+ #top>.editorial-selected .editorial-opportunity:hover::before,
+ #top>.editorial-selected .editorial-opportunity:focus-within::before{scale:1}
+ #top>.editorial-selected .editorial-opportunity>a{min-width:44px;min-height:44px;width:44px;height:44px}
+ #top>.editorial-selected .editorial-opportunity h3{text-wrap:pretty}
+ #top>.pathfinder-dashboard{
+  position:relative;isolation:isolate;overflow:hidden;
+  background:linear-gradient(115deg,#fefdfb,#f5f1ea);
+ }
+ #top>.pathfinder-dashboard .pathfinder-intro{
+  position:relative;isolation:isolate;
+ }
+ #top>.pathfinder-dashboard .pathfinder-intro::before{
+  content:"";position:absolute;inset-block:8% 8%;inset-inline-end:4%;
+  width:min(48%,280px);border:1px solid #1e3a5f20;border-radius:50%;
+  box-shadow:0 0 0 27px #1e3a5f08,0 0 0 56px #1e3a5f05;
+  pointer-events:none;z-index:-1;
+ }
+ #top>.pathfinder-dashboard .pathfinder-timeline{
+  border-inline-start:1px solid #1e3a5f35;
+  margin-inline-start:22px;padding-inline-start:25px;
+ }
+ #top>.pathfinder-dashboard .pathfinder-timeline li{position:relative}
+ #top>.pathfinder-dashboard .pathfinder-timeline li::before{
+  content:"";position:absolute;inset-inline-start:-31px;top:50%;
+  width:10px;height:10px;border:2px solid #1e3a5f;
+  background:#fefdfb;border-radius:50%;transform:translateY(-50%);
+ }
+ #top>.pathfinder-dashboard .pathfinder-timeline a{
+  min-height:72px;transition:padding-inline .2s ease,background-color .2s ease;
+ }
+ #top>.pathfinder-dashboard .pathfinder-timeline a:hover,
+ #top>.pathfinder-dashboard .pathfinder-timeline a:focus-visible{
+  padding-inline:10px;background:#e9eef3;
+ }
+}
+@media screen and (max-width:760px){
+ #top>.editorial-selected .editorial-selected-heading{padding-inline-start:12px}
+ #top>.editorial-selected .editorial-opportunity{gap:8px}
+ #top>.editorial-selected .editorial-opportunity>a{min-width:44px;width:44px}
+ #top>.pathfinder-dashboard .pathfinder-timeline{margin-inline-start:14px;padding-inline-start:18px}
+ #top>.pathfinder-dashboard .pathfinder-timeline li::before{inset-inline-start:-24px}
+}
+@media(prefers-reduced-motion:reduce){
+ #top>.editorial-selected .editorial-opportunity,
+ #top>.editorial-selected .editorial-opportunity::before,
+ #top>.pathfinder-dashboard .pathfinder-timeline a{transition:none!important}
+}
+@media print{
+ #top>.editorial-selected .editorial-opportunity{transition:none!important}
+ #top>.pathfinder-dashboard .pathfinder-intro::before,
+ #top>.pathfinder-dashboard .pathfinder-timeline li::before{display:none!important}
+}
