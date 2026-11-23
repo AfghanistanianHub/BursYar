@@ -221,3 +221,15 @@ test('conflicted IELTS evidence produces UNKNOWN, never MET or NOT_MET',async()=
  const clean=assessScholarship([rule],{languageTest:{value:score,origin:'user_declared'}});
  assert.equal(clean.summary,'met');
 });
+
+
+test('TOEFL iBT totals must equal the sum of four sections',async()=>{
+ const {assessScholarship}=await import('../engine/eligibility.js');
+ const rule={id:'toefl',type:'toefl_ibt',test:'TOEFL iBT',overallMin:90,eachSectionMin:20,ambiguous:false,sourceUrl:'https://example.org/requirements',sourceExcerpt:'TOEFL iBT 90 overall and 20 per section'};
+ const assess=(overall,sections)=>assessScholarship([rule],{languageTest:{origin:'user_declared',value:{test:'TOEFL iBT',overall,sections}}});
+ const sections={reading:25,listening:25,speaking:25,writing:25};
+ assert.equal(assess(100,sections).summary,'met');
+ assert.equal(assess(99,sections).summary,'unknown');
+ assert.equal(assess(101,sections).results[0].reason,'inconsistent_test_scores');
+ assert.equal(assess(80,{reading:20,listening:20,speaking:20,writing:20}).summary,'not_met');
+});
