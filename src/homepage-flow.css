@@ -349,30 +349,13 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
   box-shadow:0 0 0 27px #1e3a5f08,0 0 0 56px #1e3a5f05;
   pointer-events:none;z-index:-1;
  }
- #top>.pathfinder-dashboard .pathfinder-timeline{
-  border-inline-start:1px solid #1e3a5f35;
-  margin-inline-start:22px;padding-inline-start:25px;
- }
- #top>.pathfinder-dashboard .pathfinder-timeline li{position:relative}
- #top>.pathfinder-dashboard .pathfinder-timeline li::before{
-  content:"";position:absolute;inset-inline-start:-31px;top:50%;
-  width:10px;height:10px;border:2px solid #1e3a5f;
-  background:#fefdfb;border-radius:50%;transform:translateY(-50%);
- }
- #top>.pathfinder-dashboard .pathfinder-timeline a{
-  min-height:72px;transition:padding-inline .2s ease,background-color .2s ease;
- }
- #top>.pathfinder-dashboard .pathfinder-timeline a:hover,
- #top>.pathfinder-dashboard .pathfinder-timeline a:focus-visible{
-  padding-inline:10px;background:#e9eef3;
- }
+
 }
 @media screen and (max-width:760px){
  #top>.editorial-selected .editorial-selected-heading{padding-inline-start:12px}
  #top>.editorial-selected .editorial-opportunity{gap:8px}
  #top>.editorial-selected .editorial-opportunity>a{min-width:44px;width:44px}
- #top>.pathfinder-dashboard .pathfinder-timeline{margin-inline-start:14px;padding-inline-start:18px}
- #top>.pathfinder-dashboard .pathfinder-timeline li::before{inset-inline-start:-24px}
+
 }
 @media(prefers-reduced-motion:reduce){
  #top>.editorial-selected .editorial-opportunity,
