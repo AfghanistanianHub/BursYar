@@ -760,12 +760,13 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
  }
  #top>.pathfinder-dashboard .pathfinder-timeline{
   margin:clamp(26px,3vw,48px) 0 0;
-  padding:0 0 0 clamp(20px,2.3vw,32px);
+  padding-block:0;
+  padding-inline:clamp(20px,2.3vw,32px) 0;
   border-inline-start:1px solid #b6c3cf;
   list-style:none;
  }
  html[dir=rtl] #top>.pathfinder-dashboard .pathfinder-timeline{
-  padding:0 clamp(20px,2.3vw,32px) 0 0;
+  padding-inline:clamp(20px,2.3vw,32px) 0;
  }
  #top>.pathfinder-dashboard .pathfinder-timeline li{
   position:relative;
@@ -832,11 +833,9 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
   grid-template-columns:28px minmax(0,1fr) 20px;
   padding-inline:2px;
  }
- #top>.pathfinder-dashboard .pathfinder-timeline{
-  padding-inline-start:20px;
- }
+ #top>.pathfinder-dashboard .pathfinder-timeline,
  html[dir=rtl] #top>.pathfinder-dashboard .pathfinder-timeline{
-  padding-inline-start:0;padding-inline-end:20px;
+  padding-inline:20px 0;
  }
 }
 @media print{
