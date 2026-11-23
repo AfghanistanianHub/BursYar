@@ -319,6 +319,11 @@ hasLocalAssessment=false;
 documentStatus=undefined;
 for(const [key,open]of Object.entries(disclosures))if(open!==undefined&&document.querySelector('.'+key))document.querySelector('.'+key).open=open;
 wireLazyMounts();
+// Language changes replace the entire DOM without changing location.hash.
+// Re-resolve the active deep link against the new mounts and disclosures.
+queueMicrotask(()=>{
+ if(document.querySelector('#app')&&location.hash&&!location.hash.startsWith('#/'))revealHashTarget();
+});
 }
 // Only a localized action message is propagated; never broadcast private profile data.
 function paintNextEmpty(){const actions=document.querySelector('#next-actions');if(!actions)return;const t=journeyCopy[state.language];actions.innerHTML=`<p class="empty-note">${esc(t.nextEmpty)} <a href="#assistant">${esc(t.nextEmptyCta)}</a></p>`;}
