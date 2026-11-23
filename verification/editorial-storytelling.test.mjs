@@ -106,3 +106,12 @@ test('language rerenders restore active lazy deep links',()=>{
  assert.match(main,/queueMicrotask\(\(\)=>\{/);
  assert.match(main,/location\.hash&&!location\.hash\.startsWith\('#\/'\)\)revealHashTarget\(\)/);
 });
+
+
+test('final PathFinder rules reset earlier physical offsets and transforms',()=>{
+ const pathfinderCss=css.slice(css.indexOf('Mission 51 — PathFinder'));
+ assert.match(pathfinderCss,/margin-inline:0/);
+ assert.match(pathfinderCss,/top:auto/);
+ assert.match(pathfinderCss,/transform:none/);
+ assert.match(pathfinderCss,/inset-block-start:clamp/);
+});
