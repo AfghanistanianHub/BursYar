@@ -171,3 +171,14 @@ test('local next-step guidance survives a language shell rebuild without false t
  assert.match(main,/p\.textContent=lastLocalNextAction\.text;p\.lang=lastLocalNextAction\.language/);
  assert.match(main,/if\(!active\)\{lastLocalNextAction=null;paintNextEmpty\(\);\}/);
 });
+
+
+test('new eligibility compilations invalidate stale next-step guidance and async callbacks',()=>{
+ assert.match(main,/let nextActionsRevision=0/);
+ assert.match(main,/nextActionsRevision\+\+/);
+ assert.match(main,/const revision=\+\+nextActionsRevision/);
+ assert.match(main,/const generation=mountGeneration/);
+ assert.match(main,/lastLocalNextAction=null;\n document\.querySelector\('#next-actions'\)\?\.replaceChildren\(\)/);
+ assert.match(main,/revision!==nextActionsRevision\|\|generation!==mountGeneration/);
+ assert.match(main,/if\(!active\)hasLocalAssessment=false/);
+});
