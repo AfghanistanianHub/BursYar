@@ -600,3 +600,43 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
 @media(prefers-reduced-motion:reduce){
   #top>.how-it-works ol a{transition:none!important}
 }
+
+
+/* Mission 49 / polish: lazy mount shells must not masquerade as empty cards.
+   When content arrives, the region resumes its authored layout automatically. */
+@media screen{
+ #top>#workspace-overview:empty,
+ #top>#research-explorer-mount:empty,
+ #top>#local-workflow-mount:empty,
+ #top>#eligibility-mount:empty{
+  display:none!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  box-shadow:none!important;
+ }
+ #top>.how-it-works ol li a{
+  -webkit-tap-highlight-color:transparent;
+ }
+ #top>.how-it-works ol li a:focus-visible,
+ #top>.by-story-scene a:focus-visible,
+ #top>.by-discovery-scene a:focus-visible{
+  outline:2px solid #1e3a5f;
+  outline-offset:4px;
+ }
+ #top>.by-story-scene .by-story-footnote,
+ #top>.by-discovery-scene .by-story-footnote{
+  max-width:100%;
+  text-wrap:pretty;
+ }
+}
+@media screen and (max-width:760px){
+ #top>.pathfinder-dashboard .pathfinder-timeline a{
+  min-height:68px;
+ }
+ #top>.pathfinder-dashboard .pathfinder-step-copy{
+  min-width:0;
+  overflow-wrap:anywhere;
+ }
+}
