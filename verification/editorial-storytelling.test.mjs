@@ -206,3 +206,18 @@ test('disputed or contradictory profile evidence is not accepted for eligibility
  assert.match(engine,/f\.contradicted===true\|\|f\.conflicting===true/);
  assert.match(engine,/Array\.isArray\(f\.conflicts\)&&f\.conflicts\.length>0/);
 });
+
+
+test('conflicted IELTS evidence produces UNKNOWN, never MET or NOT_MET',async()=>{
+ const {assessScholarship}=await import('../engine/eligibility.js');
+ const rule={id:'english',type:'ielts_academic',test:'IELTS Academic',overallMin:6.5,eachBandMin:6,ambiguous:false,sourceUrl:'https://example.org/requirements',sourceExcerpt:'IELTS Academic 6.5 overall, 6 in each band'};
+ const score={test:'IELTS Academic',overall:7,bands:{listening:7,reading:7,writing:7,speaking:7}};
+ for(const evidence of [{reviewStatus:'disputed'},{verificationStatus:'conflicting'},{conflicted:true,conflicts:['document-a','document-b']},{contradicted:true}]){
+  const profile={languageTest:{value:score,origin:'document_extracted',...evidence}};
+  const outcome=assessScholarship([rule],profile);
+  assert.equal(outcome.summary,'unknown',JSON.stringify(evidence));
+  assert.equal(outcome.results[0].status,'unknown');
+ }
+ const clean=assessScholarship([rule],{languageTest:{value:score,origin:'user_declared'}});
+ assert.equal(clean.summary,'met');
+});
