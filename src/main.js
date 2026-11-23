@@ -97,7 +97,7 @@ function mountEligibilityNow(){
  eligibilityQueue=eligibilityQueue.then(async()=>{
   const {mountEligibility}=await import('./eligibility-demo.js');
   if(gen!==mountGeneration)return;
-  mountEligibility(document.querySelector('#eligibility-mount'),state.language,latestCompilation??document.querySelector('#analyze-form')?.analysis?.data?.compilation);
+  mountEligibility(document.querySelector('#eligibility-mount'),state.language,latestCompilation);
   mountedAt.set('eligibility',gen);
   // The hash may already be active before a lazy mount or subsequent evidence refresh.
   // Reveal and position the actual content after every completed render.
@@ -354,6 +354,9 @@ document.addEventListener('bursyar:compilation',event=>{
  dashboard?.update();
  latestCompilation=event.detail;
  const active=!!event.detail;
+ // Do not allow the analyzer's previous compilation to be resurrected by
+ // a later lazy eligibility mount after the current result was cleared.
+ if(!active)analyzerInput.analysis=null;
  const revision=++nextActionsRevision;
  const generation=mountGeneration;
  // A new compilation supersedes guidance generated from the previous one.
