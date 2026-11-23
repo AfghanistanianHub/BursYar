@@ -12,7 +12,7 @@ test('editorial scenes appear once and preserve the approved hero',()=>{
  assert.match(main,/mountReferenceHero\(app,state\.language/);
  assert.ok(main.indexOf('by-story-scene')<main.indexOf('editorial-selected'));
  assert.ok(main.indexOf('editorial-selected')<main.indexOf('by-discovery-scene'));
- assert.ok(main.indexOf('by-discovery-scene')<main.indexOf('how-it-works'));
+ assert.ok(main.indexOf('by-discovery-scene')<main.indexOf('journey-more'));
 });
 
 test('story scenes provide three languages and meaningful routes',()=>{
@@ -62,4 +62,14 @@ test('empty lazy mount shells remain observable for progressive loading',()=>{
  assert.ok(emptyRules.includes('display:block!important'),'observer targets must stay in layout');
  assert.ok(!emptyRules.includes('display:none!important'),'do not hide observer targets');
  assert.match(emptyRules,/min-height:1px!important/);
+});
+
+test('landing narrative does not repeat the navigation or explanatory card grids',()=>{
+ assert.ok(!main.includes('<nav class="story-index"'));
+ assert.ok(!main.includes('<section class="how-it-works"'));
+ assert.ok(!main.includes('<section class="editorial-pillars"'));
+ assert.ok(!main.includes('<section class="editorial-study-band"'));
+ assert.match(main,/class="guided-entry"/);
+ assert.match(main,/class="pathfinder-dashboard"/);
+ assert.match(main,/class="journey-more"/);
 });
