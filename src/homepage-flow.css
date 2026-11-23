@@ -229,3 +229,81 @@ html[dir=rtl] .by-story-eyebrow{letter-spacing:0}
  .by-story-visual{min-height:40mm;max-height:55mm}
  .by-story-scene-copy h2{font-size:23px!important}
 }
+
+
+/* Mission 48 / scene 02: discovery is a visual field, not another card list. */
+#top>.by-discovery-scene{
+ display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+ grid-template-rows:1fr auto;gap:10px clamp(24px,4vw,70px);
+ align-items:center;position:relative;isolation:isolate;overflow:hidden;
+ padding:clamp(50px,7vw,110px) clamp(22px,6vw,100px) 28px;
+ background:#fefdfb;border-block-end:1px solid var(--line);
+}
+.by-discovery-heading{max-width:570px}
+.by-discovery-heading h2{
+ font:350 clamp(39px,4.7vw,70px)/1.09 var(--editorial-serif,Georgia,serif);
+ letter-spacing:-.05em;text-wrap:balance;margin:0 0 24px;color:var(--ink);
+}
+.by-discovery-heading>p:not(.by-story-eyebrow){
+ max-width:44ch;font-size:clamp(14px,1.1vw,16px);line-height:1.8;color:var(--muted);
+}
+.by-discovery-art{position:relative;width:100%;aspect-ratio:540/330;min-height:310px;max-height:430px}
+.by-discovery-art::before{
+ content:"";position:absolute;inset:12% 6%;border-radius:50%;
+ background:radial-gradient(ellipse,#e4eaf0 0%,#f6f5f2 42%,transparent 70%);
+}
+.by-discovery-map{position:absolute;inset:0;width:100%;height:100%;fill:none;stroke:#1e3a5f;stroke-width:1.6;overflow:visible}
+.by-discovery-map .by-discovery-orbit{stroke:#1e3a5f50;stroke-dasharray:3 8}
+.by-discovery-map .by-discovery-orbit-alt{stroke:#1e3a5f30;stroke-dasharray:2 10}
+.by-discovery-map .by-discovery-trail{stroke:#1e3a5f;stroke-width:2.5;stroke-dasharray:7 6}
+.by-discovery-map circle{fill:#fefdfb;stroke:#1e3a5f;stroke-width:3}
+.by-discovery-marker{
+ position:absolute;display:flex;align-items:center;gap:9px;
+ width:28%;min-width:85px;max-width:165px;padding:11px;
+ border:1px solid #d8d0c8;background:#fefdfb;
+ box-shadow:7px 8px 0 #e8e4de;
+}
+.by-discovery-marker-one{inset-block-start:11%;inset-inline-start:7%}
+.by-discovery-marker-two{inset-block-end:9%;inset-inline-start:15%}
+.by-discovery-marker-three{inset-block-start:15%;inset-inline-end:1%}
+.by-discovery-marker-icon{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:50%;background:#e9eef3;color:#1e3a5f;font:600 19px/1 var(--font-en,system-ui,sans-serif)}
+.by-discovery-marker-three .by-discovery-marker-icon{background:#e4eee7;color:#2b6144}
+.by-discovery-marker-bars{display:grid;gap:6px;flex:1;min-width:0}
+.by-discovery-marker-bars i{height:4px;background:#d3d7da;border-radius:3px}
+.by-discovery-marker-bars i:last-child{width:57%}
+.by-discovery-core{position:absolute;inset:50% auto auto 50%;translate:-50% -50%;width:90px;height:90px;display:grid;place-items:center;background:#1e3a5f;color:#fff;border-radius:50%;box-shadow:0 0 0 13px #1e3a5f18}
+.by-discovery-core-ring{position:absolute;inset:-24px;border:1px solid #1e3a5f45;border-radius:50%}
+.by-discovery-core-symbol{font:400 42px/1 var(--font-en,system-ui,sans-serif)}
+html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{font-family:var(--font-ui);font-size:clamp(30px,3.7vw,54px);line-height:1.5;letter-spacing:0}
+@media screen and (max-width:760px){
+ #top>.by-discovery-scene{grid-template-columns:minmax(0,1fr);padding:48px 22px 24px;gap:18px}
+ .by-discovery-heading h2{font-size:clamp(35px,8vw,53px)}
+ .by-discovery-art{width:min(100%,520px);margin-inline:auto;min-height:240px}
+}
+@media screen and (max-width:390px){
+ .by-discovery-art{min-height:220px}
+ .by-discovery-marker{padding:7px;gap:5px}
+ .by-discovery-marker-icon{width:25px;height:25px;font-size:15px}
+ .by-discovery-core{width:66px;height:66px}
+ .by-discovery-core-symbol{font-size:32px}
+}
+@media screen and (prefers-reduced-motion:no-preference){
+ @supports(animation-timeline:view()){
+  #top>.by-discovery-scene .by-discovery-core{
+   animation:by-discovery-reveal 1ms linear both;
+   animation-timeline:view();animation-range:entry 0% cover 55%;
+  }
+  #top>.by-discovery-scene .by-discovery-marker{
+   animation:by-discovery-reveal 1ms linear both;
+   animation-timeline:view();animation-range:entry 15% cover 75%;
+  }
+  #top>.by-discovery-scene .by-discovery-marker-three{animation-range:entry 25% cover 80%}
+ }
+}
+@keyframes by-discovery-reveal{from{opacity:.25;scale:.9}to{opacity:1;scale:1}}
+@media(prefers-reduced-motion:reduce){#top>.by-discovery-scene *{animation:none!important;transition:none!important}}
+@media print{
+ #top>.by-discovery-scene{display:grid!important;grid-template-columns:1fr 1fr!important;break-inside:avoid!important;padding:6mm!important}
+ .by-discovery-art{min-height:40mm;max-height:55mm}
+ .by-discovery-heading h2{font-size:23px!important}
+}
