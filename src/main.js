@@ -151,6 +151,7 @@ function dashboardOptions(){
 }
 let dashboard, signedIn=false, signedInUid, documentStatus, hasLocalAssessment=false;
 let lastLocalNextAction=null;
+let nextActionsRevision=0;
 let cleanupReferenceHero;
 let heroMotionPaused=false;
 function render(){mountGeneration++;cleanupReferenceHero?.();const disclosures=Object.fromEntries(['workspace','resources','scenarios','guided-demo'].map(key=>[key,document.querySelector('.'+key)?.open]));const old=document.querySelector('#analyze-form');if(old)analyzerInput={text:old.querySelector('textarea').value,sourceUrl:old.querySelector('[name=sourceUrl]')?.value||'',analysis:old.analysis,receipt:old.sourceReceipt,sourceApproved:old.sourceApproved,preview:old.sourcePreview,barrierAnswers:old.barrierAnswers,manualMode:old.manualMode,sourceFailure:old.sourceFailure};latestCompilation=analyzerInput.analysis?.data?.compilation;const t=translations[state.language],rtl=state.language!=='en';document.documentElement.lang=state.language;document.documentElement.dir=rtl?'rtl':'ltr';document.title=`${t.brand} | ${t.missionTitle}`;document.querySelector('meta[name="description"]')?.setAttribute('content',t.description);const fmt=new Intl.NumberFormat(state.language);
@@ -337,13 +338,14 @@ queueMicrotask(()=>{
 function paintNextEmpty(){const actions=document.querySelector('#next-actions');if(!actions)return;const t=journeyCopy[state.language];actions.innerHTML=`<p class="empty-note">${esc(t.nextEmpty)} <a href="#assistant">${esc(t.nextEmptyCta)}</a></p>`;}
 document.addEventListener('bursyar:local-next',event=>{
  hasLocalAssessment=typeof event.detail==='string'&&!!event.detail;
+ nextActionsRevision++;
  lastLocalNextAction=hasLocalAssessment?{text:event.detail,language:state.language}:null;
  dashboard?.update();
  const actions=document.querySelector('#next-actions');
  if(!actions)return;
  actions.replaceChildren();
  if(typeof event.detail==='string'&&event.detail){
-  const p=document.createElement('p');p.textContent=event.detail;actions.append(p);
+  const p=document.createElement('p');p.textContent=event.detail;p.lang=state.language;actions.append(p);
  }else{
   paintNextEmpty();
  }
@@ -352,10 +354,23 @@ document.addEventListener('bursyar:compilation',event=>{
  dashboard?.update();
  latestCompilation=event.detail;
  const active=!!event.detail;
- mountEligibilityNow().then(()=>{
-  document.querySelector('#requirements-step').hidden=!active&&document.querySelector('#analysis-result').hidden;
-  if(!active){lastLocalNextAction=null;paintNextEmpty();}
-  if(active){const result=document.querySelector('#analysis-result');const fields=result.querySelector('fieldset'),guidance=result.querySelector('#barrier-guidance');if(fields)document.querySelector('#next-actions').replaceChildren(fields,guidance);}
+ const revision=++nextActionsRevision;
+ // A new compilation supersedes guidance generated from the previous one.
+ lastLocalNextAction=null;
+ if(!active)hasLocalAssessment=false;
+ void mountEligibilityNow().then(()=>{
+  // An older async eligibility mount must never overwrite newer advice,
+  // nor mutate a shell replaced by a language change.
+  if(revision!==nextActionsRevision)return;
+  const requirements=document.querySelector('#requirements-step');
+  const result=document.querySelector('#analysis-result');
+  const actions=document.querySelector('#next-actions');
+  if(!requirements||!result||!actions)return;
+  requirements.hidden=!active&&result.hidden;
+  if(!active){paintNextEmpty();return;}
+  const fields=result.querySelector('fieldset');
+  const guidance=result.querySelector('#barrier-guidance');
+  if(fields)actions.replaceChildren(...[fields,guidance].filter(Boolean));
  });
 });
 document.addEventListener('bursyar:identity',()=>{
