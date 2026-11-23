@@ -406,14 +406,17 @@ function revealHashTarget(){
  // unrelated disclosures that merely sit inside a large container.
  const holders=[target.closest('details')];
  if(target.children.length===1&&target.firstElementChild.tagName==='DETAILS')holders.push(target.firstElementChild);
+ const opened=holders.some(details=>details&&!details.open);
  for(const details of holders)if(details)details.open=true;
- // A hashchange can target an already-mounted section; native anchor scrolling
- // happens before a closed disclosure is revealed, leaving its heading off-screen.
- if(id==='eligibility-mount'){
+ // Native hash scrolling can run while the target is hidden inside a closed
+ // disclosure. Reposition only after opening it, without overriding ordinary
+ // browser anchor behavior for already-visible sections.
+ if(opened||id==='eligibility-mount'){
   requestAnimationFrame(()=>{
-   if(location.hash==='#eligibility-mount'){
-    document.querySelector('#eligibility-heading')?.scrollIntoView({behavior:'instant',block:'start'});
-   }
+   if(location.hash!=='#'+id||!target.isConnected)return;
+   const destination=id==='eligibility-mount'
+    ?document.querySelector('#eligibility-heading')||target:target;
+   destination.scrollIntoView({behavior:'instant',block:'start'});
   });
  }
 }
