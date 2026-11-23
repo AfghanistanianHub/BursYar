@@ -83,3 +83,19 @@ test('PathFinder links to real research destinations and uses a connected editor
  assert.match(css,/pathfinder-live/);
  assert.match(css,/max-width:390px/);
 });
+
+
+test('profile and documents deep links mount the workspace inside its disclosure',()=>{
+ for(const target of ["'profile-mount':'workspace'","'documents-mount':'workspace'","'academic-evidence-mount':'workspace'"]){
+  assert.ok(main.includes(target),target);
+ }
+ assert.match(main,/const disclosure=target\.closest\('details'\)/);
+ assert.match(main,/if\(disclosure\)disclosure\.open=true/);
+});
+
+test('PathFinder uses logical indentation in both text directions',()=>{
+ const pathfinderCss=css.slice(css.indexOf('Mission 51 — PathFinder'));
+ assert.match(pathfinderCss,/padding-inline:clamp\(20px,2\.3vw,32px\) 0/);
+ assert.match(pathfinderCss,/html\[dir=rtl\]/);
+ assert.match(pathfinderCss,/padding-inline:20px 0/);
+});
