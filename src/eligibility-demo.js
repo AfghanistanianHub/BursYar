@@ -15,6 +15,7 @@ export const eligibilityCopy={
 };
 let savedFields={},approvedProfile={},lastScenario=false,lastExclusion=null,demoOpen=false;
 document.addEventListener('bursyar:identity',()=>{savedFields={};approvedProfile={};lastScenario=false;lastExclusion=null;demoOpen=false;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
+document.addEventListener('bursyar:compilation',()=>{lastScenario=false;lastExclusion=null;});
 document.addEventListener('bursyar:profile',event=>{
  lastScenario=false;lastExclusion=null;approvedProfile=event.detail??{};
  savedFields={degree:approvedProfile.degree?.value??'',hasTest:!!approvedProfile.languageTest,deferredOffer:approvedProfile.deferredOffer?.value===undefined?'':String(approvedProfile.deferredOffer.value),continuingSameDegree:approvedProfile.continuingSameDegree?.value===undefined?'':String(approvedProfile.continuingSameDegree.value)};
@@ -31,7 +32,9 @@ export function mountEligibility(root,language='en',compilation=null){
  const t=eligibilityCopy[language]||eligibilityCopy.en;
  const extra=eligibilityExtra[language];
  const origins=eligibilityOrigins[language];
- const rules=compilation?.rules??fixture;
+ // A present but malformed/empty compilation is not the fictional demo.
+ // Fail closed to UNKNOWN rather than silently assessing demo requirements.
+ const rules=compilation==null?fixture:(Array.isArray(compilation.rules)?compilation.rules:[]);
  const liveCopy=eligibilityLiveCopy;
  if(!root)return;
  const example=eligibilityExample[language];
