@@ -640,3 +640,75 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
   overflow-wrap:anywhere;
  }
 }
+
+
+/* Mission 50: structural editorial composition. The redundant three-card pillar
+   and repeated student banner are removed in markup; the remaining scenes
+   now have deliberate contrast rather than an uninterrupted card catalogue. */
+@media screen{
+ #top>.by-story-scene{
+  border-block-start:1px solid #d8d0c8;
+  background:linear-gradient(135deg,#fefdfb 0%,#f5f1ec 100%);
+ }
+ #top>.editorial-selected{
+  background:#fefdfb;
+  border-block:1px solid #d8d0c8;
+  padding-block:clamp(52px,6vw,96px);
+ }
+ #top>.editorial-selected .editorial-selected-heading h2{
+  font-weight:400;
+  text-wrap:balance;
+ }
+ #top>.editorial-selected .editorial-opportunities{
+  border-block-start:1px solid #d8d0c8;
+ }
+ #top>.editorial-selected .editorial-opportunity{
+  border-radius:0;
+  border:0;
+  border-block-end:1px solid #d8d0c8;
+  box-shadow:none;
+  background:transparent;
+  padding:clamp(18px,2.1vw,32px) clamp(12px,1.8vw,28px);
+ }
+ #top>.editorial-selected .editorial-opportunity:hover,
+ #top>.editorial-selected .editorial-opportunity:focus-within{
+  background:#f6f3ee;
+  transform:none;
+ }
+ #top>.by-discovery-scene{
+  background:#1e3a5f;
+  color:#fefdfb;
+  border:0;
+ }
+ #top>.by-discovery-scene :is(h2,.by-story-eyebrow,.by-story-footnote){
+  color:inherit;
+ }
+ #top>.by-discovery-scene .by-story-link{
+  color:#fefdfb;
+  border-color:rgba(254,253,251,.6);
+ }
+ #top>.by-discovery-scene .by-story-link:focus-visible{
+  outline-color:#fefdfb;
+ }
+ #top>.by-discovery-scene .by-discovery-visual{
+  isolation:isolate;
+ }
+ #top>.how-it-works{
+  background:#f7f4ef;
+ }
+}
+@media screen and (max-width:760px){
+ #top>.editorial-selected{
+  padding-block:42px;
+ }
+ #top>.editorial-selected .editorial-opportunity{
+  padding:20px 10px;
+ }
+ #top>.by-discovery-scene{
+  padding-block:48px;
+ }
+}
+@media print{
+ #top>.by-discovery-scene{background:transparent!important;color:#1a1a1a!important}
+ #top>.by-discovery-scene :is(h2,.by-story-eyebrow,.by-story-footnote,.by-story-link){color:#1a1a1a!important}
+}
