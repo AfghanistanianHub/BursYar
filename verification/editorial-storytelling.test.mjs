@@ -115,3 +115,11 @@ test('final PathFinder rules reset earlier physical offsets and transforms',()=>
  assert.match(pathfinderCss,/transform:none/);
  assert.match(pathfinderCss,/inset-block-start:clamp/);
 });
+
+
+test('obsolete PathFinder timeline offsets are removed rather than overwritten',()=>{
+ assert.ok(!css.includes('margin-inline-start:22px;padding-inline-start:25px'));
+ assert.ok(!css.includes('margin-inline-start:14px;padding-inline-start:18px'));
+ assert.ok(!css.includes('inset-inline-start:-31px;top:50%'));
+ assert.match(css,/Mission 51 — PathFinder/);
+});
