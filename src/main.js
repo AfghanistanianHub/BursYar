@@ -242,7 +242,7 @@ ${ed.pillars.map((p,i)=>`<article class="editorial-pillar"><div class="editorial
     </div>
     <a href="${esc(researchSourceUrl(row.sourceUrl)??'#research-explorer')}" ${researchSourceUrl(row.sourceUrl)?'target="_blank" rel="noopener noreferrer"':'data-open=".resources"'} aria-label="${esc(row.title)} — ${esc(state.language==='fa'?'بازکردن منبع برنامه':state.language==='ps'?'د پروګرام سرچینه پرانیزئ':'Open program source')}"><span aria-hidden="true">↗</span></a>
   </article>`).join('')}
- <a class="editorial-browse-all" href="#research-explorer" data-open=".resources">${esc(ed.view)} <span aria-hidden="true">↗</span></a>
+ <a class="editorial-browse-all" href="#research-explorer-mount" data-open=".resources">${esc(ed.view)} <span aria-hidden="true">↗</span></a>
  </div>
 </section>
 <section class="by-discovery-scene" aria-labelledby="by-discovery-heading">
@@ -250,7 +250,7 @@ ${ed.pillars.map((p,i)=>`<article class="editorial-pillar"><div class="editorial
   <p class="by-story-eyebrow">${esc(state.language==='fa'?'کشف فرصت‌ها':state.language==='ps'?'فرصتونه ومومئ':'DISCOVER POSSIBILITIES')}</p>
   <h2 id="by-discovery-heading">${esc(state.language==='fa'?'از میان فرصت‌های بسیار، مسیر خود را پیدا کنید.':state.language==='ps'?'له ډېرو فرصتونو خپله لاره ومومئ.':'A world of possibilities. A clearer way forward.')}</h2>
   <p>${esc(state.language==='fa'?'فرصت‌ها را با منبع رسمی بررسی کنید؛ سپس شرایط هر برنامه را با مدارک خود مقایسه کنید.':state.language==='ps'?'فرصتونه له رسمي سرچینې سره وګورئ، بیا د هر پروګرام شرایط له خپلو اسنادو سره پرتله کړئ.':'Explore research leads, check the official source, then compare program requirements with your own evidence.')}</p>
-  <a class="by-story-link" href="#research-explorer" data-open=".resources">${esc(ed.view)} <span aria-hidden="true">↗</span></a>
+  <a class="by-story-link" href="#research-explorer-mount" data-open=".resources">${esc(ed.view)} <span aria-hidden="true">↗</span></a>
  </div>
  <div class="by-discovery-art" aria-hidden="true">
   <svg class="by-discovery-map" viewBox="0 0 540 330" preserveAspectRatio="xMidYMid meet" focusable="false">
