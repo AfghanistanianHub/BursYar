@@ -6,6 +6,7 @@ const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 const style = readFileSync(new URL('../src/style.css', import.meta.url), 'utf8');
 const design = readFileSync(new URL('../src/editorial-design.css', import.meta.url), 'utf8');
 const explorer = readFileSync(new URL('../src/research-explorer.js', import.meta.url), 'utf8');
+const index = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const ARABIC = /[\u0600-\u06ff]/;
 
 test('entry offers a skip link targeting the focusable main landmark', () => {
@@ -42,4 +43,9 @@ test('skip link label is localized in English, Farsi and Pashto', () => {
     assert.equal(typeof translations[lang].skipToContent, 'string', lang);
     assert.match(translations[lang].skipToContent, ARABIC, lang);
   }
+});
+
+test('noscript help link uses the canonical repository organization', () => {
+  assert.match(index, /<a href="https:\/\/github\.com\/AfghanistanianHub\/BursYar\/issues"/);
+  assert.doesNotMatch(index, /https:\/\/github\.com\/AfghanianHub\//);
 });
