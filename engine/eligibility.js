@@ -86,6 +86,11 @@ function evaluateRequirement(requirement,profile) {
     return result(id,UNKNOWN,'unsupported_or_incomplete_test');
   const names=['listening','reading','writing','speaking'];
   if (!names.every(n=>boundedScore(v.bands[n]))) return result(id,UNKNOWN,'missing_or_invalid_band');
+  // IELTS Academic reports the mean of the four band scores rounded to
+  // the nearest half band; quarter-band ties round upwards.
+  const bandAverage=names.reduce((sum,n)=>sum+v.bands[n],0)/names.length;
+  const expectedOverall=Math.round(bandAverage*2)/2;
+  if(v.overall!==expectedOverall)return result(id,UNKNOWN,'inconsistent_test_scores');
   const pass=v.overall>=requirement.overallMin && names.every(n=>v.bands[n]>=requirement.eachBandMin);
   return result(id,pass?'met':'not_met',pass?'test_thresholds_met':'test_thresholds_not_met',f.claimIds??[]);
 }
