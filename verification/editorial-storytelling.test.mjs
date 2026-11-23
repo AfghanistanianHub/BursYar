@@ -182,3 +182,10 @@ test('new eligibility compilations invalidate stale next-step guidance and async
  assert.match(main,/revision!==nextActionsRevision\|\|generation!==mountGeneration/);
  assert.match(main,/if\(!active\)hasLocalAssessment=false/);
 });
+
+
+test('cleared eligibility results cannot be restored from stale analyzer DOM',()=>{
+ assert.match(main,/mountEligibility\(document\.querySelector\('#eligibility-mount'\),state\.language,latestCompilation\)/);
+ assert.ok(!main.includes("latestCompilation??document.querySelector('#analyze-form')?.analysis?.data?.compilation"));
+ assert.match(main,/if\(!active\)analyzerInput\.analysis=null/);
+});
