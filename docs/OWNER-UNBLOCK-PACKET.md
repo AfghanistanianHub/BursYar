@@ -17,8 +17,8 @@ Related: [`AUDIT-REMEDIATION.md`](AUDIT-REMEDIATION.md) (BY-01, BY-04, BY-25),
 | Production frontend `/health` | `302` → `vercel.com/sso-api` (the `vercel.json` rewrite never runs) | same |
 | Backend `https://bursyar-api.onrender.com/health` (direct) | `200` after a cold start (> 20 s, answered within 75 s); `capabilities.build.commit = 7dbd75f6889ea09e96c129831bec40c463b6e64e` | `curl -m 75` |
 | Deployed production frontend commit | `2162be3` — from the last promoted Vercel deployment record, **not** independently readable | `RELEASE.md` inventory |
-| Candidate branch `work/restore-approved-ai-studio-hero` | `f6de6de` | `git rev-parse HEAD`, 22 November 2026; the local working tree also contains uncommitted documentation and regression-test corrections |
-| Gates on the candidate | `npm test` 535 pass / 0 fail; `npm run build` exit 0 | this worktree, 22 Nov |
+| Candidate branch `work/restore-approved-ai-studio-hero` | `15c2fcb` | `git ls-remote` on the pushed branch, 23 November 2026; the corrections are committed and pushed and the working tree is clean |
+| Gates on the candidate | `npm test` 536 pass / 0 fail; `npm run build` exit 0 | this worktree, 23 Nov |
 
 Three commits are still live in three places. Production serves an older
 frontend and an older backend, and neither can be inspected through the

@@ -3,17 +3,17 @@
 One commit, one product. This file records exactly what a release contains so
 the frontend, the backend and the evidence can be checked against each other.
 
-## Verified deployment inventory (2026-11-22)
+## Verified deployment inventory (2026-11-22; branch re-measured 2026-11-23)
 
 | Item | Verified value |
 |---|---|
 | Canonical development branch | `work/restore-approved-ai-studio-hero` |
-| Last verified development commit before this documentation update | `f6de6deda28932e32929c262369f7daac9aed149` — measured on the remote branch, 2026-11-22 |
+| Last verified development commit before this documentation update | `15c2fcb137d0ac170c57f709eef11414484120d0` — measured on the remote branch, 2026-11-23 |
 | Development preview | `dpl_4fqwHfH6H1f7ZZyckyjjgeqhv2Pa` — READY; `https://bursyar-pn491xkbk-afghan-hub-s-projects.vercel.app` |
 | Production frontend branch and commit | `main` — `2162be3e21962db23bdb022586bdf0e491ffaa96` |
 | Production frontend deployment | `bursyar-otgc3du9d-afghan-hub-s-projects.vercel.app` — READY |
 | Frontend build stamp | `<meta name="bursyar-build">`, written by `vite.config.js` from `VERCEL_GIT_COMMIT_SHA`, `GITHUB_SHA` or `git rev-parse HEAD`; `unknown` fails the smoke check |
-| Branch relationship | 180 commits ahead, 0 behind `main` at `f6de6de` — measured 2026-11-22 |
+| Branch relationship | 181 commits ahead, 0 behind `main` at `15c2fcb` — measured 2026-11-23 |
 | GitHub combined commit status | Vercel success only; does not prove unit, evaluation, browser, or backend integration tests |
 | Backend production SHA | `7dbd75f6889ea09e96c129831bec40c463b6e64e` — read from `/health` `capabilities.build.commit` on 2026-11-22 |
 | 9Router | Separate free Render experimental service, not part of production application |
