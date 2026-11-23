@@ -364,12 +364,12 @@ function revealHashTarget(){
  if(!target)return;
  // Shortcuts may land on a currently empty lazy-mount node. Populate it
  // before scrolling so a visually hidden placeholder never becomes a dead end.
- const lazyShortcut={ 'local-workflow-mount':'offline', 'research-explorer-mount':'research', 'workspace-overview':'overview' }[id];
+ const lazyShortcut={ 'local-workflow-mount':'offline', 'research-explorer-mount':'research', 'workspace-overview':'overview', 'profile-mount':'workspace', 'documents-mount':'workspace', 'academic-evidence-mount':'workspace' }[id];
  if(lazyShortcut){
-  if(id==='research-explorer-mount'){
-   const disclosure=target.closest('details.resources');
-   if(disclosure)disclosure.open=true;
-  }
+  // Reveal a closed parent before mounting; otherwise its descendants cannot
+  // intersect the viewport and the browser scrolls to an invisible anchor.
+  const disclosure=target.closest('details');
+  if(disclosure)disclosure.open=true;
   void ensureMount(lazyShortcut).then(()=>{
    if(location.hash!=='#'+id||!target.isConnected||!target.childElementCount)return;
    requestAnimationFrame(()=>{
