@@ -52,3 +52,14 @@ test('all discovery CTAs resolve to the actual research explorer mount',()=>{
  assert.ok(anchors.every(([anchor])=>anchor.includes('#research-explorer-mount')),'no CTA uses the missing research-explorer id');
  assert.match(main,/id="research-explorer-mount"/);
 });
+
+
+test('empty lazy mount shells remain observable for progressive loading',()=>{
+ assert.match(main,/\['#workspace-overview','overview'\]/);
+ assert.match(main,/\['#local-workflow-mount','offline'\]/);
+ assert.match(main,/\['#eligibility-mount','eligibility'\]/);
+ const emptyRules=css.slice(css.indexOf('Keep observed lazy mounts in layout:'));
+ assert.ok(emptyRules.includes('display:block!important'),'observer targets must stay in layout');
+ assert.ok(!emptyRules.includes('display:none!important'),'do not hide observer targets');
+ assert.match(emptyRules,/min-height:1px!important/);
+});
