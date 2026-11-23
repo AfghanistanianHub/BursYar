@@ -122,3 +122,110 @@ html[dir=rtl] .corner-arrow{rotate:-45deg}
     transform: none;
   }
 }
+
+
+/* Mission 48 / scene 01: document evidence becomes legible guidance.
+   Decorative illustration uses HTML + SVG only, no network assets. */
+#top>.by-story-scene{
+ position:relative;isolation:isolate;display:grid;
+ grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);
+ grid-template-rows:1fr auto;align-items:center;
+ gap:12px clamp(22px,5vw,88px);
+ padding:clamp(46px,7vw,112px) clamp(22px,6vw,100px) 28px;
+ overflow:hidden;background:#f4f0e9;border-block:1px solid var(--line);
+}
+#top>.by-story-scene::before{
+ content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+ background-image:radial-gradient(#1e3a5f14 .75px,transparent .75px);
+ background-size:24px 24px;
+ -webkit-mask-image:linear-gradient(to right,transparent,black);
+ mask-image:linear-gradient(to right,transparent,black);
+}
+.by-story-scene-copy{max-width:550px;align-self:center}
+.by-story-eyebrow{font-size:11px;letter-spacing:.16em;color:var(--brand);font-weight:650;margin:0 0 22px}
+.by-story-scene-copy h2{
+ font-family:var(--editorial-serif,Georgia,serif);font-size:clamp(39px,4.8vw,72px);
+ line-height:1.06;letter-spacing:-.05em;font-weight:350;text-wrap:balance;
+ margin:0 0 25px;color:var(--ink);
+}
+.by-story-scene-copy>p:not(.by-story-eyebrow){max-width:43ch;font-size:clamp(14px,1.1vw,16px);line-height:1.85;color:var(--muted)}
+.by-story-link{
+ display:inline-flex;align-items:center;gap:22px;margin-top:24px;
+ min-height:44px;padding-block:10px;border-bottom:1px solid var(--brand);
+ color:var(--brand);text-decoration:none;font-size:13px;font-weight:650;
+}
+.by-story-link:hover{gap:30px}
+.by-story-link:focus-visible{outline:2px solid var(--brand);outline-offset:4px}
+.by-story-visual{position:relative;width:100%;min-height:340px;aspect-ratio:520/330;max-height:440px}
+.by-story-paper{
+ position:absolute;top:12%;inset-inline-start:7%;width:37%;height:74%;
+ background:#fffefa;border:1px solid #c6bdb1;
+ box-shadow:14px 16px 0 #d9d0c4,20px 22px 32px #1e3a5f16;
+ transform:rotate(-5deg);border-radius:3px;
+}
+.by-story-paper-fold{position:absolute;inset-block-start:0;inset-inline-end:0;width:22%;height:16%;background:linear-gradient(225deg,#e3dcd1 49%,#fffefa 50%);border-inline-start:1px solid #c6bdb1;border-block-end:1px solid #c6bdb1}
+.by-story-paper-mark{position:absolute;inset:14% auto auto 14%;width:22%;height:7%;border:2px solid #1e3a5f55;border-radius:50%}
+.by-story-paper-line{position:absolute;inset-inline-start:14%;height:2px;background:#c6cbd0;border-radius:2px}
+.by-story-paper-line-a{top:33%;width:72%}
+.by-story-paper-line-b{top:43%;width:54%}
+.by-story-paper-line-c{top:55%;width:68%}
+.by-story-paper-line-d{top:78%;width:56%}
+.by-story-paper-highlight{position:absolute;top:64%;inset-inline-start:12%;width:75%;height:9%;border:1px solid #bd9d58;background:#f7e7b8aa;border-radius:2px}
+.by-story-route{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:var(--brand);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.by-story-route path{stroke-dasharray:6 7}
+.by-story-route circle{fill:var(--brand);stroke:none}
+.by-story-evidence,.by-story-unknown{
+ position:absolute;inset-inline-end:3%;width:30%;height:24%;display:flex;
+ align-items:center;gap:13px;padding:12px 15px;background:#fefdfb;
+ border:1px solid #d8d0c8;box-shadow:7px 9px 0 #e2dcd2;
+}
+.by-story-evidence{top:17%}
+.by-story-unknown{bottom:9%}
+.by-story-evidence-symbol,.by-story-unknown-symbol{
+ display:grid;place-items:center;flex:none;width:37px;height:37px;
+ border-radius:50%;font:600 18px/1 var(--font-en,system-ui,sans-serif);
+}
+.by-story-evidence-symbol{background:#e4eee7;color:#2b6144}
+.by-story-unknown-symbol{background:#f3e9d9;color:#86613a}
+.by-story-evidence-bars{display:grid;gap:9px;flex:1;min-width:0}
+.by-story-evidence-bars i{height:4px;background:#d2d5d6;border-radius:3px}
+.by-story-evidence-bars i:last-child{width:60%}
+.by-story-footnote{grid-column:1/-1;margin:0;padding-top:20px;border-top:1px solid #d8d0c8;color:#6b6761;font-size:11px;line-height:1.6}
+html[dir=rtl] .by-story-paper{transform:rotate(5deg)}
+html[lang=fa] .by-story-scene-copy h2,html[lang=ps] .by-story-scene-copy h2{font-family:var(--font-ui);letter-spacing:0;line-height:1.45;font-size:clamp(30px,3.6vw,53px)}
+html[dir=rtl] .by-story-eyebrow{letter-spacing:0}
+@media screen and (max-width:760px){
+ #top>.by-story-scene{grid-template-columns:minmax(0,1fr);gap:8px;padding:48px 22px 24px}
+ .by-story-scene-copy h2{font-size:clamp(36px,8vw,52px)}
+ .by-story-visual{min-height:260px;max-height:340px;width:min(100%,520px);margin-inline:auto}
+ .by-story-footnote{margin-top:4px}
+}
+@media screen and (max-width:390px){
+ .by-story-visual{min-height:225px}
+ .by-story-evidence,.by-story-unknown{padding:8px;gap:7px}
+ .by-story-evidence-symbol,.by-story-unknown-symbol{width:28px;height:28px;font-size:15px}
+}
+@media screen and (prefers-reduced-motion:no-preference){
+ @supports(animation-timeline:view()){
+  #top>.by-story-scene .by-story-paper{
+   animation:by-story-paper-arrive 1ms linear both;
+   animation-timeline:view();animation-range:entry 0% cover 55%;
+  }
+  #top>.by-story-scene .by-story-evidence,
+  #top>.by-story-scene .by-story-unknown{
+   animation:by-story-guidance-arrive 1ms linear both;
+   animation-timeline:view();animation-range:entry 10% cover 65%;
+  }
+  #top>.by-story-scene .by-story-unknown{animation-range:entry 25% cover 80%}
+ }
+}
+@keyframes by-story-paper-arrive{from{opacity:.65;translate:0 22px}to{opacity:1;translate:0 0}}
+@keyframes by-story-guidance-arrive{from{opacity:.4;translate:0 16px}to{opacity:1;translate:0 0}}
+@media (prefers-reduced-motion:reduce){
+ #top>.by-story-scene *{animation:none!important;transition:none!important;translate:none!important}
+}
+@media print{
+ #top>.by-story-scene{display:grid!important;grid-template-columns:1fr 1fr!important;break-inside:avoid!important;padding:6mm!important}
+ .by-story-visual{min-height:40mm;max-height:55mm}
+ .by-story-scene-copy h2{font-size:23px!important}
+}
