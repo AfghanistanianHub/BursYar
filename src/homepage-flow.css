@@ -743,3 +743,102 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
  #top>.by-discovery-scene{background:transparent!important;color:#1a1a1a!important}
  #top>.by-discovery-scene :is(h2,.by-story-eyebrow,.by-story-footnote,.by-story-link){color:#1a1a1a!important}
 }
+
+
+/* Mission 51 — PathFinder: a single connected editorial route, not five cards.
+   The live evidence panel stays separate and never displays invented progress. */
+@media screen{
+ #top>.pathfinder-dashboard{
+  position:relative;
+  gap:clamp(36px,5vw,86px);
+  background:#fefdfb;
+  border-block-start:1px solid #d8d0c8;
+  padding-block:clamp(68px,7vw,118px);
+ }
+ #top>.pathfinder-dashboard .pathfinder-intro{
+  min-width:0;
+ }
+ #top>.pathfinder-dashboard .pathfinder-timeline{
+  margin:clamp(26px,3vw,48px) 0 0;
+  padding:0 0 0 clamp(20px,2.3vw,32px);
+  border-inline-start:1px solid #b6c3cf;
+  list-style:none;
+ }
+ html[dir=rtl] #top>.pathfinder-dashboard .pathfinder-timeline{
+  padding:0 clamp(20px,2.3vw,32px) 0 0;
+ }
+ #top>.pathfinder-dashboard .pathfinder-timeline li{
+  position:relative;
+  margin:0;
+  border:0;
+  background:transparent;
+  box-shadow:none;
+ }
+ #top>.pathfinder-dashboard .pathfinder-timeline li::before{
+  content:"";
+  display:block!important;
+  position:absolute;
+  inset-inline-start:calc(-1 * clamp(26px,2.3vw,38px));
+  inset-block-start:clamp(23px,2vw,31px);
+  width:10px;height:10px;
+  border:2px solid #1e3a5f;
+  background:#fefdfb;
+  border-radius:50%;
+  z-index:1;
+ }
+ #top>.pathfinder-dashboard .pathfinder-timeline a{
+  display:grid;
+  grid-template-columns:36px minmax(0,1fr) 24px;
+  align-items:start;
+  gap:clamp(12px,1.4vw,20px);
+  padding:clamp(18px,2vw,29px) 8px;
+  background:transparent;
+  border:0;
+  border-block-end:1px solid #e3ddd5;
+  border-radius:0;
+  box-shadow:none;
+  transform:none;
+ }
+ #top>.pathfinder-dashboard .pathfinder-timeline li:last-child a{border-block-end:0}
+ #top>.pathfinder-dashboard .pathfinder-timeline a:hover,
+ #top>.pathfinder-dashboard .pathfinder-timeline a:focus-visible{
+  background:#f5f1eb;
+  transform:none;
+ }
+ #top>.pathfinder-dashboard .pathfinder-index{
+  width:auto;height:auto;min-height:0;
+  background:transparent;color:#1e3a5f;
+  border:0;border-radius:0;
+  font-variant-numeric:tabular-nums;
+ }
+ #top>.pathfinder-dashboard .pathfinder-live{
+  align-self:center;
+  min-width:0;
+  background:#f5f1eb;
+  border:1px solid #d8d0c8;
+  border-radius:2px;
+  box-shadow:none;
+  padding:clamp(24px,3.2vw,52px);
+ }
+ #top>.pathfinder-dashboard .pathfinder-live::before{display:none}
+}
+@media screen and (max-width:850px){
+ #top>.pathfinder-dashboard{gap:30px;padding-block:48px}
+ #top>.pathfinder-dashboard .pathfinder-timeline{margin-block-start:22px}
+ #top>.pathfinder-dashboard .pathfinder-live{align-self:stretch}
+}
+@media screen and (max-width:390px){
+ #top>.pathfinder-dashboard .pathfinder-timeline a{
+  grid-template-columns:28px minmax(0,1fr) 20px;
+  padding-inline:2px;
+ }
+ #top>.pathfinder-dashboard .pathfinder-timeline{
+  padding-inline-start:20px;
+ }
+ html[dir=rtl] #top>.pathfinder-dashboard .pathfinder-timeline{
+  padding-inline-start:0;padding-inline-end:20px;
+ }
+}
+@media print{
+ #top>.pathfinder-dashboard .pathfinder-timeline li::before{print-color-adjust:exact}
+}
