@@ -75,3 +75,50 @@ html[dir=rtl] .corner-arrow{rotate:-45deg}
  #top>.how-it-works .step-num{grid-row:span 2;margin:0}
  #top>.pathfinder-dashboard .pathfinder-step-static{grid-template-columns:44px minmax(0,1fr);gap:12px}
 }
+
+
+/* Mission 48 — Progressive editorial scroll storytelling.
+   Native view timelines only: no scroll listeners, no runtime dependencies.
+   Unsupported browsers and reduced-motion users receive the complete static layout. */
+@media screen and (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    #top > :is(.editorial-study-band, .editorial-selected, .editorial-pathfinder-image, .how-it-works, .guided-entry) {
+      animation-name: bursyar-story-enter;
+      animation-duration: 1ms;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 75%;
+    }
+
+    #top > .editorial-study-band > img,
+    #top > .editorial-pathfinder-image > img {
+      animation-name: bursyar-story-artwork;
+      animation-duration: 1ms;
+      animation-timing-function: linear;
+      animation-fill-mode: both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 55%;
+    }
+  }
+}
+
+@keyframes bursyar-story-enter {
+  from { opacity: .55; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes bursyar-story-artwork {
+  from { opacity: .72; transform: scale(.965); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #top > :is(.editorial-study-band, .editorial-selected, .editorial-pathfinder-image, .how-it-works, .guided-entry),
+  #top > .editorial-study-band > img,
+  #top > .editorial-pathfinder-image > img {
+    animation: none !important;
+    opacity: 1;
+    transform: none;
+  }
+}
