@@ -133,3 +133,16 @@ test('removed landing sections do not retain dead homepage CSS',()=>{
  assert.match(css,/#top>\.by-story-scene/);
  assert.match(css,/#top>\.by-discovery-scene/);
 });
+
+
+test('responsive Hero contains localized copy and keeps CTAs reachable',()=>{
+ const heroCss=css.slice(css.indexOf('Mission 52 — responsive Hero'));
+ assert.ok(heroCss.length>100,'responsive Hero styles exist');
+ assert.match(heroCss,/max-width:1023px/);
+ assert.match(heroCss,/max-width:390px/);
+ assert.match(heroCss,/html\[lang=fa\]/);
+ assert.match(heroCss,/html\[lang=ps\]/);
+ assert.match(heroCss,/flex-wrap:wrap/);
+ assert.match(heroCss,/min-height:44px/);
+ assert.match(main,/class="hero hero-with-cables"/);
+});
