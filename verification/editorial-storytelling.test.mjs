@@ -163,3 +163,11 @@ test('language rerenders preserve live document and assessment progress',()=>{
  assert.match(main,/document\.addEventListener\('bursyar:document-status'/);
  assert.match(main,/document\.addEventListener\('bursyar:local-next'/);
 });
+
+
+test('local next-step guidance survives a language shell rebuild without false translation',()=>{
+ assert.match(main,/let lastLocalNextAction=null/);
+ assert.match(main,/lastLocalNextAction=hasLocalAssessment\?\{text:event\.detail,language:state\.language\}:null/);
+ assert.match(main,/p\.textContent=lastLocalNextAction\.text;p\.lang=lastLocalNextAction\.language/);
+ assert.match(main,/if\(!active\)\{lastLocalNextAction=null;paintNextEmpty\(\);\}/);
+});
