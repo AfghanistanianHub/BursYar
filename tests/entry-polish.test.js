@@ -19,7 +19,7 @@ test('entry offers a skip link targeting the focusable main landmark', () => {
 test('hero actions reuse localized labels and open their disclosures', () => {
   assert.match(main, /<div class="hero-actions">/);
   assert.match(main, /<a class="primary-link" href="#documents-mount" data-open="\.workspace">\$\{esc\(j\.startDocuments\)\}<\/a>/);
-  assert.match(main, /<a class="primary-link secondary" href="#research-explorer" data-open="\.resources">\$\{esc\(ed\.explore\)\}/);
+  assert.match(main, /<a class="primary-link secondary" href="#research-explorer-mount" data-open="\.resources">\$\{esc\(ed\.explore\)\}/);
   assert.match(main, /querySelectorAll\('\[data-open\]'\)/);
   assert.match(main, /el\.dataset\.open/);
 });

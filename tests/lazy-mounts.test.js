@@ -16,5 +16,7 @@ test('a re-render remounts every chunk that was already loaded (BY-17)', () => {
 
 test('eligibility follows the current render, not a stale compilation (BY-17)', () => {
   assert.match(main, /latestCompilation=analyzerInput\.analysis\?\.data\?\.compilation;/);
-  assert.match(main, /mountEligibility\(document\.querySelector\('#eligibility-mount'\),state\.language,latestCompilation\?\?document\.querySelector\('#analyze-form'\)\?\.analysis\?\.data\?\.compilation\)/);
+  // A cleared compilation must never be resurrected from the analyser DOM.
+  assert.match(main, /mountEligibility\(document\.querySelector\('#eligibility-mount'\),state\.language,latestCompilation\)/);
+  assert.doesNotMatch(main, /latestCompilation\?\?document\.querySelector\('#analyze-form'\)/);
 });

@@ -16,7 +16,16 @@ function analyze(lines, selected = lines, profile = {}) {
   return {output, assessment: assessScholarship(output.compilation.rules, profile)};
 }
 const fact = (value, origin = 'user_declared') => ({value, origin, claimIds: []});
-const toeflScore = (overall, reading = 22) => ({test: 'TOEFL iBT', overall, sections: {reading, listening: 23, speaking: 22, writing: 24}});
+// TOEFL iBT totals are the sum of the four section scores, so derive the other
+// three sections from the requested total (optionally pinning reading) instead
+// of emitting a report the consistency check must reject.
+const toeflScore = (overall, reading) => {
+  const r = reading ?? Math.min(30, Math.round(overall / 4));
+  const remaining = overall - r;
+  const base = Math.floor(remaining / 3);
+  const extra = remaining - base * 3;
+  return {test: 'TOEFL iBT', overall, sections: {reading: r, listening: base + (extra > 0 ? 1 : 0), speaking: base + (extra > 1 ? 1 : 0), writing: base}};
+};
 
 test('explicit GPA minimum compiles and compares numerically', () => {
   const {output} = analyze([GPA]);

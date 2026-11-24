@@ -7,15 +7,17 @@ const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 test('hero pairs the document reader with the editable example and retains both entry actions', () => {
   assert.ok(main.includes('${heroDocumentReader(state.language)}</div>${heroDocumentDemo(state.language)}'));
   assert.ok(main.includes('href="#documents-mount" data-open=".workspace"'));
-  assert.ok(main.includes('href="#research-explorer" data-open=".resources"'));
+  assert.ok(main.includes('href="#research-explorer-mount" data-open=".resources"'));
 });
 
-test('M14 workflow band links the four journey stages', () => {
-  assert.match(main, /<section class="how-it-works" aria-label="\$\{esc\(j\.howTitle\)\}">/);
-  assert.match(main, /<span class="step-num">\$\{fmt\.format\(1\)\}<\/span>/);
-  assert.match(main, /href="#profile-mount" data-open="\.workspace"/);
-  assert.match(main, /href="#eligibility-mount"/);
-  assert.match(theme, /\.how-it-works ol::before\{[^}]*background:var\(--line\)/);
+test('M14 PathFinder journey links the real document, eligibility and next-step targets', () => {
+  // The old full-width how-it-works band was replaced by the connected
+  // PathFinder timeline (see eaca8c0 / b7140ff); these are its live targets.
+  assert.doesNotMatch(main, /<section class="how-it-works"/);
+  assert.match(main, /#documents-mount/);
+  assert.match(main, /#eligibility-mount/);
+  assert.match(main, /#next-steps/);
+  assert.match(main, /<section id="next-steps"><h2>/);
 });
 
 test('M14 icon set uses embedded original SVGs, no gradients', () => {

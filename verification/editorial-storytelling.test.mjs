@@ -169,7 +169,8 @@ test('local next-step guidance survives a language shell rebuild without false t
  assert.match(main,/let lastLocalNextAction=null/);
  assert.match(main,/lastLocalNextAction=hasLocalAssessment\?\{text:event\.detail,language:state\.language\}:null/);
  assert.match(main,/p\.textContent=lastLocalNextAction\.text;p\.lang=lastLocalNextAction\.language/);
- assert.match(main,/if\(!active\)\{lastLocalNextAction=null;paintNextEmpty\(\);\}/);
+ assert.match(main,/lastLocalNextAction=null;\n document\.querySelector\('#next-actions'\)\?\.replaceChildren\(\)/);
+ assert.match(main,/if\(!active\)\{paintNextEmpty\(\);return;\}/);
 });
 
 

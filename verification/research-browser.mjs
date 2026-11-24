@@ -17,7 +17,7 @@ try {
   await page.goto(url);
   await page.locator('#workspace-overview a[href="#profile-mount"]').click();
   await expect(page.locator('.workspace')).toHaveAttribute('open','');
-  await page.locator('#workspace-overview a[href="#research-explorer"]').click();
+  await page.locator('#workspace-overview a[href="#research-explorer-mount"]').click();
   await expect(page.locator('.resources')).toHaveAttribute('open','');
   await expect(page.locator('.verified-programs article')).toHaveCount(1);
   await expect(page.locator('.verified-programs')).toContainText('ETH Zurich');

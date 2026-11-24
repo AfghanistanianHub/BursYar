@@ -368,7 +368,6 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
 @media screen {
  #top>.by-story-scene,
  #top>.by-discovery-scene{
-  scroll-margin-top:80px;
   min-width:0;
  }
  #top>.by-story-scene::after,

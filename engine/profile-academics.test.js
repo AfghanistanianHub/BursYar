@@ -9,7 +9,7 @@ const rules=[
  {id:'toefl',type:'toefl_ibt',test:'TOEFL iBT',overallMin:90,eachSectionMin:20,sourceExcerpt:source.split('\n')[1]}
 ];
 const catalog=createScholarshipCatalog([{id:'sample',sourceUrl:'https://university.example.edu/rules',sourceText:source,sourceDigest:createHash('sha256').update(source).digest('hex'),coverageComplete:false,review:{status:'approved',sourceVerification:'official_source_reviewed',reviewedAt:'2026-10-29',expiresAt:'2027-10-29T00:00:00Z'},rules}],{now:()=>Date.parse('2026-10-30T00:00:00Z')});
-const toefl={test:'TOEFL iBT',overall:95,sections:{listening:22,reading:23,speaking:24,writing:25}};
+const toefl={test:'TOEFL iBT',overall:95,sections:{listening:22,reading:23,speaking:24,writing:26}};
 test('untrusted profile fields cannot inject academic rules, and GPA scale must match',()=>{
  for(const value of [{gpa:3.5,scale:100},{gpa:4.5,scale:4},{gpa:'3.5',scale:4},{gpa:3.5,scale:5,verified:true}])assert.equal(validProfileValue('gpa',value),false);
  assert.equal(validProfileValue('gpa',{gpa:3.5,scale:4}),true);

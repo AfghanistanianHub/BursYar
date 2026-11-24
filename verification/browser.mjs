@@ -45,7 +45,7 @@ try {
   await hero.locator('a[href="#documents-mount"]').click();
   await expect(page.locator('details.workspace')).toHaveAttribute('open', '');
   await page.locator('details.workspace').evaluate(el => { el.open = false; });
-  await hero.locator('a[href="#research-explorer"]').click();
+  await hero.locator('a[href="#research-explorer-mount"]').click();
   await expect(page.locator('#research-explorer')).toBeVisible();
   await page.locator('details.resources').evaluate(el => { el.open = false; });
   await page.evaluate(() => window.scrollTo({top:0, behavior:'instant'}));
@@ -170,19 +170,20 @@ try {
   await expect(heroDemo.locator('[data-demo-result]')).toHaveAttribute('data-status','not_met');
   const editorialGeometry=await page.evaluate(()=>{
     const rect=selector=>{const b=document.querySelector(selector).getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,right:b.right,width:b.width}};
-    const hero=rect('.hero'),entry=rect('.guided-entry'),pillars=rect('.editorial-pillars'),selected=rect('.editorial-selected'),how=rect('.how-it-works');
-    const nav=rect('.journey-more');
+    // The old editorial-pillars and how-it-works bands were removed; the
+    // story and discovery scenes now sit between entry, selection and guidance.
+    const order=['.hero','.guided-entry','.by-story-scene','.editorial-selected','.by-discovery-scene','.journey-more'].map(rect);
+    const selected=rect('.editorial-selected');
     const network=document.querySelector('.document-demo');
-    return {hero,entry,pillars,selected,how,nav,imageLoaded:!!network&&network.getBoundingClientRect().width>0};
+    return {order,selected,imageLoaded:!!network&&network.getBoundingClientRect().width>0};
   });
   expect(editorialGeometry.imageLoaded).toBe(true);
-  expect(editorialGeometry.entry.top).toBeGreaterThanOrEqual(editorialGeometry.hero.bottom-2);
-  const {entry, pillars, selected} = editorialGeometry;
-  if (pillars.width) expect(pillars.top).toBeGreaterThanOrEqual(entry.bottom-2);
-  expect(selected.top).toBeGreaterThanOrEqual((pillars.width ? pillars : entry).bottom-2);
-  expect(editorialGeometry.how.top).toBeGreaterThanOrEqual(editorialGeometry.selected.bottom-2);
-  expect(editorialGeometry.nav.top).toBeGreaterThanOrEqual(editorialGeometry.how.bottom-2);
-  expect(editorialGeometry.selected.width).toBeGreaterThan(width*0.8);
+  // Sections must follow one another in source order; hidden bands have zero
+  // width on small screens and are skipped rather than compared at 0.
+  const visibleSections=editorialGeometry.order.filter(section=>section.width>0);
+  expect(visibleSections.length).toBeGreaterThanOrEqual(3);
+  for(let i=1;i<visibleSections.length;i++)expect(visibleSections[i].top).toBeGreaterThanOrEqual(visibleSections[i-1].bottom-2);
+  if(editorialGeometry.selected.width)expect(editorialGeometry.selected.width).toBeGreaterThan(width*0.8);
 
   // Mission 04: secondary help is opt-in, but remains accessible.
   await expect(page.locator('.journey-more')).not.toHaveAttribute('open','');
