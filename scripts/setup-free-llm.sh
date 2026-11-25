@@ -9,6 +9,8 @@ BursYar free LLM setup (GitHub Codespaces, Linux)
 
   bash scripts/setup-free-llm.sh --agent
       Install OpenCode CLI if not already available (no inference requests).
+  bash scripts/setup-free-llm.sh --all-small
+      Install OpenCode plus Ollama/Qwen3 1.7B in one opt-in command.
   bash scripts/setup-free-llm.sh --local-small
       Install Ollama if needed, start loopback-only server, pull Qwen3 1.7B (~1.4GB).
   bash scripts/setup-free-llm.sh --local-balanced
@@ -43,10 +45,10 @@ install_ollama() {
   command -v curl >/dev/null 2>&1 || { echo 'curl is required.' >&2; exit 1; }
   local installer
   installer="$(mktemp)"
-  trap 'rm -f "$installer"' RETURN
   curl -fLsS --proto '=https' --tlsv1.2 https://ollama.com/install.sh -o "$installer"
   # Official vendor installer. Review https://ollama.com/download/linux first.
   sh "$installer"
+  rm -f "$installer"
   command -v ollama >/dev/null 2>&1 || { echo 'Ollama binary missing after installation.' >&2; exit 1; }
 }
 start_ollama() {
@@ -84,6 +86,7 @@ check() {
 case "${1:---help}" in
   --help|-h) usage ;;
   --agent) install_agent ;;
+  --all-small) install_agent; local_model 'qwen3:1.7b' ;;
   --local-small) local_model 'qwen3:1.7b' ;;
   --local-balanced) local_model 'qwen3:4b' ;;
   --check) check ;;
