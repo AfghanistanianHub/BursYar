@@ -6,6 +6,56 @@
     "fa": "Dari fluent reviewer required",
     "ps": "Pashto fluent reviewer required"
   },
+  "pendingStrings": [
+    {
+      "source": "src/documents.js",
+      "key": "consentRequired",
+      "en": "Tick the consent box before uploading or saving a document.",
+      "fa": "پیش از بارگذاری یا ذخیرهٔ سند، کادر رضایت را علامت بزنید.",
+      "ps": "تر پورته کولو یا ساتلو مخکې د رضایت چوکاټ وټاکئ.",
+      "status": "PENDING"
+    },
+    {
+      "source": "src/profile-form.js",
+      "key": "consentRequired",
+      "en": "Tick the consent box before saving your profile.",
+      "fa": "پیش از ذخیرهٔ پروفایل، کادر رضایت را علامت بزنید.",
+      "ps": "تر ساتلو مخکې د رضایت چوکاټ وټاکئ.",
+      "status": "PENDING"
+    },
+    {
+      "source": "src/academic-evidence-form.js",
+      "key": "consentRequired",
+      "en": "Tick the consent box before saving these scores.",
+      "fa": "پیش از ذخیرهٔ نمره‌ها، کادر رضایت را علامت بزنید.",
+      "ps": "تر ساتلو مخکې د رضایت چوکاټ وټاکئ.",
+      "status": "PENDING"
+    },
+    {
+      "source": "src/local-workflow.js",
+      "key": "consentRequired",
+      "en": "Tick the consent box before saving this degree.",
+      "fa": "پیش از ذخیرهٔ این مدرک، کادر رضایت را علامت بزنید.",
+      "ps": "د دې سند ساتلو مخکې د رضایت چوکاټ وټاکئ.",
+      "status": "PENDING"
+    },
+    {
+      "source": "src/verifications.js",
+      "key": "consentRequired",
+      "en": "Tick the consent box before recording a verification request.",
+      "fa": "پیش از ثبت درخواست تأیید، کادر رضایت را علامت بزنید.",
+      "ps": "د تایید غوښتنې ثبتولو مخکې د رضایت چوکاټ وټاکئ.",
+      "status": "PENDING"
+    },
+    {
+      "source": "src/verifications.js",
+      "key": "statusLegend",
+      "en": "What each status means",
+      "fa": "معنی هر وضعیت",
+      "ps": "د هر حالت مانا",
+      "status": "PENDING"
+    }
+  ],
   "checks": [
     "Compare every criterion explanation with exact original excerpt",
     "Keep full-time/part-time and negative conditions",
@@ -22,7 +72,8 @@
     "Bind semantic approval of the verified live output to actual source/output digests; never approve diagnostic metadata alone",
     "Review credential-verification request, status and privacy export/deletion wording in English, Dari and Pashto; never imply issuer confirmation without an issuer record",
     "Review the research check-date provenance strings (Last checked, automated source read warning, human source check) in Dari and Pashto; they stay UNREVIEWED until a fluent reviewer signs them off",
-    "Review the BY-12 guided field-mapping strings (title, explanation, source-line labels, degree/GPA/test/date labels, refusals and errors) in Dari and Pashto; they stay UNREVIEWED until a fluent reviewer signs them off"
+    "Review the BY-12 guided field-mapping strings (title, explanation, source-line labels, degree/GPA/test/date labels, refusals and errors) in Dari and Pashto; they stay UNREVIEWED until a fluent reviewer signs them off",
+    "Review every pendingStrings row: the consent-required sentence must name the exact action being refused, and the status legend must describe the issuer's decision rather than BursYar's own check"
   ],
   "approvalRule": "An authorized fluent human must supply reviewer identity, timestamp and specific output digest before marking reviewed. Automated tests never approve translations."
 }

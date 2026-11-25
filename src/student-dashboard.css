@@ -115,9 +115,16 @@
   margin: 0 0 18px;
 }
 /* Every route change focuses the title so assistive technology announces the new
-   page. The shared 3px focus ring turns that heading into what looks like an
-   error box, so keep the focus move without drawing the ring. */
-#student-dashboard #dashboard-title:focus-visible { outline: none; }
+   page. That move is programmatic, not a keyboard tab, so it must not paint the
+   shared 3px brown ring that reads as an error box on first arrival. When the
+   reader follows the skip link themselves the title keeps a calmer, visible
+   indicator instead of no indicator at all. */
+#student-dashboard #dashboard-title:focus-visible {
+  outline: 2px solid var(--dashboard-navy);
+  outline-offset: 6px;
+  border-radius: 2px;
+}
+#student-dashboard #dashboard-title.is-route-focus:focus-visible { outline: none; }
 /* A tool keeps its landing-page display scale. Once mounted in the dashboard it
    must not outrank the page title: 64px section headings under a 32px h1 read as
    two competing titles. */

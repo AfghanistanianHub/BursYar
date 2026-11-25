@@ -256,6 +256,9 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
   else if (view === 'account') renderAccount();
   else attachTools();
   if (focus) {
+   // Mark this focus as part of the route change so the heading is announced
+   // without painting a ring that looks like a validation error.
+   title.classList.add('is-route-focus');
    title.focus({preventScroll:true});
    window.scrollTo(0,0);
   }
@@ -272,6 +275,8 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
    const target = root.querySelector(link.hash);
    if (target) {
     target.tabIndex = -1;
+    // The reader moved focus deliberately, so the visible focus indicator applies.
+    target.classList.remove('is-route-focus');
     target.focus({preventScroll:true});
    }
   }
