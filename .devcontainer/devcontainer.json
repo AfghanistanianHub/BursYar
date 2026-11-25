@@ -2,7 +2,7 @@
   "name": "BursYar Cloud Workspace",
   "remoteUser": "vscode",
   "updateContentCommand": "npm ci --ignore-scripts --no-audit --no-fund && npm run prepare:ocr",
-  "postAttachCommand": "printf '\\nBursYar cloud workspace ready. Check docs/CLOUD-WORKSPACE.md before starting an agent.\\n'",
+  "postAttachCommand": "bash scripts/setup-free-llm.sh --agent || printf '\\nOpenCode setup skipped or unavailable; see docs/FREE-LLM-SETUP.md.\\n'; printf '\\nBursYar Codespace ready. Free LLM guide: docs/FREE-LLM-SETUP.md\\n'",
   "customizations": {
     "vscode": {
       "settings": {
