@@ -35,13 +35,19 @@ const api=createInferenceServer({
 await new Promise(resolve=>api.listen(0,'127.0.0.1',resolve));
 const apiUrl=`http://127.0.0.1:${api.address().port}`;
 
-const authModule=(mode,uid='audit-user')=>`let listener=null,current=${mode==='signedIn'?`{uid:'${uid}'}`:'null'};
-const set=user=>{current=user;listener?.(user);};
+const authModule=(mode,uid='audit-user')=>`let current=${mode==='signedIn'?`{uid:'${uid}'}`:'null'};const listeners=new Set();
+const set=user=>{current=user;for(const listener of listeners)listener(user);};
 window.__setAuditUser=set;
+// Mirror the real module's export surface exactly; a missing named export
+// rejects the whole dynamic import and stalls every panel that mounts it.
+// Like Firebase's onAuthStateChanged, keep every subscriber instead of one.
+export function keepSignedIn(){return false;}
+export function setKeepSignedIn(){}
 export async function signIn(){set({uid:'${uid}'});}
 export async function signOut(){set(null);}
-export async function onAuthChange(callback){listener=callback;setTimeout(()=>callback(current),0);return ()=>{};}
-export async function getInferenceToken(){if(current)return current.uid;throw Object.assign(Error('Sign in required'),{code:'signInRequired'});}`;
+export async function onAuthChange(callback){listeners.add(callback);setTimeout(()=>callback(current),0);return ()=>listeners.delete(callback);}
+export async function getInferenceToken(){if(current)return current.uid;throw Object.assign(Error('Sign in required'),{code:'signInRequired'});}
+export async function getAccountCapability(){return current?{authenticated:true,enrolled:true,enrollment:'enrolled'}:{authenticated:false,enrolled:false,enrollment:'closed_pilot'};}`;
 
 const results=[];
 const record=(id,step,status,detail)=>results.push({id,step,status,detail});
@@ -106,23 +112,31 @@ try{
     if(!(await visible(page,'#getting-started')))throw Error('entry section not visible');
     return `${href} target present; header CTA ${headerCta?'used':'hidden while signed in (Dashboard replaces it)'}`;
   });
+  const eligibilityLink=()=>page.locator('.pathfinder-timeline a[href="#eligibility-mount"]').first();
   await check('J02b','"Assess eligibility" reveals the assessment instead of a collapsed summary',async()=>{
-    await page.locator('.how-it-works a[href="#eligibility-mount"]').click();
-    await page.waitForFunction(()=>location.hash==='#eligibility-mount'&&document.querySelector('#eligibility-example')?.open===true,undefined,{timeout:5000}).catch(()=>{});
+    await eligibilityLink().click();
+    await page.waitForSelector('#eligibility-example',{timeout:15000});
+    await page.waitForFunction(()=>document.querySelector('#eligibility-example')?.open===true,undefined,{timeout:5000}).catch(()=>{});
     if(!await page.locator('#eligibility-example').evaluate(el=>el.open))throw Error('#eligibility-example stayed closed, so only its summary is visible');
     if(!(await visible(page,'#eligibility-heading')))throw Error('eligibility heading not visible');
-    return 'disclosure opened by hash navigation';
+    return 'lazy illustration mounted and its disclosure opened';
   });
   await check('J02c','re-selecting the same eligibility link reopens its disclosure',async()=>{
     await page.locator('#eligibility-example > summary').click();
     if(await page.locator('#eligibility-example').evaluate(el=>el.open))throw Error('summary did not close');
-    await page.locator('.how-it-works a[href="#eligibility-mount"]').click();
+    await eligibilityLink().click();
     await page.waitForFunction(()=>document.querySelector('#eligibility-example')?.open===true,undefined,{timeout:3000}).catch(()=>{});
     if(!await page.locator('#eligibility-example').evaluate(el=>el.open))throw Error('same-hash link did not reopen the target');
     return 'same-hash click reopened the disclosure';
   });
   await check('J03','every in-page link resolves to an element that exists',async()=>{
-    const missing=await page.evaluate(()=>[...document.querySelectorAll('a[href^="#"]')].map(a=>a.getAttribute('href')).filter(href=>href&&href!=='#'&&!href.startsWith('#dashboard')&&!document.querySelector(href)).filter((v,i,a)=>a.indexOf(v)===i));
+    const missing=await page.evaluate(()=>[...document.querySelectorAll('a[href^="#"]')].map(a=>a.getAttribute('href')).filter(href=>{
+      if(!href||href==='#')return false;
+      // Task routes and dashboard routes are handled by their routers, not by
+      // id lookup, and '#/' is not a valid CSS selector.
+      if(href.startsWith('#/')||href.startsWith('#dashboard'))return false;
+      try{return !document.querySelector(href);}catch{return true;}
+    }).filter((v,i,a)=>a.indexOf(v)===i));
     if(missing.length)throw Error(`missing targets: ${missing.join(', ')}`);
     return 'all anchors resolve';
   });
@@ -132,20 +146,25 @@ try{
     return 'all disclosure targets resolve';
   });
   await check('J05','guided "prepare my profile" opens the workspace it points at',async()=>{
-    await page.locator('.guided-option[href="#profile-mount"]').click();
+    await page.locator('.guided-option[data-task-route="prepare"]').click();
+    // The route is applied by the hashchange listener, so a click can resolve
+    // before the disclosure opens. Wait for the route contract, not a frame.
+    await page.waitForFunction(()=>location.hash==='#/prepare'&&document.querySelector('details.workspace')?.open===true,undefined,{timeout:5000}).catch(()=>{});
+    if(await page.evaluate(()=>location.hash)!=='#/prepare')throw Error(`route did not change: ${await page.evaluate(()=>location.hash)}`);
     const open=await page.locator('details.workspace').evaluate(el=>el.open);
     if(!open)throw Error('workspace disclosure stayed closed, so the profile target is not visible');
-    return 'workspace disclosure opened';
+    await page.waitForSelector('#profile-form',{state:'visible',timeout:10000});
+    return 'workspace disclosure opened and profile target is visible';
   });
   await check('J06','hero document CTA opens the document workflow',async()=>{
     await page.locator('.hero-actions a[href="#documents-mount"]').click();
-    if(!(await visible(page,'#documents')))throw Error('#documents is not visible');
+    await page.waitForSelector('#documents',{state:'visible',timeout:15000});
     return 'documents section visible';
   });
   await check('J07','signed-in document upload reaches a review step',async()=>{
     await page.setInputFiles('#documents input[type=file]','verification/fixtures/synthetic-education.txt');
-    await page.locator('#documents input[type=checkbox]').check();
-    await page.locator('#documents form button[type=submit]').click();
+    await page.locator('#document-consent').check();
+    await page.locator('#document-upload-form button[type=submit]').click();
     await page.waitForSelector('#documents .document-claim',{timeout:10000});
     const claims=await page.locator('#documents .document-claim').count();
     const status=await text(page,'#documents [role=status]');
@@ -169,9 +188,9 @@ try{
   });
   await check('J07b','a PDF with a text layer opens the review-and-correct preview before anything is saved',async()=>{
     const libraryBefore=await page.locator('#documents > fieldset select option').count();
-    await page.locator('#documents input[type=checkbox]').check();
+    await page.locator('#document-consent').check();
     await page.setInputFiles('#documents input[type=file]',{name:'synthetic-transcript.pdf',mimeType:'application/pdf',buffer:textPdf([['SYNTHETIC PDF ONLY — NOT A CERTIFICATE','GPA: 3.4/4']])});
-    await page.locator('#documents form button[type=submit]').click();
+    await page.locator('#document-upload-form button[type=submit]').click();
     await page.waitForSelector('#documents .document-extraction-preview:not([hidden])',{timeout:30000});
     const extracted=await page.locator('#documents .document-extraction-preview textarea').inputValue();
     if(!/GPA: 3\.4\/4/.test(extracted))throw Error(`extracted text missing the PDF text layer: ${JSON.stringify(extracted.slice(0,80))}`);
@@ -212,9 +231,9 @@ try{
   const manual=await openPage('signedIn',{hash:'#documents-mount',uid:'audit-transcription',ocrStub:true});
   const mpage=manual.page;
   await check('J07e','a PDF with no readable text offers manual transcription instead of inventing content',async()=>{
-    await mpage.locator('#documents input[type=checkbox]').check();
+    await mpage.locator('#document-consent').check();
     await mpage.setInputFiles('#documents input[type=file]',{name:'synthetic-scan.pdf',mimeType:'application/pdf',buffer:blankPdf()});
-    await mpage.locator('#documents form button[type=submit]').click();
+    await mpage.locator('#document-upload-form button[type=submit]').click();
     await mpage.waitForSelector('#documents .document-extraction-preview:not([hidden])',{timeout:30000});
     const status=await text(mpage,'#documents > [role=status]');
     if(!/manual transcription/i.test(status))throw Error(`status does not explain the manual fallback: ${JSON.stringify(status.slice(0,90))}`);
@@ -278,11 +297,17 @@ try{
     if(!await panel.evaluate(el=>el.open))await panel.locator('summary').click();
     await page.locator('#local-degree').selectOption('bachelor');
     await page.locator('#local-consent').check();
+    // The reviewed rules evaluate the saved scope profile, so persist the
+    // degree first; refreshing the catalog alone leaves the evaluation unknown.
+    await page.locator('#local-assessment button:not([type=submit])').nth(0).click();
+    await page.waitForFunction(()=>/saved|ساتل|ذخیره/i.test(document.querySelector('#local-status')?.textContent??''),{timeout:10000});
     await page.locator('#local-assessment button:not([type=submit])').nth(1).click();
-    await page.waitForFunction(()=>document.querySelectorAll('#local-program option').length>0,{timeout:10000});
+    try{await page.waitForFunction(()=>document.querySelectorAll('#local-program option').length>0,{timeout:10000});}
+    catch{throw Error('catalog did not load; '+JSON.stringify(await page.evaluate(()=>({status:document.querySelector('#local-status')?.textContent,options:document.querySelectorAll('#local-program option').length,signIn:!!document.querySelector('.local-workflow .sign-in-action'),buttons:[...document.querySelectorAll('#local-assessment button')].map(b=>({text:b.textContent,disabled:b.disabled}))}))));}
     await page.locator('#local-program').selectOption({index:0});
     await page.locator('#local-assessment button[type=submit]').click();
-    await page.waitForFunction(()=>/requirement|met|Met|اجرا|شرط/i.test(document.querySelector('#local-status')?.textContent??''),{timeout:10000});
+    try{await page.waitForFunction(()=>/requirement|met|Met|اجرا|شرط/i.test(document.querySelector('#local-status')?.textContent??''),{timeout:10000});}
+    catch{throw Error('assessment did not finish; '+JSON.stringify(await page.evaluate(()=>({status:document.querySelector('#local-status')?.textContent,program:document.querySelector('#local-program')?.value,disabled:document.querySelector('#local-assessment button[type=submit]')?.disabled}))));}
     const next=await text(page,'#next-actions');
     if(!next)throw Error('#next-actions stayed empty');
     return `status="${(await text(page,'#local-status')).slice(0,60)}"; next="${next.slice(0,70)}"`;
@@ -384,26 +409,30 @@ try{
   });
   await observe('G02','guest document upload: what the user is told and offered',async()=>{
     await gpage.locator('.hero-actions a[href="#documents-mount"]').click();
-    await gpage.setInputFiles('#documents input[type=file]','verification/fixtures/synthetic-education.txt');
-    await gpage.locator('#documents input[type=checkbox]').check();
-    await gpage.locator('#documents form button[type=submit]').click();
-    await gpage.waitForTimeout(1200);
+    await gpage.waitForSelector('#documents .sign-in-action',{timeout:10000});
+    const uploadDisabled=await gpage.locator('#document-upload-form button[type=submit]').isDisabled();
     const status=await text(gpage,'#documents > [role=status]');
     const signInActions=await gpage.locator('#documents button, #documents a').evaluateAll(nodes=>nodes.filter(node=>/sign in|ورود|ننوتل/i.test(node.textContent??'')).length);
-    return `status="${status}"; in-panel sign-in actions=${signInActions}`;
+    return `upload disabled=${uploadDisabled}; status="${status}"; in-panel sign-in actions=${signInActions}`;
   });
   await observe('G03','guest profile save: what the user is told and offered',async()=>{
     await gpage.locator('#profile-degree').selectOption('bachelor');
     await gpage.locator('#profile-form input[type=checkbox]').check();
     await gpage.locator('#profile-form button[type=submit]').click();
     await gpage.waitForTimeout(800);
-    const status=await text(gpage,'#profile > [role=status]');
+    const status=await text(gpage,'#profile-form [role=status]');
     const signInActions=await gpage.locator('#profile button, #profile a').evaluateAll(nodes=>nodes.filter(node=>/sign in|ورود|ننوتل/i.test(node.textContent??'')).length);
     return `status="${status}"; in-panel sign-in actions=${signInActions}`;
   });
   await check('G04','guest can still use the offline eligibility illustration',async()=>{
-    const summary=gpage.locator('#eligibility-example > summary');
-    if(await summary.count())await summary.click();
+    // The illustration is lazy-mounted; activate a visible deep link instead of
+    // assuming a previous scroll already loaded it.
+    const link=gpage.locator('.pathfinder-timeline a[href="#eligibility-mount"]').first();
+    if(await link.count())await link.click();
+    else{const summary=gpage.locator('#eligibility-example > summary');if(await summary.count())await summary.click();}
+    await gpage.waitForSelector('#eligibility-form select[name=degree]',{timeout:15000});
+    const example=gpage.locator('#eligibility-example');
+    if(await example.count()&&!(await example.evaluate(el=>el.open)))await example.locator(':scope > summary').click();
     await gpage.locator('#eligibility-form select[name=degree]').selectOption('bachelor');
     const result=await text(gpage,'#eligibility-result');
     if(!result)throw Error('no verdict for guest');
@@ -433,15 +462,16 @@ try{
     await gpage.goto(baseUrl);
     await gpage.waitForSelector('#app .site',{state:'attached',timeout:15000});
     await gpage.locator('.hero-actions a[href="#documents-mount"]').click();
-    await gpage.waitForSelector('#documents .sign-in-action button',{timeout:10000});
-    await gpage.locator('#documents .sign-in-action button').click();
+    await gpage.waitForSelector('#documents .sign-in-action [data-action=sign-in]',{timeout:10000});
+    await gpage.locator('#documents .sign-in-action [data-action=sign-in]').click();
     await gpage.waitForSelector('#documents .sign-in-action',{state:'detached',timeout:10000});
     const hash=await gpage.evaluate(()=>location.hash);
     if(hash==='#dashboard')throw Error('sign-in threw the user onto the dashboard');
     if(!(await visible(gpage,'#documents')))throw Error('document panel not visible after sign-in');
     await gpage.setInputFiles('#documents input[type=file]','verification/fixtures/synthetic-education.txt');
-    await gpage.locator('#documents input[type=checkbox]').check();
-    await gpage.locator('#documents form button[type=submit]').click();
+    await gpage.locator('#document-consent').check();
+    try{await gpage.locator('#document-upload-form button[type=submit]').click({timeout:10000});}
+    catch{throw Error('upload submit unavailable; '+JSON.stringify(await gpage.evaluate(()=>({disabled:document.querySelector('#document-upload-form button[type=submit]')?.disabled,status:document.querySelector('#documents > [role=status]')?.textContent,signIn:!!document.querySelector('#documents .sign-in-action'),hash:location.hash}))));}
     await gpage.waitForSelector('#documents .document-claim',{timeout:10000});
     return `${await gpage.locator('#documents .document-claim').count()} claim(s) after in-place sign-in at ${hash}`;
   });
@@ -450,11 +480,11 @@ try{
     await check(`L-${language}` ,`the in-panel sign-in recovery is localized and does not overflow (${language})`,async()=>{
       await local.page.locator('#language').selectOption(language);
       await local.page.locator('.hero-actions a[href="#documents-mount"]').click();
-      await local.page.waitForSelector('#documents .sign-in-action button',{timeout:10000});
-      const label=(await local.page.locator('#documents .sign-in-action button').textContent())??'';
+      await local.page.waitForSelector('#documents .sign-in-action [data-action=sign-in]',{timeout:10000});
+      const label=(await local.page.locator('#documents .sign-in-action [data-action=sign-in]').textContent())??'';
       if(!/[\u0600-\u06FF]/.test(label))throw Error(`sign-in action is not localized: "${label}"`);
       if(await local.page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+2))throw Error('horizontal overflow at 1280px');
-      if(await local.page.locator('#documents .sign-in-action button').getAttribute('lang')==='en')throw Error('action marked as English');
+      if(await local.page.locator('#documents .sign-in-action [data-action=sign-in]').getAttribute('lang')==='en')throw Error('action marked as English');
       return `"${label}"`;
     });
     await local.ctx.close();

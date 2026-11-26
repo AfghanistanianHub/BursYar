@@ -19,7 +19,7 @@ const api=createInferenceServer({catalog:createScholarshipCatalog([localProgram]
 await new Promise(resolve=>api.listen(0,'127.0.0.1',resolve));
 const apiUrl=`http://127.0.0.1:${api.address().port}`;
 let browser;
-try{browser=await chromium.launch({headless:true,args:['--no-sandbox']});}catch(error){await vite.close();await new Promise(resolve=>api.close(resolve));documents.close();rmSync(documentDir,{recursive:true,force:true});throw error;}
+try{browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});}catch(error){await vite.close();await new Promise(resolve=>api.close(resolve));documents.close();rmSync(documentDir,{recursive:true,force:true});throw error;}
 const evidence=normalizeEvidence(JSON.stringify({criteria:[{kind:'transcripts',required:true,excerpt:'Applicants must provide academic transcripts.',en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],funding:['Tuition fees are covered.'],deadline:null}),{text:'Applicants must provide academic transcripts. Tuition fees are covered.',sourceUrl:'https://university.example/award'});
 const report={mode:'BROWSER_WITH_MOCK_AUTH_AND_API',liveMetaVerified:false,liveGoogleSignInVerified:false,cases:[]};
 mkdirSync('verification/artifacts',{recursive:true});
@@ -247,10 +247,12 @@ try {
    await page.locator('#eligibility-example > summary').click();
    await page.locator('#eligibility-form [name=degree]').selectOption('bachelor');
    await page.locator('#eligibility-form [name=hasTest]').check();
+   // The form no longer pre-fills fabricated scores; enter a consistent 6.0 report.
+   for(const name of ['overall','listening','reading','writing','speaking'])await page.locator(`#eligibility-form [name=${name}]`).fill('6');
    await expect(page.locator('#eligibility-result')).toHaveAttribute('data-status','not_met');
    await page.locator('.scenarios summary').click();await page.locator('#eligibility-simulate').click();
    await expect(page.locator('#eligibility-future')).toHaveAttribute('data-status','met');
-   await expect(page.locator('#eligibility-form [name=overall]')).toHaveValue('6');
+   await expect(page.locator('#eligibility-future-score')).toHaveValue('7');
    await page.locator('#language').selectOption(language==='en'?'fa':'en');
    await expect(page.locator('#eligibility-result')).toHaveAttribute('data-status','not_met');
    await expect(page.locator('#eligibility-future')).toHaveAttribute('data-status','met');

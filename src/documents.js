@@ -165,7 +165,7 @@ export function mountDocuments(root,language='en'){
  setDocumentStage('upload');
  const help=element('details');help.className='document-format';element('summary',t.formatTitle,help);element('p',t.formatNote,help);
  const example=element('pre','Degree: bachelor\nGPA: 3.4/4\nTOEFL iBT: overall=100; listening=25; reading=25; writing=25; speaking=25',help);example.dir='ltr';example.lang='en';
- const form=element('form'),label=element('label',t.file,form),file=element('input','',label);file.type='file';file.accept='.txt,.pdf,.png,.jpg,.jpeg,text/plain,application/pdf,image/png,image/jpeg';file.required=true;
+ const form=element('form'),label=element('label',t.file,form),file=element('input','',label);form.id='document-upload-form';file.type='file';file.accept='.txt,.pdf,.png,.jpg,.jpeg,text/plain,application/pdf,image/png,image/jpeg';file.required=true;
  label.className='document-dropzone';
  const dropHint=element('span',t.dropHint,label);dropHint.className='document-drop-hint';
  const hasFiles=e=>[...(e.dataTransfer?.types??[])].includes('Files');

@@ -33,7 +33,7 @@ const toolsByRoute = {
  documents:['#documents-mount','#profile-mount','#academic-evidence-mount'],
  assessments:['#assistant','#local-workflow-mount','#eligibility-mount','#next-steps']
 };
-export function mountStudentDashboard(root, {language, brand, languageLabel, skipLabel, getStatus}) {
+export function mountStudentDashboard(root, {language, brand, languageLabel, skipLabel, getStatus, ensure = () => Promise.resolve()}) {
  const t = dashboardCopy[language] ?? dashboardCopy.en;
  const site = root.previousElementSibling;
  const accountControls = site.querySelector('#account-controls');
@@ -92,9 +92,12 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
    parked.set(node, placeholder);
    panel.append(node);
   }
-  if (view === 'assessments') {
-   const workflow = panel.querySelector('.local-workflow');
-   if (workflow) workflow.open = true;
+  if (view === 'documents') void ensure('workspace');
+  else if (view === 'assessments') {
+   void Promise.all([ensure('analysis'),ensure('offline'),ensure('eligibility')]).then(() => {
+    const workflow = panel.querySelector('.local-workflow');
+    if (workflow) workflow.open = true;
+   });
   }
  }
  function renderHome() {
@@ -128,7 +131,7 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
   note.textContent = t.savedNote;
   const browse = document.createElement('a');
   browse.className = 'dashboard-action';
-  browse.href = '#research-explorer';
+  browse.href = '#research-explorer-mount';
   browse.textContent = t.browse;
   const status = document.createElement('p');
   status.setAttribute('role','status');
@@ -250,7 +253,12 @@ export function mountStudentDashboard(root, {language, brand, languageLabel, ski
    if (link.hash === routes[view]) link.setAttribute('aria-current','page');
    else link.removeAttribute('aria-current');
   }
-  if (view === 'home') renderHome();
+  if (view === 'home') {
+   renderHome();
+   // The home summary reports document status, so the private workspace has to
+   // exist even when the reader never opened it on the public site.
+   void ensure('workspace');
+  }
   else if (view === 'saved') renderSaved();
   else if (view === 'verifications') mountVerifications(panel, language);
   else if (view === 'account') renderAccount();

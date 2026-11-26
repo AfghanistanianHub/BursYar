@@ -144,6 +144,7 @@ function wireLazyMounts(){
 function dashboardOptions(){
  const t=translations[state.language];
  return {language:state.language,brand:t.brand,languageLabel:t.language,skipLabel:t.skipToContent,
+  ensure:name=>ensureMount(name),
   getStatus:()=>({
    documents:documentStatus,
    assessment:hasLocalAssessment||!!document.querySelector('#analyze-form')?.analysis?.data?.compilation?.rules?.length

@@ -1,5 +1,5 @@
 @media screen {
- .site .editorial-nav a{display:inline-flex;align-items:center;min-height:32px}
+ .site .editorial-nav a{display:inline-flex;align-items:center;min-height:32px;min-inline-size:24px}
 
 
  #top>.hero-with-cables .hero-document-reader,

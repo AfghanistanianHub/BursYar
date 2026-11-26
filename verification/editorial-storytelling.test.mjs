@@ -196,7 +196,17 @@ test('cleared eligibility results cannot be restored from stale analyzer DOM',()
 test('eligibility never substitutes fictional rules for malformed live compilations',()=>{
  const eligibility=readFileSync(new URL('../src/eligibility-demo.js',import.meta.url),'utf8');
  assert.match(eligibility,/compilation==null\?fixture:\(Array\.isArray\(compilation\.rules\)\?compilation\.rules:\[\]\)/);
- assert.match(eligibility,/document\.addEventListener\('bursyar:compilation',\(\)=>\{lastScenario=false;lastExclusion=null;\}\)/);
+ assert.match(eligibility,/document\.addEventListener\('bursyar:compilation',event=>\{const next=event\.detail\?\?null;if\(next===lastCompilation\)return;lastCompilation=next;lastScenario=false;lastExclusion=null;\}\)/);
+});
+
+
+test('a language remount keeps the hypothetical scenario the reader compared',()=>{
+ const eligibility=readFileSync(new URL('../src/eligibility-demo.js',import.meta.url),'utf8');
+ // The analyser re-dispatches the same compilation object on every language
+ // switch; resetting here would wipe the scenario output after remount.
+ assert.match(eligibility,/if\(next===lastCompilation\)return/);
+ assert.match(eligibility,/if\(lastExclusion&&form\.querySelector\('#exclusion-simulate'\)\)/);
+ assert.match(eligibility,/if\(lastScenario\)form\.querySelector\('#eligibility-simulate'\)\.click\(\)/);
 });
 
 

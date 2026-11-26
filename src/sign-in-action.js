@@ -22,13 +22,13 @@ export function mountSignInAction(language='en'){
  const keepText=document.createElement('span');keepText.textContent=t.keepSignedIn;
  const keepHint=document.createElement('small');keepHint.textContent=t.keepSignedInNote;
  keepLabel.append(keep,keepText,keepHint);
- const button=document.createElement('button');button.type='button';button.className='primary-link';button.textContent=t.action;
+ const button=document.createElement('button');button.type='button';button.className='primary-link';button.dataset.action='sign-in';button.textContent=t.action;
  const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const enrolment=document.createElement('div');enrolment.className='sign-in-enrolment';enrolment.hidden=true;
  const enrolmentTitle=document.createElement('strong');enrolmentTitle.textContent=t.closedPilot;
  const enrolmentText=document.createElement('p');enrolmentText.textContent=t.notEnrolled;
  const actions=document.createElement('div');actions.className='secondary-actions';
- const again=document.createElement('button');again.type='button';again.className='primary-link secondary';again.textContent=t.checkAgain;
+ const again=document.createElement('button');again.type='button';again.className='primary-link secondary';again.dataset.action='check-enrolment';again.textContent=t.checkAgain;
  const request=document.createElement('a');request.className='text-button';request.textContent=t.requestAccess;
  const requestUrl=accessRequestUrl();
  if(requestUrl){request.href=requestUrl;request.target='_blank';request.rel='noopener noreferrer';}else request.hidden=true;
