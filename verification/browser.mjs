@@ -169,11 +169,14 @@ try {
   await heroDemo.locator('select').selectOption('associate');
   await expect(heroDemo.locator('[data-demo-result]')).toHaveAttribute('data-status','not_met');
   const editorialGeometry=await page.evaluate(()=>{
-    const rect=selector=>{const b=document.querySelector(selector).getBoundingClientRect();return {top:b.top,bottom:b.bottom,left:b.left,right:b.right,width:b.width}};
+    // Measure layout geometry, not painted boxes: the entry and selection bands
+    // use view-timeline transforms that translate them while entering, which
+    // would make a rendered-rect order check see a false overlap.
+    const box=selector=>{const el=document.querySelector(selector);return {top:el.offsetTop,bottom:el.offsetTop+el.offsetHeight,width:el.offsetWidth}};
     // The old editorial-pillars and how-it-works bands were removed; the
     // story and discovery scenes now sit between entry, selection and guidance.
-    const order=['.hero','.guided-entry','.by-story-scene','.editorial-selected','.by-discovery-scene','.journey-more'].map(rect);
-    const selected=rect('.editorial-selected');
+    const order=['.hero','.guided-entry','.by-story-scene','.editorial-selected','.by-discovery-scene','.journey-more'].map(box);
+    const selected=box('.editorial-selected');
     const network=document.querySelector('.document-demo');
     return {order,selected,imageLoaded:!!network&&network.getBoundingClientRect().width>0};
   });
