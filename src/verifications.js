@@ -164,10 +164,28 @@ export const verificationArray = (response, key) => {
  return response[key];
 };
 const localeFor = language => language === 'fa' ? 'fa-AF' : language === 'ps' ? 'ps-AF' : 'en';
+// Load-state copy. A provider outage is not a sign-in problem, and an empty
+// selector has to say why it is empty. fa/ps strings are UNREVIEWED pending
+// fluent human review (see docs/TRANSLATION-REVIEW.json).
+export const verificationLoadCopy = {
+ en: {
+  providersEmpty: 'No issuing organisation is connected yet.',
+  unavailable: 'Verification details could not be loaded. Nothing was lost; try again in a moment.'
+ },
+ fa: {
+  providersEmpty: 'هنوز سازمان صادرکننده‌ای متصل نشده است.',
+  unavailable: 'جزئیات تأیید بارگذاری نشد. چیزی از دست نرفت؛ لحظه‌ای بعد دوباره تلاش کنید.'
+ },
+ ps: {
+  providersEmpty: 'تر اوسه کومه صادرونکې اداره نه ده نښلول شوې.',
+  unavailable: 'د تایید جزئیات ونه لوستل شول. هېڅ شی له لاسه نه دی ورک شوی؛ لږ وروسته بیا هڅه وکړئ.'
+ }
+};
 
 export async function mountVerifications(root, language = 'en') {
  if (!root) return;
  const t = verificationCopy[language] ?? verificationCopy.en;
+ const load = verificationLoadCopy[language] ?? verificationLoadCopy.en;
  const locale = localeFor(language);
  const date = new Intl.DateTimeFormat(locale, {dateStyle: 'medium'});
  const safeDate = value => safeVerificationDate(value, date);
@@ -290,10 +308,25 @@ export async function mountVerifications(root, language = 'en') {
   const data = await api('/api/verifications');
   renderRequests(verificationArray(data, 'requests'));
  }
+ function providerPlaceholder(text) {
+  const option = document.createElement('option');
+  option.value = '';
+  option.textContent = text;
+  return option;
+ }
  async function loadProviders() {
   const data = await api('/api/verifications/providers');
   providers = verificationArray(data, 'providers');
   providerSelect.replaceChildren();
+  if (!providers.length) {
+   // An empty <select> is a blank box with no explanation; say that no issuer is
+   // connected instead of rendering nothing.
+   providerSelect.append(providerPlaceholder(load.providersEmpty));
+   providerSelect.disabled = true;
+   paintProvider();
+   return;
+  }
+  providerSelect.disabled = false;
   for (const provider of providers) {
    const option = document.createElement('option');
    option.value = provider.id;
@@ -377,18 +410,29 @@ export async function mountVerifications(root, language = 'en') {
   status.textContent = t.refreshing;
   const previousProvider = providerSelect.value;
   const previousDocument = documentSelect.value;
-  await loadProviders();
+  // Each load is independent. A provider outage used to abort the whole refresh,
+  // leaving both selectors empty and telling a signed-in student to sign in.
+  const failures = [];
+  const attempt = async run => { try { await run(); return true; } catch { failures.push(1); return false; } };
+  await attempt(loadProviders);
+  if (!providerSelect.options.length) {
+   providerSelect.replaceChildren(providerPlaceholder(load.providersEmpty));
+   providerSelect.disabled = true;
+  }
+  await attempt(loadDocuments);
+  const requestsLoaded = await attempt(loadRequests);
+  // An empty list with no explanation reads as "you have no requests". Say that
+  // the list itself could not be read instead.
+  if (!requestsLoaded) { list.replaceChildren(); element('li', load.unavailable, list); }
   if (previousProvider && providers.some(item => item.id === previousProvider)) providerSelect.value = previousProvider;
-  paintProvider();
-  await loadDocuments();
   if (previousDocument && documents.some(item => item.id === previousDocument)) documentSelect.value = previousDocument;
-  await loadRequests();
+  paintProvider();
   mutationUncertain = false;
   submit.disabled = !documents.length || !providers.length || !documentSelect.value || !providerSelect.value;
-  status.textContent = '';
+  status.textContent = failures.length ? load.unavailable : '';
  }
  refresh.addEventListener('click', () => busy(reloadAll));
  try { await reloadAll(); }
- catch { status.textContent = t.error; }
+ catch { status.textContent = load.unavailable; }
  return {refresh: loadRequests};
 }

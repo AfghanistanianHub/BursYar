@@ -19,6 +19,11 @@ async function getSession(){
   if(!apiKey||!projectId||!authDomain)throw Error('Firebase sign-in is not configured');
   const [{initializeApp},sdk]=await Promise.all([import('firebase/app'),import('firebase/auth')]);
   const auth=sdk.getAuth(initializeApp({apiKey,projectId,authDomain}));
+  // Local verification runs against the Firebase Auth emulator. The DEV guard
+  // keeps this unreachable in a production build, so a shipped bundle can never
+  // be redirected to a local emulator by an environment variable.
+  if(import.meta.env.DEV&&import.meta.env.VITE_FIREBASE_AUTH_EMULATOR)
+   sdk.connectAuthEmulator(auth,import.meta.env.VITE_FIREBASE_AUTH_EMULATOR,{disableWarnings:true});
   await sdk.setPersistence(auth,keepSignedIn()?sdk.localPersistence:sdk.browserSessionPersistence);
   // Consume the result of a redirect sign-in before anything reads the state.
   // A normal page load has no pending result, which is not an error.

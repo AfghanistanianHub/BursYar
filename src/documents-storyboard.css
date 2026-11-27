@@ -14,7 +14,9 @@ html[dir=rtl] .document-figure{margin:6px 22px 18px 0}
 .document-figure-art{display:block;width:100%;height:auto;max-height:190px;object-fit:cover;object-position:top center;background:var(--sb-paper-2)}
 .document-figure figcaption{font-size:11px;color:var(--sb-muted);padding:7px 4px 3px;line-height:1.55}
 /* ---- Four-stage workflow rail with navy numerals ---- */
-.document-stage-list{position:relative;z-index:1;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--sb-card);border:1px solid var(--sb-rule);border-radius:var(--sb-radius)}
+/* Clear the floated illustration plate: beside it the four stages were squeezed
+   into two-line labels and the numerals lost their shared baseline. */
+.document-stage-list{position:relative;z-index:1;clear:both;grid-template-columns:repeat(4,minmax(0,1fr));background:var(--sb-card);border:1px solid var(--sb-rule);border-radius:var(--sb-radius)}
 .document-stage-list li{position:relative;color:var(--sb-muted)}
 .document-stage-list li:not(:last-child)::after{content:"";position:absolute;inset-inline-end:-9px;top:50%;width:16px;border-top:2px dotted var(--sb-dot);transform:translateY(-50%)}
 html[dir=rtl] .document-stage-list li:not(:last-child)::after{transform:translateY(-50%) scaleX(-1)}
@@ -44,7 +46,10 @@ html[dir=rtl] .document-stage-list li:not(:last-child)::after{transform:translat
 .document-source{background:var(--sb-card);border:1px solid var(--sb-rule);border-radius:var(--sb-radius);box-shadow:7px 7px 0 -5px var(--sb-rule)}
 #documents .document-paste{background:var(--sb-card)}
 #documents .document-format{position:relative;z-index:1}
-#documents fieldset legend{font-weight:700}
+/* Group legends belong to the interface, not to the editorial serif: a legend is
+   a control label, and it was setting a serif line directly above sans-serif
+   field labels of the same rank. */
+#documents fieldset legend{font-family:var(--font-ui);font-weight:700;font-size:.95rem;letter-spacing:0}
 #documents [role=status]{font-size:12px;color:var(--sb-muted);line-height:1.7}
 /* An empty status must not paint a stray bar; keep it announced when it fills. */
 #documents [role=status]:empty{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%)}

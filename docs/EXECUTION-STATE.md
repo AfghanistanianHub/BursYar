@@ -47,6 +47,8 @@ not listed as passing.
 | Dashboard, research, auth-feedback, document-review/library/OCR/preview, local-pdf, document-production-gate, audit-remediation, journey-audit, responsive-probe, typography-probe | pass |
 | `npm run release:check` | all rows, freshness, stamped build and rehearsal smoke pass; the only failure is the gate requiring the recorded commit to be on `main`, which the mission forbids |
 | `npm run test:emulator` | 58 checks pass with a Temurin 21 JDK at `JAVA_HOME=/tmp/jdk`: Firestore rules, Auth emulator Google IdP, claims, quota, cross-account isolation |
+| `npm run test:workspace` | 18 authenticated scenes rendered from an emulator-backed session that the app restored itself after a reload; 0 axe violations, 0 overflow, 0 unexpected errors |
+| `node --test tests/workspace-layout-guards.test.js` | 8/8 layout, navigation and copy guards |
 
 ## 3. Backlog
 
@@ -55,10 +57,7 @@ not listed as passing.
 1. **Product end-to-end** — document upload/extraction/OCR, provenance and conflicts,
    eligibility unknowns, Barrier PathFinder next steps, matching and freshness,
    dashboard states. Verify through the existing suites and fix what they expose.
-2. **Visual/interaction** — dashboard hierarchy, document-reader sequencing, RTL
-   mirroring, reduced-motion and tablet layout. The rendered landing page has been
-   checked at 1440 (en, fa) and 390 (en); the authenticated workspace views still need
-   the same look.
+2. **Visual/interaction** — the authenticated workspace has now been inspected at 1280 and 390 in en, fa and ps, plus reduced motion (`verification/artifacts/workspace/`), and the defects that surfaced are fixed (DASH-02..05, DOC-02..03). Still uninspected: tablet width (760–1024), the PathFinder/next-step region once an assessment exists, and the document reader after a manual transcription.
 3. **Browser runtime** — 374 s for 15 cases with two workers on 2 vCPU. The remaining
    cost is per-action actionability, so further gains need fewer, not weaker, steps.
 
@@ -69,6 +68,19 @@ curl -sSL -o /tmp/jdk.tar.gz https://github.com/adoptium/temurin21-binaries/rele
 mkdir -p /tmp/jdk && tar -xzf /tmp/jdk.tar.gz -C /tmp/jdk --strip-components=1
 JAVA_HOME=/tmp/jdk PATH=/tmp/jdk/bin:$PATH npm run test:emulator
 ```
+
+### How the authenticated screens are inspected
+
+```bash
+JAVA_HOME=/tmp/jdk PATH=/tmp/jdk/bin:$PATH npm run test:workspace
+```
+
+It runs inside `firebase emulators:exec`, creates its account in the Auth emulator, signs the
+browser in through the emulator with the real SDK, reloads so the app restores the session from
+its own persistence, and then captures `verification/artifacts/workspace/*.png` with an axe scan
+and an overflow check per scene. `src/auth.js` connects the SDK to the emulator only under
+`import.meta.env.DEV`, so a shipped bundle cannot be redirected locally. `WORKSPACE_SCENE=name`
+limits the captures without skipping the flow.
 
 ### Owner-dependent (cannot be verified here)
 

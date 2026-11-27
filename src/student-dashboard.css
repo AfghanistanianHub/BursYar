@@ -59,10 +59,35 @@
 }
 .dashboard-account summary::-webkit-details-marker { display: none; }
 .dashboard-account summary svg { inline-size: 20px; }
+/* The account menu must read as a menu, not as a bare strip welded to the
+   header rule: it needs its own surface, elevation and padding, and it must be
+   out of flow while closed so it cannot widen the page. */
 .dashboard-account #account-controls {
-  width: min(260px, 82vw);
+  position: absolute;
+  z-index: 40;
+  inset-block-start: calc(100% + 10px);
   inset-inline-end: 0;
+  width: min(280px, 82vw);
+  padding: 10px;
+  background: var(--dashboard-paper);
+  border: 1px solid var(--dashboard-line);
+  border-radius: 10px;
+  box-shadow: 0 18px 34px -20px rgba(21, 33, 50, .5);
 }
+.dashboard-account #account-controls button {
+  inline-size: 100%;
+  min-block-size: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--dashboard-line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--dashboard-navy);
+  font: inherit;
+  font-size: .875rem;
+  text-align: start;
+  cursor: pointer;
+}
+.dashboard-account #account-controls button:hover { background: var(--dashboard-sand); }
 
 .dashboard-layout {
   max-inline-size: 1440px;
@@ -78,6 +103,14 @@
   gap: 6px;
   padding: 24px 12px;
   border-inline-end: 1px solid var(--dashboard-line);
+  /* A document reader is longer than the viewport. Without this the navigation
+     scrolls away and leaves an empty column beside the reading pane, so the
+     reader has no way back to another section except scrolling to the top. */
+  position: sticky;
+  inset-block-start: 0;
+  align-self: start;
+  max-block-size: 100dvh;
+  overflow-y: auto;
 }
 
 .dashboard-nav-link, .dashboard-shortcut {
@@ -224,15 +257,20 @@
   .dashboard-brand { gap: 8px; font-size: 1.125rem; }
   .dashboard-brand svg { inline-size: 24px; }
   .dashboard-header-actions { gap: 4px; }
-  .dashboard-main { padding-block-end: calc(84px + env(safe-area-inset-bottom)); }
+  /* The tab bar holds every route. Six destinations in four columns wrapped
+     into a second row that was clipped by the safe-area padding, so the last
+     two labels sat off-screen. Three columns keep one row per line at 320px. */
+  .dashboard-main { padding-block-end: calc(150px + env(safe-area-inset-bottom)); }
   .dashboard-nav {
     position: fixed;
     z-index: 10;
     inset: auto 0 0;
     display: grid;
-    grid-template-columns: repeat(4,minmax(0,1fr));
+    grid-template-columns: repeat(3,minmax(0,1fr));
     gap: 2px;
-    padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    max-block-size: none;
+    overflow-y: visible;
     background: var(--dashboard-paper);
     border-block-start: 1px solid var(--dashboard-line);
     border-inline-end: 0;

@@ -54,6 +54,30 @@
       "fa": "معنی هر وضعیت",
       "ps": "د هر حالت مانا",
       "status": "PENDING"
+    },
+    {
+      "source": "src/documents.js",
+      "key": "readerTitle",
+      "en": "Document reader",
+      "fa": "خوانش سند",
+      "ps": "د سند لوستنه",
+      "status": "PENDING"
+    },
+    {
+      "source": "src/verifications.js",
+      "key": "providersEmpty",
+      "en": "No issuing organisation is connected yet.",
+      "fa": "هنوز سازمان صادرکننده‌ای متصل نشده است.",
+      "ps": "تر اوسه کومه صادرونکې اداره نه ده نښلول شوې.",
+      "status": "PENDING"
+    },
+    {
+      "source": "src/verifications.js",
+      "key": "unavailable",
+      "en": "Verification details could not be loaded. Nothing was lost; try again in a moment.",
+      "fa": "جزئیات تأیید بارگذاری نشد. چیزی از دست نرفت؛ لحظه‌ای بعد دوباره تلاش کنید.",
+      "ps": "د تایید جزئیات ونه لوستل شول. هېڅ شی له لاسه نه دی ورک شوی؛ لږ وروسته بیا هڅه وکړئ.",
+      "status": "PENDING"
     }
   ],
   "checks": [

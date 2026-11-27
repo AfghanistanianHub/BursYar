@@ -21,6 +21,15 @@ export const documentSteps={
  ps:['پورته کول','متن راایستل یا لیکل','له کارولو مخکې بیاکتنه','خوندي کول']
 };
 export const documentStageKeys=['upload','extract','review','save'];
+// A focus target and title for an opened document. Without it the opened reader
+// had no heading to announce, and focusing the bare region scrolled the page
+// past the title into the middle of the claims. fa/ps strings are UNREVIEWED
+// pending fluent human review (see docs/TRANSLATION-REVIEW.json).
+export const documentReaderCopy={
+ en:{title:'Document reader'},
+ fa:{title:'خوانش سند'},
+ ps:{title:'د سند لوستنه'}
+};
 export const libraryCopy={en:{title:'Private document library',choose:'Document',refresh:'Refresh list',open:'Open selected document',empty:'No documents saved',reviewed:'Reviewed — not verified',pending:'Pending review'},fa:{title:'کتابخانهٔ اسناد خصوصی',choose:'سند',refresh:'تازه‌سازی فهرست',open:'باز کردن سند انتخاب‌شده',empty:'سندی ذخیره نشده است',reviewed:'بازبینی‌شده؛ تأیید نشده',pending:'در انتظار بازبینی'},ps:{title:'د شخصي اسنادو زېرمتون',choose:'سند',refresh:'لړ تازه کول',open:'ټاکل شوی سند پرانیستل',empty:'هېڅ سند نه دی ساتل شوی',reviewed:'بیاکتل شوی؛ نه دی تایید شوی',pending:'د بیاکتنې په تمه'}};
 // Document capacity (BY-24): the server caps one owner at ten documents. Show
 // the remaining slots and disable upload before the API has to refuse.
@@ -151,6 +160,7 @@ export function mountDocuments(root,language='en'){
  if(!root)return;
  const mountEpoch=identityEpoch;
  const t=documentsCopy[language]??documentsCopy.en;
+ const readerCopy=documentReaderCopy[language]??documentReaderCopy.en;
  root.replaceChildren();const section=document.createElement('section');section.className='section';section.id='documents';root.append(section);
  const element=(tag,text,parent=section)=>{const el=document.createElement(tag);if(text)el.textContent=text;parent.append(el);return el;};
  element('h2',t.title);element('p',t.note);
@@ -168,6 +178,9 @@ export function mountDocuments(root,language='en'){
  const form=element('form'),label=element('label',t.file,form),file=element('input','',label);form.id='document-upload-form';file.type='file';file.accept='.txt,.pdf,.png,.jpg,.jpeg,text/plain,application/pdf,image/png,image/jpeg';file.required=true;
  label.className='document-dropzone';
  const dropHint=element('span',t.dropHint,label);dropHint.className='document-drop-hint';
+ // The hint says "choose one below", so it has to sit above the file control it
+ // points at instead of after it.
+ label.insertBefore(dropHint,file);
  const hasFiles=e=>[...(e.dataTransfer?.types??[])].includes('Files');
  let dragDepth=0;
  const dropReset=()=>{dragDepth=0;form.classList.remove('drop-active');dropHint.textContent=t.dropHint;};
@@ -256,8 +269,11 @@ export function mountDocuments(root,language='en'){
   if(pendingId)busy(async()=>{
    chooser.value=pendingId;
    await openDocument(pendingId);
-   content.tabIndex=-1;
-   content.focus();
+   // Enter the reader at its own heading, not at an unlabelled container in the
+   // middle of the claims list.
+   const heading=content.querySelector('#document-reader-heading');
+   if(heading){heading.focus({preventScroll:true});heading.scrollIntoView({block:'start'});}
+   else{content.tabIndex=-1;content.focus();}
   });
  });
  refresh.addEventListener('click',()=>busy(refreshLibrary));
@@ -265,7 +281,12 @@ export function mountDocuments(root,language='en'){
  open.disabled=true;
  load.addEventListener('click',()=>busy(async()=>{publish(await api('/api/profile'));status.textContent=t.done;}));
  function show(doc){setDocumentStage('review');
-  content.replaceChildren();const documentNotice=element('p',doc.consistency==='discrepancy_requires_review'?t.conflict:doc.reviewedAt?t.done:t.pending,content);
+  content.replaceChildren();
+  content.setAttribute('role','region');
+  content.setAttribute('aria-labelledby','document-reader-heading');
+  const readerHeading=element('h3',readerCopy.title,content);
+  readerHeading.id='document-reader-heading';readerHeading.tabIndex=-1;
+  const documentNotice=element('p',doc.consistency==='discrepancy_requires_review'?t.conflict:doc.reviewedAt?t.done:t.pending,content);
   const source=element('pre',doc.text,content);source.dir='auto';source.className='document-source';
   const publicCheck=element('section','',content);publicCheck.className='document-public-check';
   element('h3',t.publicCheckTitle,publicCheck);

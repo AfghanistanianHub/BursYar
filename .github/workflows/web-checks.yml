@@ -44,6 +44,10 @@ jobs:
       - run: npm install --global npm@11.9.0 --no-audit --no-fund
       - run: npm ci --no-audit --no-fund
       - run: npm run test:emulator
+      # The workspace inspection signs in through the Auth emulator with the real
+      # SDK, renders every authenticated screen and scans it with axe.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:workspace
   browser:
     # Pinned: Playwright 1.56.1 has no chromium deps for ubuntu 26.04 (ubuntu-latest).
     runs-on: ubuntu-24.04
