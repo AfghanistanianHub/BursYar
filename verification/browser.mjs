@@ -25,7 +25,11 @@ const report={mode:'BROWSER_WITH_MOCK_AUTH_AND_API',liveMetaVerified:false,liveG
 mkdirSync('verification/artifacts',{recursive:true});
 try {
  for(const language of ['en','fa','ps'])for(const width of [320,390,768,1280,1440]){
-  const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();let unexpectedSourceRequests=0;page.on('request',request=>{if(new URL(request.url()).hostname==='malicious.invalid')unexpectedSourceRequests++;});
+  console.log(`case ${language} ${width}px`);
+  const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();
+  // Playwright's library default is no timeout at all, so one element that never
+  // becomes actionable used to hang the whole suite instead of failing its case.
+  context.setDefaultTimeout(45000);let unexpectedSourceRequests=0;page.on('request',request=>{if(new URL(request.url()).hostname==='malicious.invalid')unexpectedSourceRequests++;});
   await page.addInitScript(()=>document.addEventListener('DOMContentLoaded',()=>{const note=document.createElement('p');note.textContent='OFFLINE REHEARSAL — mocked identity and Meta; synthetic applicant data';note.setAttribute('role','note');note.style.cssText='padding:12px;background:#fff;color:#111;border:2px solid #111';document.body.prepend(note);},{once:true}));
   // Test-only network interception, not a runtime bypass or simulated live verification.
   const browserToken=`browser-test-${language}-${width}`;

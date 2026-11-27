@@ -35,9 +35,23 @@ try {
     executablePath:process.env.CHROMIUM_PATH || undefined});
   const page = await browser.newPage({viewport:{width:1280,height:900}});
   const errors = [];
-  page.on('pageerror', error => errors.push(error.message));
-  page.on('console', message => { if(message.type()==='error')errors.push(message.text()); });
+  const unexpectedResponses = [];
   let unavailable = false;
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => {
+    if(message.type()!=='error')return;
+    // The deliberate outage below really is a 503 and Chromium logs the resource
+    // failure itself. Ignore only that exact line while `unavailable` is set, so
+    // every other console error still fails this run.
+    if(unavailable && message.text().startsWith('Failed to load resource: the server responded with a status of 503'))return;
+    errors.push(message.text());
+  });
+  page.on('response', response => {
+    if(response.status()<500)return;
+    const path = new URL(response.url()).pathname;
+    if(unavailable && path==='/api/documents')return;
+    unexpectedResponses.push(response.status()+' '+path);
+  });
   await page.route('**/src/auth.js', route => route.fulfill({contentType:'text/javascript',body:`
     let user = null;
     const observers = new Set();
@@ -149,6 +163,7 @@ try {
   await expect(page.locator('#top')).toBeVisible();
   await expect(sourceUrl).toHaveValue('');
   await expect(page.locator('#open-source')).not.toHaveAttribute('href', /.+/);
+  assert.deepEqual(unexpectedResponses,[]);
   assert.deepEqual(errors,[]);
   console.log('Dashboard browser checks passed');
 } finally {

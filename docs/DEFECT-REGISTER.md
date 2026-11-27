@@ -48,9 +48,33 @@ Baseline: branch `work/restore-approved-ai-studio-hero`, previously verified com
 | ID | Area | Status |
 | --- | --- | --- |
 | INFRA-01 | Backend integration, persistence, deployment configuration | OPEN |
-| TEST-01 | Automated + browser test execution for the release candidate | OPEN |
+| TEST-01 | Automated + browser test execution for the release candidate | VERIFIED — see Phase 5 |
 | RC-01 | Release candidate and readiness report | OPEN |
 | DEPLOY-01 | Production deployment | BLOCKED | Requires explicit owner authorization; not requested. |
+
+## Phase 5 — Verification recovery and accessibility (2026-11-27)
+
+State recovery first: the handover named commits `79a9b54` (accessibility matrix) and
+`f1715af` (documentation). Neither object exists in this repository, and the branch was
+242 commits ahead of `origin/work/restore-approved-ai-studio-hero` (`b341544`), so the
+local history had never been pushed and the reported hashes were never fetched here.
+The work below starts from that local head; nothing was recreated or overwritten.
+
+| ID | Defect | Correction | Evidence |
+| --- | --- | --- | --- |
+| TEST-01 | `npm run test:browser` appeared to hang. It was not deadlocked: the Playwright library default action timeout is `0`, so any element that never became actionable waited forever, and the suite printed nothing until it finished, which looks identical to a hang. | Each case announces itself before it runs and actions are bounded at 45 s, so a stall fails one named case with the locator in the message. The Chromium shared-library helper was also repaired: it resolved sonames through `packages.ubuntu.com`, which times out from CI-shaped networks, and now resolves them from the mirror's Contents index. | 15/15 cases, 0 axe violations, 0 overflow in `verification/artifacts/browser-report.json`; ~9.5 min on 2 vCPU. |
+| NAV-01 | `#workspace-overview` mounted only when the intersection observer saw it, so it was an empty labelled `<section>` one pixel tall at y≈3378 on first load. Landmark jumps and hash links reached nothing, the guided entry links did not exist until the reader scrolled within 400 px, and the section grew when it finally mounted (a layout shift). | The workspace start card is a small static chunk and now mounts with the shell; the other regions stay lazy. | Six document/dashboard browser suites that open `#workspace-overview a[href="#profile-mount"]` went from timing out to passing. |
+| AUTH-02 | Changing language rebuilt the shell but never re-rendered the account control, so `#account-controls` was left empty: the sign-in button disappeared until the next auth state change. | The language switch re-renders the account control into the fresh node. | Reproduced by reading the node after `selectOption`; `auth-feedback-browser` passes 24 localized cases. |
+| AUTH-03 | The analyzer appended its own login/logout/status into the header's `#account-controls`, duplicating the menu entry once the analysis panel mounted, and the header's own button reported failures only to the console. | One control owns sign-in. `src/auth-feedback.js` holds the localized outcome mapping, used by the header control, which now renders a `role=status` message and keeps the button enabled; the analyzer no longer writes into the header. | `auth-feedback-browser` 24/24 in en/fa/ps; raw provider text (`auth/…`, `Firebase`, diagnostic markers) never reaches the message. |
+| AUTH-04 | A build without Firebase configuration reported `auth_init` as a client error on every page load, which is an expected deployment state, not a fault. | The account control stays signed out and a sign-in attempt explains the configuration; the unexpected-error path is unchanged. | `responsive-probe` 30/30 viewports with zero console errors (previously 30 failures). |
+| A11Y-02 | Scroll-entry animations faded whole sections to 0.55 opacity, so visible muted text measured 2.4–4.15:1 while a section was entering (guided entry kicker and option text, trust cells, source/interpretation pills). | The section entrance is a rise, not a fade: `bursyar-story-enter` animates `translateY` only. Artwork keeps its own fade. | axe (wcag2a, wcag2aa, wcag21aa) reports zero violations at 390 and 1440 with every disclosure open; `audit-remediation-browser` passes. |
+| TEST-02 | Five browser suites mocked `src/auth.js` with an older export surface, so the lazy workspace/dashboard chunk's module graph failed and their panels never rendered. | Every mock now mirrors the real exports, and a Node test fails if any mock in `verification/` lags behind `src/auth.js`. | `document-review`, `document-library`, `document-ocr-integration`, `document-preview`, `auth-feedback` and `dashboard` suites pass. |
+| TEST-03 | `dashboard-browser` simulated an outage with a real 503 and then asserted an empty console-error list, which cannot both hold: Chromium logs the failed resource itself. | The deliberate `/api/documents` 503 is exempted by name while any other console error and any unexpected 5xx response still fails the run. | `dashboard-browser` passes with the unexpected-response assertion in place. |
+| TEST-04 | `audit-remediation-browser` required a server on port 3006 that nothing started, so the gate could not run in CI, and it counted hidden `h1` elements (the dashboard route view) as duplicate page headings. | The gate serves `dist/` itself when `BASE_URL` is unset, and counts visible `h1` elements, which is the actual rule. | `audit-remediation-browser` passes against the production build. |
+
+Not done in this batch: Firebase emulator rules tests (`npm run test:emulator`, needs Java and an
+emulator download), live Google sign-in and hosted document acceptance (owner credentials), and
+fluent Dari/Pashto review. These remain open and are not claimed as verified.
 
 ## Standing constraints
 

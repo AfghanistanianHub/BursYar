@@ -98,7 +98,9 @@ try {
   let writes = 0;
   let dropNextResponse = false;
   const externalPosts = [];
-  await page.route('**/src/auth.js', route => route.fulfill({contentType: 'text/javascript', body: `export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{};} export async function getInferenceToken(){return "${user}";}`}));
+  // Keep the mock's surface identical to src/auth.js: a missing export breaks the
+  // lazy workspace chunk's module graph instead of failing the check that needs it.
+  await page.route('**/src/auth.js', route => route.fulfill({contentType: 'text/javascript', body: `export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{};} export async function getInferenceToken(){return "${user}";}export function keepSignedIn(){return false;};export function setKeepSignedIn(){};export async function getAccountCapability(){return {authenticated:true,enrolled:true,enrollment:'pilot'};}`}));
   await page.route('**/api/**', async route => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
@@ -314,7 +316,7 @@ try {
       if (url.pathname.startsWith('/ocr/')) ocrAssetRequests.push(url.pathname);
       else if (url.origin !== origin && url.origin !== apiBase) thirdParty.push(request.url());
     });
-    await page2.route('**/src/auth.js', route => route.fulfill({contentType: 'text/javascript', body: `export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{};} export async function getInferenceToken(){return "${user2}";}`}));
+    await page2.route('**/src/auth.js', route => route.fulfill({contentType: 'text/javascript', body: `export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{};} export async function getInferenceToken(){return "${user2}";}export function keepSignedIn(){return false;};export function setKeepSignedIn(){};export async function getAccountCapability(){return {authenticated:true,enrolled:true,enrollment:'pilot'};}`}));
     await page2.route('**/api/**', async route => {
       const request = route.request();
       const path = new URL(request.url()).pathname;

@@ -3,7 +3,7 @@ import {recoveryCopy} from './recovery-copy.js';
 import {journeyCopy} from './journey-copy.js';
 import {mountSourcePreview} from './source-preview.js';
 import {CLIENT_ANALYSIS_TIMEOUT_MS} from '../engine/provider-config.js';
-import {signIn,signOut,getInferenceToken,onAuthChange} from './auth.js';
+import {getInferenceToken} from './auth.js';
 import {findBarriers,barrierText,barrierLabels} from './pathfinder.js';
 if(!globalThis.__bursyarAccountDismiss){globalThis.__bursyarAccountDismiss=true;
  document.addEventListener('click',event=>{const details=document.querySelector('details.account');if(details?.open&&!details.contains(event.target))details.open=false;});
@@ -14,48 +14,6 @@ export const analyzerCopy={
  fa:{source:'نشانی منبع رسمی',login:'ورود با گوگل (حساب‌های تأییدشدهٔ دمو)',logout:'خروج',signedIn:'وارد شدید. مجوز دمو در سرور بررسی می‌شود.',signedOut:'خارج شدید',authError:'ورود ممکن نیست. تنظیمات فایربیس و فعال بودن گوگل را بررسی کنید.',loading:'در حال بررسی منبع…',review:'برداشت و ترجمهٔ هوش مصنوعی — بازبینی انسانی نشده است. هر شرط را تأیید کنید.',deadline:'مهلت',unknown:'نامشخص؛ از مؤسسه تأیید بگیرید.',funding:'شواهد حمایت مالی',uncertainties:'موارد نامشخص',provenance:'منبع و وضعیت بازبینی',unreviewed:'بازبینی انسانی نشده است',analyzed:'زمان بررسی',digest:'شناسهٔ SHA-256 منبع',barriers:'دسترسی اختیاری به اسناد (فقط در این صفحه)',transcripts:'اسناد تحصیلی',language_test:'آزمون زبان',travel_document:'سند سفر',skip:'نامشخص / رد کردن',available:'موجود',unavailable:'موجود نیست',error:'بررسی در دسترس نیست. نتیجهٔ تأییدشده‌ای دریافت نشد.',unauthorized:'با حساب تأییدشدهٔ دمو وارد شوید.',quota:'محدودیت استفاده یا درخواست هم‌زمان تکمیل شده است. بعداً تلاش کنید یا با مدیر دمو تماس بگیرید.',gateway:'خدمت بررسی در دسترس نیست. تنظیمات سرور را بررسی کنید.',offline:'باز کردن ارزیابی مبتنی بر قواعد (بدون هوش مصنوعی)'},
  ps:{source:'د رسمي سرچینې پته',login:'د ګوګل له لارې ننوتل (د ډیمو تایید شوي حسابونه)',logout:'وتل',signedIn:'ننوتل بشپړ شول. د ډیمو اجازه په سرور کې کتل کېږي.',signedOut:'ووتل',authError:'ننوتل ممکن نه دي. د فایربیس تنظیم او د ګوګل فعالول وګورئ.',loading:'سرچینه څېړل کېږي…',review:'د مصنوعي ځیرکتیا تفسیر او ژباړې — انساني بیاکتنه نه ده شوې. هر شرط تایید کړئ.',deadline:'وروستۍ نېټه',unknown:'نامعلوم؛ له ادارې یې تایید کړئ.',funding:'د مالي ملاتړ شواهد',uncertainties:'نامعلوم موارد',provenance:'سرچینه او د بیاکتنې حالت',unreviewed:'انساني بیاکتنه نه ده شوې',analyzed:'د څېړنې وخت',digest:'د سرچینې SHA-256 پېژند',barriers:'اسنادو ته اختیاري لاسرسی (یوازې په دې پاڼه کې)',transcripts:'تحصیلي اسناد',language_test:'د ژبې ازموینه',travel_document:'د سفر سند',skip:'نامعلوم / پرېښودل',available:'شته',unavailable:'نشته',error:'څېړنه شتون نه لري. تایید شوې پایله ترلاسه نه شوه.',unauthorized:'د ډیمو له تایید شوي حساب سره ننوځئ.',quota:'د کارونې یا هم‌مهاله غوښتنو حد پوره شوی. وروسته هڅه وکړئ یا د ډیمو له مدیر سره اړیکه ونیسئ.',gateway:'د څېړنې خدمت شتون نه لري. د سرور تنظیم وګورئ.',offline:'له ځیرک ماډل پرته د قواعدو ارزونه پرانیزئ'}
 };
-const signInFeedback = {
- en: {
-  dismissed: 'Sign-in was cancelled. You can try again when you’re ready.',
-  blocked: 'Allow pop-ups for this site, then select “Sign in with Google” again.',
-  browser: 'Open BursYar in a full browser window to sign in with Google.',
-  host: 'Google sign-in is unavailable at this site address. You can still explore scholarships.',
-  configuration: 'Google sign-in is unavailable for this version of BursYar. You can still explore scholarships.',
-  retry: 'Google sign-in could not finish. Please try again.'
- },
- fa: {
-  dismissed: 'ورود لغو شد. هر وقت آماده بودید، دوباره وارد شوید.',
-  blocked: 'اجازه دهید این سایت پنجرهٔ جدید باز کند، سپس دوباره «ورود با گوگل» را انتخاب کنید.',
-  browser: 'برای ورود با گوگل، بورس‌یار را در مرورگر دستگاه خود باز کنید.',
-  host: 'ورود با گوگل در این نشانی فعال نیست. هنوز می‌توانید بورسیه‌ها را جست‌وجو کنید.',
-  configuration: 'ورود با گوگل در این نسخهٔ بورس‌یار در دسترس نیست. هنوز می‌توانید بورسیه‌ها را جست‌وجو کنید.',
-  retry: 'ورود با گوگل کامل نشد. لطفاً دوباره تلاش کنید.'
- },
- ps: {
-  dismissed: 'ننوتل لغوه شول. کله چې چمتو یاست، بیا هڅه وکړئ.',
-  blocked: 'دې وېب‌پاڼې ته د نوې کړکۍ د پرانیستلو اجازه ورکړئ، بیا د ګوګل له لارې د ننوتلو تڼۍ وټاکئ.',
-  browser: 'د ګوګل له لارې د ننوتلو لپاره بورس‌یار د خپلې وسیلې په براوزر کې پرانیزئ.',
-  host: 'د ګوګل له لارې ننوتل په دې پته فعال نه دي. تاسو لا هم بورسونه لټولی شئ.',
-  configuration: 'د بورس‌یار په دې نسخه کې د ګوګل له لارې ننوتل ممکن نه دي. تاسو لا هم بورسونه لټولی شئ.',
-  retry: 'د ګوګل له لارې ننوتل بشپړ نه شول. مهرباني وکړئ بیا هڅه وکړئ.'
- }
-};
-
-function signInFailureMessage(error, language) {
- const copy = signInFeedback[language] ?? signInFeedback.en;
- switch (error?.code) {
-  case 'auth/popup-closed-by-user':
-  case 'auth/cancelled-popup-request': return copy.dismissed;
-  case 'auth/popup-blocked': return copy.blocked;
-  case 'auth/operation-not-supported-in-this-environment': return copy.browser;
-  case 'auth/unauthorized-domain': return copy.host;
-  case 'auth/operation-not-allowed':
-  case 'auth/auth-domain-config-required':
-  case 'auth/invalid-api-key':
-  case 'auth/configuration-not-found': return copy.configuration;
-  default: return error?.message === 'Firebase sign-in is not configured' ? copy.configuration : copy.retry;
- }
-}
 
 export const analyzerCoverage={en:'Source authenticity, completeness, interpretation and translations require human verification. Missing fields are unknown. Compact AI output covers at most four selected requirements and two funding excerpts; inspect the retained source for other conditions.',fa:'اعتبار منبع، کامل بودن، برداشت و ترجمه‌ها نیاز به بررسی انسانی دارند. اطلاعات غایب نامشخص است. خروجی محدود هوش مصنوعی حداکثر چهار شرط و دو نقل‌قول مالی دارد؛ سایر شرایط را در منبع حفظ‌شده بررسی کنید.',ps:'د سرچینې اعتبار، بشپړتیا، تفسیر او ژباړې انساني کتنې ته اړتیا لري. ورک معلومات نامعلوم دي. لنډ ځیرک ځواب تر څلورو شرطونو او دوو مالي نقلونو پورې لري؛ نور شرطونه په ساتل شوې سرچینه کې وګورئ.'};
 export const analyzerInventoryLabels={
@@ -73,19 +31,14 @@ export function mountAnalyzer(form,language,esc,initial={}){
  const source=document.createElement('label');source.textContent=t.source;
  const url=document.createElement('input');url.type='url';url.required=true;url.name='sourceUrl';url.id='source-url';url.placeholder='https://';url.value=initial.sourceUrl||'';url.dir='ltr';source.append(url);
  const textarea=form.querySelector('textarea');textarea.value=initial.text||'';
- const login=document.createElement('button');login.type='button';login.textContent=t.login;
- const logout=document.createElement('button');logout.type='button';logout.textContent=t.logout;
- const authStatus=document.createElement('p');authStatus.setAttribute('role','status');
- document.querySelector('#account-controls').append(login,logout,authStatus);form.querySelector('#source-entry').append(source);
- const setSignedIn=signedIn=>{login.hidden=!!signedIn;logout.hidden=!signedIn;};
- setSignedIn(false);
- onAuthChange(user=>{if(!form.isConnected)return;setSignedIn(!!user);if(user)authStatus.textContent=t.signedIn;else if(authStatus.textContent===t.signedIn)authStatus.textContent=t.signedOut;}).catch(()=>{});
+ // The account control lives once, in the header (see renderAccountControls in
+ // main.js); the analyzer used to append a second login/logout pair to the same
+ // container, which duplicated the menu entry and split its feedback.
+ form.querySelector('#source-entry').append(source);
  const approved=mountSourcePreview(form,url,textarea,submit,language,initial);
  // Standalone opt-in Puter Q&A; never receives form, source text, identity or documents.
  mountPuterQuestion(form.parentElement??form,language);
  form.addEventListener('bursyar:sourcechanged',()=>{controller?.abort();form.barrierAnswers={};form.analysis=undefined;form.querySelector('#requirements-step').hidden=true;result.replaceChildren();result.hidden=true;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));});
- login.addEventListener('click',async()=>{login.disabled=true;try{await signIn();document.dispatchEvent(new Event('bursyar:identity'));setSignedIn(true);authStatus.textContent=t.signedIn;}catch(error){authStatus.textContent=signInFailureMessage(error,language);}finally{login.disabled=false;}});
- logout.addEventListener('click',async()=>{document.dispatchEvent(new Event('bursyar:identity'));controller?.abort();form.analysis=undefined;document.dispatchEvent(new CustomEvent('bursyar:compilation',{detail:null}));try{await signOut();result.replaceChildren();result.hidden=true;setSignedIn(false);authStatus.textContent=t.signedOut;}catch{authStatus.textContent=t.authError;}});
 
  function renderAnalysis(a,submittedSource){
    form.analysis={data:a,url:submittedSource.href};result.hidden=false;form.querySelector('#requirements-step').hidden=false;

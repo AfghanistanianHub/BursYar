@@ -1,5 +1,9 @@
 let session;
 const KEEP_KEY='bursyar:keep-signed-in';
+// A build without Firebase configuration is a supported state: deterministic and
+// local features keep working and only sign-in is unavailable. Callers must be
+// able to tell it apart from a real authentication failure so it is reported
+// inline instead of as an unexpected client error.
 // Session decision (BY-07): a reload, tab restore or phone lock must not sign
 // the student out. The default is browser-session persistence, so the Firebase
 // refresh token lives for this browser session only. "Keep me signed in on this

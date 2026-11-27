@@ -5,6 +5,7 @@
 import {chromium} from 'playwright';
 import {mkdirSync} from 'node:fs';
 import {createRequire} from 'node:module';
+import {preview as previewServer} from 'vite';
 
 const BASE=process.env.BASE_URL??'http://127.0.0.1:3006';
 const require=createRequire(import.meta.url);
@@ -39,6 +40,14 @@ async function measure(page,label){
  },label);
 }
 
+// This gate measures the built application. Without an explicit BASE_URL it serves
+// dist/ itself, so it runs from the release checklist and CI instead of needing a
+// manually started server on port 3006.
+let server;
+if(!process.env.BASE_URL){
+ try{server=await previewServer({preview:{host:'127.0.0.1',port:3006,strictPort:true}});}
+ catch(error){throw Error('audit-remediation-browser needs a production build; run `npm run build` first ('+error.message+')');}
+}
 const browser=await chromium.launch();
 try{
  // ---------- English, mobile and desktop ----------
@@ -55,7 +64,10 @@ try{
   await page.screenshot({path:`${artifacts}remediation-${name}.png`,fullPage:false});
   check(result.targetsUnder24===0,`${name}: ${result.targetsUnder24} targets under 24px ${JSON.stringify(result.small.slice(0,8))}`);
   check(result.duplicateNavTargets.length===0,`${name}: duplicate nav destinations ${JSON.stringify(result.duplicateNavTargets)}`);
-  check(result.h1.length===1,`${name}: expected one h1, found ${JSON.stringify(result.h1)}`);
+  // One visible h1 per page: the dashboard's own h1 lives in a hidden route view
+  // and is correctly absent from the accessibility tree until that route opens.
+  const visibleH1=result.h1.filter(heading=>!heading.hidden);
+  check(visibleH1.length===1,`${name}: expected one visible h1, found ${JSON.stringify(result.h1)}`);
   check(result.overflow<=0,`${name}: horizontal overflow ${result.overflow}px`);
   check(errors.length===0,`${name}: console errors ${JSON.stringify(errors.slice(0,3))}`);
 
@@ -109,7 +121,7 @@ try{
   await page.screenshot({path:`${artifacts}remediation-noscript.png`});
   await context.close();
  }
-}finally{await browser.close();}
+}finally{await browser.close();await server?.close();}
 
 if(failures.length){
  console.error(JSON.stringify({event:'audit_remediation_browser',passed:false,failures},null,2));

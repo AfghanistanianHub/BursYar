@@ -35,7 +35,10 @@ const check = (id, cond, detail) => {
 };
 const mockIdentity = (page, uid) => page.route('**/src/auth.js', route => route.fulfill({
   contentType: 'text/javascript',
-  body: `export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{};} export async function getInferenceToken(){return "${uid}";}`
+  // The whole auth surface must exist: the lazy workspace/dashboard chunks import
+  // keepSignedIn, setKeepSignedIn and getAccountCapability, and a missing export
+  // aborts their module graph before anything renders.
+  body: `export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{};} export async function getInferenceToken(){return "${uid}";}export function keepSignedIn(){return false;};export function setKeepSignedIn(){};export async function getAccountCapability(){return {authenticated:true,enrolled:true,enrollment:'pilot'};}`
 }));
 const proxyApi = page => page.route('**/api/**', async route => {
   const request = route.request();
@@ -158,6 +161,9 @@ try {
       observers.add(observer);observer({uid});return ()=>observers.delete(observer);
     }
     export function changeAccount(next){uid=next;for(const observer of observers)observer({uid});}
+    export function keepSignedIn(){return false;}
+    export function setKeepSignedIn(){}
+    export async function getAccountCapability(){return {authenticated:true,enrolled:true,enrollment:'pilot'};}
   `}));
   await proxyApi(switchPage);
   await switchPage.goto(origin+'/#dashboard/documents');

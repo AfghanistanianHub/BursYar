@@ -23,6 +23,11 @@ try {
       export async function onAuthChange(callback) { callback(null); return () => {}; }
       export async function signOut() {}
       export async function getInferenceToken() { throw Error('Unexpected protected request'); }
+      // The whole public surface has to exist: the lazy workspace/dashboard chunks
+      // import these, and a missing export aborts their module graph.
+      export function keepSignedIn() { return false; }
+      export function setKeepSignedIn() {}
+      export async function getAccountCapability() { return {authenticated:false, enrolled:false, enrollment:'closed_pilot'}; }
       export async function signIn() {
         if (window.testAuthCode === 'missing-config') throw Error('Firebase sign-in is not configured');
         throw Object.assign(Error('sensitive-diagnostic-marker'), {code:window.testAuthCode});

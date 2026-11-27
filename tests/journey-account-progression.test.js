@@ -5,6 +5,7 @@ const journey = readFileSync(new URL('../src/journey-navigation.js', import.meta
 const journeyCss = readFileSync(new URL('../src/journey-navigation.css', import.meta.url), 'utf8');
 const auth = readFileSync(new URL('../src/auth.js', import.meta.url), 'utf8');
 const analyzer = readFileSync(new URL('../src/analyzer.js', import.meta.url), 'utf8');
+const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 const preview = readFileSync(new URL('../src/source-preview.js', import.meta.url), 'utf8');
 const style = readFileSync(new URL('../src/style.css', import.meta.url), 'utf8');
 const browserHarness = readFileSync(new URL('../verification/browser.mjs', import.meta.url), 'utf8');
@@ -18,11 +19,15 @@ test('journey steps rely on list numbering instead of duplicated prefixes', () =
   assert.match(journeyCss, /list-style-type:persian/);
 });
 
-test('account popover dismisses without obscuring content and auth buttons toggle', () => {
+test('account popover dismisses without obscuring content and one control handles sign-in', () => {
   assert.match(auth, /onAuthChange/);
-  assert.match(analyzer, /onAuthChange\(/);
-  assert.match(analyzer, /login\.hidden=.*signedIn/);
-  assert.match(analyzer, /logout\.hidden=/);
+  // The header owns the single sign-in control. The analyzer used to append a
+  // second login/logout pair into the same container, which duplicated the menu
+  // entry and split its feedback between two places.
+  assert.match(main, /function renderAccountControls\(\)/);
+  assert.match(main, /status\.setAttribute\('role','status'\)/);
+  assert.match(main, /signInFailureMessage\(error,state\.language\)/);
+  assert.doesNotMatch(analyzer, /#account-controls/);
   assert.match(analyzer, /details\.account/);
   assert.match(analyzer, /Escape/);
   assert.match(browserHarness, /onAuthChange/);

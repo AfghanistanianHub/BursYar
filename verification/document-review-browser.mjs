@@ -16,7 +16,7 @@ const browser=await chromium.launch({headless:true});mkdirSync('verification/art
 try{for(const language of ['en','fa','ps']){
  const context=await browser.newContext({viewport:{width:390,height:900}});const page=await context.newPage();const uid='document-review-'+language;let uploads=0,reviews=0;let statusOverride=null,releaseUpload=null,dropNextUpload=false;
  await page.addInitScript(lang=>localStorage.setItem('bursyar-language',lang),language);
- await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:`export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{}};export async function getInferenceToken(){return '${uid}'}` }));
+ await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:`export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{}};export async function getInferenceToken(){return '${uid}'};export function keepSignedIn(){return false;};export function setKeepSignedIn(){};export async function getAccountCapability(){return {authenticated:true,enrolled:true,enrollment:'pilot'};}` }));
  await page.route('**/api/**',async route=>{
   const request=route.request(),path=new URL(request.url()).pathname;
   if(path==='/api/analyze')throw Error('Inference forbidden in document review test');

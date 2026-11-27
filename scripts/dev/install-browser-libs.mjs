@@ -1,6 +1,6 @@
 // Sandbox-only helper (not part of the application): installs the shared
 // libraries Chromium needs into a user-writable prefix without root, by reading
-// Ubuntu's Packages index, fetching .deb files and unpacking them.
+// Ubuntu's Packages and Contents indexes, fetching .deb files and unpacking them.
 //
 // Usage:  node scripts/dev/install-browser-libs.mjs
 //         source /tmp/chrome-libs.env     # sets LD_LIBRARY_PATH
@@ -55,24 +55,51 @@ writeFileSync('/tmp/chrome-libs.env',`export LD_LIBRARY_PATH=${libDir}\n`);
 const env={...process.env,LD_LIBRARY_PATH:libDir};
 
 function missing(){
- const out=execFileSync('ldd',[CHROME],{encoding:'utf8',env:env.LD_LIBRARY_PATH?env:process.env});
+ const out=execFileSync('ldd',[CHROME],{encoding:'utf8',env});
  return [...new Set(out.split('\n').filter(line=>line.includes('not found')).map(line=>line.trim().split(' ')[0]))];
 }
-// packages.ubuntu.com contents search maps a soname to its binary package.
-function packageFor(soname){
- const url=`https://packages.ubuntu.com/search?searchon=contents&keywords=${encodeURIComponent(soname)}&mode=exactfilename&suite=noble&arch=amd64`;
- const html=execFileSync('curl',['-sL','-m','60',url],{encoding:'utf8',maxBuffer:32*1024*1024});
- const match=/<a href="\/noble\/([^"/]+)"/.exec(html);
- return match?.[1]??null;
+// The suite Contents index maps every shipped soname to its binary package.
+// It is larger than a Node string can hold, so it is streamed once per round
+// through grep for just the sonames that are missing.
+function packagesFor(sonames){
+ if(!sonames.length)return new Map();
+ // Contents lines are `path<TAB>...component/section/package`, so the soname is
+ // matched before its tab, not at the end of the line.
+ const pattern=sonames.map(s=>`/${s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}[[:space:]]`).join('|');
+ const contentsFile=`${CACHE}/Contents-amd64.gz`;
+ // Download once: piping a 50 MB index straight into grep truncates under the
+ // sandbox's stream limits, and the cached copy is reusable across rounds.
+ if(!existsSync(contentsFile)||execFileSync('sh',['-c',`gzip -t ${contentsFile} >/dev/null 2>&1; echo $?`],{encoding:'utf8'}).trim()!=='0')
+  execFileSync('curl',['-sL','-m','280','-o',contentsFile,`${MIRROR}/dists/noble/Contents-amd64.gz`]);
+ let out='';
+ try{out=execFileSync('sh',['-c',`gzip -dc ${contentsFile} | grep -E ${JSON.stringify(pattern)}`],{encoding:'utf8',maxBuffer:64*1024*1024});}catch(error){
+  if(error.status===1)return new Map(); // grep: no match
+  throw error;
+ }
+ const found=new Map();
+ for(const line of out.split('\n')){
+  // The package column is tab-separated and padded, so take the last
+  // non-empty field rather than assuming a single tab.
+  const fields=line.split('\t');
+  if(fields.length<2)continue;
+  const path=fields[0].replace(/^.*\//,'');
+  if(!path.includes('.so'))continue;
+  // Debug-build duplicates ship in dbus-tests and similar; prefer the real one.
+  if(line.includes('debug-build'))continue;
+  const name=fields.filter(Boolean).pop().trim().split('/').pop();
+  if(!found.has(path))found.set(path,name);
+ }
+ return found;
 }
 
-for(let round=1;round<=5;round++){
+for(let round=1;round<=8;round++){
  const gaps=missing();
  console.log(`round ${round}: ${gaps.length} unresolved -> ${gaps.join(' ')||'none'}`);
  if(!gaps.length)break;
+ const packages=packagesFor(gaps);
  let progress=false;
  for(const soname of gaps){
-  const name=packageFor(soname);
+  const name=packages.get(soname);
   if(name&&install(name)){console.log(`  ${soname} <- ${name}`);progress=true;}
   else console.log(`  ${soname}: no package found`);
  }

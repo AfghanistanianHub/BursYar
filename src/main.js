@@ -1,4 +1,5 @@
 import {onAuthChange,signIn,signOut} from './auth.js';
+import {signInFailureMessage} from './auth-feedback.js';
 import {dashboardCopy} from './dashboard-copy.js';
 import {isDashboardRoute} from './dashboard-route.js';
 import {mountJourney,journeyNavCopy} from './journey-navigation.js';
@@ -135,6 +136,13 @@ function wireLazyMounts(){
   if(details.open)ensureMount(name);
   details.addEventListener('toggle',()=>{if(details.open)ensureMount(name);});
  }
+ // The workspace start card is the destination of the guided entry links and of
+ // #workspace-overview shortcuts, and it is a small, static chunk. Mounting it with
+ // the shell keeps a labelled section from sitting empty (and one pixel tall) far
+ // below the fold, where it could neither be reached by a keyboard/screen-reader
+ // landmark jump nor by a hash link, and it removes the layout shift that used to
+ // happen when the reader finally scrolled it into view.
+ ensureMount('overview');
  // A re-render rebuilds the shell, so every chunk that was already mounted must be
  // mounted again into the fresh DOM: otherwise a language switch leaves a panel the
  // reader had opened (or a loaded document list) empty until it is reopened.
@@ -281,6 +289,10 @@ document.querySelector('#language').addEventListener('change',e=>{
  const y=window.scrollY;
  state.language=e.target.value;localStorage.setItem('bursyar-language',state.language);
  render();
+ // The shell rebuild replaces the header's #account-controls, so the account
+ // button has to be written into the fresh node: without this a language switch
+ // left the account menu empty until the next auth state change.
+ renderAccountControls();
  window.scrollTo({top:y,behavior:'instant'});
  document.querySelector('#student-dashboard:not([hidden]) #dashboard-language, .site:not([hidden]) #language')?.focus({preventScroll:true});
 });
@@ -467,12 +479,24 @@ function renderAccountControls(){
  button.textContent=signedIn
   ?(state.language==='fa'?'خروج از حساب':state.language==='ps'?'له حسابه وتل':'Sign out')
   :(state.language==='fa'?'ورود با گوگل':state.language==='ps'?'له ګوګل سره ننوتل':'Sign in with Google');
+ // A visible status region: a failed sign-in must explain itself in the reader's
+ // language instead of only reaching the console, and a missing configuration is
+ // an expected state rather than a client fault.
+ const status=document.createElement('p');
+ status.setAttribute('role','status');
  button.addEventListener('click',async()=>{
   button.disabled=true;
-  try{if(signedIn)await signOut();else await signIn();}
-  catch(error){recordClientError('account_action',error);button.disabled=false;}
+  status.textContent='';
+  try{
+   if(signedIn)await signOut();
+   else await signIn();
+   document.dispatchEvent(new Event('bursyar:identity'));
+  }catch(error){
+   status.textContent=signInFailureMessage(error,state.language);
+   if(error?.message!=='Firebase sign-in is not configured')recordClientError('account_action',error);
+  }finally{button.disabled=false;}
  });
- root.append(button);
+ root.append(button,status);
 }
 function recordClientError(stage,error){
  // Sanitised only: never the account, the token, the document text or a URL.
@@ -501,4 +525,9 @@ onAuthChange(user=>{
  if(!signedIn&&wasSignedIn&&isDashboardRoute(location.hash))history.replaceState(null,'','#top');
  dashboard?.sync(signedIn,true);
  if(signedIn)ensureMount('dashboard');
-}).catch(error=>recordClientError('auth_init',error));
+}).catch(error=>{
+ // No Firebase configuration is an expected deployment state, not a client fault:
+ // the account control stays signed out and a sign-in attempt explains the setup.
+ if(error?.message==='Firebase sign-in is not configured')return;
+ recordClientError('auth_init',error);
+});

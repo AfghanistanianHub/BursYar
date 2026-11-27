@@ -40,7 +40,7 @@ async function scene(name, fn) {
     document.body.prepend(note);
   }, {once: true}));
   const token = 'rehearsal-token';
-  await page.route('**/src/auth.js', route => route.fulfill({contentType: 'text/javascript', body: `export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{};} export async function getInferenceToken(){return "${token}";}`}));
+  await page.route('**/src/auth.js', route => route.fulfill({contentType: 'text/javascript', body: `export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{};} export async function getInferenceToken(){return "${token}";}export function keepSignedIn(){return false;};export function setKeepSignedIn(){};export async function getAccountCapability(){return {authenticated:true,enrolled:true,enrollment:'pilot'};}`}));
   await page.route(/\/api\/(documents|profile|source|scholarships|evaluate|family)/, async route => {
     const request = route.request();
     const response = await fetch(apiUrl + new URL(request.url()).pathname, {method: request.method(), headers: {authorization: request.headers().authorization, origin: baseUrl, 'content-type': 'application/json'}, ...(['POST', 'PUT'].includes(request.method()) ? {body: request.postData()} : {})});

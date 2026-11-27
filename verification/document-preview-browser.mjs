@@ -25,7 +25,7 @@ try{
   const context=await browser.newContext();
   const page=await context.newPage();const user='ocr-test-'+language;
   await page.addInitScript(lang=>localStorage.setItem('bursyar-language',lang),language);
-  await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{}};export async function getInferenceToken(){return "'+user+'";}'}));
+  await page.route('**/src/auth.js',route=>route.fulfill({contentType:'text/javascript',body:'export async function signIn(){};export async function signOut(){};export async function onAuthChange(){return ()=>{}};export async function getInferenceToken(){return "'+user+'";}export function keepSignedIn(){return false;};export function setKeepSignedIn(){};export async function getAccountCapability(){return {authenticated:true,enrolled:true,enrollment:"pilot"};}'}));
   await page.route('**/src/document-extraction.js',route=>route.fulfill({contentType:'text/javascript',body:"export async function extractDocumentText(file){if(file.name==='blank.png')throw Object.assign(new Error('No OCR characters'),{code:'emptyFile'});return {text:'Degree: bachelor',method:'local_image_ocr'}}"}));
   let writes=0;
   await page.route('**/api/**',async route=>{

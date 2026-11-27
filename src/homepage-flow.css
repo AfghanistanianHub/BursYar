@@ -98,9 +98,12 @@ html[dir=rtl] .corner-arrow{rotate:-45deg}
   }
 }
 
+/* A rise, not a fade: at 0.55 opacity the muted greys inside these sections
+   measured 2.4–4.1:1 against their backgrounds while the section was entering,
+   so a reader who saw the section before it finished scrolling got faint text. */
 @keyframes bursyar-story-enter {
-  from { opacity: .55; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(24px); }
+  to { transform: translateY(0); }
 }
 
 @keyframes bursyar-story-artwork {
