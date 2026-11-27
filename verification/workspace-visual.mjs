@@ -19,6 +19,8 @@ import {initializeApp} from 'firebase-admin/app';
 import {getAuth} from 'firebase-admin/auth';
 import {DocumentStore} from '../engine/documents.js';
 import {createInferenceServer} from '../engine/http.js';
+import {createScholarshipCatalog} from '../engine/deterministic.js';
+import {defaultCatalog} from '../engine/default-catalog.js';
 
 const projectId = 'demo-bursyar';
 const authHost = process.env.FIREBASE_AUTH_EMULATOR_HOST ?? '127.0.0.1:9099';
@@ -76,7 +78,8 @@ await server.listen();
 const url = `http://127.0.0.1:${server.httpServer.address().port}`;
 
 const api = createInferenceServer({
-  projectId, origin: url, documents,
+  // The real reviewed catalog, so the local assessment runs its real rules.
+  projectId, origin: url, documents, catalog: createScholarshipCatalog(defaultCatalog),
   quota: {reserve() { throw Error('Inference forbidden in workspace inspection'); }},
   infer: async () => { throw Error('Inference forbidden in workspace inspection'); },
   verify: token => adminAuth.verifyIdToken(token, true)
@@ -268,8 +271,57 @@ try {
   await page.waitForTimeout(600);
   await capture('05-assessments-1280-en');
 
+  // Journey: reviewed catalog → local assessment → PathFinder next step.
+  const workflow = dashboard.locator('.local-workflow');
+  await workflow.getByRole('button', {name: 'Load reviewed scholarships'}).click();
+  await expect(dashboard.locator('#local-program option')).toHaveCount(1);
+  await expect(dashboard.locator('#local-program')).toContainText('oxford-clarendon-exclusions');
+  await dashboard.locator('#local-degree').selectOption('bachelor');
+  await dashboard.locator('#local-consent').check();
+  await workflow.getByRole('button', {name: 'Save degree in this scope'}).click();
+  await expect(dashboard.locator('#local-status')).toHaveText('Degree saved in the selected scope.');
+  await workflow.getByRole('button', {name: 'Assess saved profile'}).click();
+  // The catalog declares incomplete coverage, so the honest result is unknown.
+  await expect(dashboard.locator('#local-status')).toHaveText('Missing, conflicting or unsupported evidence');
+  const assessment = await workflow.innerText();
+  assert.match(assessment, /deferred/, 'the cited requirement stays visible');
+  assert.match(assessment, /Unknown is not a rejection/, 'an unknown result is never reported as a rejection');
+  await expect(page.locator('#next-actions')).toContainText('Next: obtain missing documents');
+  const [assessFill, setupFill] = await Promise.all([
+    workflow.getByRole('button', {name: 'Assess saved profile'}).evaluate(el => getComputedStyle(el).backgroundColor),
+    workflow.getByRole('button', {name: 'Load reviewed scholarships'}).evaluate(el => getComputedStyle(el).backgroundColor)
+  ]);
+  assert.notEqual(assessFill, setupFill, 'the assess action must outrank the setup actions');
+  await capture('05b-assessment-result-1280-en');
+
+  // The home summary must now report the assessment it just completed.
+  await go('#dashboard');
+  await expect(dashboard.getByText('Assessment ready to review')).toBeVisible();
+  await capture('05c-home-after-assessment-1280-en');
+
+  // Journey: discovery → saved scholarship keeps its official source link.
   await dashboard.getByRole('link', {name: 'Saved scholarships', exact: true}).click();
   await capture('06-saved-1280-en');
+  await dashboard.getByRole('link', {name: 'Browse scholarships'}).click();
+  // Only listings that cite a source carry a save control, so drive the first
+  // one that does and read the citation from that same card.
+  const saveButton = page.locator('#research-explorer [data-research-save]').first();
+  await saveButton.waitFor();
+  const card = saveButton.locator('xpath=ancestor::article[1]');
+  const officialHref = await card.locator('.card-bottom a').first().getAttribute('href');
+  assert.match(officialHref, /^https:\/\//, 'a listing must cite its official HTTPS source');
+  await saveButton.click();
+  await page.locator('#dashboard-entry').click();
+  await expect(dashboard.getByText('1 saved scholarship', {exact: true})).toBeVisible();
+  await dashboard.getByRole('link', {name: 'Saved scholarships', exact: true}).click();
+  await expect(dashboard.locator('.dashboard-saved-list li a')).toHaveAttribute('href', officialHref);
+  await expect(dashboard.locator('.dashboard-saved-list li')).toHaveCount(1);
+  const [clearFill, browseFill] = await Promise.all([
+    dashboard.locator('[data-saved-clear]').evaluate(el => getComputedStyle(el).backgroundColor),
+    dashboard.getByRole('link', {name: 'Browse scholarships'}).evaluate(el => getComputedStyle(el).backgroundColor)
+  ]);
+  assert.notEqual(clearFill, browseFill, 'a destructive action must not look like the primary action');
+  await capture('06b-saved-with-official-source-1280-en');
 
   await dashboard.getByRole('link', {name: 'Verification', exact: true}).click();
   await page.waitForTimeout(400);

@@ -239,6 +239,32 @@
 }
 .dashboard-panel pre, .dashboard-panel blockquote { overflow-wrap: anywhere; white-space: pre-wrap; }
 .dashboard-panel :is(input,select,textarea) { max-inline-size: 100%; }
+/* The offline assessment is a setup sequence, not a stack of equally weighted
+   commands: the setup buttons are outlined and only "Assess saved profile" is
+   filled, so the primary action is visible at a glance. */
+.dashboard-panel .local-workflow form button {
+  justify-self: start;
+  align-self: start;
+  inline-size: auto;
+  max-inline-size: 100%;
+  min-block-size: 44px;
+  padding: 10px 18px;
+  border: 1px solid var(--dashboard-navy);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--dashboard-navy);
+  font: inherit;
+  font-size: .875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.dashboard-panel .local-workflow form button[type="submit"] { background: var(--dashboard-navy); color: #fff; }
+.dashboard-panel .local-workflow form button[disabled] { opacity: .55; cursor: not-allowed; }
+/* Clearing this browser's saved list is destructive and must not wear the same
+   filled navy as the primary "Browse scholarships" action beside it. */
+.dashboard-panel [data-saved-clear] { background: transparent; color: #8a2b2b; border: 1px solid #8a2b2b; }
+.dashboard-panel [data-saved-clear]:hover { background: #fbeaea; color: #7a2020; }
+
 .dashboard-saved-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--dashboard-line); border-radius: 8px; }
 .dashboard-saved-list li { padding: 12px 16px; }
 .dashboard-saved-list li + li { border-block-start: 1px solid var(--dashboard-line); }
