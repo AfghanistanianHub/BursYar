@@ -72,9 +72,18 @@ The work below starts from that local head; nothing was recreated or overwritten
 | TEST-03 | `dashboard-browser` simulated an outage with a real 503 and then asserted an empty console-error list, which cannot both hold: Chromium logs the failed resource itself. | The deliberate `/api/documents` 503 is exempted by name while any other console error and any unexpected 5xx response still fails the run. | `dashboard-browser` passes with the unexpected-response assertion in place. |
 | TEST-04 | `audit-remediation-browser` required a server on port 3006 that nothing started, so the gate could not run in CI, and it counted hidden `h1` elements (the dashboard route view) as duplicate page headings. | The gate serves `dist/` itself when `BASE_URL` is unset, and counts visible `h1` elements, which is the actual rule. | `audit-remediation-browser` passes against the production build. |
 
-Not done in this batch: Firebase emulator rules tests (`npm run test:emulator`, needs Java and an
-emulator download), live Google sign-in and hosted document acceptance (owner credentials), and
-fluent Dari/Pashto review. These remain open and are not claimed as verified.
+## Phase 6 — Narrative motion, suite runtime, emulator rules (2026-11-27)
+
+| ID | Defect | Correction | Evidence |
+| --- | --- | --- | --- |
+| A11Y-03 | The story and discovery scenes clipped with `overflow:hidden`. An `overflow` container is a scroll container, so it became the nearest scrollport for everything inside, and every `view()` timeline in the scene was pinned at one progress value: the paper and the discovery markers never moved as the reader scrolled, and the text-bearing cards sat at part-way opacity for good. The 2.3–4.1:1 readings behind A11Y-02 were this permanent state, not a transient animation frame. | `overflow:clip` keeps identical visual clipping without creating a scrollport, so the timelines resolve against the page again. The paper, the guidance copy and the discovery markers animate position and scale only. | `verification/animation-accessibility.mjs` (three languages × phone and desktop) sweeps the page and finds 0 contrast failures, measures the paper moving `19.48px → 5.65px → 0px` as it travels up the viewport, and confirms the reduced-motion build shows final state. `tests/narrative-scroll-timelines.test.js` fails if the scenes go back to `overflow:hidden` or a text-bearing entrance regains an opacity fade. |
+| TEST-05 | The browser suite gave only a total runtime, so the slow cases were invisible, and it ran 15 cases one after another: 549 s on 2 vCPU. | Each case records its duration in `browser-report.json`, and `verification/browser-parallel.mjs` runs one process per language with a two-worker pool. Every width and every assertion is unchanged; only scheduling changed. | 374 s wall for the same 15 cases, 0 axe violations, 0 overflow, every case still exercised (`caseTimings` in the report). `BROWSER_PARALLEL=1` restores the serial run, `BROWSER_CASE`/`BROWSER_TIMING` narrow or profile one case. |
+| TEST-06 | `npm run test:emulator` had never run here: there is no JRE in the sandbox, so the Firestore/Auth emulators could not start and the rules were unverified. | A free Temurin 21 JDK installed outside the repository (`JAVA_HOME=/tmp/jdk`) is enough; the emulator jars download on first use. | 58 checks pass in `LOCAL_EMULATORS_WITH_FAKE_MODEL`: published records readable by anonymous and signed-in readers, drafts and review logs denied, every write denied for every context, Google sign-in through the Auth emulator, custom-claim propagation, quota enforcement, and two accounts kept apart in the document store. Live Firebase stays unverified. |
+
+Not verified in this phase: live Google sign-in and hosted document acceptance (owner credentials),
+fluent Dari/Pashto semantic review (`docs/TRANSLATION-REVIEW.json`), and production publication
+(the release gate requires the commit on `main`, and merging to `main` is out of scope by
+instruction).
 
 ## Standing constraints
 

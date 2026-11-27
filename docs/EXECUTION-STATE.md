@@ -42,27 +42,33 @@ not listed as passing.
 | `npm test` | 568/568 before this batch's additions |
 | `npm run test:evaluation` | 60 checks pass (offline fixtures; not model accuracy) |
 | `npm run build` | exit 0 |
-| `npm run test:browser` | 15/15 cases, 0 axe violations, 0 overflow |
+| `npm run test:browser` | 15/15 cases, 0 axe violations, 0 overflow, 374 s wall (549 s before the language-parallel runner) |
 | `verification/animation-accessibility.mjs` | 6/6 cases, 0 contrast failures across the scroll sweep |
 | Dashboard, research, auth-feedback, document-review/library/OCR/preview, local-pdf, document-production-gate, audit-remediation, journey-audit, responsive-probe, typography-probe | pass |
 | `npm run release:check` | all rows, freshness, stamped build and rehearsal smoke pass; the only failure is the gate requiring the recorded commit to be on `main`, which the mission forbids |
-| `npm run test:emulator` | **not run**: no JRE in the sandbox (see backlog) |
+| `npm run test:emulator` | 58 checks pass with a Temurin 21 JDK at `JAVA_HOME=/tmp/jdk`: Firestore rules, Auth emulator Google IdP, claims, quota, cross-account isolation |
 
 ## 3. Backlog
 
 ### Locally testable, actionable
 
-1. **Browser runtime** — the suite takes ~9.5 min on 2 vCPU. Per-case timings are now
-   recorded in `verification/artifacts/browser-report.json` (`caseTimings`); use them to
-   remove avoidable work without dropping an assertion.
-2. **Firebase emulator rules suite** — `npm run test:emulator` needs a JRE 21+ and the
-   emulator jars. Install a free JDK outside the repository, then run the suite and
-   record rules coverage and cross-account isolation results.
-3. **Product end-to-end** — document upload/extraction/OCR, provenance and conflicts,
+1. **Product end-to-end** — document upload/extraction/OCR, provenance and conflicts,
    eligibility unknowns, Barrier PathFinder next steps, matching and freshness,
    dashboard states. Verify through the existing suites and fix what they expose.
-4. **Visual/interaction** — dashboard hierarchy, section transitions, RTL mirroring,
-   reduced-motion, tablet layout, and the eager workspace card's cost.
+2. **Visual/interaction** — dashboard hierarchy, document-reader sequencing, RTL
+   mirroring, reduced-motion and tablet layout. The rendered landing page has been
+   checked at 1440 (en, fa) and 390 (en); the authenticated workspace views still need
+   the same look.
+3. **Browser runtime** — 374 s for 15 cases with two workers on 2 vCPU. The remaining
+   cost is per-action actionability, so further gains need fewer, not weaker, steps.
+
+Reproducing the emulator run without a system JRE:
+
+```bash
+curl -sSL -o /tmp/jdk.tar.gz https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.5%2B11/OpenJDK21U-jdk_x64_linux_hotspot_21.0.5_11.tar.gz
+mkdir -p /tmp/jdk && tar -xzf /tmp/jdk.tar.gz -C /tmp/jdk --strip-components=1
+JAVA_HOME=/tmp/jdk PATH=/tmp/jdk/bin:$PATH npm run test:emulator
+```
 
 ### Owner-dependent (cannot be verified here)
 
