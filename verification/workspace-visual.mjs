@@ -254,6 +254,7 @@ try {
 
   // The reader sequences evidence first, then mapping: capture the lower half
   // where the guided mapping sits before any decision is taken.
+  await capture('03d-reader-1280-reduced', {reducedMotion: true});
   await capture('03c-reader-390-en', {width: 390, height: 844});
   await page.setViewportSize({width: 1280, height: 900});
   await dashboard.locator('.document-mapping-host').scrollIntoViewIfNeeded();
@@ -293,6 +294,9 @@ try {
   ]);
   assert.notEqual(assessFill, setupFill, 'the assess action must outrank the setup actions');
   await capture('05b-assessment-result-1280-en');
+  await capture('05d-assessments-768-en', {width: 768, height: 1024});
+  await capture('05e-assessments-390-en', {width: 390, height: 844});
+  await page.setViewportSize({width: 1280, height: 900});
 
   // The home summary must now report the assessment it just completed.
   await go('#dashboard');

@@ -47,7 +47,7 @@ not listed as passing.
 | Dashboard, research, auth-feedback, document-review/library/OCR/preview, local-pdf, document-production-gate, audit-remediation, journey-audit, responsive-probe, typography-probe | pass |
 | `npm run release:check` | all rows, freshness, stamped build and rehearsal smoke pass; the only failure is the gate requiring the recorded commit to be on `main`, which the mission forbids |
 | `npm run test:emulator` | 58 checks pass with a Temurin 21 JDK at `JAVA_HOME=/tmp/jdk`: Firestore rules, Auth emulator Google IdP, claims, quota, cross-account isolation |
-| `npm run test:workspace` | 21 authenticated scenes rendered from an emulator-backed session the app restored itself after a reload, including upload → reader → approval, reviewed catalog → assessment → PathFinder next step, and discovery → saved scholarship with its official source; 0 axe violations, 0 overflow, 0 unexpected errors |
+| `npm run test:workspace` | 24 authenticated scenes rendered from an emulator-backed session the app restored itself after a reload, including upload → reader → approval, reviewed catalog → assessment → PathFinder next step, discovery → saved scholarship with its official source, and tablet/phone/reduced-motion variants; 0 axe violations, 0 overflow, 0 unexpected errors |
 | `node --test tests/workspace-layout-guards.test.js` | 8/8 layout, navigation and copy guards |
 
 ## 3. Backlog
@@ -55,7 +55,7 @@ not listed as passing.
 ### Locally testable, actionable
 
 1. **Product end-to-end** — the core journey is now covered by `npm run test:workspace` (uploaded document → review → approved profile, reviewed catalog → unknown assessment → PathFinder next step → dashboard summary, discovery → saved scholarship with its official source) and by the existing document/OCR/library/preview suites. Still uncovered here: a PDF/image OCR upload through the UI, a conflict-state document, and the manual-transcription path in the reader.
-2. **Visual/interaction** — the authenticated workspace has now been inspected at 1280 and 390 in en, fa and ps, plus reduced motion (`verification/artifacts/workspace/`), and the defects that surfaced are fixed (DASH-02..05, DOC-02..03). Still uninspected: tablet width (760–1024), the PathFinder/next-step region once an assessment exists, and the document reader after a manual transcription.
+2. **Visual/interaction** — the authenticated workspace has now been inspected at 1280 and 390 in en, fa and ps, plus reduced motion (`verification/artifacts/workspace/`), and the defects that surfaced are fixed (DASH-02..05, DOC-02..03). Tablet (768), phone (390) and reduced-motion variants are captured too. Still uninspected: the document reader after a manual transcription, and the conflict-state document.
 3. **Browser runtime** — 374 s for 15 cases with two workers on 2 vCPU. The remaining
    cost is per-action actionability, so further gains need fewer, not weaker, steps.
 
