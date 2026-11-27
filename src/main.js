@@ -219,14 +219,16 @@ app.innerHTML=`<div class="site"><a class="skip-link" href="#top">${esc(t.skipTo
  <div class="by-story-visual" aria-hidden="true">
   <div class="by-story-paper">
    <span class="by-story-paper-fold"></span>
+   <span class="by-story-paper-chrome"><i></i><i></i><i></i></span>
    <span class="by-story-paper-mark"></span>
    <span class="by-story-paper-line by-story-paper-line-a"></span>
    <span class="by-story-paper-line by-story-paper-line-b"></span>
    <span class="by-story-paper-line by-story-paper-line-c"></span>
    <span class="by-story-paper-highlight"></span>
+   <span class="by-story-paper-caret"></span>
    <span class="by-story-paper-line by-story-paper-line-d"></span>
   </div>
-  <svg class="by-story-route" viewBox="0 0 520 330" preserveAspectRatio="xMidYMid meet" focusable="false"><path d="M196 170 H255 Q280 170 280 145 V120 Q280 96 307 96 H348" /><path d="M280 170 V228 Q280 252 306 252 H348" /><circle cx="280" cy="170" r="5"/><circle cx="348" cy="96" r="4"/><circle cx="348" cy="252" r="4"/></svg>
+  <svg class="by-story-route" viewBox="0 0 520 330" preserveAspectRatio="xMidYMid meet" focusable="false"><path class="by-story-lane by-story-lane-a" d="M196 170 H255 Q280 170 280 145 V120 Q280 96 307 96 H348" /><path class="by-story-lane by-story-lane-b" d="M280 170 V228 Q280 252 306 252 H348" /><circle cx="280" cy="170" r="5"/><circle cx="348" cy="96" r="4"/><circle cx="348" cy="252" r="4"/><g class="by-story-particles"><circle class="by-story-particle by-story-particle-a" r="3.6" style="--d:58%"/><circle class="by-story-particle by-story-particle-a" r="2.6" style="--d:78%"/><circle class="by-story-particle by-story-particle-a" r="3" style="--d:92%"/><circle class="by-story-particle by-story-particle-b" r="3.6" style="--d:54%"/><circle class="by-story-particle by-story-particle-b" r="2.6" style="--d:76%"/><circle class="by-story-particle by-story-particle-b" r="3" style="--d:90%"/></g></svg>
   <div class="by-story-evidence"><span class="by-story-evidence-symbol">✓</span><span class="by-story-evidence-bars"><i></i><i></i></span></div>
   <div class="by-story-unknown"><span class="by-story-unknown-symbol">?</span><span class="by-story-evidence-bars"><i></i><i></i></span></div>
  </div>

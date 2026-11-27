@@ -109,6 +109,16 @@ itself, and captures 18 scenes across routes, languages, widths and reduced moti
 Not verified in this phase: the live Google popup/redirect flow (owner Firebase project), and fluent
 Dari/Pashto review of the three strings added to `docs/TRANSLATION-REVIEW.json`.
 
+## Phase 8 — Document narrative recovery and RTL connector (2026-11-27)
+
+| ID | Defect | Correction | Evidence |
+| --- | --- | --- | --- |
+| NARR-01 | The editorial scene asserted that "evidence connects to requirements" but showed no connection happening: the document, the two connector lanes and the two outcome cards were static, and nothing ever travelled between them. The approved narrative's document-specific fragment transition had never been integrated in this repository. | Six document fragments now ride the two existing lanes with `offset-path`, each with its own `view()` range and resting distance, so they leave the document's highlighted line one after another as the reader scrolls and come to rest at the outcome cards. The arriving page gains a document-window chrome and a caret on the highlighted line. CSS/SVG only: no dependency, canvas, timer, network asset or JavaScript; reduced motion pins every fragment at its resting position; print drops the layer. | `git log --all -S particle` returns 0 commits and 0 of the 586 paths in the repository's whole history is a fragment/canvas/noise module, so the original could not be restored (`docs/DESIGN-NARRATIVE-RECOVERY.md`). Rendered: fragments measured at `43.7/56.1/61.8%` on lane A and `27.6/35.3/38.4%` on lane B at a centred scroll position. `tests/narrative-scroll-timelines.test.js` 4/4; `verification/animation-accessibility.mjs` requires the `view()` timeline, the lane placement and a scroll-dependent `offset-distance`. Screenshots `verification/artifacts/narrative/story-{en,fa,ps}-{1280,390}.png`. |
+| NARR-02 | The connector pointed the wrong way in RTL. The paper and the outcome cards are placed with logical properties, so they swap sides in `fa`/`ps`, but the SVG geometry is fixed: the lanes kept running left-to-right into empty space while the cards sat on the left, and the new fragments inherited the error. | `html[dir=rtl] .by-story-route{transform:scaleX(-1)}` mirrors the whole lane layer, picture and fragments together. | Measured `routeTransform` `matrix(-1, 0, 0, 1, 0, 0)` for `fa` and `ps` and `none` for `en`, asserted as exact equality per direction in `verification/animation-accessibility.mjs`; screenshots `story-fa-1280.png` and `story-ps-390.png` show the lanes terminating at the left-hand cards. |
+
+Not verified in this phase: the original AI Studio prototype (it is not in this repository or its
+history) and the live processing of a document in the narrative scene, which the artwork does not claim.
+
 ## Standing constraints
 
 - Production (`bursyar.vercel.app`) returns HTTP 503 from the requested project pause; it is

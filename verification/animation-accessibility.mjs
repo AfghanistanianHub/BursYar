@@ -40,11 +40,23 @@ try{
     // scenes themselves.
     const paper=document.querySelector('.by-story-paper');
     const marker=document.querySelector('.by-discovery-marker');
+    const particle=document.querySelector('.by-story-particle');
+    const route=document.querySelector('.by-story-route');
     const read=el=>el?{timeline:getComputedStyle(el).animationTimeline,name:getComputedStyle(el).animationName}:null;
-    return {paper:read(paper),marker:read(marker)};
+    return {paper:read(paper),marker:read(marker),particle:read(particle),
+     onLane:particle?getComputedStyle(particle).offsetPath!=='none':false,
+     routeTransform:route?getComputedStyle(route).transform:null};
    });
    check(narrative.paper?.timeline==='view()',`${label}: story paper lost its view timeline (${JSON.stringify(narrative.paper)})`);
    check(narrative.marker?.timeline==='view()',`${label}: discovery marker lost its view timeline (${JSON.stringify(narrative.marker)})`);
+   // Document-specific particle transition: the fragments must ride the evidence
+   // lanes and be driven by the scroll, not by a fixed position or a timer.
+   check(narrative.particle?.timeline==='view()',`${label}: document particles lost their view timeline (${JSON.stringify(narrative.particle)})`);
+   check(narrative.onLane,`${label}: document particles are not placed on an evidence lane`);
+   // The connector has to point from the document to the outcome cards. In RTL the
+   // paper and cards swap sides while the SVG geometry does not, so it must mirror.
+   const mirrored=/^matrix\(-1,\s*0,\s*0,\s*1/.test(narrative.routeTransform??'');
+   check(language==='en'?!mirrored:mirrored,`${label}: story connector is not mirrored for the reading direction (${narrative.routeTransform})`);
 
    const height=await page.evaluate(()=>document.documentElement.scrollHeight);
    const step=Math.max(200,Math.round(viewport.height*0.75));
@@ -69,14 +81,17 @@ try{
    // view timeline stopped driving the scene.
    const motion=await page.evaluate(async()=>{
     const paper=document.querySelector('.by-story-paper');
+    const particle=document.querySelector('.by-story-particle');
     if(!paper)return null;
     const top=paper.getBoundingClientRect().top+scrollY;
-    const sample=async y=>{window.scrollTo({top:y,behavior:'instant'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return getComputedStyle(paper).translate;};
+    const settle=async y=>{window.scrollTo({top:y,behavior:'instant'});await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));};
+    const sample=async y=>{await settle(y);return {paper:getComputedStyle(paper).translate,particle:particle?getComputedStyle(particle).offsetDistance:null};};
     const entering=await sample(Math.max(0,top-innerHeight+60));
     const centred=await sample(Math.max(0,top-innerHeight/2));
     return {entering,centred};
    });
-   check(motion&&motion.entering!==motion.centred,`${label}: the story paper no longer moves with scroll (${JSON.stringify(motion)})`);
+   check(motion&&motion.entering.paper!==motion.centred.paper,`${label}: the story paper no longer moves with scroll (${JSON.stringify(motion)})`);
+   check(motion&&motion.entering.particle!==motion.centred.particle,`${label}: the document particles do not travel with scroll (${JSON.stringify(motion)})`);
 
    // Reduced motion must show the same content with no animation at all.
    await page.emulateMedia({reducedMotion:'reduce'});
