@@ -21,11 +21,25 @@ const apiUrl=`http://127.0.0.1:${api.address().port}`;
 let browser;
 try{browser=await chromium.launch({headless:true,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']});}catch(error){await vite.close();await new Promise(resolve=>api.close(resolve));documents.close();rmSync(documentDir,{recursive:true,force:true});throw error;}
 const evidence=normalizeEvidence(JSON.stringify({criteria:[{kind:'transcripts',required:true,excerpt:'Applicants must provide academic transcripts.',en:'Provide transcripts.',fa:'اسناد تحصیلی ارائه کنید.',ps:'تحصیلي اسناد وړاندې کړئ.'}],funding:['Tuition fees are covered.'],deadline:null}),{text:'Applicants must provide academic transcripts. Tuition fees are covered.',sourceUrl:'https://university.example/award'});
+// The parallel runner starts one process per language; each one keeps the whole
+// width matrix, so nothing is skipped from the coverage.
+const reportPath=process.env.BROWSER_REPORT??'verification/artifacts/browser-report.json';
 const report={mode:'BROWSER_WITH_MOCK_AUTH_AND_API',liveMetaVerified:false,liveGoogleSignInVerified:false,cases:[]};
 mkdirSync('verification/artifacts',{recursive:true});
 try {
+ const caseTimings=[];
+ // BROWSER_CASE=en:320 restricts a run to one case, and BROWSER_TIMING=1 prints a
+ // phase breakdown. Both are diagnostics: the default run still covers every case.
+ const onlyCase=process.env.BROWSER_CASE;
+ const onlyLanguage=process.env.BROWSER_LANGUAGE;
+ const timing=!!process.env.BROWSER_TIMING;
  for(const language of ['en','fa','ps'])for(const width of [320,390,768,1280,1440]){
+  if(onlyCase&&onlyCase!==`${language}:${width}`)continue;
+  if(onlyLanguage&&onlyLanguage!==language)continue;
   console.log(`case ${language} ${width}px`);
+  const caseStarted=Date.now();
+  let phaseAt=caseStarted;
+  const phase=label=>{if(timing)console.log(`  [${language} ${width}] ${label}: ${Date.now()-phaseAt}ms`);phaseAt=Date.now();};
   const context=await browser.newContext({viewport:{width,height:900}});const page=await context.newPage();
   // Playwright's library default is no timeout at all, so one element that never
   // becomes actionable used to hang the whole suite instead of failing its case.
@@ -38,7 +52,7 @@ try {
   await page.route(/\/api\/(documents|profile|source|scholarships|evaluate|family)/,async route=>{const request=route.request();if(new URL(request.url()).pathname.endsWith('/source/import')&&importGate)await importGate;const response=await fetch(apiUrl+new URL(request.url()).pathname,{method:request.method(),headers:{authorization:request.headers().authorization,origin:baseUrl,'content-type':'application/json'},...(['POST','PUT'].includes(request.method())?{body:request.postData()}:{} )});await route.fulfill({status:response.status,contentType:'application/json',body:await response.text()});});
   let responseEvidence=evidence;let responseStatus=200;let sawRequest=false;let calls=0;
   await page.route('**/api/analyze',async route=>{const body=route.request().postDataJSON();expect(body.language).toBe(language);expect(body).not.toHaveProperty('transcripts');expect(route.request().headers().authorization).toBe(`Bearer ${browserToken}`);sawRequest=true;calls++;await new Promise(resolve=>setTimeout(resolve,80));await route.fulfill({status:responseStatus,contentType:'application/json',body:JSON.stringify(responseStatus===200?{...normalizeEvidence(JSON.stringify({criteria:responseEvidence.criteria.map(({kind,required,excerpt,en,fa,ps})=>({kind,required,excerpt,en,fa,ps})),deadline:responseEvidence.deadline,funding:responseEvidence.funding}),{text:body.text,sourceUrl:body.sourceUrl}),sourceProvenance:body.receipt??{kind:'user_pasted_text'}}:{error:'test-error'})});});
-  await page.goto(baseUrl);await page.locator('#language').selectOption(language);
+  await page.goto(baseUrl);await page.locator('#language').selectOption(language);phase('load+language');
   const hero = page.locator('.hero');
   const arc = hero.locator('#heroArc');
   const motion = hero.locator('.by-motion');
@@ -109,6 +123,7 @@ try {
     page.off('pageerror', recordError);
     await page.locator('details.resources > summary').click();
   }
+  phase('hero+research');
   await expect(page.locator('.guided-option')).toHaveCount(3);
   await expect(page.locator('#trust-explainer')).not.toHaveAttribute('open','');
   await page.locator('#trust-explainer > summary').click();
@@ -207,6 +222,7 @@ try {
   page.on('pageerror',recordOfflineError);
   page.on('console',recordOfflineConsole);
   page.on('requestfailed',recordOfflineRequest);
+  phase('guided+editorial');
   await page.locator('.journey-offline').click();
   try {
     await expect(page.locator('.local-workflow')).toBeAttached({timeout:10000});
@@ -235,7 +251,9 @@ try {
   await expect(page.locator('#fetch-source')).toBeVisible();
   await expect(page.locator('#requirements')).toBeHidden();
   await expect(page.locator('#analysis-consent')).toBeHidden();await expect(page.locator('#analyze-form button.primary-link:visible')).toHaveCount(1);
+  phase('offline-workflow');
   await page.screenshot({path:`verification/artifacts/${language}-entry-${width}.png`,fullPage:true});
+  phase('screenshot-entry');
   const zoomStyle=await page.addStyleTag({content:'html{font-size:200%}'});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1)).toBe(false);
   await page.screenshot({path:`verification/artifacts/${language}-text200-${width}.png`,fullPage:true});
@@ -271,6 +289,7 @@ try {
   }
   await page.locator('#manual-source').click();await page.locator('#requirements').fill('Applicants must provide academic transcripts. Tuition fees are covered.');
   await page.locator('[name=sourceUrl]').fill('https://university.example/award');
+  phase('zoom+keyboard+recovery');
   const submit=page.locator('#analyze-form button[type=submit]');await expect(submit).toBeDisabled();await page.locator('#source-approved').check();await submit.click();
   await expect(page.locator('#analyze-form')).toHaveAttribute('aria-busy','true');
   await expect(page.locator('.criterion')).toBeVisible();expect(sawRequest).toBe(true);
@@ -280,7 +299,9 @@ try {
   await expect(page.locator('#barrier-guidance')).toContainText({en:'Potential mismatch',fa:'ناسازگاری احتمالی',ps:'احتمالي نه سمون'}[language]);
   await page.locator('#language').selectOption(language==='en'?'fa':'en');await expect(page.locator('.criterion')).toBeVisible();await page.locator('#language').selectOption(language);await expect(page.locator('.criterion')).toBeVisible();await expect(page.locator('[name=transcripts]')).toHaveValue('unavailable');expect(calls).toBe(1);
   const overflow=await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1);if(overflow)console.log(JSON.stringify({language,width,overflowElements:await page.evaluate(()=>[...document.querySelectorAll('body *')].filter(el=>el.getBoundingClientRect().right>innerWidth+1||el.getBoundingClientRect().left< -1).map(el=>({tag:el.tagName,id:el.id,class:el.className,width:el.getBoundingClientRect().width})).slice(0,20))}));expect(overflow).toBe(false);
+  phase('analyze-flow');
   const axe=await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
+  phase('axe-main');
   report.cases.push({language,width,overflow,accessibilityViolations:axe.violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.length}))});
   expect(axe.violations.map(v=>({id:v.id,targets:v.nodes.map(n=>n.target)}))).toEqual([]);
   if(width===390){
@@ -447,7 +468,11 @@ try {
     await expect(eligibility).toHaveAttribute('open', '');
     await expect(page.locator('#eligibility-heading')).toBeInViewport();
   }
+  phase('tail');
   await context.close();
+  // Per-case timing makes the slow cases visible in CI instead of only the total.
+  caseTimings.push({language,width,ms:Date.now()-caseStarted});
  }
- console.log(JSON.stringify({mode:report.mode,cases:report.cases.length,passed:true,liveMetaVerified:false,liveGoogleSignInVerified:false}));
-}finally{writeFileSync('verification/artifacts/browser-report.json',JSON.stringify(report,null,2));await browser.close();await vite.close();await new Promise(resolve=>api.close(resolve));documents.close();rmSync(documentDir,{recursive:true,force:true});}
+ report.caseTimings=caseTimings;
+ console.log(JSON.stringify({mode:report.mode,cases:report.cases.length,passed:true,liveMetaVerified:false,liveGoogleSignInVerified:false,slowest:[...caseTimings].sort((a,b)=>b.ms-a.ms).slice(0,3)}));
+}finally{writeFileSync(reportPath,JSON.stringify(report,null,2));await browser.close();await vite.close();await new Promise(resolve=>api.close(resolve));documents.close();rmSync(documentDir,{recursive:true,force:true});}

@@ -129,7 +129,10 @@ html[dir=rtl] .corner-arrow{rotate:-45deg}
  grid-template-rows:1fr auto;align-items:center;
  gap:12px clamp(22px,5vw,88px);
  padding:clamp(46px,7vw,112px) clamp(22px,6vw,100px) 28px;
- overflow:hidden;background:#f4f0e9;border-block:1px solid var(--line);
+ /* clip, not hidden: hidden makes this scene the nearest scroll container for
+    its children, which froze every view() timeline inside it at one progress
+    value, so the paper never rose as the reader scrolled. */
+ overflow:clip;background:#f4f0e9;border-block:1px solid var(--line);
 }
 #top>.by-story-scene::before{
  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
@@ -216,8 +219,10 @@ html[dir=rtl] .by-story-eyebrow{letter-spacing:0}
   #top>.by-story-scene .by-story-unknown{animation-range:entry 25% cover 80%}
  }
 }
-@keyframes by-story-paper-arrive{from{opacity:.65;translate:0 22px}to{opacity:1;translate:0 0}}
-@keyframes by-story-guidance-arrive{from{opacity:.4;translate:0 16px}to{opacity:1;translate:0 0}}
+/* These two cards carry text, so they rise instead of fading: at 0.4–0.65
+   opacity their muted copy fell to 2.3–4.1:1 while the section was entering. */
+@keyframes by-story-paper-arrive{from{translate:0 22px}to{translate:0 0}}
+@keyframes by-story-guidance-arrive{from{translate:0 16px}to{translate:0 0}}
 @media (prefers-reduced-motion:reduce){
  #top>.by-story-scene *{animation:none!important;transition:none!important;translate:none!important}
 }
@@ -232,7 +237,7 @@ html[dir=rtl] .by-story-eyebrow{letter-spacing:0}
 #top>.by-discovery-scene{
  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);
  grid-template-rows:1fr auto;gap:10px clamp(24px,4vw,70px);
- align-items:center;position:relative;isolation:isolate;overflow:hidden;
+ align-items:center;position:relative;isolation:isolate;overflow:clip;
  padding:clamp(50px,7vw,110px) clamp(22px,6vw,100px) 28px;
  background:#fefdfb;border-block-end:1px solid var(--line);
 }
@@ -291,13 +296,16 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
    animation-timeline:view();animation-range:entry 0% cover 55%;
   }
   #top>.by-discovery-scene .by-discovery-marker{
-   animation:by-discovery-reveal 1ms linear both;
+   /* Markers hold labels, so they scale in without fading; only the decorative
+      core keeps the opacity reveal. */
+   animation:by-discovery-marker-enter 1ms linear both;
    animation-timeline:view();animation-range:entry 15% cover 75%;
   }
   #top>.by-discovery-scene .by-discovery-marker-three{animation-range:entry 25% cover 80%}
  }
 }
 @keyframes by-discovery-reveal{from{opacity:.25;scale:.9}to{opacity:1;scale:1}}
+@keyframes by-discovery-marker-enter{from{scale:.9}to{scale:1}}
 @media(prefers-reduced-motion:reduce){#top>.by-discovery-scene *{animation:none!important;transition:none!important}}
 @media print{
  #top>.by-discovery-scene{display:grid!important;grid-template-columns:1fr 1fr!important;break-inside:avoid!important;padding:6mm!important}
