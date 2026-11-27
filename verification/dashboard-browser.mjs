@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {chromium, expect} from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import {createServer} from 'vite';
 import {mkdtempSync, rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -33,7 +34,10 @@ try {
   const transcript = await upload.json();
   browser = await chromium.launch({args:['--no-sandbox'],
     executablePath:process.env.CHROMIUM_PATH || undefined});
-  const page = await browser.newPage({viewport:{width:1280,height:900}});
+  // A context rather than a bare page: the accessibility scanner runs its own
+  // page in the same context and refuses a context-less browser page.
+  const context = await browser.newContext({viewport:{width:1280,height:900}});
+  const page = await context.newPage();
   const errors = [];
   const unexpectedResponses = [];
   let unavailable = false;
@@ -128,14 +132,20 @@ try {
 
   await dashboard.getByRole('link',{name:'Dashboard',exact:true}).click();
   assert.equal(await dashboard.locator('h1').evaluate(el=>getComputedStyle(el).fontWeight),'500');
+  const accessibility = async label => {
+    const axe = await new AxeBuilder({page}).withTags(['wcag2a','wcag2aa','wcag21aa']).analyze();
+    assert.deepEqual(axe.violations.map(v=>({id:v.id,nodes:v.nodes.length})),[],`dashboard ${label}`);
+  };
   for (const width of [320,390,1280]) {
     await page.setViewportSize({width,height:900});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    await accessibility(`${width}px`);
   }
   for (const language of ['fa','ps','en']) {
     await dashboard.locator('select').selectOption(language);
     await expect(page.locator('html')).toHaveAttribute('dir',language==='en'?'ltr':'rtl');
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    await accessibility(`${language} at 1280px`);
   }
 
   await dashboard.getByRole('link',{name:'Documents & profile',exact:true}).click();
