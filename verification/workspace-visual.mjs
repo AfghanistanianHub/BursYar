@@ -374,6 +374,16 @@ try {
   assert.equal(await selectors.first().locator('option').count(), documents.list(session.localId).length, 'every saved document stays selectable during a provider outage');
 
   await dashboard.getByRole('link', {name: 'Account', exact: true}).click();
+  // Account and privacy management: both a copy and a delete must be offered, and
+  // the destructive one must not wear the download's treatment.
+  const privacy = dashboard.locator('.dashboard-privacy');
+  await expect(privacy.getByRole('button', {name: 'Download my data'})).toBeVisible();
+  await expect(privacy.getByRole('button', {name: 'Delete all my data'})).toBeVisible();
+  assert.notEqual(
+    await privacy.locator('[data-privacy="delete"]').evaluate(el => getComputedStyle(el).backgroundColor),
+    await privacy.locator('[data-privacy="export"]').evaluate(el => getComputedStyle(el).backgroundColor),
+    'deleting every record must not look like downloading them'
+  );
   await capture('08-account-1280-en');
 
   await dashboard.locator('.dashboard-account summary').click();

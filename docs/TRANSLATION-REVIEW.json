@@ -94,6 +94,38 @@
       "fa": "تکراری",
       "ps": "تکراري",
       "status": "PENDING"
+    },
+    {
+      "source": "src/research-copy.js",
+      "key": "eligibilityUnreviewed",
+      "en": "Afghan applicant eligibility not yet reviewed — confirm nationality and residency rules at the source.",
+      "fa": "واجد شرایط بودن متقاضیان افغان هنوز بررسی نشده است؛ قواعد تابعیت و اقامت را در منبع رسمی تأیید کنید.",
+      "ps": "د افغان غوښتونکو وړتوب لا نه ده کتل شوې؛ د تابعیت او اوسېدو قواعد له رسمي سرچینې تایید کړئ.",
+      "status": "PENDING"
+    },
+    {
+      "source": "src/research-copy.js",
+      "key": "eligibilityEligible",
+      "en": "Applicant eligibility for Afghan applicants was reviewed at the source; confirm it again before applying.",
+      "fa": "شرایط پذیرش متقاضیان افغان در منبع بررسی شده است؛ پیش از درخواست دوباره آن را تأیید کنید.",
+      "ps": "د افغان غوښتونکو وړتوب په سرچینه کې کتل شوې ده؛ تر غوښتنلیک مخکې یې بیا تایید کړئ.",
+      "status": "PENDING"
+    },
+    {
+      "source": "src/research-copy.js",
+      "key": "eligibilityRestricted",
+      "en": "The source records a restriction that may exclude Afghan applicants; read it before applying.",
+      "fa": "منبع محدودیتی را ثبت کرده که ممکن است متقاضیان افغان را مستثنی کند؛ پیش از درخواست آن را بخوانید.",
+      "ps": "سرچینه یوه محدودیت لیکلي چې کېدای شي افغان غوښتونکي وباسي؛ تر غوښتنلیک مخکې یې ولولئ.",
+      "status": "PENDING"
+    },
+    {
+      "source": "src/research-copy.js",
+      "key": "degreeUnknown",
+      "en": "Study level not recorded — confirm with the provider",
+      "fa": "مقطع تحصیلی ثبت نشده است؛ از ارائه‌دهنده تأیید کنید",
+      "ps": "د زده‌کړې کچه نه ده ثبت شوې؛ له ادارې یې تایید کړئ",
+      "status": "PENDING"
     }
   ],
   "checks": [

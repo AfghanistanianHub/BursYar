@@ -14,8 +14,39 @@ import {
   researchCheckedOn,
   researchCheckedBy,
   researchRecheckDays,
-  researchFreshness
+  researchFreshness,
+  researchDeadlineOn,
+  researchSourceUrl
 } from '../src/research-catalog.js';
+
+// Structure is checked before freshness: a row that cannot be read correctly is
+// not a stale row, it is a broken one, and no date can make it shippable.
+const ALLOWED_FUNDING=new Set(['full','partial','unknown']);
+const ALLOWED_DEGREES=new Set(['bachelor','master','phd']);
+const structure=[];
+const seenIds=new Set();
+for(const row of researchScholarships){
+ const id=row?.id;
+ if(typeof id!=='string'||!id)structure.push('a row has no id');
+ else if(seenIds.has(id))structure.push(`${id}: duplicate id`);
+ else seenIds.add(id);
+ const label=typeof id==='string'&&id?id:'(no id)';
+ if(!researchSourceUrl(row?.sourceUrl))structure.push(`${label}: sourceUrl must be an absolute public https URL`);
+ if(row?.funding!==undefined&&!ALLOWED_FUNDING.has(row.funding))structure.push(`${label}: funding ${JSON.stringify(row.funding)} is not one of full, partial, unknown`);
+ // An empty list is a fact too: the export did not record a level, and the card
+ // says so. A wrong label is still refused.
+ if(!Array.isArray(row?.degrees))structure.push(`${label}: degrees must be a list`);
+ else for(const degree of row.degrees)if(!ALLOWED_DEGREES.has(degree))structure.push(`${label}: degree ${JSON.stringify(degree)} is not one of bachelor, master, phd`);
+ if(row?.deadline!==null&&row?.deadline!==undefined&&!researchDeadlineOn(row))structure.push(`${label}: deadline ${JSON.stringify(row.deadline)} is not a real calendar day`);
+ // Discovery rows are leads. A row that claims to be reviewed must be moved out
+ // of this export deliberately, not by editing one flag.
+ if(row?.reviewStatus!=='needs_reverification')structure.push(`${label}: reviewStatus must stay needs_reverification in this export`);
+}
+if(structure.length){
+ console.error('Research structure gate failed:');
+ for(const problem of structure)console.error('  - '+problem);
+ process.exit(1);
+}
 
 const DAY=86400000;
 const argument=process.argv.slice(2).find(value=>value.startsWith('--now='));

@@ -39,7 +39,7 @@ not listed as passing.
 
 | Check | Result |
 | --- | --- |
-| `npm test` | 568/568 before this batch's additions |
+| `npm test` | 584/584 (`node --test` suites plus the research gate) |
 | `npm run test:evaluation` | 60 checks pass (offline fixtures; not model accuracy) |
 | `npm run build` | exit 0 |
 | `npm run test:browser` | 15/15 cases, 0 axe violations, 0 overflow, 374 s wall (549 s before the language-parallel runner) |
@@ -47,7 +47,11 @@ not listed as passing.
 | Dashboard, research, auth-feedback, document-review/library/OCR/preview, local-pdf, document-production-gate, audit-remediation, journey-audit, responsive-probe, typography-probe | pass |
 | `npm run release:check` | all rows, freshness, stamped build and rehearsal smoke pass; the only failure is the gate requiring the recorded commit to be on `main`, which the mission forbids |
 | `npm run test:emulator` | 58 checks pass with a Temurin 21 JDK at `JAVA_HOME=/tmp/jdk`: Firestore rules, Auth emulator Google IdP, claims, quota, cross-account isolation |
-| `npm run test:workspace` | 24 authenticated scenes rendered from an emulator-backed session the app restored itself after a reload, including upload → reader → approval, reviewed catalog → assessment → PathFinder next step, discovery → saved scholarship with its official source, and tablet/phone/reduced-motion variants; 0 axe violations, 0 overflow, 0 unexpected errors |
+| `npm run test:workspace` | 27 authenticated scenes rendered from an emulator-backed session the app restored itself after a reload, including upload → reader → approval, a conflicting document, a duplicate copy and its deletion, reviewed catalog → assessment → PathFinder next step, discovery → saved scholarship with its official source, the account/privacy actions, and tablet/phone/reduced-motion variants; 0 axe violations, 0 overflow, 0 unexpected errors |
+| `npm run check:research` | Structure gate plus freshness: 12 rows, 0 structural failures, 0 overdue as of 2026-11-27 |
+| `verification/animation-accessibility.mjs` (narrative) | Document fragments hold `view()` timelines, ride both lanes, move with scroll, and the connector mirrors exactly in `fa`/`ps` |
+| Research card render | `en`/`fa`/`ps` at 1280: every card states `data-eligibility="unreviewed"`, the row with no recorded level prints the unknown-level note instead of an empty slot, no horizontal overflow — `verification/artifacts/research/` |
+| Constrained-device measurement | 390×844 at 1.6 Mbit/s / 150 ms: FCP 704 ms, load 1395 ms, 176 KB over 8 requests, 2 JS chunks before interaction, 9.5 MB heap (production build) |
 | `node --test tests/workspace-layout-guards.test.js` | 8/8 layout, navigation and copy guards |
 | `node --test tests/narrative-scroll-timelines.test.js` | 4/4 narrative guards, including the document fragment lanes and the RTL mirror |
 | `verification/animation-accessibility.mjs` | 6/6 cases: 0 contrast failures in the scroll sweep, the paper, markers and document fragments all hold `view()` timelines and move with scroll, and the connector mirrors exactly in `fa`/`ps` |
@@ -56,7 +60,7 @@ not listed as passing.
 
 ### Locally testable, actionable
 
-1. **Product end-to-end** — the core journey is now covered by `npm run test:workspace` (uploaded document → review → approved profile, reviewed catalog → unknown assessment → PathFinder next step → dashboard summary, discovery → saved scholarship with its official source) and by the existing document/OCR/library/preview suites. Still uncovered here: a PDF/image OCR upload through the UI, a conflict-state document, and the manual-transcription path in the reader.
+1. **Product end-to-end** — the core journey is covered by `npm run test:workspace` (uploaded document → review → approved profile, a conflicting document, a duplicate copy and its deletion, reviewed catalog → unknown assessment → PathFinder next step → dashboard summary, discovery → saved scholarship with its official source) and by the existing document/OCR/library/preview suites (`verification/document-ocr-integration.mjs` drives PDF, scanned PDF, PNG, JPEG and the empty-OCR manual transcription through the real UI). Nothing in this list is uncovered; the remaining owner-dependent step is a hosted upload, listed below.
 2. **Visual/interaction** — the authenticated workspace has now been inspected at 1280 and 390 in en, fa and ps, plus reduced motion (`verification/artifacts/workspace/`), and the defects that surfaced are fixed (DASH-02..05, DOC-02..03). Tablet (768), phone (390) and reduced-motion variants are captured too. The landing narrative's document-fragment transition was implemented and inspected at 1280 and 390 in all three languages (`verification/artifacts/narrative/`, `docs/DESIGN-NARRATIVE-RECOVERY.md`). Still uninspected: the document reader after a manual transcription, and the conflict-state document.
 3. **Browser runtime** — 374 s for 15 cases with two workers on 2 vCPU. The remaining
    cost is per-action actionability, so further gains need fewer, not weaker, steps.
@@ -82,10 +86,23 @@ and an overflow check per scene. `src/auth.js` connects the SDK to the emulator 
 `import.meta.env.DEV`, so a shipped bundle cannot be redirected locally. `WORKSPACE_SCENE=name`
 limits the captures without skipping the flow.
 
+### Gaps that are real but not actionable here
+
+- **Application readiness tracker** (`docs/CAPABILITY-MATRIX.md` row 9): there is no
+  per-application checklist of collected requirements, only the dashboard summary and
+  the PathFinder next actions. Building it honestly requires issuer-verified
+  requirements, which is the same blocker as document verification.
+- **Export and delete-all in a rendered browser**: the API paths are covered by
+  `tests/verification-api.test.js` and the buttons are asserted in workspace scene
+  `08`, but the download and the double confirmation have never been clicked through,
+  because the harness has no hosted account to erase.
+
 ### Owner-dependent (cannot be verified here)
 
 - Live Google sign-in, session restoration across a real reload, and hosted document
   acceptance: requires the owner's Firebase project and an approved test account.
+  `docs/OWNER-ACCEPTANCE-CHECKLIST.md` states each missing permission, the safe
+  procedure and the expected result.
 - Fluent Dari/Pashto semantic review: `docs/TRANSLATION-REVIEW.json` tracks status.
 - Production publication: the release gate requires the recorded commit on `main`,
   and this mission forbids merging to `main` or deploying.

@@ -41,6 +41,18 @@ const isoDay=value=>{
  const date=new Date(value+'T00:00:00Z');
  return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value?value:null;
 };
+// Whether an Afghan applicant may apply is the fact every reader needs and the
+// one no shipped row establishes. A row can only leave 'unreviewed' by carrying
+// a dated review with the source line it rests on; anything missing or malformed
+// fails closed, and nothing is inferred from a provider's nationality wording.
+export function researchApplicantEligibility(row) {
+ const review=row?.eligibilityReview;
+ if(!review||typeof review!=='object'||Array.isArray(review))return 'unreviewed';
+ const reviewedAt=isoDay(review.reviewedAt);
+ const excerpt=typeof review.sourceExcerpt==='string'?review.sourceExcerpt.trim():'';
+ if(!reviewedAt||!excerpt)return 'unreviewed';
+ return review.status==='applicant_eligible'||review.status==='applicant_restricted'?review.status:'unreviewed';
+}
 export function researchDeadlineOn(row){return isoDay(row?.deadline);}
 export function researchDeadlineState(row,now=new Date()) {
  const value=researchDeadlineOn(row);

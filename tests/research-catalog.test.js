@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import * as catalog from '../src/research-catalog.js';
 const NOW = new Date('2026-11-01T12:00:00Z');
 const listing = (patch = {}) => ({id:'test',title:'Award',country:'Germany',degrees:['master'],reviewStatus:'needs_reverification',deadline:null,...patch});
@@ -140,4 +141,42 @@ test('Farsi and Pashto search tolerates Arabic keyboard forms and diacritics',()
  // Searching must not change the public metadata or widen confirmed filters.
  assert.equal(rows[0].title,'Science Fellowship');
  assert.deepEqual(catalog.filterResearch(rows,{q:'آلمان ماستري',noFee:true},NOW),[]);
+});
+
+test('Afghan applicant eligibility is never assumed from a provider listing', () => {
+ // Every shipped row leaves the question open, and the UI has to say so rather
+ // than let a reader infer that a UK or German award accepts an Afghan passport.
+ for(const row of catalog.researchScholarships) assert.equal(catalog.researchApplicantEligibility(row),'unreviewed');
+ const reviewed=(status,extra={})=>listing({eligibilityReview:{status,reviewedAt:'2026-11-20',sourceExcerpt:'Open to applicants of any nationality.',...extra}});
+ assert.equal(catalog.researchApplicantEligibility(reviewed('applicant_eligible')),'applicant_eligible');
+ assert.equal(catalog.researchApplicantEligibility(reviewed('applicant_restricted')),'applicant_restricted');
+ // A review is only evidence with a real date and the line it rests on.
+ assert.equal(catalog.researchApplicantEligibility(reviewed('applicant_eligible',{reviewedAt:'2026-02-30'})),'unreviewed');
+ assert.equal(catalog.researchApplicantEligibility(reviewed('applicant_eligible',{reviewedAt:undefined})),'unreviewed');
+ assert.equal(catalog.researchApplicantEligibility(reviewed('applicant_eligible',{sourceExcerpt:'   '})),'unreviewed');
+ assert.equal(catalog.researchApplicantEligibility(reviewed('probably_fine')),'unreviewed');
+ assert.equal(catalog.researchApplicantEligibility({...listing(),eligibilityReview:'eligible'}),'unreviewed');
+});
+
+test('the research card states the eligibility question it cannot answer', () => {
+ const explorer=readFileSync(new URL('../src/research-explorer.js',import.meta.url),'utf8');
+ assert.match(explorer,/researchApplicantEligibility/);
+ assert.match(explorer,/data-eligibility="\$\{esc\(eligibility\)\}"/);
+ for(const key of ['eligibilityUnreviewed','eligibilityEligible','eligibilityRestricted'])assert.match(explorer,new RegExp(key));
+ const copy=readFileSync(new URL('../src/research-copy.js',import.meta.url),'utf8');
+ for(const key of ['eligibilityUnreviewed','eligibilityEligible','eligibilityRestricted'])assert.equal(copy.split(key).length-1,3,`${key} must exist in en, fa and ps`);
+});
+
+test('a row whose study level was never recorded says so instead of rendering a gap', () => {
+ // `mmeg-us-canada` carries no recorded level. It must not print "Country · " and
+ // it must never satisfy a specific level filter, but the card has to explain it.
+ const unrecorded=catalog.researchScholarships.find(row=>row.id==='mmeg-us-canada');
+ assert.ok(unrecorded,'the row still ships');
+ assert.deepEqual(unrecorded.degrees,[]);
+ assert.deepEqual(catalog.filterResearch([unrecorded],{degree:'master'},NOW),[]);
+ assert.deepEqual(catalog.filterResearch([unrecorded],{degree:'all'},NOW).map(x=>x.id),['mmeg-us-canada']);
+ const explorer=readFileSync(new URL('../src/research-explorer.js',import.meta.url),'utf8');
+ assert.match(explorer,/row\.degrees\.length\?/,'an empty level list renders the unknown note, not an empty slot');
+ const copy=readFileSync(new URL('../src/research-copy.js',import.meta.url),'utf8');
+ assert.equal(copy.split('degreeUnknown').length-1,3,'degreeUnknown must exist in en, fa and ps');
 });
