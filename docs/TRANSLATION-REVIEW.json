@@ -78,6 +78,22 @@
       "fa": "جزئیات تأیید بارگذاری نشد. چیزی از دست نرفت؛ لحظه‌ای بعد دوباره تلاش کنید.",
       "ps": "د تایید جزئیات ونه لوستل شول. هېڅ شی له لاسه نه دی ورک شوی؛ لږ وروسته بیا هڅه وکړئ.",
       "status": "PENDING"
+    },
+    {
+      "source": "src/documents.js",
+      "key": "duplicateNote",
+      "en": "An identical copy of this document is already saved. Delete this one if you do not need a second copy.",
+      "fa": "یک نسخهٔ یکسان از این سند پیش‌تر ذخیره شده است. اگر به نسخهٔ دوم نیاز ندارید، این یکی را حذف کنید.",
+      "ps": "د دې سند یوه ورته کاپي لا دمخه ساتل شوې ده. که دوهمه کاپي ته اړتیا نه لرئ، دا یوه ړنګه کړئ.",
+      "status": "PENDING"
+    },
+    {
+      "source": "src/documents.js",
+      "key": "libraryCopy.duplicate",
+      "en": "duplicate",
+      "fa": "تکراری",
+      "ps": "تکراري",
+      "status": "PENDING"
     }
   ],
   "checks": [

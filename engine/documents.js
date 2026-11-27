@@ -105,6 +105,14 @@ export class DocumentStore {
      this.db.exec('COMMIT');return existing;
     }
    }
+   // An identical upload is kept as its own consent event, but it is marked so the
+   // reader and the library can say a copy already exists: ten silent duplicates
+   // would fill the whole document quota with indistinguishable rows.
+   for(const row of this.db.prepare('SELECT data FROM documents WHERE owner=?').all(owner)){
+    const existing=JSON.parse(row.data);
+    const existingMethod=existing.extractionMethod==='bounded_text_parser'?'utf8_text':existing.extractionMethod;
+    if(existing.sha256===record.sha256&&existingMethod===record.extractionMethod){record.duplicateOf=existing.id;break;}
+   }
    if(this.db.prepare('SELECT count(*) AS n FROM documents WHERE owner=?').get(owner).n>=10)throw new DocumentError(429);this.db.prepare('INSERT INTO documents VALUES(?,?,?)').run(id,owner,JSON.stringify(record));this.db.exec('COMMIT');}catch(e){this.db.exec('ROLLBACK');throw e;}
   return record;
  }
@@ -114,7 +122,7 @@ export class DocumentStore {
   if(!row)throw new DocumentError(404);return JSON.parse(row.data);
  }
  profile(uid){const row=this.db.prepare('SELECT data FROM profiles WHERE owner=?').get(this.owner(uid));return row?JSON.parse(row.data):{};}
- list(uid){return this.db.prepare('SELECT data FROM documents WHERE owner=?').all(this.owner(uid)).map(row=>{const r=JSON.parse(row.data);return {id:r.id,uploadedAt:r.uploadedAt,reviewed:!!r.reviewedAt,consistency:r.consistency,authenticity:r.authenticity};});}
+ list(uid){return this.db.prepare('SELECT data FROM documents WHERE owner=?').all(this.owner(uid)).map(row=>{const r=JSON.parse(row.data);return {id:r.id,uploadedAt:r.uploadedAt,reviewed:!!r.reviewedAt,consistency:r.consistency,authenticity:r.authenticity,duplicateOf:r.duplicateOf??null};});}
  updateProfile(uid,input){
   this.assertWritable(uid);
   if(input?.consent!==true)throw new DocumentError(400);

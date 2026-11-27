@@ -267,6 +267,39 @@ try {
   await dashboard.locator('.document-claim').first().waitFor({state: 'detached'});
   await capture('04-reader-approved-1280-en');
 
+  // Journey: conflicting evidence is surfaced and never silently applied.
+  const documentsPanel = dashboard.locator('#documents');
+  await documentsPanel.locator('.document-paste summary').click();
+  await documentsPanel.locator('.document-paste textarea').fill(
+    'SYNTHETIC CONFLICT ONLY\nIssuer: Example University\nDegree: bachelor\nDegree: master'
+  );
+  await dashboard.locator('#document-consent').check();
+  await documentsPanel.getByRole('button', {name: 'Upload and inspect'}).click();
+  await expect(documentsPanel.getByText('Conflicting values were found.')).toBeVisible();
+  await expect(documentsPanel.locator('.document-source')).toContainText('Degree: master');
+  assert.equal(await documentsPanel.locator('.document-claim').count(), 0, 'a conflicting document offers no claim decisions');
+  assert.equal(await documentsPanel.getByRole('button', {name: 'Approve reviewed claims'}).count(), 0, 'a conflicting document cannot be approved');
+  assert.equal(await documentsPanel.evaluate(el => el.dataset.documentStage), 'review', 'a conflict stays in review and never advances to save');
+  await documentsPanel.locator('#document-reader-heading').scrollIntoViewIfNeeded();
+  await capture('04b-conflict-1280-en');
+
+  // Journey: uploading the same document again keeps its own record but says so,
+  // then deleting the copy leaves the original untouched.
+  const beforeCopy = documents.list(session.localId).length;
+  await documentsPanel.getByRole('button', {name: 'Upload and inspect'}).click();
+  await expect(documentsPanel.locator('.document-duplicate-note')).toBeVisible();
+  await expect(documentsPanel.locator('#document-chooser')).toContainText('duplicate');
+  assert.equal(documents.list(session.localId).length, beforeCopy + 1, 'the copy keeps its own consent record');
+  await documentsPanel.locator('#document-reader-heading').scrollIntoViewIfNeeded();
+  await capture('04c-duplicate-1280-en');
+  await documentsPanel.getByRole('button', {name: 'Delete document and linked profile facts'}).click();
+  await expect(documentsPanel.locator('.document-source')).toHaveCount(0);
+  await expect(documentsPanel.locator('.document-duplicate-note')).toHaveCount(0);
+  assert.equal(await documentsPanel.evaluate(el => el.dataset.documentStage), 'upload', 'an emptied reader returns the rail to intake');
+  await expect.poll(() => documents.list(session.localId).length).toBe(beforeCopy);
+  await documentsPanel.locator('fieldset').first().scrollIntoViewIfNeeded();
+  await capture('04d-deleted-1280-en');
+
   await dashboard.getByRole('link', {name: 'Assessments', exact: true}).click();
   await dashboard.locator('#local-workflow-mount').waitFor({state: 'visible'});
   await page.waitForTimeout(600);
@@ -338,7 +371,7 @@ try {
   await expect(dashboard.getByText('Sign in and try again')).toHaveCount(0);
   const selectors = dashboard.locator('.verification-request select');
   assert.deepEqual(await selectors.nth(1).locator('option').allTextContents(), ['No issuing organisation is connected yet.']);
-  assert.equal(await selectors.first().locator('option').count(), 1, 'the saved document stays selectable during a provider outage');
+  assert.equal(await selectors.first().locator('option').count(), documents.list(session.localId).length, 'every saved document stays selectable during a provider outage');
 
   await dashboard.getByRole('link', {name: 'Account', exact: true}).click();
   await capture('08-account-1280-en');

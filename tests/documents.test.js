@@ -182,3 +182,25 @@ test('legacy parser-labeled upload requests remain idempotent after schema evolu
   assert.throws(()=>store.upload('alice',{...input,requestId,extractionMethod:'manual_transcription_from_image'}),e=>e.status===409);
  }finally{store.close();rmSync(dir,{recursive:true,force:true});}
 });
+
+test('an identical upload is marked as a copy instead of hiding in the library',()=>{
+ const dir=mkdtempSync(join(tmpdir(),'bursyar-duplicate-')),store=new DocumentStore(join(dir,'docs.db'));
+ try{
+  const first=store.upload('alice',{text:'Degree: bachelor',mime:'text/plain',consent:true});
+  assert.equal(first.duplicateOf,undefined,'the first upload is not a copy');
+  const second=store.upload('alice',{text:'Degree: bachelor',mime:'text/plain',consent:true});
+  assert.notEqual(second.id,first.id,'each upload keeps its own consent record');
+  assert.equal(second.duplicateOf,first.id,'the identical upload points at the copy it matches');
+  const listed=store.list('alice');
+  assert.equal(listed.length,2);
+  assert.equal(listed.find(item=>item.id===first.id).duplicateOf,null);
+  assert.equal(listed.find(item=>item.id===second.id).duplicateOf,first.id);
+  // Same bytes with a different extraction provenance is not the same document.
+  const manual=store.upload('alice',{text:'Degree: bachelor',mime:'text/plain',consent:true,extractionMethod:'manual_transcription_from_image'});
+  assert.equal(manual.duplicateOf,undefined);
+  // Deleting the copy leaves the original and its own record untouched.
+  store.delete('alice',second.id);
+  assert.equal(store.list('alice').length,2);
+  assert.equal(store.list('alice').some(item=>item.id===second.id),false);
+ }finally{store.close();rmSync(dir,{recursive:true,force:true});}
+});

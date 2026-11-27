@@ -42,6 +42,9 @@ html[dir=rtl] .document-stage-list li:not(:last-child)::after{transform:translat
 .document-claim legend{color:var(--sb-navy-deep)}
 .document-provenance{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sb-muted)}
 .document-claim blockquote{margin:8px 0;border-inline-start:3px solid var(--sb-dot);padding:6px 12px;background:var(--sb-paper);font-size:13px;line-height:1.7}
+/* An identical copy is a kept record, so it says so plainly instead of looking
+   like a second, different document in the library. */
+.document-duplicate-note{margin:6px 0 0;padding:8px 12px;border-inline-start:3px solid var(--sb-navy);background:var(--sb-paper);color:var(--sb-navy-deep);font-size:12px;line-height:1.7}
 .document-method{display:inline-block;font-size:11px;font-weight:600;color:var(--sb-navy);border:1px solid var(--sb-navy);border-radius:999px;padding:3px 12px;margin:4px 0 0;line-height:1.6;background:var(--sb-card)}
 .document-source{background:var(--sb-card);border:1px solid var(--sb-rule);border-radius:var(--sb-radius);box-shadow:7px 7px 0 -5px var(--sb-rule)}
 #documents .document-paste{background:var(--sb-card)}

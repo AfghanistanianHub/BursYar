@@ -119,6 +119,15 @@ Dari/Pashto review of the three strings added to `docs/TRANSLATION-REVIEW.json`.
 Not verified in this phase: the original AI Studio prototype (it is not in this repository or its
 history) and the live processing of a document in the narrative scene, which the artwork does not claim.
 
+## Phase 9 — Document-processing evidence: conflict, copy, deletion (2026-11-27)
+
+| ID | Defect | Correction | Evidence |
+| --- | --- | --- | --- |
+| DOC-04 | An identical re-upload was indistinguishable from a different document. The store keeps one record per consent event, so the same transcript twice spent two of the ten document slots and produced two identical rows in the library, with nothing telling the student that one was a copy. | The store now stamps an identical upload (same content hash and same extraction provenance) with `duplicateOf`, `list()` returns it, the library row is labelled `duplicate`, and the reader says so above the source text without changing any count, consent record or idempotency rule. | New case in `tests/documents.test.js`: `duplicateOf` is absent on the first upload, points at the first record on the second, is absent when the same bytes carry a different extraction method, and the copy deletes without touching the original. Rendered in scene `04c-duplicate-1280-en`. |
+| DOC-05 | The conflict state had never been rendered: a document with contradictory values (`Degree: bachelor` and `Degree: master`) was only covered at the engine unit level, so nothing proved that the reader refuses to offer claim decisions, refuses approval, and never advances the stage rail to `Save`. | No code change was required: the state is correct. It is now exercised by the authenticated gate, which uploads such a document through the real paste path and asserts the conflict copy, the retained source text, zero claim fieldsets, no approve action and stage `review`. | Scene `04b-conflict-1280-en`, assertions in `verification/workspace-visual.mjs`; `npm run test:workspace` 27 scenes, 0 axe violations, 0 overflow, 0 unexpected errors. |
+| DOC-06 | Deleting the open document emptied the reader but left the stage rail on `Review before use`, so the workflow indicator claimed a review was current when nothing was open. | The delete path resets the rail to intake. | The gate deletes the duplicate copy and asserts stage `upload`, the reader empty, and the store back to its previous count (scene `04d-deleted-1280-en`). |
+| TEST-10 | The verification panel's provider-outage assertion expected exactly one selectable document, which only held while the journey happened to keep one record; adding the conflict and duplicate scenes made it fail for the right reason. | The assertion now compares against the engine's own list for that account, which is what "the saved documents stay selectable" means. | Gate passes with two records present; no product behaviour changed. |
+
 ## Standing constraints
 
 - Production (`bursyar.vercel.app`) returns HTTP 503 from the requested project pause; it is
