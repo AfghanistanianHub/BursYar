@@ -877,54 +877,52 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
  }
 }
 
-/* Landing evidence composition: one bounded workflow, not independent cards.
-   Logical properties preserve RTL reading order; all controls remain native. */
-@media screen {
- html #top>.hero.hero-with-cables{
-  grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);
-  grid-template-rows:auto auto;
-  align-items:center;gap:clamp(20px,3vw,48px);
-  padding:clamp(20px,3vw,44px) max(5vw,calc((100vw - 1320px)/2)) clamp(36px,5vw,76px);
-  background:radial-gradient(ellipse at 75% 55%,#e9eef344,transparent 65%),var(--bg);
- }
- html #top>.hero.hero-with-cables .by-arc-band{grid-area:1/1/2/-1;max-width:660px;background:transparent}
- html #top>.hero.hero-with-cables .hero-intro{grid-area:2/1;align-self:center;padding:0;min-width:0}
- html #top>.hero.hero-with-cables .hero-intro h1{font-size:clamp(36px,4.2vw,64px);max-width:17ch}
- html #top>.hero.hero-with-cables .hero-evidence-flow{
-  grid-area:2/2;min-width:0;display:grid;gap:0;align-self:center;
-  padding:clamp(16px,2.5vw,34px);border:1px solid #d8d0c8;
-  border-radius:20px;background:#f5f2ed;box-shadow:0 18px 48px #1e3a5f0b;
- }
- html #top>.hero.hero-with-cables .hero-evidence-flow .hero-document-reader,
- html #top>.hero.hero-with-cables .hero-evidence-flow .document-demo-visual{
-  grid-area:auto;max-width:none;width:100%;margin:0;justify-self:stretch;align-self:stretch;
- }
- html #top>.hero.hero-with-cables .hero-evidence-flow .hero-document-reader{
-  padding:16px;background:#fefdfb;border-radius:10px;
- }
+/* Canonical landing composition: editorial typography and one evidence instrument. */
+@media screen{
+ html #top>.hero.hero-with-cables{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:auto auto;align-items:center;gap:clamp(24px,3vw,48px);padding:20px max(5vw,calc((100vw - 1280px)/2)) clamp(48px,6vw,88px);background:#fefdfb}
+ html #top>.hero.hero-with-cables .by-arc-band{grid-area:1/1/2/-1;max-width:600px;background:transparent}
+ html #top>.hero.hero-with-cables .hero-intro{grid-area:2/1;min-width:0;padding:0;align-self:center}
+ html #top>.hero.hero-with-cables .hero-intro h1{font-size:clamp(38px,4.5vw,68px);font-weight:600;line-height:1.06;letter-spacing:-.055em;max-width:16ch}
+ html[dir=rtl] #top>.hero.hero-with-cables .hero-intro h1{font-size:clamp(32px,3.6vw,52px);line-height:1.5;letter-spacing:0;max-width:22ch}
+ html #top>.hero.hero-with-cables .hero-evidence-flow{grid-area:2/2;min-width:0;display:grid;gap:0;align-self:center;padding:clamp(18px,2.6vw,36px);border:1px solid #d8d0c8;border-radius:4px;background:linear-gradient(145deg,#f4f0e9,#fefdfb);box-shadow:0 24px 60px #1e3a5f0d}
+ html #top>.hero.hero-with-cables .hero-evidence-flow :is(.hero-document-reader,.document-demo-visual){grid-area:auto;max-width:none;width:100%;margin:0;justify-self:stretch;align-self:stretch}
+ html #top>.hero.hero-with-cables .hero-evidence-flow .hero-document-reader{padding:0;background:transparent;border:0;border-radius:0}
  html #top>.hero.hero-with-cables .hero-evidence-flow .document-demo-visual{padding:0;border:0;background:none}
- html #top>.hero.hero-with-cables .hero-evidence-flow .document-demo{max-width:none;border-radius:10px;padding:clamp(14px,2vw,24px);gap:12px}
- .hero-evidence-connector{height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative}
+ html #top>.hero.hero-with-cables .hero-evidence-flow .document-demo{max-width:none;border:0;background:transparent;border-radius:0;padding:0;gap:16px}
+ .hero-stage-index{display:inline-grid;place-items:center;flex:none;width:30px;height:30px;border:1px solid #b8c4cf;border-radius:50%;font:500 11px/1 var(--font-en);color:#1e3a5f}
+ .hero-reader-heading,.hero-assessment-heading{display:flex;align-items:center;gap:12px}
+ .hero-reader-heading svg{display:none}
+ .hero-reader-heading strong{font-size:14px;font-weight:600}
+ .hero-reader-source{display:grid;grid-template-columns:58px minmax(0,1fr);gap:12px;padding:16px;margin-block-start:14px;border:1px solid #d8d0c8;background:#fffefa;border-radius:3px}
+ .hero-reader-source button{grid-column:2;justify-self:start;background:#1e3a5f;color:#fff;border-color:#1e3a5f;border-radius:3px}
+ .hero-reader-source button:hover{background:#294d75}
+ .hero-paper-preview{grid-row:1/3;align-self:center;display:grid;align-content:center;gap:5px;padding:9px 7px;height:76px;border:1px solid #b8c4cf;background:#fefdfb;box-shadow:3px 3px 0 #e2ddd5}
+ .hero-paper-preview i{height:2px;background:#b8c4cf}
+ .hero-paper-preview i:nth-child(2){width:70%}.hero-paper-preview i:nth-child(4){background:#b58b42;width:85%}
+ .hero-evidence-connector{height:42px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;position:relative}
  .hero-evidence-connector::before{content:"";position:absolute;inset-block:0;inset-inline-start:50%;border-inline-start:1px solid #9aafc4}
- .hero-evidence-connector span{position:relative;width:5px;height:5px;border-radius:50%;background:#1e3a5f}
- .hero-evidence-flow:has(select:not(:disabled)) .hero-evidence-connector span{background:#2b6144}
+ .hero-evidence-connector span{position:relative;width:4px;height:4px;border-radius:50%;background:#1e3a5f}
+ .hero-evidence-flow.evidence-read .hero-evidence-connector span{background:#2b6144}
+ .hero-assessment-heading h2{font-size:clamp(18px,1.6vw,24px);font-weight:600;line-height:1.35}
+ .hero-evidence-flow .document-demo-field{padding:12px 0;border-block-end:1px solid #d8d0c8}
+ .hero-evidence-flow .document-demo-result{border:0;padding:7px 0}
+ .hero-evidence-flow .document-demo-next{display:flex;align-items:flex-start;gap:12px;padding:14px 0 0;border-block-start:1px solid #d8d0c8;border-radius:0;background:transparent}
  #by-hero-cables .by-motion{min-height:44px;background:transparent;border-color:transparent}
  #by-hero-cables .by-motion:hover,#by-hero-cables .by-motion:focus-visible{border-color:var(--line)}
  #top>.guided-entry{background-image:none}
- #top>:is(.guided-entry,.by-story-scene,.by-discovery-scene,.editorial-selected,.pathfinder-dashboard) h2{
-  font-family:var(--font-ui);font-weight:600;letter-spacing:-.035em;line-height:1.2;
- }
+ #top>:is(.guided-entry,.by-story-scene,.by-discovery-scene,.editorial-selected,.pathfinder-dashboard) h2{font-family:var(--font-ui);font-weight:600;letter-spacing:-.035em;line-height:1.2}
  html[dir=rtl] #top>:is(.guided-entry,.by-story-scene,.by-discovery-scene,.editorial-selected,.pathfinder-dashboard) h2{letter-spacing:0;line-height:1.5}
 }
 @media screen and (max-width:1023px){
- html #top>.hero.hero-with-cables{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;padding:18px clamp(14px,5vw,48px) 36px;gap:22px}
+ html #top>.hero.hero-with-cables{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto;padding:18px clamp(14px,5vw,48px) 42px;gap:24px}
  html #top>.hero.hero-with-cables .hero-intro{grid-area:2/1;max-width:680px;margin-inline:auto}
  html #top>.hero.hero-with-cables .hero-evidence-flow{grid-area:3/1;width:min(100%,620px);justify-self:center}
  html #top>.hero.hero-with-cables .hero-intro h1{font-size:clamp(30px,5vw,48px);max-width:100%}
 }
 @media screen and (max-width:390px){
- html #top>.hero.hero-with-cables .hero-evidence-flow{padding:10px;border-radius:12px}
+ html #top>.hero.hero-with-cables .hero-evidence-flow{padding:12px}
  html #top>.hero.hero-with-cables .hero-evidence-flow .document-demo-field{grid-template-columns:minmax(0,1fr)}
  html #top>.hero.hero-with-cables .hero-evidence-flow .document-demo-field select{width:100%;min-width:0}
+ .hero-reader-source{grid-template-columns:42px minmax(0,1fr);padding:10px;gap:8px}
 }
-@media print{.hero-evidence-connector{display:none}.hero-evidence-flow{display:block;break-inside:avoid}}
+@media print{.hero-evidence-connector,.hero-paper-preview,.hero-stage-index{display:none}.hero-evidence-flow{display:block;break-inside:avoid}}
