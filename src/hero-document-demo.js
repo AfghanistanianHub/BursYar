@@ -66,6 +66,7 @@ export function mountHeroDocumentDemo(root,language) {
   const next=root.querySelector('[data-demo-next]');
   function updateResult(){
     printDegree.textContent=degree.selectedOptions[0].textContent;
+    if(!degree.value){result.dataset.status='unknown';result.textContent=t.unknown;next.textContent=t.choose;return;}
     const meets=degree.value==='bachelor'||degree.value==='master';
     result.dataset.status=meets?'met':'not_met';
     result.textContent=meets?t.met:t.notMet;
@@ -78,7 +79,9 @@ export function mountHeroDocumentDemo(root,language) {
       hint.textContent=t.ready;
       updateResult();
     }
-    degree.focus();
+    root.querySelector('.hero-evidence-flow')?.classList.add('evidence-read');
+    degree.focus({preventScroll:true});
+    if(degree.getBoundingClientRect().bottom>window.innerHeight||degree.getBoundingClientRect().top<0)degree.scrollIntoView({block:'center',behavior:'instant'});
   });
   degree.addEventListener('change',()=>{hint.textContent=t.edited;updateResult();});
 }
