@@ -25,11 +25,11 @@ const copy = {
 export function heroDocumentReader(language) {
   const t=copy[language]??copy.en;
   return `<div class="hero-document-reader">
-    <div class="hero-reader-heading">
+    <div class="hero-reader-heading"><span class="hero-stage-index" aria-hidden="true">01</span>
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4M7 12h10"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/></svg>
       <strong>${t.tool}</strong>
     </div>
-    <div class="hero-reader-source">
+    <div class="hero-reader-source"><div class="hero-paper-preview" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       <div><small>${t.source}</small><p dir="ltr" lang="en">Degree awarded: <mark>Bachelor of Science</mark></p></div>
       <button type="button" data-demo-read aria-controls="document-demo-degree">${t.read} <span aria-hidden="true">→</span></button>
     </div>
@@ -39,7 +39,7 @@ export function heroDocumentReader(language) {
 export function heroDocumentDemo(language) {
   const t=copy[language]??copy.en;
   return `<aside class="hero-visual document-demo-visual"><section class="document-demo" aria-labelledby="document-demo-title">
-    <div><small>${t.sample}</small><h2 id="document-demo-title">${t.title}</h2></div>
+    <div class="hero-assessment-heading"><span class="hero-stage-index" aria-hidden="true">02</span><div><small>${t.sample}</small><h2 id="document-demo-title">${t.title}</h2></div></div>
     <div class="document-demo-field">
       <label for="document-demo-degree">${t.field}</label>
       <select id="document-demo-degree" aria-describedby="document-demo-hint" disabled>
@@ -52,7 +52,7 @@ export function heroDocumentDemo(language) {
     <div aria-live="polite" aria-atomic="true">
       <div class="document-demo-result"><strong>${t.requirement}</strong><span data-demo-result data-status="unknown">${t.unknown}</span></div>
       <div class="document-demo-result document-demo-language"><strong>${t.language}</strong><span data-status="unknown">${t.unknown}</span></div>
-      <div class="document-demo-next"><small>${t.next}</small><p data-demo-next>${t.choose}</p></div>
+      <div class="document-demo-next"><span class="hero-stage-index" aria-hidden="true">03</span><div><small>${t.next}</small><p data-demo-next>${t.choose}</p></div></div>
     </div>
   </section></aside>`;
 }
