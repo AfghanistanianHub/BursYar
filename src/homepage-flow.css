@@ -966,3 +966,26 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
  #top>.guided-entry .guided-option{padding-block:18px}
  #top>.by-story-scene .by-story-visual{min-height:240px}
 }
+
+/* Navigation and chapter artwork: shared line weights and native controls. */
+@media screen{
+ .site .header{background:#fefdfb;border-block-end:1px solid #d8d0c8;box-shadow:none;gap:clamp(12px,2vw,28px)}
+ .site .header .editorial-nav a{font-weight:550;letter-spacing:.035em;text-transform:none;text-decoration:none;position:relative}
+ .site .header .editorial-nav a::after{content:"";position:absolute;inset-inline:0;inset-block-end:3px;height:1px;background:currentColor;transform:scaleX(0);transition:transform .18s ease}
+ .site .header .editorial-nav a:is(:hover,:focus-visible)::after{transform:scaleX(1)}
+ .site .header :is(.account summary,.language select){background:transparent;border:1px solid #d8d0c8;border-radius:4px;min-height:44px}
+ .site .header .header-start{border-radius:4px;min-height:44px}
+ #top>.hero.hero-with-cables>.hero-copy{grid-area:2/1;min-width:0;align-self:center;width:100%}
+ #top>.hero.hero-with-cables>.hero-copy .hero-intro{width:100%;margin:0}
+ #top>.by-story-scene .by-story-paper{border-radius:5px;transform:rotate(-3deg)}
+ html[dir=rtl] #top>.by-story-scene .by-story-paper{transform:rotate(3deg)}
+ #top>.by-story-scene .by-story-paper-chrome{inset-inline:9%;padding-block-end:8px;border-block-end:1px solid #d8d0c8}
+ #top>.by-story-scene .by-story-paper-highlight{box-shadow:0 0 0 4px #f7e7b833}
+ #top>.by-discovery-scene .by-discovery-core{box-shadow:0 0 0 12px #1e3a5f12,0 0 0 24px #1e3a5f08}
+ #top>.by-discovery-scene .by-discovery-marker-bars i{height:3px;border-radius:1px}
+}
+@media screen and (max-width:900px){
+ .site .header{gap:4px 8px}
+ .site .header .editorial-nav a{letter-spacing:0}
+}
+@media(prefers-reduced-motion:reduce){.site .header .editorial-nav a::after{transition:none}}
