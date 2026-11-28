@@ -69,7 +69,6 @@ html[dir=rtl] .corner-arrow{rotate:-45deg}
 
 
 
- #top>.pathfinder-dashboard .pathfinder-step-static{grid-template-columns:44px minmax(0,1fr);gap:12px}
 }
 
 
@@ -952,13 +951,17 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
  #top>.editorial-selected .editorial-opportunity{padding-block:clamp(18px,2.5vw,32px);border-block-start:1px solid #d8d0c8}
  #top>.editorial-selected .editorial-opportunity h3{font-family:var(--font-ui);font-size:clamp(17px,1.7vw,25px);font-weight:600;line-height:1.4}
  #top>.editorial-selected .editorial-opportunity-num{color:#596b7e;font-variant-numeric:tabular-nums}
- #top>.by-discovery-scene{background:#f4f0e9}
+ #top>.by-discovery-scene{background:#f4f0e9;color:#1a1a1a}
+ #top>.by-discovery-scene :is(h2,.by-story-eyebrow,.by-story-footnote,.by-story-link),#top>.by-discovery-scene .by-discovery-heading>p:not(.by-story-eyebrow){color:#1e3a5f}
+ #top>.by-discovery-scene .by-story-link{border-color:#8195aa}
+ #top>.by-discovery-scene .by-story-link:focus-visible{outline-color:#1e3a5f}
+ #top>.by-discovery-scene .by-discovery-map,#top>.by-discovery-scene .by-discovery-map .by-discovery-trail{stroke:#1e3a5f}
+ #top>.by-discovery-scene .by-discovery-map .by-discovery-orbit{stroke:#8195aa}
+ #top>.by-discovery-scene .by-discovery-map .by-discovery-orbit-alt{stroke:#a6b5c5}
+ #top>.by-discovery-scene .by-discovery-map circle{fill:#fefdfb;stroke:#1e3a5f}
  #top>.by-discovery-scene .by-discovery-marker{border-radius:5px;box-shadow:0 12px 26px #1e3a5f12}
  #top>.pathfinder-dashboard{background:#fefdfb;overflow:clip}
  #top>.pathfinder-dashboard .pathfinder-timeline{position:relative}
- #top>.pathfinder-dashboard .pathfinder-step-static{position:relative;gap:18px;padding-block:20px}
- #top>.pathfinder-dashboard .pathfinder-step-static::before{content:"";position:absolute;inset-inline-start:21px;inset-block:0;width:1px;background:#b8c4cf;z-index:-1}
- #top>.pathfinder-dashboard .pathfinder-step-static>:first-child{border-radius:50%;background:#fefdfb;border-color:#a6b5c5}
  .site>footer{padding:28px var(--landing-gutter,5vw);border-block-start:1px solid #d8d0c8}
 }
 @media screen and (max-width:760px){
