@@ -8,6 +8,11 @@ earlier remediation narrative in `docs/AUDIT-REMEDIATION.md`.
 Branch: `work/restore-approved-ai-studio-hero`. Baseline commit when this file was
 created: `211801c` (the first published commit of the recovered history).
 
+Animation implementation batch resumed on `freebuff/9e7a86ae8c05378b27baa843`,
+fast-forwarded to `ebae4ac` (0 behind, 264 ahead of the previous checkout's
+`2162be3`). The tree was clean on arrival, so there were no uncommitted changes to
+preserve or reconcile.
+
 ## 1. Repository continuity
 
 - The handover named commits `79a9b54` (accessibility matrix) and `f1715af`
@@ -55,6 +60,51 @@ not listed as passing.
 | `node --test tests/workspace-layout-guards.test.js` | 8/8 layout, navigation and copy guards |
 | `node --test tests/narrative-scroll-timelines.test.js` | 4/4 narrative guards, including the document fragment lanes and the RTL mirror |
 | `verification/animation-accessibility.mjs` | 6/6 cases: 0 contrast failures in the scroll sweep, the paper, markers and document fragments all hold `view()` timelines and move with scroll, and the connector mirrors exactly in `fa`/`ps` |
+| Animation batch re-run, 2026-11-28 at `ebae4ac` | `npm run build` exit 0; `node --test tests/narrative-scroll-timelines.test.js` 4/4; `verification/animation-accessibility.mjs` 6/6 (`{passed:true,cases:6}`) on a locally provisioned headless Chromium 141 in this Linux workspace |
+| Document-fragment evidence, 2026-11-28 | 12 frames regenerated at 1440 and 390 in `en`/`fa`/`ps`, each with a reduced-motion twin, in `verification/artifacts/narrative/` with `measurements.json` (gitignored, as this repository requires for artifacts) |
+
+### Animation implementation batch — 2026-11-28
+
+The document-specific particle narrative was already implemented in `c5474f4`
+(`docs/DESIGN-NARRATIVE-RECOVERY.md`, defects NARR-01/NARR-02 in
+`docs/DEFECT-REGISTER.md`). Re-checking it end to end produced **no source change**:
+the six fragments, the reader chrome, the careted evidence line, the RTL mirror
+rule and the reduced-motion pinning are all present and behave as documented, so
+nothing was rewritten to manufacture a diff.
+
+What this batch did add is the evidence the register cites but which was missing
+from this checkout: `verification/artifacts/narrative/` held no frames. They are
+regenerated and measured now.
+
+Measured on the built bundle, scene centred in the viewport:
+
+| Width | Lane A fragments | Lane B fragments | Connector transform | Overflow |
+| --- | --- | --- | --- | --- |
+| 1440 `en` | 58%, 78%, 85.2% | 32.3%, 40.6%, 43.8% | `none` | 0 |
+| 390 `en` | 40.0%, 51.5%, 56.8% | 25.4%, 32.4%, 35.3% | `none` | 0 |
+| 1440 / 390 `fa`, `ps` | same travel, mirrored | same travel, mirrored | `matrix(-1, 0, 0, 1, 0, 0)` | 0 |
+| any, reduced motion | 58%, 78%, 92% (resting) | 54%, 76%, 90% (resting) | mirrored as above | 0 |
+
+Those numbers differ from the register's earlier recording (`43.7/56.1/61.8%` and
+`27.6/35.3/38.4%`) because the sample scroll position is not identical; the
+behaviour — scroll-driven travel, per-fragment resting distances, exact RTL
+mirroring, and a static frame under reduced motion — reproduces.
+
+Browser provisioning note for this workspace (no root, so no `apt-get install`):
+the Ubuntu 24.04 libraries Chromium needs were fetched with
+`apt-get -o Dir::State::lists=/tmp/apt/lists -o Dir::Cache::archives=/tmp/apt/cache/archives download`
+and unpacked with `dpkg -x` into `/tmp/libroot`; runs then need
+`LD_LIBRARY_PATH=/tmp/libroot/usr/lib/x86_64-linux-gnu`, `FONTCONFIG_PATH=/tmp/libroot/etc/fonts`
+and `PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS=1`. Those paths are per-session and
+are not committed.
+
+Not run in this batch, deliberately: the full `npm test`, browser, workspace, emulator
+and release-check suites. The scope was the animation batch, so only the narrative
+guards, the animation gate and a build were executed. Their earlier results above
+stand from previous runs and were not re-measured here.
+
+Remaining implementation work for this batch: none. The narrative is closed; the
+open items in §3 are unchanged and none of them is the particle transition.
 
 ## 3. Backlog
 
