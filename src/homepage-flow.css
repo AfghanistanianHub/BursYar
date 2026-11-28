@@ -225,21 +225,22 @@ html[dir=rtl] .by-story-eyebrow{letter-spacing:0}
 }
 @media screen and (prefers-reduced-motion:no-preference){
  @supports(animation-timeline:view()){
+  #top>.by-story-scene{view-timeline-name:--evidence-scene;view-timeline-axis:block}
   #top>.by-story-scene .by-story-paper{
    animation:by-story-paper-arrive 1ms linear both;
-   animation-timeline:view();animation-range:entry 0% cover 55%;
+   animation-timeline:--evidence-scene;animation-range:entry 0% cover 55%;
   }
   #top>.by-story-scene .by-story-evidence,
   #top>.by-story-scene .by-story-unknown{
    animation:by-story-guidance-arrive 1ms linear both;
-   animation-timeline:view();animation-range:entry 10% cover 65%;
+   animation-timeline:--evidence-scene;animation-range:entry 35% cover 80%;
   }
-  #top>.by-story-scene .by-story-unknown{animation-range:entry 25% cover 80%}
+  #top>.by-story-scene .by-story-unknown{animation-range:entry 45% cover 90%}
   /* The fragments leave the document one after another as the reader scrolls,
      then rest on the lane: a sequence, not a permanently moving decoration. */
   #top>.by-story-scene .by-story-particle{
    animation:by-story-particle-travel 1ms linear both;
-   animation-timeline:view();animation-range:entry 8% cover 58%;
+   animation-timeline:--evidence-scene;animation-range:entry 15% cover 65%;
   }
   #top>.by-story-scene .by-story-particle:nth-child(2){animation-range:entry 14% cover 64%}
   #top>.by-story-scene .by-story-particle:nth-child(3){animation-range:entry 20% cover 70%}
@@ -943,6 +944,9 @@ html[lang=fa] .by-discovery-heading h2,html[lang=ps] .by-discovery-heading h2{fo
  #top>.by-story-scene .by-story-footnote{color:#e1e8ef;border-color:#ffffff40}
  #top>.by-story-scene .by-story-route{stroke:#c7d5e4}
  #top>.by-story-scene .by-story-route circle{fill:#c7d5e4}
+ #top>.by-story-scene .by-story-route .by-story-particle{fill:#f5d18b}
+ #top>.by-story-scene .by-story-visual{min-height:0;max-height:none;aspect-ratio:520/330}
+ #top>.by-story-scene .by-story-paper{top:12%;height:74%}
  #top>.by-story-scene .by-story-visual{background:radial-gradient(ellipse,#ffffff12,transparent 70%)}
  #top>.by-story-scene .by-story-paper{box-shadow:8px 10px 0 #aebccc,18px 22px 36px #101d30aa}
  #top>.by-story-scene :is(.by-story-evidence,.by-story-unknown){box-shadow:0 12px 24px #101d3060;border-radius:5px}
