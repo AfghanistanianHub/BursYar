@@ -29,7 +29,8 @@ import {journeyCopy} from './journey-copy.js';
 import {translations} from './i18n.js';
 import {researchScholarships,researchLabel,researchSourceUrl} from './research-catalog.js';
 const app=document.querySelector('#app');
-const state={language:localStorage.getItem('bursyar-language')||'en',q:'',country:'all',level:'all'};
+function readLanguagePreference(){try{return localStorage.getItem('bursyar-language')||'en';}catch{return 'en';}}
+const state={language:readLanguagePreference(),q:'',country:'all',level:'all'};
 if(!translations[state.language])state.language='en';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let analyzerInput={};
@@ -289,7 +290,7 @@ app.innerHTML=`<div class="site"><a class="skip-link" href="#top">${esc(t.skipTo
 // reader to the top: keep the scroll offset and focus the picker in place.
 document.querySelector('#language').addEventListener('change',e=>{
  const y=window.scrollY;
- state.language=e.target.value;localStorage.setItem('bursyar-language',state.language);
+ state.language=e.target.value;try{localStorage.setItem('bursyar-language',state.language);}catch{/* Language switching remains available without storage. */}
  render();
  // The shell rebuild replaces the header's #account-controls, so the account
  // button has to be written into the fresh node: without this a language switch
