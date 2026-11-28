@@ -61,7 +61,8 @@ not listed as passing.
 | `node --test tests/narrative-scroll-timelines.test.js` | 4/4 narrative guards, including the document fragment lanes and the RTL mirror |
 | `verification/animation-accessibility.mjs` | 6/6 cases: 0 contrast failures in the scroll sweep, the paper, markers and document fragments all hold `view()` timelines and move with scroll, and the connector mirrors exactly in `fa`/`ps` |
 | Animation batch re-run, 2026-11-28 at `ebae4ac` | `npm run build` exit 0; `node --test tests/narrative-scroll-timelines.test.js` 4/4; `verification/animation-accessibility.mjs` 6/6 (`{passed:true,cases:6}`) on a locally provisioned headless Chromium 141 in this Linux workspace |
-| Document-fragment evidence, 2026-11-28 | 12 frames regenerated at 1440 and 390 in `en`/`fa`/`ps`, each with a reduced-motion twin, in `verification/artifacts/narrative/` with `measurements.json` (gitignored, as this repository requires for artifacts) |
+| `npm run test:narrative` (`verification/narrative-visual.mjs`) | 12/12 cases: frames at 1280 and 390 in `en`/`fa`/`ps` plus reduced-motion twins in `verification/artifacts/narrative/` with `report.json`; fragments hold `view()` timelines, move between the entering and centred poses, rest at their authored `--d` distance under reduced motion, mirror only in `fa`/`ps`, no overflow, no console errors |
+| `npm run test:narrative` regression proof, 2026-11-28 | The gate fails when the scene regresses: renaming the travel keyframe in the built CSS produced `6 failing cases` and exit 1; the bundle was rebuilt before the recorded 12/12 run |
 
 ### Animation implementation batch — 2026-11-28
 
@@ -73,17 +74,22 @@ rule and the reduced-motion pinning are all present and behave as documented, so
 nothing was rewritten to manufacture a diff.
 
 What this batch did add is the evidence the register cites but which was missing
-from this checkout: `verification/artifacts/narrative/` held no frames. They are
-regenerated and measured now.
+from this checkout: `verification/artifacts/narrative/` held no frames. That capture
+is no longer ad hoc — `verification/narrative-visual.mjs`, exposed as
+`npm run test:narrative`, regenerates the frames and gates them, so the register's
+citations can be reproduced by anyone with a built bundle instead of living only in
+a previous session's artefacts. The frames stay gitignored, as everywhere in this
+repository.
 
 Measured on the built bundle, scene centred in the viewport:
 
-| Width | Lane A fragments | Lane B fragments | Connector transform | Overflow |
+| Case | Lane A fragments | Lane B fragments | Connector transform | Overflow |
 | --- | --- | --- | --- | --- |
-| 1440 `en` | 58%, 78%, 85.2% | 32.3%, 40.6%, 43.8% | `none` | 0 |
+| 1280 `en` | 58%, 78%, 84.6% | 33.4%, 42.0%, 45.5% | `none` | 0 |
+| 1280 `fa` / `ps` | 58%, 78%, 84.6% | 33.3%, 42.0%, 45.5% | `matrix(-1, 0, 0, 1, 0, 0)` | 0 |
 | 390 `en` | 40.0%, 51.5%, 56.8% | 25.4%, 32.4%, 35.3% | `none` | 0 |
-| 1440 / 390 `fa`, `ps` | same travel, mirrored | same travel, mirrored | `matrix(-1, 0, 0, 1, 0, 0)` | 0 |
-| any, reduced motion | 58%, 78%, 92% (resting) | 54%, 76%, 90% (resting) | mirrored as above | 0 |
+| 390 `fa` / `ps` | 39.5/43.1%, 50.7/55.6%, 56.0/61.4% | 25.1/27.1%, 32.0/34.5%, 34.9/37.6% | `matrix(-1, 0, 0, 1, 0, 0)` | 0 |
+| all cases, reduced motion | 58%, 78%, 92% (resting) | 54%, 76%, 90% (resting) | mirrored as above | 0 |
 
 Those numbers differ from the register's earlier recording (`43.7/56.1/61.8%` and
 `27.6/35.3/38.4%`) because the sample scroll position is not identical; the
@@ -100,8 +106,8 @@ are not committed.
 
 Not run in this batch, deliberately: the full `npm test`, browser, workspace, emulator
 and release-check suites. The scope was the animation batch, so only the narrative
-guards, the animation gate and a build were executed. Their earlier results above
-stand from previous runs and were not re-measured here.
+guards, the animation gate, the narrative visual gate and a build were executed.
+Their earlier results above stand from previous runs and were not re-measured here.
 
 Remaining implementation work for this batch: none. The narrative is closed; the
 open items in §3 are unchanged and none of them is the particle transition.

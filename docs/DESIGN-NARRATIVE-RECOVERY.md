@@ -105,9 +105,17 @@ fragments.
   `43.7%`, `56.1%`, `61.8%` (lane A) and `27.6%`, `35.3%`, `38.4%` (lane B) at a
   centred scroll position; `routeTransform` is `matrix(-1, 0, 0, 1, 0, 0)` for `fa`
   and `ps` and `none` for `en`.
-- Rendered inspection at 1280 and 390 px in `en`, `fa` and `ps`:
-  `verification/artifacts/narrative/story-*.png`. No horizontal overflow at either
-  width (`scrollWidth <= innerWidth`).
+- Rendered inspection at 1280 and 390 px in `en`, `fa` and `ps` is a committed
+  gate now, not an ad-hoc capture: `npm run test:narrative`
+  (`verification/narrative-visual.mjs`) writes
+  `verification/artifacts/narrative/story-<lang>-<width>[-reduced].png` and
+  `report.json`, and fails unless the fragments hold `view()` timelines, change
+  their `offset-distance` between the entering and centred scroll poses, sit frozen
+  at their authored `--d` distance under reduced motion, mirror the connector
+  exactly for `fa`/`ps` and not for `en`, and stay inside the viewport at both
+  widths. 12/12 cases pass. The frames stay gitignored, like every other artifact
+  in this repository, so the register's citations are reproducible rather than
+  stored.
 
 ## 6. What this is not
 
